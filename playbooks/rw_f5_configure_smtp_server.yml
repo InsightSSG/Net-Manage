@@ -1,0 +1,34 @@
+- name: F5 Configure SMTP Server
+  gather_facts: no
+  hosts: "{{ host_group }}"
+
+
+  tasks:
+
+    - name: configure SMTP server
+      f5networks.f5_modules.bigip_smtp:
+        name: "{{ server_name }}"
+        smtp_server: "{{ smtp_server_address }}"
+        local_host_name: "{{ local_host_name }}"
+        from_address: "{{ from_address }}"
+        state: present
+        provider:
+          user: "{{ user }}"
+          server: "{{ ansible_host }}"
+          password: "{{ password }}"
+          server_port: "{{ ansible_port }}"
+          validate_certs: "{{ validate_certs }}"
+      delegate_to: localhost
+
+    - name: verify SMTP Server
+      f5networks.f5_modules.bigip_command:
+        commands:
+          - list sys smtp
+        provider:
+          user: "{{ user }}"
+          server: "{{ ansible_host }}"
+          password: "{{ password }}"
+          server_port: "{{ ansible_port }}"
+          validate_certs: "{{ validate_certs }}"
+      delegate_to: localhost
+    

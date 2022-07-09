@@ -1,0 +1,30 @@
+- name: F5 Configure Remote Syslog Server
+  gather_facts: no
+  hosts: "{{ host_group }}"
+
+
+  tasks:
+
+    - name: configure Remote Syslog Server
+      f5networks.f5_modules.bigip_remote_syslog:
+        name: "{{ remote_server_name }}"
+        remote_host: "{{ remote_host }}"
+        provider:
+          user: "{{ user }}"
+          server: "{{ ansible_host }}"
+          password: "{{ password }}"
+          server_port: "{{ ansible_port }}"
+          validate_certs: "{{ validate_certs }}"
+      delegate_to: localhost
+
+    - name: verify SNMP configuration
+      f5networks.f5_modules.bigip_command:
+        commands:
+          - list sys syslog
+        provider:
+          user: "{{ user }}"
+          server: "{{ ansible_host }}"
+          password: "{{ password }}"
+          server_port: "{{ ansible_port }}"
+          validate_certs: "{{ validate_certs }}"
+      delegate_to: localhost

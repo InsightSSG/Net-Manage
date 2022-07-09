@@ -1,0 +1,37 @@
+- name: F5 Configure SNMPv3 Users
+  gather_facts: no
+  hosts: "{{ host_group }}"
+
+
+  tasks:
+
+    - name: configure SNMPv3 Users
+      f5networks.f5_modules.bigip_snmp_community:
+        name: "{{ snmp_name }}"
+        version: v3
+        snmp_username: "{{ snmp_username }}"
+        snmp_auth_protocol: "{{ snmp_auth_protocol }}"
+        snmp_auth_password: "{{ snmp_auth_password }}"
+        snmp_privacy_protocol: "{{ snmp_privacy_protocol }}"
+        snmp_privacy_password: "{{ snmp_privacy_password }}"
+        oid: "{{ oid }}"
+        access: "{{ access }}"
+        provider:
+          user: "{{ user }}"
+          server: "{{ ansible_host }}"
+          password: "{{ password }}"
+          server_port: "{{ ansible_port }}"
+          validate_certs: "{{ validate_certs }}"
+      delegate_to: localhost
+
+    - name: verify SNMP configuration
+      f5networks.f5_modules.bigip_command:
+        commands:
+          - list sys snmp users
+        provider:
+          user: "{{ user }}"
+          server: "{{ ansible_host }}"
+          password: "{{ password }}"
+          server_port: "{{ ansible_port }}"
+          validate_certs: "{{ validate_certs }}"
+      delegate_to: localhost

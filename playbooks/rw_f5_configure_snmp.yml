@@ -1,0 +1,32 @@
+- name: F5 Configure SNMP
+  gather_facts: no
+  hosts: "{{ host_group }}"
+
+
+  tasks:
+
+    - name: configure SNMP
+      f5networks.f5_modules.bigip_snmp:
+        allowed_addresses: "{{ allowed_addresses }}"
+        contact: "{{ contact }}"
+        location: "{{ location }}"
+        provider:
+          user: "{{ user }}"
+          server: "{{ ansible_host }}"
+          password: "{{ password }}"
+          server_port: "{{ ansible_port }}"
+          validate_certs: "{{ validate_certs }}"
+      delegate_to: localhost
+
+    - name: verify SNMP configuration
+      f5networks.f5_modules.bigip_command:
+        commands:
+          - list sys snmp
+        provider:
+          user: "{{ user }}"
+          server: "{{ ansible_host }}"
+          password: "{{ password }}"
+          server_port: "{{ ansible_port }}"
+          validate_certs: "{{ validate_certs }}"
+      delegate_to: localhost
+    

@@ -1,0 +1,32 @@
+- name: F5 Create DNS Nameserver
+  gather_facts: no
+  hosts: "{{ host_group }}"
+
+
+  tasks:
+
+    - name: Create DNS nameserver "{{ nameserver_name }}"
+      f5networks.f5_modules.bigip_dns_nameserver:
+        name: "{{ nameserver_name }}"
+        address: "{{ address }}"
+        state: present
+        provider:
+          user: "{{ user }}"
+          server: "{{ ansible_host }}"
+          password: "{{ password }}"
+          server_port: "{{ ansible_port }}"
+          validate_certs: "{{ validate_certs }}"
+      delegate_to: localhost
+
+    - name: verify DNS nameserver "{{ nameserver_name }}"
+      f5networks.f5_modules.bigip_command:
+        commands:
+          - list sys dns
+        provider:
+          user: "{{ user }}"
+          server: "{{ ansible_host }}"
+          password: "{{ password }}"
+          server_port: "{{ ansible_port }}"
+          validate_certs: "{{ validate_certs }}"
+      delegate_to: localhost
+    

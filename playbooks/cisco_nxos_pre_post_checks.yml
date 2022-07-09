@@ -1,0 +1,44 @@
+- name: Cisco NXOS Perform Pre- or Post-Checks
+  gather_facts: no
+  hosts: "{{ host_group}}"
+
+  tasks:
+
+    - name: show config-diff
+      connection: network_cli
+      cisco.nxos.nxos_command:
+        commands: "{{ diff_command | default('show running-config diff') }}"
+      vars:
+        parser: generic           
+
+    - name: check for current err-disabled interfaces
+      connection: network_cli
+      cisco.nxos.nxos_command:
+        commands: "{{ interface_status_command | default('show interface status err-disabled') }}"
+
+    - name: check for previous err-disabled interfaces
+      connection: network_cli
+      cisco.nxos.nxos_command:
+        commands: "{{ logging_command | default('show logging last 9999 | grep \"err-disable\\|BPDU\"') }}"
+      vars:
+        parser: generic
+
+    - name: view blocked ports
+      connection: network_cli
+      cisco.nxos.nxos_command:
+        commands: "{{ stp_blocked_ports_command | default('show spanning-tree blockedports') }}"
+
+    - name: show vpc brief
+      connection: network_cli
+      cisco.nxos.nxos_command:
+        commands: "{{ vpc_brief_command | default('show vpc brief | grep Po') }}"
+
+    - name: check VPC consistency parameters
+      connection: network_cli
+      cisco.nxos.nxos_command:
+        commands: "{{ vpc_consistency_command | default('show vpc consistency-parameters global | grep \"Local suspended\"') }}"
+
+    - name: view VPC peer-keepalive
+      connection: network_cli
+      cisco.nxos.nxos_command:
+        commands: "{{ vpc_keepalive_command | default('show vpc peer-keepalive | grep -v \"ms\\|msec\"') }}"

@@ -1,0 +1,50 @@
+- name: F5 Create VCMP Guest
+  gather_facts: no
+  hosts: "{{ host_group }}"
+  
+
+  tasks:
+
+    - name: create vCMP guest {{ guest_name }} on {{ host_group }}
+      f5networks.f5_modules.bigip_vcmp_guest:
+        name: "{{ guest_name }}"
+        mgmt_network: "{{ mgmt_network_type }}"
+        mgmt_address: "{{ mgmt_address }}"
+        mgmt_route: "{{ mgmt_route }}"
+        state: "{{ guest_state }}"
+        cores_per_slot: "{{ cores_per_slot }}"
+        initial_image: "{{ initial_image }}"
+        vlans: "{{ vlans }}"
+        provider:
+          user: "{{ user }}"
+          server: "{{ ansible_host }}"
+          password: "{{ password }}"
+          server_port: "{{ ansible_port }}"
+          validate_certs: "{{ validate_certs }}"
+      delegate_to: localhost
+
+    - name: verify vCMP guest configuration was applied
+      f5networks.f5_modules.bigip_command:
+        commands: list vcmp guest "{{ guest_name }}"
+        provider:
+          user: "{{ user }}"
+          server: "{{ ansible_host }}"
+          password: "{{ password }}"
+          server_port: "{{ ansible_port }}"
+          validate_certs: "{{ validate_certs }}"
+      delegate_to: localhost
+      vars:
+        parser: generic
+
+    - name: view provisioned vCMP guests
+      f5networks.f5_modules.bigip_command:
+        commands: show vcmp guest
+        provider:
+          user: "{{ user }}"
+          server: "{{ ansible_host }}"
+          password: "{{ password }}"
+          server_port: "{{ ansible_port }}"
+          validate_certs: "{{ validate_certs }}"
+      delegate_to: localhost
+      vars:
+        parser: generic

@@ -1,0 +1,32 @@
+- name: F5 Create VLAN and Tag to Single Interface
+  gather_facts: no
+  hosts: "{{ host_group }}"
+
+
+  tasks:
+
+    - name: Create vlan {{ vlan_name }} and tag {{ tagged_interface }} with {{ vlan_tag }}
+      f5networks.f5_modules.bigip_vlan:
+        tagged_interface: "{{ tagged_interface }}"
+        name: "{{ vlan_name }}"
+        tag: "{{ vlan_tag }}"
+        provider:
+          user: "{{ user }}"
+          server: "{{ ansible_host }}"
+          password: "{{ password }}"
+          server_port: "{{ ansible_port }}"
+          validate_certs: "{{ validate_certs }}"
+      delegate_to: localhost
+
+    - name: verify vlan {{ vlan_name }}
+      f5networks.f5_modules.bigip_command:
+        commands:
+          - list net vlan "{{ vlan_name }}"
+        provider:
+          user: "{{ user }}"
+          server: "{{ ansible_host }}"
+          password: "{{ password }}"
+          server_port: "{{ ansible_port }}"
+          validate_certs: "{{ validate_certs }}"
+      delegate_to: localhost
+    

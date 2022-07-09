@@ -1,0 +1,16 @@
+- name: Get F5 sys version
+  gather_facts: no
+  hosts: "{{ host_group }}"
+  
+  tasks:
+    - name: get F5 sys version
+      f5networks.f5_modules.bigip_command:
+        commands:
+          - show sys version | grep Version | grep -v Sys
+        provider:
+          user: "{{ user }}"
+          server: "{{ ansible_host }}"
+          password: "{{ password }}"
+          server_port: "{{ ansible_port }}"
+          validate_certs: "{{ validate_certs }}"
+      delegate_to: localhost

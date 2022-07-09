@@ -1,0 +1,12 @@
+- name: Cisco NXOS Get ARP Table Playbook
+  gather_facts: no
+  hosts: "{{ host_group }}"
+
+  tasks:
+
+    - name: get the ARP table on remote devices
+      connection: network_cli
+      cisco.nxos.nxos_command:
+        commands: "{{ commands | default('show ip arp vrf all')}}"
+      vars:
+        ansible_command_timeout: "{{ ansible_timeout | default('60') }}"

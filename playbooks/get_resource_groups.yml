@@ -1,0 +1,9 @@
+- name: Get Azure Resource Group Facts
+  hosts: localhost
+  gather_facts: no
+
+  tasks:
+
+  - name: Get facts for all resource groups
+    azure_rm_resourcegroup_info:
+      subscription_id: "{{ subscription_id }}"

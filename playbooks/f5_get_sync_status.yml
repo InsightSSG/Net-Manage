@@ -1,0 +1,17 @@
+- name: Get F5 sync status
+  gather_facts: no
+  hosts: "{{ host_group }}"
+  
+
+  tasks:
+    - name: run show cm sync-status on remote devices
+      f5networks.f5_modules.bigip_command:
+        commands:
+          - show cm sync-status | grep Status | grep -v CM
+        provider:
+          user: "{{ user }}"
+          server: "{{ ansible_host }}"
+          password: "{{ password }}"
+          server_port: "{{ ansible_port }}"
+          validate_certs: "{{ validate_certs }}"
+      delegate_to: localhost

@@ -1,0 +1,11 @@
+- name: Get Azure Resource Facts
+  hosts: localhost
+  gather_facts: no
+
+  tasks:
+
+  - name: Query all the resources in the resource group
+    azure_rm_resource_info:
+      resource_group: "{{ resource_group }}"
+      subscription_id: "{{ subscription_id }}"
+      resource_type: resources

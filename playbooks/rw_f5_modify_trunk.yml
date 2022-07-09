@@ -1,0 +1,35 @@
+- name: F5 Modify, Create or Delete Trunk
+  gather_facts: no
+  hosts: "{{ host_group }}"
+
+
+  tasks:
+
+    - name: modify trunk "{{ trunk_name }}" on "{{ host_group }}"
+      f5networks.f5_modules.bigip_trunk:
+        name: "{{ trunk_name }}"
+        interfaces: "{{ inf_name }}"
+        lacp_enabled: "{{ lacp_enabled }}"
+        lacp_mode: "{{ lacp_mode }}"
+        lacp_timeout: "{{ lacp_timeout }}"
+        state: "{{ inf_state }}"
+        provider:
+          user: "{{ user }}"
+          server: "{{ ansible_host }}"
+          password: "{{ password }}"
+          server_port: "{{ ansible_port }}"
+          validate_certs: "{{ validate_certs }}"
+      delegate_to: localhost
+
+    - name: verify trunk "{{ trunk_name }}"
+      f5networks.f5_modules.bigip_command:
+        commands:
+          - list net trunk "{{ trunk_name }}" all-properties
+        provider:
+          user: "{{ user }}"
+          server: "{{ ansible_host }}"
+          password: "{{ password }}"
+          server_port: "{{ ansible_port }}"
+          validate_certs: "{{ validate_certs }}"
+      delegate_to: localhost
+    
