@@ -1,0 +1,41 @@
+- name: Cisco NXOS Default Interface Playbook
+  gather_facts: no
+  hosts: "{{ host_group }}"
+
+  # This playbook uses the generic nxos_command module because the code versions
+  # on some of our NXOS devices are too old to support the features that
+  # the Ansible config-specific modules rely on. Note that you cannot
+  # use the generic ios_command module to configure IOS or IOS_XE devices,
+  # because Ansible logs into the IOS or IOS_XE device one time for each
+  # command.
+
+  # This playbook contains an example of configuring two interfaces on two
+  # devices, for a total of 4 interfaces. Each device is in its own task. Pay
+  # special attention to the "with" variable, because that is what ensures
+  # that your configuration is applied to the correct devices.
+
+  tasks:          
+
+    # Configure two interfaces on 1.1.1.1
+    - name: default interface {{ interface }} on {{ host_group }}
+      connection: network_cli
+      cisco.nxos.nxos_command:
+        commands:
+          # - show interface {{ interface }} status
+          - show run interface {{ interface }}
+          - configure terminal
+          -  default interface {{ interface }}
+          -  interface {{ interface }}
+          -   shutdown
+          -  end
+
+      vars:
+        ansible_command_timeout: "{{ ansible_timeout | default('30') }}"
+
+    - name: save running-config for {{ host_group }} in the inventory group
+      connection: network_cli
+      cisco.nxos.nxos_command:
+        commands:
+          - copy running-config startup-config
+      vars:
+        ansible_command_timeout: "{{ ansible_timeout | default('30') }}"  

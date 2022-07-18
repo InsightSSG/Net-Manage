@@ -1,0 +1,31 @@
+- name: F5 Create NTP Server(s)
+  gather_facts: no
+  hosts: "{{ host_group }}"
+
+
+  tasks:
+
+    - name: Create NTP servers "{{ ntp_servers }}"
+      f5networks.f5_modules.bigip_device_ntp:
+        ntp_servers: "{{ ntp_servers }}"
+        timezone: "{{ timezone }}"
+        provider:
+          user: "{{ user }}"
+          server: "{{ ansible_host }}"
+          password: "{{ password }}"
+          server_port: "{{ ansible_port }}"
+          validate_certs: "{{ validate_certs }}"
+      delegate_to: localhost
+
+    - name: verify NTP servers "{{ ntp_servers }}"
+      f5networks.f5_modules.bigip_command:
+        commands:
+          - list sys ntp
+        provider:
+          user: "{{ user }}"
+          server: "{{ ansible_host }}"
+          password: "{{ password }}"
+          server_port: "{{ ansible_port }}"
+          validate_certs: "{{ validate_certs }}"
+      delegate_to: localhost
+    

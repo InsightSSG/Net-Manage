@@ -1,0 +1,9 @@
+- name: Get Azure Subscription Facts
+  hosts: localhost
+  gather_facts: no
+
+  tasks:
+
+    - name: Get facts for all subscriptions, including ones that are disabled.
+      azure.azcollection.azure_rm_subscription_info:
+        all: True

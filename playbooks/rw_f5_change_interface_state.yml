@@ -1,0 +1,30 @@
+- name: F5 Change Interface State
+  gather_facts: no
+  hosts: "{{ host_group }}"
+  
+
+  tasks:
+    - name: change interface "{{ inf_name }}" on "{{ host_group }}"
+      f5networks.f5_modules.bigip_interface:
+        name: "{{ inf_name }}"
+        enabled: "{{ inf_enabled }}"
+        provider:
+          user: "{{ user }}"
+          server: "{{ ansible_host }}"
+          password: "{{ password }}"
+          server_port: "{{ ansible_port }}"
+          validate_certs: "{{ validate_certs }}"
+      delegate_to: localhost
+
+    - name: verify interface "{{ inf_name }}" state
+      f5networks.f5_modules.bigip_command:
+        commands:
+          - show net interface "{{ inf_name }}" | grep -v "\-\-\-\|Interface\|Name\|Out"
+        provider:
+          user: "{{ user }}"
+          server: "{{ ansible_host }}"
+          password: "{{ password }}"
+          server_port: "{{ ansible_port }}"
+          validate_certs: "{{ validate_certs }}"
+      delegate_to: localhost
+    

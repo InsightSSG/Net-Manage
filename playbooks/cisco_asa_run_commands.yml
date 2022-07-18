@@ -1,0 +1,12 @@
+- name: Cisco ASA Run Arbitrary Commands Playbook
+  gather_facts: no
+  hosts: "{{ host_group }}"
+
+  tasks:
+
+    - name: run "{{ commands }}" on remote devices
+      connection: network_cli
+      cisco.asa.asa_command:
+        commands: "{{ commands }}"
+      vars:
+        ansible_command_timeout: "{{ ansible_timeout | default('30') }}"
