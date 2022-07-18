@@ -1,4 +1,4 @@
-- name: F5 Execure Read-only Command
+- name: F5 Execute Read-only Command
   gather_facts: no
   hosts: "{{ host_group }}"
   
@@ -12,8 +12,8 @@
           user: "{{ user }}"
           server: "{{ ansible_host }}"
           password: "{{ password }}"
-          server_port: "{{ ansible_port }}"
-          validate_certs: "{{ validate_certs }}"
+          server_port: "{{ ansible_port | default('443') }}"
+          validate_certs: "{{ validate_certs | default('yes') }}"
       delegate_to: localhost
       vars:
         ansible_command_timeout: "{{ ansible_timeout | default('240') }}"

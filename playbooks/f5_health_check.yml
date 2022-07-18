@@ -13,8 +13,8 @@
           user: "{{ user }}"
           server: "{{ ansible_host }}"
           password: "{{ password }}"
-          server_port: "{{ ansible_port }}"
-          validate_certs: "{{ validate_certs }}"
+          server_port: "{{ ansible_port | default('443') }}"
+          validate_certs: "{{ validate_certs | default('yes') }}"
       delegate_to: localhost
       vars:
         parser: generic
@@ -28,8 +28,8 @@
           user: "{{ user }}"
           server: "{{ ansible_host }}"
           password: "{{ password }}"
-          server_port: "{{ ansible_port }}"
-          validate_certs: "{{ validate_certs }}"
+          server_port: "{{ ansible_port | default('443') }}"
+          validate_certs: "{{ validate_certs | default('yes') }}"
       delegate_to: localhost
       vars:
         parser: generic
@@ -42,8 +42,8 @@
           user: "{{ user }}"
           server: "{{ ansible_host }}"
           password: "{{ password }}"
-          server_port: "{{ ansible_port }}"
-          validate_certs: "{{ validate_certs }}"
+          server_port: "{{ ansible_port | default('443') }}"
+          validate_certs: "{{ validate_certs | default('yes') }}"
       delegate_to: localhost
       vars:
         parser: generic
@@ -56,8 +56,8 @@
           user: "{{ user }}"
           server: "{{ ansible_host }}"
           password: "{{ password }}"
-          server_port: "{{ ansible_port }}"
-          validate_certs: "{{ validate_certs }}"
+          server_port: "{{ ansible_port | default('443') }}"
+          validate_certs: "{{ validate_certs | default('yes') }}"
       delegate_to: localhost
       vars:
         parser: generic
@@ -71,8 +71,8 @@
           user: "{{ user }}"
           server: "{{ ansible_host }}"
           password: "{{ password }}"
-          server_port: "{{ ansible_port }}"
-          validate_certs: "{{ validate_certs }}"
+          server_port: "{{ ansible_port | default('443') }}"
+          validate_certs: "{{ validate_certs | default('yes') }}"
       delegate_to: localhost
       vars:
         parser: generic
@@ -86,8 +86,8 @@
           user: "{{ user }}"
           server: "{{ ansible_host }}"
           password: "{{ password }}"
-          server_port: "{{ ansible_port }}"
-          validate_certs: "{{ validate_certs }}"
+          server_port: "{{ ansible_port | default('443') }}"
+          validate_certs: "{{ validate_certs | default('yes') }}"
       delegate_to: localhost
       vars:
         parser: generic
@@ -101,8 +101,8 @@
           user: "{{ user }}"
           server: "{{ ansible_host }}"
           password: "{{ password }}"
-          server_port: "{{ ansible_port }}"
-          validate_certs: "{{ validate_certs }}"
+          server_port: "{{ ansible_port | default('443') }}"
+          validate_certs: "{{ validate_certs | default('yes') }}"
       delegate_to: localhost
       vars:
         parser: generic
@@ -116,8 +116,8 @@
           user: "{{ user }}"
           server: "{{ ansible_host }}"
           password: "{{ password }}"
-          server_port: "{{ ansible_port }}"
-          validate_certs: "{{ validate_certs }}"
+          server_port: "{{ ansible_port | default('443') }}"
+          validate_certs: "{{ validate_certs | default('yes') }}"
       delegate_to: localhost
 
     - name: get pool member availability
@@ -129,8 +129,8 @@
           user: "{{ user }}"
           server: "{{ ansible_host }}"
           password: "{{ password }}"
-          server_port: "{{ ansible_port }}"
-          validate_certs: "{{ validate_certs }}"
+          server_port: "{{ ansible_port | default('443') }}"
+          validate_certs: "{{ validate_certs | default('yes') }}"
       delegate_to: localhost
 
     - name: get ARP table
@@ -142,8 +142,8 @@
           user: "{{ user }}"
           server: "{{ ansible_host }}"
           password: "{{ password }}"
-          server_port: "{{ ansible_port }}"
-          validate_certs: "{{ validate_certs }}"
+          server_port: "{{ ansible_port | default('443') }}"
+          validate_certs: "{{ validate_certs | default('yes') }}"
       delegate_to: localhost
 
 
@@ -156,6 +156,6 @@
           user: "{{ user }}"
           server: "{{ ansible_host }}"
           password: "{{ password }}"
-          server_port: "{{ ansible_port }}"
-          validate_certs: "{{ validate_certs }}"
+          server_port: "{{ ansible_port | default('443') }}"
+          validate_certs: "{{ validate_certs | default('yes') }}"
       delegate_to: localhost
