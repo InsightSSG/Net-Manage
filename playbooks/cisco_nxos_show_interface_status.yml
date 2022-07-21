@@ -8,3 +8,5 @@
       connection: network_cli
       cisco.nxos.nxos_command:
         commands: show interface status
+      vars:
+        ansible_command_timeout: "{{ ansible_timeout | default('30') }}"
