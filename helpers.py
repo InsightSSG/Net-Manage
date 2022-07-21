@@ -1105,7 +1105,7 @@ def format_check_data(check_dict):
     return check_df_data
 
 
-def cisco_nxos_run_checks(username, password, host_group):
+def cisco_nxos_run_checks(username, password, host_group, play_path):
     '''
     Run the pre- and post-checks on a Cisco NXOS and adds the results to
     a dictionary. Also creates a list of devices in the host group.
@@ -1114,6 +1114,7 @@ def cisco_nxos_run_checks(username, password, host_group):
         username (str):        The username to login to devices
         password (str):        The password to login to devices
         host_group (str):      The inventory host group to run the command against
+        play_path (str):       The path to the directory containing the playbooks
 
     Returns:
         devices (list):    A list of devices in the host group
@@ -1124,7 +1125,8 @@ def cisco_nxos_run_checks(username, password, host_group):
     
     # Define the commands to run
     commands = {'diff_command': 'show running-config diff',
-                'interface_status_command': 'show interface status err-disabled',
+                'interface_status_command': 'show interface status | grep -v -\-\-\-',
+                'err_disabled_command': 'show interface status err-disabled',
                 'logging_command': 'show logging last 9999 | grep "err-disable\|BPDU"',
                 'stp_blocked_ports_command': 'show spanning-tree blockedports',
                 'vpc_brief_command': 'show vpc brief | grep Po',
@@ -1141,7 +1143,7 @@ def cisco_nxos_run_checks(username, password, host_group):
 
     # Execute the pre-checks
     runner = ansible_runner.run(private_data_dir='.',
-                                playbook='../../Net-Discover/ansible/plays/cisco/cisco_nxos_pre_post_checks.yml',
+                                playbook=f'{play_path}/cisco_nxos_pre_post_checks.yml',
                                 extravars=extravars)
     
     # Parse the output; add the hosts to 'devices' and the command output to 'check_data'
