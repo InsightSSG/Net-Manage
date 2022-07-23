@@ -23,7 +23,7 @@
       cisco.nxos.nxos_command:
         commands: "{{ interface_status_command | default('show interface status') }}"
       vars:
-        parser: "{{ ansible_timeout | default('30') }}" 
+        ansible_command_timeout: "{{ ansible_timeout | default('30') }}"
 
     - name: check for current err-disabled interfaces
       connection: network_cli
@@ -73,3 +73,17 @@
         commands: "{{ vpc_keepalive_command | default('show vpc peer-keepalive | grep -v \"ms\\|msec\"') }}"
       vars:
         ansible_command_timeout: "{{ ansible_timeout | default('30') }}"
+
+    - name: get the ARP table on remote devices
+      connection: network_cli
+      cisco.nxos.nxos_command:
+        commands: "{{ get_arp_table_command | default('show ip arp vrf all | begin \"MAC Address\"')}}"
+      vars:
+        ansible_command_timeout: "{{ ansible_timeout | default('60') }}"
+
+    - name: get the CAM table on remote devices
+      connection: network_cli
+      cisco.nxos.nxos_command:
+        commands: "{{ get_cam_table_command | default('show mac address-table | begin \"MAC Address\"')}}"
+      vars:
+        ansible_command_timeout: "{{ ansible_timeout | default('60') }}"
