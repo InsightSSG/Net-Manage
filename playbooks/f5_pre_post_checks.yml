@@ -4,11 +4,10 @@
 
   tasks:
 
-    - name: get sync status
+    - name: show hostname
       f5networks.f5_modules.bigip_command:
         commands:
-          # - show cm sync-status | grep Status | grep -v CM
-          - "{{ sync_status }}"
+          - "{{ show_hostname | default('list sys global-settings hostname | grep hostname') }}"
         provider:
           user: "{{ user }}"
           server: "{{ ansible_host }}"
@@ -17,13 +16,26 @@
           validate_certs: "{{ validate_certs | default('yes') }}"
       delegate_to: localhost
       vars:
-        parser: generic
+        ansible_command_timeout: "{{ ansible_timeout | default('30') }}"
+
+    - name: get sync status
+      f5networks.f5_modules.bigip_command:
+        commands:
+          - "{{ sync_status | default('show cm sync-status | grep Status | grep -v CM') }}"
+        provider:
+          user: "{{ user }}"
+          server: "{{ ansible_host }}"
+          password: "{{ password }}"
+          server_port: "{{ ansible_port | default('443') }}"
+          validate_certs: "{{ validate_certs | default('yes') }}"
+      delegate_to: localhost
+      vars:
+        ansible_command_timeout: "{{ ansible_timeout | default('30') }}"
 
     - name: get sys version
       f5networks.f5_modules.bigip_command:
         commands:
-          # - show sys version | grep Version | grep -v Sys
-          - "{{ sys_version }}"
+          - "{{ sys_version | default('show sys version | grep Version | grep -v Sys') }}"
         provider:
           user: "{{ user }}"
           server: "{{ ansible_host }}"
@@ -32,7 +44,7 @@
           validate_certs: "{{ validate_certs | default('yes') }}"
       delegate_to: localhost
       vars:
-        parser: generic
+        ansible_command_timeout: "{{ ansible_timeout | default('30') }}"
 
     - name: show net interface
       f5networks.f5_modules.bigip_command:
@@ -46,7 +58,7 @@
           validate_certs: "{{ validate_certs | default('yes') }}"
       delegate_to: localhost
       vars:
-        parser: generic
+        ansible_command_timeout: "{{ ansible_timeout | default('30') }}"
 
     - name: list net interface
       f5networks.f5_modules.bigip_command:
@@ -60,7 +72,7 @@
           validate_certs: "{{ validate_certs | default('yes') }}"
       delegate_to: localhost
       vars:
-        parser: generic
+        ansible_command_timeout: "{{ ansible_timeout | default('30') }}"
 
     - name: get number of VIPs
       f5networks.f5_modules.bigip_command:
@@ -75,7 +87,7 @@
           validate_certs: "{{ validate_certs | default('yes') }}"
       delegate_to: localhost
       vars:
-        parser: generic
+        ansible_command_timeout: "{{ ansible_timeout | default('30') }}"
 
     - name: get VIP availability
       f5networks.f5_modules.bigip_command:
@@ -90,13 +102,12 @@
           validate_certs: "{{ validate_certs | default('yes') }}"
       delegate_to: localhost
       vars:
-        parser: generic
+        ansible_command_timeout: "{{ ansible_timeout | default('30') }}"
 
     - name: get number of available VIPs
       f5networks.f5_modules.bigip_command:
         commands:
-          # - show ltm virtual /*/* | grep Availability | grep -c available
-          - "{{ available_vips }}"
+          - "{{ available_vips | default('show ltm virtual /*/* | grep Availability | grep -c available') }}"
         provider:
           user: "{{ user }}"
           server: "{{ ansible_host }}"
@@ -105,7 +116,21 @@
           validate_certs: "{{ validate_certs | default('yes') }}"
       delegate_to: localhost
       vars:
-        parser: generic
+        ansible_command_timeout: "{{ ansible_timeout | default('30') }}"
+
+    - name: get VIP destinations
+      f5networks.f5_modules.bigip_command:
+        commands:
+          - "{{ vip_destinations | default('show ltm virtual | grep \"Virtual Server\\|Availability\\|Destination\"') }}"
+        provider:
+          user: "{{ user }}"
+          server: "{{ ansible_host }}"
+          password: "{{ password }}"
+          server_port: "{{ ansible_port | default('443') }}"
+          validate_certs: "{{ validate_certs | default('yes') }}"
+      delegate_to: localhost
+      vars:
+        ansible_command_timeout: "{{ ansible_timeout | default('30') }}"
 
     - name: get number of active pool members
       f5networks.f5_modules.bigip_command:
@@ -119,6 +144,8 @@
           server_port: "{{ ansible_port | default('443') }}"
           validate_certs: "{{ validate_certs | default('yes') }}"
       delegate_to: localhost
+      vars:
+        ansible_command_timeout: "{{ ansible_timeout | default('30') }}"
 
     - name: get pool member availability
       f5networks.f5_modules.bigip_command:
@@ -132,6 +159,8 @@
           server_port: "{{ ansible_port | default('443') }}"
           validate_certs: "{{ validate_certs | default('yes') }}"
       delegate_to: localhost
+      vars:
+        ansible_command_timeout: "{{ ansible_timeout | default('30') }}"
 
     - name: get ARP table
       f5networks.f5_modules.bigip_command:
@@ -145,7 +174,8 @@
           server_port: "{{ ansible_port | default('443') }}"
           validate_certs: "{{ validate_certs | default('yes') }}"
       delegate_to: localhost
-
+      vars:
+        ansible_command_timeout: "{{ ansible_timeout | default('30') }}"
 
     - name: get CAM table
       f5networks.f5_modules.bigip_command:
@@ -159,3 +189,21 @@
           server_port: "{{ ansible_port | default('443') }}"
           validate_certs: "{{ validate_certs | default('yes') }}"
       delegate_to: localhost
+      vars:
+        ansible_command_timeout: "{{ ansible_timeout | default('30') }}"
+
+    # - name: get iRules
+    #   f5networks.f5_modules.bigip_command:
+    #     commands:
+    #       # - show sys mac-address | grep "mac-address"
+    #       # - "{{ get_irules | default('list ltm rule /*/*') }}"
+    #       - "{{ get_irules }}"
+    #     provider:
+    #       user: "{{ user }}"
+    #       server: "{{ ansible_host }}"
+    #       password: "{{ password }}"
+    #       server_port: "{{ ansible_port | default('443') }}"
+    #       validate_certs: "{{ validate_certs | default('yes') }}"
+    #   delegate_to: localhost
+    #   vars:
+    #     ansible_command_timeout: "{{ ansible_timeout | default('30') }}"
