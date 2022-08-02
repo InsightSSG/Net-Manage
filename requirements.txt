@@ -1,11 +1,14 @@
 ansible
+ansible-pylibssh
 ansible-runner
 # colorama
 # cryptography==36.0.2  # See https://github.com/paramiko/paramiko/issues/2038
 git+https://github.com/wangoloj/python3-nmap.git
 # graphviz
 jupyterlab
+mac-vendor-lookup
 # netaddr>=0.7.14
+nest-asyncio
 openpyxl
 # ouilookup
 pandas
