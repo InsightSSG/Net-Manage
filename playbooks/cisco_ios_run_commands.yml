@@ -5,9 +5,9 @@
 
   tasks:
 
-    - name: run "{{ command }}" on remote devices
+    - name: run "{{ commands }}" on remote devices
       connection: network_cli
       cisco.ios.ios_command:
-        commands: "{{ command }}"
+        commands: "{{ commands }}"
       vars:
         ansible_command_timeout: "{{ ansible_timeout | default('30') }}"
