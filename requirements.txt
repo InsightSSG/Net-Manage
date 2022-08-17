@@ -11,13 +11,18 @@ mac-vendor-lookup
 nest-asyncio
 openpyxl
 # ouilookup
+pan-os-python  # THIS MUST *ALSO* BE INSTALLED OUTSIDE THE VIRTUAL ENVIRONMENT
+pan-python  # THIS MUST *ALSO* BE INSTALLED OUTSIDE THE VIRTUAL ENVIRONMENT
 pandas
+pandevice
 paramiko
 # prettytable
 # pydot
 # pyparsing
 # pysnmp>=4.2.5
+pykeepass
 python3-nmap
 simplejson  # Requirement for python3-nmap
 # urllib3==1.23
 # xlrd
+xmltodict
