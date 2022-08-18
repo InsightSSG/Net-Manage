@@ -244,6 +244,14 @@ def map_tests_to_os(private_data_dir,
     test_map['find_uplink_by_ip']['cisco.nxos.nxos']['playbook'] = \
         'cisco_nxos_run_commands.yml'
 
+    test_map['port_channel_data'] = dict()
+    test_map['port_channel_data']['cisco.ios.ios'] = dict()
+    test_map['port_channel_data']['cisco.ios.ios']['playbook'] = \
+        'cisco_ios_run_commands.yml'
+    test_map['port_channel_data']['cisco.nxos.nxos'] = dict()
+    test_map['port_channel_data']['cisco.nxos.nxos']['playbook'] = \
+        'cisco_nxos_run_commands.yml'
+
     test_map['vrfs'] = dict()
     test_map['vrfs']['cisco.ios.ios'] = dict()
     test_map['vrfs']['cisco.ios.ios']['playbook'] = \
@@ -274,6 +282,12 @@ def map_tests_to_os(private_data_dir,
         'cisco_ios_run_commands.yml'
     test_map['trunk_status']['cisco.nxos.nxos'] = dict()
     test_map['trunk_status']['cisco.nxos.nxos']['playbook'] = \
+        'cisco_nxos_run_commands.yml'
+
+    test_map['vpc_state'] = dict()
+    test_map['vpc_state']['cisco.ios.ios'] = dict()
+    test_map['vpc_state']['cisco.nxos.nxos'] = dict()
+    test_map['vpc_state']['cisco.nxos.nxos']['playbook'] = \
         'cisco_nxos_run_commands.yml'
 
     test_map['vpc_status'] = dict()

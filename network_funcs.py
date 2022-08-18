@@ -42,6 +42,7 @@ def run_test(ansible_os,
                                        play_path,
                                        private_data_dir,
                                        nm_path)
+
         if ansible_os == 'cisco.nxos.nxos':
             result = nxos_get_cam_table(username,
                                         password,
@@ -51,6 +52,13 @@ def run_test(ansible_os,
                                         nm_path)
 
     if test_name == 'arp_table':
+        if ansible_os == 'cisco.nxos.nxos':
+            result = nxos_get_arp_table(username,
+                                        password,
+                                        hostgroup,
+                                        play_path,
+                                        private_data_dir)
+
         if ansible_os == 'paloaltonetworks.panos':
             result = panos_get_arp_table(username,
                                          password,
@@ -81,6 +89,22 @@ def run_test(ansible_os,
                                            hostgroup,
                                            play_path,
                                            private_data_dir)
+
+    if test_name == 'port_channel_data':
+        if ansible_os == 'cisco.nxos.nxos':
+            result = nxos_get_port_channel_data(username,
+                                                password,
+                                                hostgroup,
+                                                play_path,
+                                                private_data_dir)
+
+    if test_name == 'vpc_state':
+        if ansible_os == 'cisco.nxos.nxos':
+            result = nxos_get_vpc_state(username,
+                                        password,
+                                        hostgroup,
+                                        play_path,
+                                        private_data_dir)
 
     return result
 
@@ -556,6 +580,92 @@ def cisco_ios_get_interface_ips(username,
     return df_ip
 
 
+def nxos_get_arp_table(username,
+                       password,
+                       host_group,
+                       play_path,
+                       private_data_dir,
+                       reverse_dns=False):
+    '''
+    Gets the ARP table for Cisco NXOS devices. Also returns the OUI (vendor)
+    for the MAC address. Will also return a reverse DNS query, but only if the
+    user requests it (it can take several minutes for large datasets).
+
+    TODO: Create a standalone function for reverse DNS queries
+
+    Args:
+        username (str):         The username to login to devices
+        password (str):         The password to login to devices
+        host_group (str):       The inventory host group
+        play_path (str):        The path to the playbooks directory
+        private_data_dir (str): The path to the Ansible private data directory
+        reverse_dns (bool):     Whether to run a reverse DNS lookup. Defaults
+                                to False because the test can take several
+                                minutes on large ARP tables.
+
+    Returns:
+        df_arp (DataFrame):     The ARP table
+    '''
+    cmd = 'show ip arp vrf all | begin "Address         Age"'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute the pre-checks
+    playbook = f'{play_path}/cisco_nxos_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars)
+
+    # Parse the output and add it to 'data'
+    df_data = list()
+
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout'][0].split('\n')
+
+            # Parse the output and add it to 'df_data'
+            for line in output[1:]:
+                line = line.split()
+                address = line[0]
+                age = line[1]
+                mac = line[2]
+                inf = line[3]
+
+                # Lookup the vendor
+                try:
+                    vendor = find_mac_vendor(mac)
+                except Exception:
+                    vendor = 'unknown'
+                row = [device, address, age, mac, inf, vendor]
+                # Perform a reverse DNS lookup if requested
+                if reverse_dns:
+                    try:
+                        rdns = socket.getnameinfo((address, 0), 0)[0]
+                    except Exception:
+                        rdns = 'unknown'
+                    row.append(rdns)
+                df_data.append(row)
+
+    cols = ['Device',
+            'Address',
+            'Age',
+            'MAC Address',
+            'Interface',
+            'Vendor']
+    if reverse_dns:
+        cols.append('Reverse DNS')
+
+    df_arp = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_arp
+
+
 def nxos_get_cam_table(username,
                        password,
                        host_group,
@@ -711,6 +821,217 @@ def nxos_get_interface_status(username,
     df_inf_status = pd.DataFrame(data=df_data, columns=cols)
 
     return df_inf_status
+
+
+def nxos_get_port_channel_data(username,
+                               password,
+                               host_group,
+                               play_path,
+                               private_data_dir):
+    '''
+    Gets port-channel data (output from 'show port-channel database') for Cisco
+    NXOS devices.
+
+    Args:
+        username (str):         The username to login to devices
+        password (str):         The password to login to devices
+        host_group (str):       The inventory host group
+        play_path (str):        The path to the playbooks directory
+        private_data_dir (str): The path to the Ansible private data directory
+        nm_path (str):          The path to the Net-Manage repository
+
+    Returns:
+        df_po_data (DataFrame): The port-channel data
+    '''
+    cmd = 'show port-channel database'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute the pre-checks
+    playbook = f'{play_path}/cisco_nxos_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars)
+
+    # Define the dataframe columns
+    cols = ['device',
+            'interface',
+            'total_ports',
+            'up_ports',
+            'age',
+            'port_1',
+            'port_2',
+            'port_3',
+            'port_4',
+            'port_5',
+            'port_6',
+            'port_7',
+            'port_8',
+            'first_operational_port',
+            'last_bundled_member',
+            'last_unbundled_member']
+
+    # Create a dictionary to store the data for creating the dataframe
+    df_data = dict()
+    for c in cols:
+        df_data[c] = list()
+
+    # Parse the output and add it to 'data'
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout'][0].split('\n')
+            # output.append(str())  # For finding the end of database entries
+            output = [_ for _ in output if _ != 'Legend:']
+            output = [_ for _ in output if '"*":' not in _]
+
+            # TODO: Re-write this using regex to 1) make it more concise, and
+            # 2) avoid iterating over 'output' twice
+
+            # Create a list to store database entries
+            entries = list()
+
+            pos = 0
+            for line in output:
+                if line[:12] == 'port-channel':
+                    interface = line
+                    entry = [interface, device]
+                    counter = pos+1
+                    while output[counter][:4] == '    ':
+                        entry.append(output[counter])
+                        counter += 1
+                    entries.append(entry)
+
+            for entry in entries:
+                entry = [_.strip() for _ in entry]
+                interface = entry[0]
+                device = entry[1]
+                # Create a counter for tracking port numbers
+                counter = 0
+                # Create an 8-element list of empty strings for ports
+                ports = list()
+                for i in range(1, 9):
+                    ports.append(str())
+                # Define empty strings for vars that might not exist
+                total_ports = str()
+                up_ports = str()
+                first_op_port = str()
+                last_bundled = str()
+                last_unbundled = str()
+                age = str()
+                for line in entry[2:]:
+                    if 'ports in total' in line:
+                        total_ports = line.split()[0]
+                        up_ports = line.split(',')[-1].split()[0]
+                    if 'First operational' in line:
+                        first_op_port = line.split()[-1]
+                    if 'Last bundled' in line:
+                        last_bundled = line.split()[-1]
+                    if 'Last unbundled' in line:
+                        last_unbundled = line.split()[-1]
+                    if 'Age of the' in line:
+                        age = line.split()[-1]
+                    if ']' in line:
+                        port = line.split('Ports:')[-1].strip()
+                        ports[counter] = port
+                        counter += 1
+
+                # Fill in ports list with ports that exist
+                port_num = 1
+                for p in ports:
+                    key = f'port_{str(port_num)}'
+                    df_data[key].append(p)
+                    port_num += 1
+                # Add remaining variables to df_data
+                df_data['interface'].append(interface)
+                df_data['device'].append(device)
+                df_data['total_ports'].append(total_ports)
+                df_data['up_ports'].append(up_ports)
+                df_data['age'].append(age)
+                df_data['first_operational_port'].append(first_op_port)
+                df_data['last_bundled_member'].append(last_bundled)
+                df_data['last_unbundled_member'].append(last_unbundled)
+
+    df_po_data = pd.DataFrame.from_dict(df_data)
+    # Set dataframe columns to desired order (from 'cols' list)
+    df_po_data = df_po_data[cols]
+
+    return df_po_data
+
+
+def nxos_get_vpc_state(username,
+                       password,
+                       host_group,
+                       play_path,
+                       private_data_dir):
+    '''
+    Gets the VPC state for NXOS devices.
+
+    Args:
+        username (str):           The username to login to devices
+        password (str):           The password to login to devices
+        host_group (str):         The inventory host group
+        play_path (str):          The path to the playbooks directory
+        private_data_dir (str):   Path to the Ansible private data directory
+
+    Returns:
+        df_vpc_state (DataFrame): The VPC state information
+    '''
+    cmd = 'show vpc brief | begin "vPC domain id" | end "vPC Peer-link status"'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute the pre-checks
+    playbook = f'{play_path}/cisco_nxos_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars)
+
+    # Parse the output and add it to 'data'
+    df_data = list()
+
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout'][0].split('\n')
+
+            row = [device]
+            for line in output[:-2]:
+                line = line.split(':')[-1].strip()
+                row.append(line)
+            df_data.append(row)
+
+            # Create the DataFrame columns
+            cols = ['device',
+                    'vPC domain id',
+                    'Peer status',
+                    'vPC keep-alive status',
+                    'Configuration consistency status',
+                    'Per-vlan consistency status',
+                    'Type-2 consistency status',
+                    'vPC role',
+                    'Number of vPCs configured',
+                    'Peer Gateway',
+                    'Peer gateway excluded VLANs',
+                    'Dual-active excluded VLANs',
+                    'Graceful Consistency Check',
+                    'Operational Layer3 Peer-router',
+                    'Auto-recovery status']
+
+    # Create the dataframe and return it
+    df_vpc_state = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_vpc_state
 
 
 def panos_get_arp_table(username,
