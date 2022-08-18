@@ -11,15 +11,15 @@ import re
 import socket
 
 
-def run_test(ansible_os,
-             test_name,
-             username,
-             password,
-             hostgroup,
-             play_path,
-             private_data_dir,
-             nm_path,
-             ansible_timeout='300'):
+def collect(ansible_os,
+            test_name,
+            username,
+            password,
+            hostgroup,
+            play_path,
+            private_data_dir,
+            nm_path,
+            ansible_timeout='300'):
     '''
     This function calls the test that the user requested.
 
@@ -56,6 +56,7 @@ def run_test(ansible_os,
             result = nxos_get_arp_table(username,
                                         password,
                                         hostgroup,
+                                        nm_path,
                                         play_path,
                                         private_data_dir)
 
@@ -139,7 +140,7 @@ def update_ouis(nm_path):
     return df_ouis
 
 
-def find_mac_vendor(addresses, df_ouis):
+def find_mac_vendor(addresses, nm_path):
     '''
     Finds the vendor OUI for a list of MAC addresses.
 
@@ -150,10 +151,11 @@ def find_mac_vendor(addresses, df_ouis):
     the CAM tables.
 
     Args:
-        addresses (list): A list of MAC adddresses.
+        addresses (list):   A list of MAC adddresses.
+        nm_path (str):      The path to the Net-Manage repository
 
     Returns:
-        vendors (list):   A list of vendors, ordered the same as 'addresses'
+        vendors (list):     A list of vendors, ordered the same as 'addresses'
     '''
     # Convert MAC addresses to base 16
     addresses = [m.replace(':', str()) for m in addresses]
@@ -170,6 +172,10 @@ def find_mac_vendor(addresses, df_ouis):
     # Create a dict to store known vendors. This is used to keep from
     # repeatedly searching df_ouis for vendors that are already discovered
     known = dict()
+
+    # Get the OUIs
+    # TODO: Optimize so df_ouis isn't recreated every time function is called
+    df_ouis = update_ouis(nm_path)
 
     # Search df_ouis for the vendor, add it to 'vendors', and return it
     for mac in addresses:
@@ -284,9 +290,9 @@ def ios_find_uplink_by_ip(username,
 def ios_get_cam_table(username,
                       password,
                       host_group,
+                      nm_path,
                       play_path,
                       private_data_dir,
-                      nm_path,
                       interface=None):
     '''
     Gets the IOS CAM table and adds the vendor OUI.
@@ -295,9 +301,9 @@ def ios_get_cam_table(username,
         username (str):         The username to login to devices
         password (str):         The password to login to devices
         host_group (str):       The inventory host group
+        nm_path (str):          The path to the Net-Manage repository
         play_path (str):        The path to the playbooks directory
         private_data_dir (str): The path to the Ansible private data directory
-        nm_path (str):          The path to the Net-Manage repository
         interface (str):        The interface (defaults to all interfaces)
 
     Returns:
@@ -337,7 +343,7 @@ def ios_get_cam_table(username,
                         interface = line.split()[-1]
                         vlan = line.split()[0]
                         try:
-                            vendor = find_mac_vendor(mac)
+                            vendor = find_mac_vendor(mac, nm_path)
                         except Exception:
                             vendor = 'unknown'
                         df_data.append([device, interface, mac, vlan, vendor])
@@ -583,6 +589,7 @@ def cisco_ios_get_interface_ips(username,
 def nxos_get_arp_table(username,
                        password,
                        host_group,
+                       nm_path,
                        play_path,
                        private_data_dir,
                        reverse_dns=False):
@@ -597,6 +604,7 @@ def nxos_get_arp_table(username,
         username (str):         The username to login to devices
         password (str):         The password to login to devices
         host_group (str):       The inventory host group
+        nm_path (str):          The path to the Net-Manage repository
         play_path (str):        The path to the playbooks directory
         private_data_dir (str): The path to the Ansible private data directory
         reverse_dns (bool):     Whether to run a reverse DNS lookup. Defaults
@@ -621,6 +629,9 @@ def nxos_get_arp_table(username,
     # Parse the output and add it to 'data'
     df_data = list()
 
+    # Create a list of mac addresses (used for querying the vendor)
+    macs = list()
+
     for event in runner.events:
         if event['event'] == 'runner_on_ok':
             event_data = event['event_data']
@@ -636,32 +647,33 @@ def nxos_get_arp_table(username,
                 age = line[1]
                 mac = line[2]
                 inf = line[3]
-
-                # Lookup the vendor
-                try:
-                    vendor = find_mac_vendor(mac)
-                except Exception:
-                    vendor = 'unknown'
-                row = [device, address, age, mac, inf, vendor]
+                macs.append(mac)
+                row = [device, address, age, mac, inf]
                 # Perform a reverse DNS lookup if requested
-                if reverse_dns:
-                    try:
-                        rdns = socket.getnameinfo((address, 0), 0)[0]
-                    except Exception:
-                        rdns = 'unknown'
-                    row.append(rdns)
+                # TODO: Convert this to a standalone function
+                # if reverse_dns:
+                #     try:
+                #         rdns = socket.getnameinfo((address, 0), 0)[0]
+                #     except Exception:
+                #         rdns = 'unknown'
+                #     row.append(rdns)
                 df_data.append(row)
 
-    cols = ['Device',
-            'Address',
-            'Age',
-            'MAC Address',
-            'Interface',
-            'Vendor']
-    if reverse_dns:
-        cols.append('Reverse DNS')
+    cols = ['device',
+            'ip_address',
+            'age',
+            'mac_address',
+            'interface']
+
+    # TODO: Convert this to a standalone function
+    # if reverse_dns:
+    #     cols.append('reverse_dns')
 
     df_arp = pd.DataFrame(data=df_data, columns=cols)
+
+    # Find the vendrs and add them to the dataframe
+    vendors = find_mac_vendor(macs, nm_path)
+    df_arp['vendor'] = vendors
 
     return df_arp
 
@@ -688,9 +700,6 @@ def nxos_get_cam_table(username,
     Returns:
         df_cam (DataFrame):     The CAM table and vendor OUI
     '''
-    # Create a list of vendor OUIs
-    df_ouis = update_ouis(nm_path)
-
     if interface:
         cmd = f'show mac address-table interface {interface}'
     else:
@@ -740,7 +749,7 @@ def nxos_get_cam_table(username,
 
     # Get the OUIs and add them to df_cam
     addresses = df_cam['mac'].to_list()
-    vendors = find_mac_vendor(addresses, df_ouis)
+    vendors = find_mac_vendor(addresses, nm_path)
     df_cam['vendor'] = vendors
 
     # Return df_cam
@@ -1037,6 +1046,7 @@ def nxos_get_vpc_state(username,
 def panos_get_arp_table(username,
                         password,
                         host_group,
+                        nm_path,
                         play_path,
                         private_data_dir,
                         interface=None,
@@ -1048,6 +1058,7 @@ def panos_get_arp_table(username,
         username (str):         The username to login to devices
         password (str):         The password to login to devices
         host_group (str):       The inventory host group
+        nm_path (str):          The path to the Net-Manage repository
         play_path (str):        The path to the playbooks directory
         private_data_dir (str): The path to the Ansible private data directory
         interface (str):        The interface (defaults to all interfaces)
@@ -1089,8 +1100,9 @@ def panos_get_arp_table(username,
                 inf = item['interface']
                 # Lookup the OUI vendor
                 try:
-                    vendor = find_mac_vendor(mac)
-                except Exception:
+                    vendor = find_mac_vendor(mac, nm_path)
+                except Exception as e:
+                    print(str(e))
                     vendor = 'unknown'
                 row = [device, address, age, mac, inf, vendor]
                 # Perform a reverse DNS lookup if requested

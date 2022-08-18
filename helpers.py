@@ -204,7 +204,7 @@ def map_tests_to_os(private_data_dir,
         test_file (str):            The path to the file containing tests
 
     Returns:
-        df_tests (DataFrame):       A DataFrame created from test_file
+        df_collectors (DataFrame):       A DataFrame created from test_file
         df_vars (DataFrame):        A DataFrame mapping the tests to Ansible OS
         nm_path (str):              The path to the Net-Manage repository
         play_path (str):            The path to the Ansible playbooks
@@ -340,12 +340,14 @@ def map_tests_to_os(private_data_dir,
         'cisco_nxos_run_commands.yml'
 
     # Read the spreadsheet containing tests and save the tests to a dataframe
-    df_tests = pd.read_excel(test_file, sheet_name='tests')
-    df_tests = df_tests.astype(str)
-    df_tests = df_tests.T  # Transpose rows and columns
+    df_collectors = pd.read_excel(test_file, sheet_name='tests')
+    
+    df_collectors = df_collectors.T  # Transpose rows and columns
+    df_collectors = df_collectors.dropna()  # Drop empto collectors
+    df_collectors = df_collectors.astype(str)
 
-    # Create a dataframe containing the variables for hostsgroups in df_tests
-    df_vars = ansible_create_vars_df(df_tests, private_data_dir)
+    # Create a dataframe containing the variables for host groups
+    df_vars = ansible_create_vars_df(df_collectors, private_data_dir)
 
     # Get the devices in each hostgroup and add them to df_vars as a new column
     hostgroup_devices = list()
@@ -356,7 +358,7 @@ def map_tests_to_os(private_data_dir,
         hostgroup_devices.append(devices)
     df_vars['devices'] = hostgroup_devices
 
-    return df_tests, df_vars, nm_path, play_path, test_map
+    return df_collectors, df_vars, nm_path, play_path, test_map
 
 
 def set_filepath(filepath):
@@ -406,6 +408,20 @@ def get_net_manage_path():
         nm_path (str):  The absolute path to the Net-Manage repository.
     '''
     nm_path = input("Enter the absolute path to the Net-Manage repository: ")
-    if '~' in nm_path:
-        nm_path = os.path.expanduser(nm_path)
+    nm_path = os.path.expanduser(nm_path)
     return nm_path
+
+
+def get_tests_file():
+    '''
+    Set the absolute path to the Net-Manage repository.
+
+    Args:
+        None
+
+    Returns:
+        t)path (str):   The absolute path to the file containing tests to run.
+    '''
+    t_file = input("Enter the absolute path to the Net-Manage repository: ")
+    t_file = os.path.expanduser(t_file)
+    return t_file
