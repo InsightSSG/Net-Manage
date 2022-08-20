@@ -19,7 +19,8 @@ def collect(ansible_os,
             play_path,
             private_data_dir,
             nm_path,
-            ansible_timeout='300'):
+            ansible_timeout='300',
+            validate_certs=True):
     '''
     This function calls the test that the user requested.
 
@@ -33,6 +34,7 @@ def collect(ansible_os,
         private_data_dir (str): The path to the Ansible private data directory
         nm_path (str):          The path to the Net-Manage repository
         interface (str):        The interface (defaults to all interfaces)
+        validate_certs (bool):  Whether to validate SSL certs (used for F5s)
     '''
     if test_name == 'cam_table':
         if ansible_os == 'cisco.ios.ios':
@@ -60,12 +62,30 @@ def collect(ansible_os,
                                         play_path,
                                         private_data_dir)
 
+        if ansible_os == 'bigip':
+            result = f5_get_arp_table(username,
+                                      password,
+                                      hostgroup,
+                                      nm_path,
+                                      play_path,
+                                      private_data_dir,
+                                      validate_certs=False)
+
         if ansible_os == 'paloaltonetworks.panos':
             result = panos_get_arp_table(username,
                                          password,
                                          hostgroup,
                                          play_path,
                                          private_data_dir)
+
+    if test_name == 'f5_pool_data':
+        if ansible_os == 'bigip':
+            result = f5_get_pool_data(username,
+                                      password,
+                                      hostgroup,
+                                      play_path,
+                                      private_data_dir,
+                                      validate_certs=False)
 
     if test_name == 'interface_description':
         if ansible_os == 'cisco.ios.ios':
@@ -82,6 +102,14 @@ def collect(ansible_os,
                                                hostgroup,
                                                play_path,
                                                private_data_dir)
+
+        if ansible_os == 'bigip':
+            result = f5_get_interface_status(username,
+                                             password,
+                                             hostgroup,
+                                             play_path,
+                                             private_data_dir,
+                                             validate_certs=False)
 
     if test_name == 'find_uplink_by_ip':
         if ansible_os == 'cisco.ios.ios':
@@ -192,6 +220,385 @@ def find_mac_vendor(addresses, nm_path):
                     unknown.append(mac)
         vendors.append(vendor)
     return vendors
+
+
+def f5_get_arp_table(username,
+                     password,
+                     host_group,
+                     nm_path,
+                     play_path,
+                     private_data_dir,
+                     reverse_dns=False,
+                     validate_certs=True):
+    '''
+    Gets the ARP table for F5 LTM devices. Also returns the OUI (vendor) for
+    the MAC address. Will also return a reverse DNS query, but only if the user
+    requests it (it can take several minutes for large datasets).
+
+    TODO: Create a standalone function for reverse DNS queries
+
+    Args:
+        username (str):         The username to login to devices
+        password (str):         The password to login to devices
+        host_group (str):       The inventory host group
+        nm_path (str):          The path to the Net-Manage repository
+        play_path (str):        The path to the playbooks directory
+        private_data_dir (str): The path to the Ansible private data directory
+        reverse_dns (bool):     Whether to run a reverse DNS lookup. Defaults
+                                to False because the test can take several
+                                minutes on large ARP tables.
+        validate_certs (bool):  Whether to validate SSL certificates
+
+    Returns:
+        df_arp (DataFrame):     The ARP table
+    '''
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group}
+
+    if not validate_certs:
+        extravars['validate_certs'] = 'no'
+
+    # Execute the pre-checks
+    playbook = f'{play_path}/f5_get_arp_table.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse the output and add it to 'data'
+    df_data = list()
+
+    # Create a list of mac addresses (used for querying the vendor)
+    macs = list()
+
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout_lines'][0]
+
+            # Parse the output and add it to 'df_data'
+            for line in output:
+                line = line.split()
+                address = line[1]
+                age = line[-2]
+                mac = line[2]
+                vlan = line[3]  # Column name is 'interface' to match Ciscos
+                macs.append(mac)
+                row = [device, address, age, mac, vlan]
+
+                # Perform a reverse DNS lookup if requested
+                # TODO: Convert this to a standalone function
+                # if reverse_dns:
+                #     try:
+                #         rdns = socket.getnameinfo((address, 0), 0)[0]
+                #     except Exception:
+                #         rdns = 'unknown'
+                #     row.append(rdns)
+                df_data.append(row)
+
+    cols = ['device',
+            'ip_address',
+            'age',
+            'mac_address',
+            'interface']
+
+    # TODO: Convert this to a standalone function
+    # if reverse_dns:
+    #     cols.append('reverse_dns')
+
+    df_arp = pd.DataFrame(data=df_data, columns=cols)
+
+    # Find the vendrs and add them to the dataframe
+    vendors = find_mac_vendor(macs, nm_path)
+    df_arp['vendor'] = vendors
+
+    return df_arp
+
+
+def f5_get_interface_status(username,
+                            password,
+                            host_group,
+                            play_path,
+                            private_data_dir,
+                            validate_certs=True):
+    '''
+    Gets the interface and trunk statuses for F5 devices.
+
+    Args:
+        username (str):             The username to login to devices
+        password (str):             The password to login to devices
+        host_group (str):           The inventory host group
+        play_path (str):            The path to the playbooks directory
+        private_data_dir (str):     Path to the Ansible private data directory
+        nm_path (str):              The path to the Net-Manage repository
+        validate_certs (bool):      Whether to validate SSL certificates
+
+    Returns:
+        df_inf_status (DataFrame):  The interface statuses
+    '''
+    # Get the interface statuses
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group}
+
+    if not validate_certs:
+        extravars['validate_certs'] = 'no'
+
+    # Execute the pre-checks
+    playbook = f'{play_path}/f5_get_interface_status.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse the output and add it to 'data'
+    df_data = list()
+
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+            # from pprint import pprint
+            # pprint(event_data)
+
+            device = event_data['remote_addr']
+
+            # The playbook runs two commands--show net interface and show net
+            # trunk. The output of both commands is in the same event.
+            output = event_data['res']['stdout_lines']
+            net_inf = output[0]
+            net_trunk = output[1]
+
+            # Parse the interface statuses and add it to 'df_data'.
+            for line in net_inf:
+                line = line.split()
+                inf = line[0]
+                status = line[1]
+                vlan = str()
+                duplex = str()
+                speed = str()
+                media = line[8]
+                row = [device,
+                       inf,
+                       status,
+                       vlan,
+                       duplex,
+                       speed,
+                       media]
+                df_data.append(row)
+
+            for line in net_trunk:
+                line = line.split()
+                inf = line[0]
+                status = line[1]
+                vlan = str()
+                duplex = str()
+                speed = line[2]
+                media = str()
+                row = [device,
+                       inf,
+                       status,
+                       vlan,
+                       duplex,
+                       speed,
+                       media]
+                df_data.append(row)
+
+    # Create the dataframe and return it
+    cols = ['device',
+            'interface',
+            'status',
+            'vlan',
+            'duplex',
+            'speed',
+            'type']
+
+    df_inf_status = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_inf_status
+
+
+def f5_get_pool_data(username,
+                     password,
+                     host_group,
+                     play_path,
+                     private_data_dir,
+                     validate_certs=True):
+    '''
+    Gets pool and pool member availability from F5 LTMs.
+
+    Args:
+        username (str):         The username to login to devices
+        password (str):         The password to login to devices
+        host_group (str):       The inventory host group
+        play_path (str):        The path to the playbooks directory
+        private_data_dir (str): Path to the Ansible private data directory
+        nm_path (str):          The path to the Net-Manage repository
+        validate_certs (bool):  Whether to validate SSL certificates
+
+    Returns:
+        df_pools (DataFrame):   The pool availability and associated data
+        df_members (DataFrame): Pool member availability and associated data
+    '''
+    # Get the interface statuses
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group}
+
+    if not validate_certs:
+        extravars['validate_certs'] = 'no'
+
+    # Execute the pre-checks
+    playbook = f'{play_path}/f5_get_pool_data.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse the pool data and add it to two dictionaries--'pools' and
+    # 'pool_members'. The data from those dictionaries will be used to
+    # create the two dataframes
+    pools = dict()
+    pool_members = dict()
+
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            # The playbook runs two commands--show net interface and show net
+            # trunk. The output of both commands is in the same event.
+            output = event_data['res']['stdout_lines'][1]
+
+            pos = 0
+            for line in output:
+                if 'Ltm::Pool:' in line:
+                    print(line)
+                    pool = line.split('/')[-1]
+                    partition = line.split('/')[0].split()[-1]
+                    pools[pool] = dict()
+                    pools[pool]['device'] = device
+                    pools[pool]['partition'] = partition
+                    counter = pos+1
+                    while 'Ltm::Pool:' not in output[counter]:
+                        _ = output[counter]
+                        if _.split()[0] != '|':
+                            if 'Availability' in _:
+                                pools[pool]['availability'] = _.split()[-1]
+                            if 'State' in _:
+                                pools[pool]['state'] = _.split()[-1]
+                            if 'Reason' in _:
+                                pools[pool]['reason'] = \
+                                    _.split(':')[-1].strip()
+                            if 'Minimum' in _:
+                                pools[pool]['minimum_active'] = _.split()[-1]
+                            if 'Current' in _:
+                                pools[pool]['current_active'] = _.split()[-1]
+                            if 'Available Members' in _:
+                                pools[pool]['available'] = _.split()[-1]
+                            if 'Total Members' in _:
+                                pools[pool]['total'] = _.split()[-1]
+                        else:
+                            if 'Ltm::Pool Member:' in _:
+                                print(_)
+                                member = _.split('/')[-1]
+                                partition = _.split('/')[0].split()[-1]
+                                pool_members[member] = dict()
+                                pool_members[member]['device'] = device
+                                pool_members[member]['partition'] = partition
+                                pool_members[member]['pool'] = pool
+                            else:
+                                if 'Availability' in _:
+                                    pool_members[member]['availability'] = \
+                                        _.split()[-1]
+                                if 'State' in _:
+                                    pool_members[member]['state'] = \
+                                        _.split()[-1]
+                                if 'Reason' in _:
+                                    pool_members[member]['reason'] = \
+                                        _.split(':')[-1].strip()
+                                if 'IP Address' in _:
+                                    pool_members[member]['ip'] = _.split()[-1]
+                        counter += 1
+                        if counter == len(output):
+                            break
+            pos += 1
+
+    df_pools_data = list()
+    for key, value in pools.items():
+        pool = key
+        availability = value['availability']
+        # available = value['available']
+        # current_active = value['current_active']
+        # minimum_active = value['minimum_active']
+        partition = value['partition']
+        reason = value['reason']
+        state = value['state']
+        # total = value['total']
+        df_pools_data.append([device,
+                              partition,
+                              pool,
+                              state,
+                              availability,
+                            #   available,
+                            #   current_active,
+                            #   minimum_active,
+                            #   total,
+                              reason])
+
+    cols = ['device',
+            'partition',
+            'pool',
+            'state',
+            'availability',
+            # 'available',
+            # 'current_active',
+            # 'minimum_active',
+            # 'total',
+            'reason']
+
+    df_pools = pd.DataFrame(data=df_pools_data, columns=cols)
+
+    df_members_data = list()
+    from pprint import pprint
+    pprint(pool_members)
+    for key, value in pool_members.items():
+        device = value['device']
+        member = key
+        ip = value['ip']
+        partition = value['partition']
+        pool = value['pool']
+        availability = value['availability']
+        state = value['state']
+        reason = value['reason']
+        df_members_data.append([device,
+                                partition,
+                                pool,
+                                member,
+                                ip,
+                                availability,
+                                state,
+                                reason])
+
+    cols = ['device',
+            'partition',
+            'pool',
+            'member',
+            'ip',
+            'availability',
+            'state',
+            'reason']
+    df_members = pd.DataFrame(data=df_members_data, columns=cols)
+
+    results = dict()
+    results['pools'] = df_pools
+    results['members'] = df_members
+
+    return df_members
 
 
 def ios_find_uplink_by_ip(username,
@@ -322,7 +729,8 @@ def ios_get_cam_table(username,
     playbook = f'{play_path}/cisco_ios_run_commands.yml'
     runner = ansible_runner.run(private_data_dir=private_data_dir,
                                 playbook=playbook,
-                                extravars=extravars)
+                                extravars=extravars,
+                                suppress_env_files=True)
 
     # Parse the output and add it to 'data'
     df_data = list()
@@ -369,7 +777,8 @@ def ios_get_cam_table(username,
     playbook = f'{play_path}/cisco_ios_run_commands.yml'
     runner = ansible_runner.run(private_data_dir=private_data_dir,
                                 playbook=playbook,
-                                extravars=extravars)
+                                extravars=extravars,
+                                suppress_env_files=True)
 
     # Create a dict to store the ARP table
     ip_dict = dict()
@@ -451,7 +860,8 @@ def ios_get_cdp_neighbors(username,
     playbook = f'{play_path}/cisco_ios_run_commands.yml'
     runner = ansible_runner.run(private_data_dir=private_data_dir,
                                 playbook=playbook,
-                                extravars=extravars)
+                                extravars=extravars,
+                                suppress_env_files=True)
 
     # Parse the results
     cdp_data = list()
@@ -508,7 +918,8 @@ def ios_get_interface_descriptions(username,
     playbook = f'{play_path}/cisco_ios_run_commands.yml'
     runner = ansible_runner.run(private_data_dir=private_data_dir,
                                 playbook=playbook,
-                                extravars=extravars)
+                                extravars=extravars,
+                                suppress_env_files=True)
     # Create a list to store the rows for the dataframe
     df_data = list()
     for event in runner.events:
@@ -560,7 +971,8 @@ def cisco_ios_get_interface_ips(username,
     playbook = f'{play_path}/cisco_ios_run_commands.yml'
     runner = ansible_runner.run(private_data_dir=private_data_dir,
                                 playbook=playbook,
-                                extravars=extravars)
+                                extravars=extravars,
+                                suppress_env_files=True)
 
     # Parse the results
     ip_data = list()
@@ -624,7 +1036,8 @@ def nxos_get_arp_table(username,
     playbook = f'{play_path}/cisco_nxos_run_commands.yml'
     runner = ansible_runner.run(private_data_dir=private_data_dir,
                                 playbook=playbook,
-                                extravars=extravars)
+                                extravars=extravars,
+                                suppress_env_files=True)
 
     # Parse the output and add it to 'data'
     df_data = list()
@@ -713,7 +1126,8 @@ def nxos_get_cam_table(username,
     playbook = f'{play_path}/cisco_nxos_run_commands.yml'
     runner = ansible_runner.run(private_data_dir=private_data_dir,
                                 playbook=playbook,
-                                extravars=extravars)
+                                extravars=extravars,
+                                suppress_env_files=True)
 
     # Define the RegEx pattern for a valid MAC address
     # pattern = '([0-9a-f]{4}\.[0-9a-f]{4}\.[0-9a-f]{4})'
@@ -785,7 +1199,8 @@ def nxos_get_interface_status(username,
     playbook = f'{play_path}/cisco_nxos_run_commands.yml'
     runner = ansible_runner.run(private_data_dir=private_data_dir,
                                 playbook=playbook,
-                                extravars=extravars)
+                                extravars=extravars,
+                                suppress_env_files=True)
 
     # Parse the output and add it to 'data'
     df_data = list()
@@ -862,7 +1277,8 @@ def nxos_get_port_channel_data(username,
     playbook = f'{play_path}/cisco_nxos_run_commands.yml'
     runner = ansible_runner.run(private_data_dir=private_data_dir,
                                 playbook=playbook,
-                                extravars=extravars)
+                                extravars=extravars,
+                                suppress_env_files=True)
 
     # Define the dataframe columns
     cols = ['device',
@@ -915,6 +1331,7 @@ def nxos_get_port_channel_data(username,
                         entry.append(output[counter])
                         counter += 1
                     entries.append(entry)
+                pos += 1
 
             for entry in entries:
                 entry = [_.strip() for _ in entry]
@@ -1001,7 +1418,8 @@ def nxos_get_vpc_state(username,
     playbook = f'{play_path}/cisco_nxos_run_commands.yml'
     runner = ansible_runner.run(private_data_dir=private_data_dir,
                                 playbook=playbook,
-                                extravars=extravars)
+                                extravars=extravars,
+                                suppress_env_files=True)
 
     # Parse the output and add it to 'data'
     df_data = list()
@@ -1081,7 +1499,8 @@ def panos_get_arp_table(username,
     playbook = f'{play_path}/palo_alto_get_arp_table.yml'
     runner = ansible_runner.run(private_data_dir=private_data_dir,
                                 playbook=playbook,
-                                extravars=extravars)
+                                extravars=extravars,
+                                suppress_env_files=True)
 
     for event in runner.events:
         if event['event'] == 'runner_on_ok':

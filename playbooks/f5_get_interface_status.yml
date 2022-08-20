@@ -1,12 +1,13 @@
-- name: Get F5 ARP table
+- name: Get F5 Interface Statuses
   gather_facts: no
   hosts: "{{ host_group }}"
   
   tasks:
-    - name: get F5 ARP table on {{host_group}}
+    - name: get F5 interface statuses on {{host_group}}
       f5networks.f5_modules.bigip_command:
         commands:
-          - show net arp | grep -v "\\-\\-\\-\\-\|Net::Arp\|Expire-in-sec"
+          - show net interface | grep -v "Interface\|Status\|Out\|-\\-\\-"
+          - show net trunk | grep -A 2 Mbps | grep -v "Mbps\|-\\-\\-"
         provider:
           user: "{{ username }}"
           server: "{{ ansible_host }}"

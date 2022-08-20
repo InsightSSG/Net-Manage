@@ -228,122 +228,122 @@ def map_tests_to_os(private_data_dir,
     # TODO: Write results directly to a database. This method is not Pythonic,
     # is hard to modify, and forces all test results to be loaded into memory.
 
-    test_map = dict()
+    # test_map = dict()
 
-    test_map['pre_post_checks'] = dict()
-    test_map['pre_post_checks']['cisco.ios.ios'] = dict()
-    test_map['pre_post_checks']['cisco.nxos.nxos'] = dict()
-    test_map['pre_post_checks']['cisco.nxos.nxos']['playbook'] = \
-        'cisco_nxos_pre_post_checks.yml'
+    # test_map['pre_post_checks'] = dict()
+    # test_map['pre_post_checks']['cisco.ios.ios'] = dict()
+    # test_map['pre_post_checks']['cisco.nxos.nxos'] = dict()
+    # test_map['pre_post_checks']['cisco.nxos.nxos']['playbook'] = \
+    #     'cisco_nxos_pre_post_checks.yml'
 
-    test_map['find_uplink_by_ip'] = dict()
-    test_map['find_uplink_by_ip']['cisco.ios.ios'] = dict()
-    test_map['find_uplink_by_ip']['cisco.ios.ios']['playbook'] = \
-        'cisco_ios_run_commands.yml'
-    test_map['find_uplink_by_ip']['cisco.nxos.nxos'] = dict()
-    test_map['find_uplink_by_ip']['cisco.nxos.nxos']['playbook'] = \
-        'cisco_nxos_run_commands.yml'
+    # test_map['find_uplink_by_ip'] = dict()
+    # test_map['find_uplink_by_ip']['cisco.ios.ios'] = dict()
+    # test_map['find_uplink_by_ip']['cisco.ios.ios']['playbook'] = \
+    #     'cisco_ios_run_commands.yml'
+    # test_map['find_uplink_by_ip']['cisco.nxos.nxos'] = dict()
+    # test_map['find_uplink_by_ip']['cisco.nxos.nxos']['playbook'] = \
+    #     'cisco_nxos_run_commands.yml'
 
-    test_map['port_channel_data'] = dict()
-    test_map['port_channel_data']['cisco.ios.ios'] = dict()
-    test_map['port_channel_data']['cisco.ios.ios']['playbook'] = \
-        'cisco_ios_run_commands.yml'
-    test_map['port_channel_data']['cisco.nxos.nxos'] = dict()
-    test_map['port_channel_data']['cisco.nxos.nxos']['playbook'] = \
-        'cisco_nxos_run_commands.yml'
+    # test_map['port_channel_data'] = dict()
+    # test_map['port_channel_data']['cisco.ios.ios'] = dict()
+    # test_map['port_channel_data']['cisco.ios.ios']['playbook'] = \
+    #     'cisco_ios_run_commands.yml'
+    # test_map['port_channel_data']['cisco.nxos.nxos'] = dict()
+    # test_map['port_channel_data']['cisco.nxos.nxos']['playbook'] = \
+    #     'cisco_nxos_run_commands.yml'
 
-    test_map['vrfs'] = dict()
-    test_map['vrfs']['cisco.ios.ios'] = dict()
-    test_map['vrfs']['cisco.ios.ios']['playbook'] = \
-        'cisco_ios_run_commands.yml'
-    test_map['vrfs']['cisco.nxos.nxos'] = dict()
-    test_map['vrfs']['cisco.nxos.nxos']['playbook'] = \
-        'cisco_nxos_run_commands.yml'
+    # test_map['vrfs'] = dict()
+    # test_map['vrfs']['cisco.ios.ios'] = dict()
+    # test_map['vrfs']['cisco.ios.ios']['playbook'] = \
+    #     'cisco_ios_run_commands.yml'
+    # test_map['vrfs']['cisco.nxos.nxos'] = dict()
+    # test_map['vrfs']['cisco.nxos.nxos']['playbook'] = \
+    #     'cisco_nxos_run_commands.yml'
 
-    test_map['interface_description'] = dict()
-    test_map['interface_description']['cisco.ios.ios'] = dict()
-    test_map['interface_description']['cisco.ios.ios']['playbook'] = \
-        'cisco_ios_run_commands.yml'
-    test_map['interface_description']['cisco.nxos.nxos'] = dict()
-    test_map['interface_description']['cisco.nxos.nxos']['playbook'] = \
-        'cisco_nxos_run_commands.yml'
+    # test_map['interface_description'] = dict()
+    # test_map['interface_description']['cisco.ios.ios'] = dict()
+    # test_map['interface_description']['cisco.ios.ios']['playbook'] = \
+    #     'cisco_ios_run_commands.yml'
+    # test_map['interface_description']['cisco.nxos.nxos'] = dict()
+    # test_map['interface_description']['cisco.nxos.nxos']['playbook'] = \
+    #     'cisco_nxos_run_commands.yml'
 
-    test_map['interface_status'] = dict()
-    test_map['interface_status']['cisco.ios.ios'] = dict()
-    test_map['interface_status']['cisco.ios.ios']['playbook'] = \
-        'cisco_ios_run_commands.yml'
-    test_map['interface_status']['cisco.nxos.nxos'] = dict()
-    test_map['interface_status']['cisco.nxos.nxos']['playbook'] = \
-        'cisco_nxos_run_commands.yml'
+    # test_map['interface_status'] = dict()
+    # test_map['interface_status']['cisco.ios.ios'] = dict()
+    # test_map['interface_status']['cisco.ios.ios']['playbook'] = \
+    #     'cisco_ios_run_commands.yml'
+    # test_map['interface_status']['cisco.nxos.nxos'] = dict()
+    # test_map['interface_status']['cisco.nxos.nxos']['playbook'] = \
+    #     'cisco_nxos_run_commands.yml'
 
-    test_map['trunk_status'] = dict()
-    test_map['trunk_status']['cisco.ios.ios'] = dict()
-    test_map['trunk_status']['cisco.ios.ios']['playbook'] = \
-        'cisco_ios_run_commands.yml'
-    test_map['trunk_status']['cisco.nxos.nxos'] = dict()
-    test_map['trunk_status']['cisco.nxos.nxos']['playbook'] = \
-        'cisco_nxos_run_commands.yml'
+    # test_map['trunk_status'] = dict()
+    # test_map['trunk_status']['cisco.ios.ios'] = dict()
+    # test_map['trunk_status']['cisco.ios.ios']['playbook'] = \
+    #     'cisco_ios_run_commands.yml'
+    # test_map['trunk_status']['cisco.nxos.nxos'] = dict()
+    # test_map['trunk_status']['cisco.nxos.nxos']['playbook'] = \
+    #     'cisco_nxos_run_commands.yml'
 
-    test_map['vpc_state'] = dict()
-    test_map['vpc_state']['cisco.ios.ios'] = dict()
-    test_map['vpc_state']['cisco.nxos.nxos'] = dict()
-    test_map['vpc_state']['cisco.nxos.nxos']['playbook'] = \
-        'cisco_nxos_run_commands.yml'
+    # test_map['vpc_state'] = dict()
+    # test_map['vpc_state']['cisco.ios.ios'] = dict()
+    # test_map['vpc_state']['cisco.nxos.nxos'] = dict()
+    # test_map['vpc_state']['cisco.nxos.nxos']['playbook'] = \
+    #     'cisco_nxos_run_commands.yml'
 
-    test_map['vpc_status'] = dict()
-    test_map['vpc_status']['cisco.ios.ios'] = dict()
-    test_map['vpc_status']['cisco.nxos.nxos'] = dict()
-    test_map['vpc_status']['cisco.nxos.nxos']['playbook'] = \
-        'cisco_nxos_run_commands.yml'
+    # test_map['vpc_status'] = dict()
+    # test_map['vpc_status']['cisco.ios.ios'] = dict()
+    # test_map['vpc_status']['cisco.nxos.nxos'] = dict()
+    # test_map['vpc_status']['cisco.nxos.nxos']['playbook'] = \
+    #     'cisco_nxos_run_commands.yml'
 
-    test_map['vlan_database'] = dict()
-    test_map['vlan_database']['cisco.ios.ios'] = dict()
-    test_map['vlan_database']['cisco.ios.ios']['playbook'] = \
-        'cisco_ios_run_commands.yml'
-    test_map['vlan_database']['cisco.nxos.nxos'] = dict()
-    test_map['vlan_database']['cisco.nxos.nxos']['playbook'] = \
-        'cisco_nxos_run_commands.yml'
+    # test_map['vlan_database'] = dict()
+    # test_map['vlan_database']['cisco.ios.ios'] = dict()
+    # test_map['vlan_database']['cisco.ios.ios']['playbook'] = \
+    #     'cisco_ios_run_commands.yml'
+    # test_map['vlan_database']['cisco.nxos.nxos'] = dict()
+    # test_map['vlan_database']['cisco.nxos.nxos']['playbook'] = \
+    #     'cisco_nxos_run_commands.yml'
 
-    test_map['arp_table'] = dict()
-    test_map['arp_table']['cisco.ios.ios'] = dict()
-    test_map['arp_table']['cisco.ios.ios']['playbook'] = \
-        'cisco_ios_run_commands.yml'
-    test_map['arp_table']['cisco.nxos.nxos'] = dict()
-    test_map['arp_table']['cisco.nxos.nxos']['playbook'] = \
-        'cisco_nxos_run_commands.yml'
-    test_map['arp_table']['paloaltonetworks.panos'] = dict()
-    test_map['arp_table']['paloaltonetworks.panos']['playbook'] = \
-        'palo_alto_run_command.yml'
+    # test_map['arp_table'] = dict()
+    # test_map['arp_table']['cisco.ios.ios'] = dict()
+    # test_map['arp_table']['cisco.ios.ios']['playbook'] = \
+    #     'cisco_ios_run_commands.yml'
+    # test_map['arp_table']['cisco.nxos.nxos'] = dict()
+    # test_map['arp_table']['cisco.nxos.nxos']['playbook'] = \
+    #     'cisco_nxos_run_commands.yml'
+    # test_map['arp_table']['paloaltonetworks.panos'] = dict()
+    # test_map['arp_table']['paloaltonetworks.panos']['playbook'] = \
+    #     'palo_alto_run_command.yml'
 
-    test_map['cam_table'] = dict()
-    test_map['cam_table']['cisco.ios.ios'] = dict()
-    test_map['cam_table']['cisco.ios.ios']['playbook'] = \
-        'cisco_ios_run_commands.yml'
-    test_map['cam_table']['cisco.nxos.nxos'] = dict()
-    test_map['cam_table']['cisco.nxos.nxos']['playbook'] = \
-        'cisco_nxos_run_commands.yml'
+    # test_map['cam_table'] = dict()
+    # test_map['cam_table']['cisco.ios.ios'] = dict()
+    # test_map['cam_table']['cisco.ios.ios']['playbook'] = \
+    #     'cisco_ios_run_commands.yml'
+    # test_map['cam_table']['cisco.nxos.nxos'] = dict()
+    # test_map['cam_table']['cisco.nxos.nxos']['playbook'] = \
+    #     'cisco_nxos_run_commands.yml'
 
-    test_map['routes'] = dict()
-    test_map['routes']['cisco.ios.ios'] = dict()
-    test_map['routes']['cisco.ios.ios']['playbook'] = \
-        'cisco_ios_run_commands.yml'
-    test_map['routes']['cisco.nxos.nxos'] = dict()
-    test_map['routes']['cisco.nxos.nxos']['playbook'] = \
-        'cisco_nxos_run_commands.yml'
+    # test_map['routes'] = dict()
+    # test_map['routes']['cisco.ios.ios'] = dict()
+    # test_map['routes']['cisco.ios.ios']['playbook'] = \
+    #     'cisco_ios_run_commands.yml'
+    # test_map['routes']['cisco.nxos.nxos'] = dict()
+    # test_map['routes']['cisco.nxos.nxos']['playbook'] = \
+    #     'cisco_nxos_run_commands.yml'
 
-    test_map['route_neighbors'] = dict()
-    test_map['route_neighbors']['cisco.ios.ios'] = dict()
-    test_map['route_neighbors']['cisco.ios.ios']['playbook'] = \
-        'cisco_ios_run_commands.yml'
-    test_map['route_neighbors']['cisco.nxos.nxos'] = dict()
-    test_map['route_neighbors']['cisco.nxos.nxos']['playbook'] = \
-        'cisco_nxos_run_commands.yml'
+    # test_map['route_neighbors'] = dict()
+    # test_map['route_neighbors']['cisco.ios.ios'] = dict()
+    # test_map['route_neighbors']['cisco.ios.ios']['playbook'] = \
+    #     'cisco_ios_run_commands.yml'
+    # test_map['route_neighbors']['cisco.nxos.nxos'] = dict()
+    # test_map['route_neighbors']['cisco.nxos.nxos']['playbook'] = \
+    #     'cisco_nxos_run_commands.yml'
 
     # Read the spreadsheet containing tests and save the tests to a dataframe
     df_collectors = pd.read_excel(test_file, sheet_name='tests')
-    
-    df_collectors = df_collectors.T  # Transpose rows and columns
-    df_collectors = df_collectors.dropna()  # Drop empto collectors
+
+    # df_collectors = df_collectors.T  # Transpose rows and columns
+    df_collectors = df_collectors.dropna(axis=1, how='all')
     df_collectors = df_collectors.astype(str)
 
     # Create a dataframe containing the variables for host groups
@@ -358,7 +358,7 @@ def map_tests_to_os(private_data_dir,
         hostgroup_devices.append(devices)
     df_vars['devices'] = hostgroup_devices
 
-    return df_collectors, df_vars, nm_path, play_path, test_map
+    return df_collectors, df_vars, nm_path, play_path
 
 
 def set_filepath(filepath):

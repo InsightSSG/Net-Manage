@@ -1,12 +1,15 @@
-- name: Get F5 ARP table
+- name: Get Pool and pool member availability
   gather_facts: no
   hosts: "{{ host_group }}"
   
   tasks:
-    - name: get F5 ARP table on {{host_group}}
+    - name: get F5 Pool and pool member data on {{host_group}}
       f5networks.f5_modules.bigip_command:
         commands:
-          - show net arp | grep -v "\\-\\-\\-\\-\|Net::Arp\|Expire-in-sec"
+          - cd /
+          - show ltm pool recursive members | grep "Ltm::Pool:\|Availability\|State\|Reason\|Ltm::Pool Member:\|IP Address\|Members"
+          # - show ltm virtual /*/* | grep "Ltm::\|Availability"
+          # - list ltm virtual /*/* | grep "ltm virtual\|pool"
         provider:
           user: "{{ username }}"
           server: "{{ ansible_host }}"

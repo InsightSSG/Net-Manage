@@ -37,7 +37,6 @@ parser.add_argument('-P', '--password',
                     help='''SSH password. DO NOT use on a shared computer or
                             unencrypted drive. Follow your organization's
                             policies.''',
-                    default=os.path.expanduser('~'),
                     action='store'
                     )
 parser.add_argument('-u', '--username',
@@ -48,8 +47,8 @@ parser.add_argument('-u', '--username',
                     )
 requiredNamed = parser.add_argument_group('required named arguments')
 requiredNamed.add_argument('-i', '--in_file',
-                           help='''The path the Excel spreadsheet defining tests to
-                                   run''',
+                           help='''The path the Excel spreadsheet defining
+                                   tests to run''',
                            action='store'
                            )
 requiredNamed.add_argument('-n', '--nm_path',
@@ -120,16 +119,16 @@ def main():
         arg_parser()
 
     # Create the variables required for running data collectors
-    df_collectors, df_vars, nm_path, play_path, test_map = \
+    df_collectors, df_vars, nm_path, play_path = \
         hp.map_tests_to_os(private_data_dir,
                            nm_path,
                            in_file)
 
     print('COLLECTORS:')
     print(tabulate(df_collectors,
-                   headers=['collect',
-                            'hostgroup'],
-                   tablefmt='psql'))
+                   headers='keys',
+                   tablefmt='psql',
+                   showindex=False))
 
     print('COLLECTOR VARIABLES')
     print(tabulate(df_vars,
@@ -143,46 +142,50 @@ def main():
     ts = dt.datetime.now()
     ts = ts.strftime('%Y-%m-%d_%H%M')
 
-    # Execute collectors and store the output in a SQLite database
-    # cols = df_collectors.columns.to_list()
-    for idx, row in df_collectors.iterrows():
-        collector = idx
-        hostgroup = row[0]
+    # Execute collectors and store the output in a SQLite database.
+    # Collectors are executed by column. If column_1 is 'interface_status' and
+    # column_2 is 'interface_description', the interface statuses for all
+    # hostgroups will be gathered, then the interface descriptions for all
+    # hostgroups, and so on.
+    for c in df_collectors.columns.to_list():
+        collector = c
+        for idx, row in df_collectors.iterrows():
+            hostgroup = row[c]
+            if hostgroup != 'nan':
+                collect_vars = df_vars.loc[df_vars['host_group'] == hostgroup]
+                ansible_os = collect_vars['ansible_network_os'].values[0]
 
-        collect_vars = df_vars.loc[df_vars['host_group'] == hostgroup]
-        ansible_os = collect_vars['ansible_network_os'][0]
+                result = dc.collect(ansible_os,
+                                    collector,
+                                    username,
+                                    password,
+                                    hostgroup,
+                                    play_path,
+                                    private_data_dir,
+                                    nm_path)
+                # Set the timestamp as the index
+                new_idx = list()
+                for i in range(0, len(result)):
+                    new_idx.append(ts)
 
-        result = dc.collect(ansible_os,
-                            collector,
-                            username,
-                            password,
-                            hostgroup,
-                            play_path,
-                            private_data_dir,
-                            nm_path)
-        # Set the timestamp as the index
-        new_idx = list()
-        for i in range(0, len(result)):
-            new_idx.append(ts)
+                # Display the output to the console
+                result['timestamp'] = new_idx
+                result = result.set_index('timestamp')
+                print(tabulate(result, headers='keys', tablefmt='psql'))
 
-        # Display the output to the console
-        result['timestamp'] = new_idx
-        result = result.set_index('timestamp')
-        print(tabulate(result, headers='keys', tablefmt='psql'))
+                # Add the output to the database
+                con = connect_to_db(db)
 
-        # Add the output to the database
-        con = connect_to_db(db)
+                # Add the dataframe to the database
+                table = collector.upper()
+                result.to_sql(table, con, if_exists='append')
+                con.commit()
+                con.close()
 
-        # Add the dataframe to the database
-        table = collector.upper()
-        result.to_sql(table, con, if_exists='append')
-        con.commit()
-        con.close()
-
-        con = sl.connect(db)
-        df_tmp = pd.read_sql(f'select * from {table}', con)
-        print(tabulate(df_tmp, headers='keys', tablefmt='psql'))
-        con.close()
+                con = sl.connect(db)
+                df_tmp = pd.read_sql(f'select * from {table}', con)
+                print(tabulate(df_tmp, headers='keys', tablefmt='psql'))
+                con.close()
 
 
 if __name__ == '__main__':
