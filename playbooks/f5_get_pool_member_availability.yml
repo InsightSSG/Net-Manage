@@ -1,12 +1,12 @@
-- name: Get F5 Availability and Destination
+- name: Get Pool Member availability
   gather_facts: no
   hosts: "{{ host_group }}"
   
   tasks:
-    - name: get F5 VIP availability and destination for {{host_group}}
+    - name: get F5 Pool Member availability {{host_group}}
       f5networks.f5_modules.bigip_command:
         commands:
-          - show ltm virtual /*/* | grep "Ltm::\|Availability\|State\|Reason\|Destination"
+          - show ltm pool /*/* members detail | grep "Ltm::Pool\|Availability"
         provider:
           user: "{{ username }}"
           server: "{{ ansible_host }}"

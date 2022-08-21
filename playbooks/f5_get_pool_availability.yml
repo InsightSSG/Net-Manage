@@ -1,13 +1,13 @@
-- name: Get Pool and pool member availability
+- name: Get Pool availability
   gather_facts: no
   hosts: "{{ host_group }}"
   
   tasks:
-    - name: get F5 Pool and pool member data on {{host_group}}
+    - name: get F5 Pool availability {{host_group}}
       f5networks.f5_modules.bigip_command:
         commands:
-          - cd /
-          - show ltm pool recursive members | grep "Ltm::Pool:\|Availability\|State\|Reason\|Ltm::Pool Member:\|IP Address\|Members"
+          - show ltm pool /*/* | grep "Ltm::Pool:\|Availability\|State\|Reason\|Ltm::Pool Member:\|IP Address\|Members"
+          # - cd / ; show ltm pool recursive members | grep "Ltm::Pool:\|Availability\|State\|Reason\|Ltm::Pool Member:\|IP Address\|Members"
           # - show ltm virtual /*/* | grep "Ltm::\|Availability"
           # - list ltm virtual /*/* | grep "ltm virtual\|pool"
         provider:
