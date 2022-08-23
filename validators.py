@@ -9,9 +9,7 @@ import datetime as dt
 import getpass
 
 import helpers as hp
-# import nmap3
-import data_collectors as dc
-# import openpyxl
+import collectors as cl
 import os
 import pandas as pd
 import sqlite3 as sl
@@ -215,8 +213,6 @@ def validate(collector, db, df, testit=False):
             print(tabulate(df_down,
                            headers='keys',
                            tablefmt='psql'))
-            # print(df_down.info())
-
 
     # Validate F5 pool member availability
     if collector == 'f5_pool_member_availability':
@@ -245,16 +241,6 @@ def validate(collector, db, df, testit=False):
             print(tabulate(df_down,
                            headers='keys',
                            tablefmt='psql'))
-            # print(df_down.info())
-
-        # if missing_rows:
-        #     cols = df_pre.columns.to_list()
-        #     df_missing = pd.DataFrame(data=missing_rows, columns=cols)
-
-        # print(tabulate(df_missing.drop('reason', axis=1),
-        #                headers='keys',
-        #                tablefmt='psql'))
-        # print(df_missing.info())
 
     print(len(df))
     if testit:
@@ -329,6 +315,8 @@ def main():
                    tablefmt='psql',
                    showindex=False))
 
+    sys.exit()
+
     # Set the timestamp. This is for database queries. Setting it a single time
     # at the start of the script will allow all collectors to have the same
     # timestamp.
@@ -348,7 +336,7 @@ def main():
                 collect_vars = df_vars.loc[df_vars['host_group'] == hostgroup]
                 ansible_os = collect_vars['ansible_network_os'].values[0]
 
-                result = dc.collect(ansible_os,
+                result = cl.collect(ansible_os,
                                     collector,
                                     username,
                                     password,

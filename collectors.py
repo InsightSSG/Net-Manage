@@ -12,7 +12,7 @@ import socket
 
 
 def collect(ansible_os,
-            test_name,
+            collector,
             username,
             password,
             hostgroup,
@@ -26,7 +26,7 @@ def collect(ansible_os,
 
     Args:
         os (str):               The ansible_network_os variable
-        test_name (str):        The name of the test that the user requested
+        collector (str):        The name of the test that the user requested
         username (str):         The username to login to devices
         password (str):         The password to login to devices
         host_group (str):       The inventory host group
@@ -36,7 +36,7 @@ def collect(ansible_os,
         interface (str):        The interface (defaults to all interfaces)
         validate_certs (bool):  Whether to validate SSL certs (used for F5s)
     '''
-    if test_name == 'cam_table':
+    if collector == 'cam_table':
         if ansible_os == 'cisco.ios.ios':
             result = ios_get_cam_table(username,
                                        password,
@@ -53,7 +53,7 @@ def collect(ansible_os,
                                         private_data_dir,
                                         nm_path)
 
-    if test_name == 'arp_table':
+    if collector == 'arp_table':
         if ansible_os == 'cisco.nxos.nxos':
             result = nxos_get_arp_table(username,
                                         password,
@@ -78,7 +78,7 @@ def collect(ansible_os,
                                          play_path,
                                          private_data_dir)
 
-    if test_name == 'f5_pool_availability':
+    if collector == 'f5_pool_availability':
         if ansible_os == 'bigip':
             result = f5_get_pool_availability(username,
                                               password,
@@ -87,7 +87,7 @@ def collect(ansible_os,
                                               private_data_dir,
                                               validate_certs=False)
 
-    if test_name == 'f5_pool_member_availability':
+    if collector == 'f5_pool_member_availability':
         if ansible_os == 'bigip':
             result = f5_get_pool_member_availability(username,
                                                      password,
@@ -96,7 +96,7 @@ def collect(ansible_os,
                                                      private_data_dir,
                                                      validate_certs=False)
 
-    if test_name == 'f5_vip_availability':
+    if collector == 'f5_vip_availability':
         if ansible_os == 'bigip':
             result = f5_get_vip_availability(username,
                                              password,
@@ -105,7 +105,7 @@ def collect(ansible_os,
                                              private_data_dir,
                                              validate_certs=False)
 
-    if test_name == 'interface_description':
+    if collector == 'interface_description':
         if ansible_os == 'cisco.ios.ios':
             result = ios_get_interface_descriptions(username,
                                                     password,
@@ -113,7 +113,7 @@ def collect(ansible_os,
                                                     play_path,
                                                     private_data_dir)
 
-    if test_name == 'interface_status':
+    if collector == 'interface_status':
         if ansible_os == 'cisco.nxos.nxos':
             result = nxos_get_interface_status(username,
                                                password,
@@ -129,7 +129,7 @@ def collect(ansible_os,
                                              private_data_dir,
                                              validate_certs=False)
 
-    if test_name == 'find_uplink_by_ip':
+    if collector == 'find_uplink_by_ip':
         if ansible_os == 'cisco.ios.ios':
             result = ios_find_uplink_by_ip(username,
                                            password,
@@ -137,7 +137,7 @@ def collect(ansible_os,
                                            play_path,
                                            private_data_dir)
 
-    if test_name == 'port_channel_data':
+    if collector == 'port_channel_data':
         if ansible_os == 'cisco.nxos.nxos':
             result = nxos_get_port_channel_data(username,
                                                 password,
@@ -145,7 +145,7 @@ def collect(ansible_os,
                                                 play_path,
                                                 private_data_dir)
 
-    if test_name == 'vpc_state':
+    if collector == 'vpc_state':
         if ansible_os == 'cisco.nxos.nxos':
             result = nxos_get_vpc_state(username,
                                         password,
@@ -526,27 +526,6 @@ def f5_get_pool_availability(username,
                                     _.split()[-1]
                             if 'Total Members' in _:
                                 pools[device][pool]['total'] = _.split()[-1]
-                        # else:
-                        #     if 'Ltm::Pool Member:' in _:
-                        #         print(_)
-                        #         member = _.split('/')[-1]
-                        #         partition = _.split('/')[0].split()[-1]
-                        #         pool_members[member] = dict()
-                        #         pool_members[member]['device'] = device
-                        #         pool_members[member]['partition'] = partition
-                        #         pool_members[member]['pool'] = pool
-                        #     else:
-                        #         if 'Availability' in _:
-                        #             pool_members[member]['availability'] = \
-                        #                 _.split()[-1]
-                        #         if 'State' in _:
-                        #             pool_members[member]['state'] = \
-                        #                 _.split()[-1]
-                        #         if 'Reason' in _:
-                        #             pool_members[member]['reason'] = \
-                        #                 _.split(':')[-1].strip()
-                        #         if 'IP Address' in _:
-                        #             pool_members[member]['ip'] = _.split()[-1]
                         counter += 1
                         if counter == len(output):
                             break
