@@ -113,6 +113,23 @@ def collect(ansible_os,
                                                     play_path,
                                                     private_data_dir)
 
+        if ansible_os == 'cisco.nxos.nxos':
+            result = nxos_get_interface_descriptions(username,
+                                                     password,
+                                                     hostgroup,
+                                                     play_path,
+                                                     private_data_dir)
+
+        if ansible_os == 'bigip':
+            result = f5_get_interface_descriptions(username,
+                                                   password,
+                                                   hostgroup,
+                                                   nm_path,
+                                                   play_path,
+                                                   private_data_dir,
+                                                   reverse_dns=False,
+                                                   validate_certs=False)
+
     if collector == 'interface_status':
         if ansible_os == 'cisco.nxos.nxos':
             result = nxos_get_interface_status(username,
@@ -152,6 +169,22 @@ def collect(ansible_os,
                                         hostgroup,
                                         play_path,
                                         private_data_dir)
+
+    if collector == 'vlan_database':
+        if ansible_os == 'cisco.nxos.nxos':
+            result = nxos_get_vlan_db(username,
+                                      password,
+                                      hostgroup,
+                                      play_path,
+                                      private_data_dir)
+
+        if ansible_os == 'bigip':
+            result = f5_get_vlan_db(username,
+                                    password,
+                                    hostgroup,
+                                    play_path,
+                                    private_data_dir,
+                                    validate_certs=False)
 
     return result
 
@@ -277,7 +310,7 @@ def f5_get_arp_table(username,
     if not validate_certs:
         extravars['validate_certs'] = 'no'
 
-    # Execute the pre-checks
+    # Execute the command
     playbook = f'{play_path}/f5_get_arp_table.yml'
     runner = ansible_runner.run(private_data_dir=private_data_dir,
                                 playbook=playbook,
@@ -335,6 +368,70 @@ def f5_get_arp_table(username,
     df_arp['vendor'] = vendors
 
     return df_arp
+
+
+def f5_get_interface_descriptions(username,
+                                  password,
+                                  host_group,
+                                  nm_path,
+                                  play_path,
+                                  private_data_dir,
+                                  reverse_dns=False,
+                                  validate_certs=True):
+    '''
+    Gets IOS interface descriptions.
+
+    Args:
+        username (str):         The username to login to devices
+        password (str):         The password to login to devices
+        host_group (str):       The inventory host group
+        nm_path (str):          The path to the Net-Manage repository
+        play_path (str):        The path to the playbooks directory
+        private_data_dir (str): The path to the Ansible private data directory
+        reverse_dns (bool):     Whether to run a reverse DNS lookup. Defaults
+                                to False because the test can take several
+                                minutes on large ARP tables.
+        validate_certs (bool):  Whether to validate SSL certificates
+
+    Returns:
+        df_desc (DataFrame):    The interface descriptions
+    '''
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group}
+
+    if not validate_certs:
+        extravars['validate_certs'] = 'no'
+
+    # Execute the command and parse the results
+    playbook = f'{play_path}/f5_get_interface_description.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Create a list to store the rows for the dataframe
+    df_data = list()
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout_lines'][0]
+            pos = 1
+            for line in output:
+                if 'net interface' in line or 'net trunk' in line:
+                    inf = line.split()[-2]
+                    desc = output[pos].split()[1:]
+                    desc = ' '.join(desc)  # To account for spaces in desc
+                    df_data.append([device, inf, desc])
+                pos += 1
+
+    # Create the dataframe and return it
+    cols = ['device', 'interface', 'description']
+    df_desc = pd.DataFrame(data=df_data, columns=cols)
+    return df_desc
 
 
 def f5_get_interface_status(username,
@@ -692,7 +789,6 @@ def f5_get_vip_availability(username,
                             validate_certs=True):
     '''
     Gets VIP availability from F5 LTMs.
-
     Args:
         username (str):         The username to login to devices
         password (str):         The password to login to devices
@@ -701,7 +797,6 @@ def f5_get_vip_availability(username,
         private_data_dir (str): Path to the Ansible private data directory
         nm_path (str):          The path to the Net-Manage repository
         validate_certs (bool):  Whether to validate SSL certificates
-
     Returns:
         df_vips (DataFrame):    The pool availability and associated data
     '''
@@ -739,23 +834,15 @@ def f5_get_vip_availability(username,
                     else:
                         vip = line.split()[-1]
                         partition = 'Common'
-                    # pools[device][pool] = dict()
-                    # pools[device][pool]['device'] = device
-                    # pools[device][pool]['partition'] = partition
                     counter = pos+1
                     while 'Ltm::Virtual Server:' not in output[counter]:
                         _ = output[counter]
                         if 'Availability' in _:
                             availability = _.split()[-1]
-                            # pools[device][pool]['availability'] = \
-                            #     _.split()[-1]
                         if 'State' in _:
                             state = _.split()[-1]
-                            # pools[device][pool]['state'] = _.split()[-1]
                         if 'Reason' in _:
                             reason = _.split(':')[-1].strip()
-                            # pools[device][pool]['reason'] = \
-                            #     _.split(':')[-1].strip()
                         if 'Destination' in _:
                             destination = _.split()[-1].split(':')[0]
                             port = _.split()[-1].split(':')[-1]
@@ -784,6 +871,80 @@ def f5_get_vip_availability(username,
     df_vips = pd.DataFrame(data=df_data, columns=cols)
 
     return df_vips
+
+
+def f5_get_vlan_db(username,
+                   password,
+                   host_group,
+                   play_path,
+                   private_data_dir,
+                   validate_certs=True):
+    '''
+    Gets the VLAN database on F5 LTMs.
+
+    Args:
+        username (str):         The username to login to devices
+        password (str):         The password to login to devices
+        host_group (str):       The inventory host group
+        play_path (str):        The path to the playbooks directory
+        private_data_dir (str): Path to the Ansible private data directory
+        nm_path (str):          The path to the Net-Manage repository
+        validate_certs (bool):  Whether to validate SSL certificates
+
+    Returns:
+        df_vips (DataFrame):    The pool availability and associated data
+    '''
+    # Get the interface statuses
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group}
+
+    if not validate_certs:
+        extravars['validate_certs'] = 'no'
+
+    playbook = f'{play_path}/f5_get_vlan_database.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    df_data = list()
+
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout_lines'][0]
+
+            pos = 0
+            for line in output:
+                if 'Net::Vlan:' in line:
+                    if 'Interface Name' in output[pos+1]:
+                        name = output[pos+1].split()[-1]
+                    else:
+                        name = str()
+                    if output[pos+2].split()[0] == 'Tag':
+                        tag = output[pos+2].split()[-1]
+                    else:
+                        tag = str()
+                    # TODO: Add support for status and interfaces
+                    df_data.append([device,
+                                    tag,
+                                    name,
+                                    str(),
+                                    str()])
+                pos += 1
+
+    cols = ['device',
+            'id',
+            'name',
+            'status',
+            'ports']
+    df_vlans = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_vlans
 
 
 def ios_find_uplink_by_ip(username,
@@ -1276,6 +1437,95 @@ def nxos_get_arp_table(username,
     return df_arp
 
 
+def nxos_get_fexes_table(username,
+                         password,
+                         host_group,
+                         nm_path,
+                         play_path,
+                         private_data_dir):
+    '''
+    Gets the FEXes for Cisco 5Ks. This function is required for gathering
+    interface data on devices with lots of FEXes. Otherwise there will be
+    timeouts.
+
+    Args:
+        username (str):         The username to login to devices
+        password (str):         The password to login to devices
+        host_group (str):       The inventory host group
+        nm_path (str):          The path to the Net-Manage repository
+        play_path (str):        The path to the playbooks directory
+        private_data_dir (str): The path to the Ansible private data directory
+
+    Returns:
+        df_fexes (DataFrame):   The device FEXes (if there are not any then an
+                                empty dataframe will be returned).
+    '''
+    # Get selected FEX details
+    cmd = 'show fex detail'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute the command and parse the output
+    playbook = f'{play_path}/cisco_nxos_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse the output and add it to 'data'
+    df_data = list()
+
+    # Create a list of mac addresses (used for querying the vendor)
+    macs = list()
+
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout'][0].split('\n')
+
+            # Parse the output and add it to 'df_data'
+            for line in output[1:]:
+                line = line.split()
+                address = line[0]
+                age = line[1]
+                mac = line[2]
+                inf = line[3]
+                macs.append(mac)
+                row = [device, address, age, mac, inf]
+                # Perform a reverse DNS lookup if requested
+                # TODO: Convert this to a standalone function
+                # if reverse_dns:
+                #     try:
+                #         rdns = socket.getnameinfo((address, 0), 0)[0]
+                #     except Exception:
+                #         rdns = 'unknown'
+                #     row.append(rdns)
+                df_data.append(row)
+
+    cols = ['device',
+            'ip_address',
+            'age',
+            'mac_address',
+            'interface']
+
+    # TODO: Convert this to a standalone function
+    # if reverse_dns:
+    #     cols.append('reverse_dns')
+
+    df_arp = pd.DataFrame(data=df_data, columns=cols)
+
+    # Find the vendrs and add them to the dataframe
+    vendors = find_mac_vendor(macs, nm_path)
+    df_arp['vendor'] = vendors
+
+    return df_arp
+
+
 def nxos_get_cam_table(username,
                        password,
                        host_group,
@@ -1353,6 +1603,66 @@ def nxos_get_cam_table(username,
 
     # Return df_cam
     return df_cam
+
+
+def nxos_get_interface_descriptions(username,
+                                    password,
+                                    host_group,
+                                    play_path,
+                                    private_data_dir,
+                                    interface=None):
+    '''
+    Gets NXOS interface descriptions.
+
+    Args:
+        username (str):         The username to login to devices
+        password (str):         The password to login to devices
+        host_group (str):       The inventory host group
+        play_path (str):        The path to the playbooks directory
+        private_data_dir (str): The path to the Ansible private data directory
+        interface (str):        The interface (defaults to all interfaces)
+
+    Returns:
+        df_desc (DataFrame):    The interface descriptions
+    '''
+    # Get the interface descriptions and add them to df_cam
+    cmd = 'show interface description | grep -v "\\-\\-\\-\\-"'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute 'show interface description' and parse the results
+    playbook = f'{play_path}/cisco_nxos_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+    # Create a list to store the rows for the dataframe
+    df_data = list()
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout'][0].split('\n')
+            output = list(filter(None, output))
+            # NXOS does not have consistent column widths. Therefore, we must
+            # re-index the position of the 'Description' column every time it
+            # occurs.
+            for _ in output:
+                if ('Port' in _ or 'Interface' in _) and 'Description' in _:
+                    pos = _.index('Description')
+                else:
+                    inf = _.split()[0]
+                    desc = _[pos:].strip()
+                    df_data.append([device, inf, desc])
+
+    # Create the dataframe and return it
+    cols = ['device', 'interface', 'description']
+    df_desc = pd.DataFrame(data=df_data, columns=cols)
+    return df_desc
 
 
 def nxos_get_interface_status(username,
@@ -1575,6 +1885,76 @@ def nxos_get_port_channel_data(username,
     df_po_data = df_po_data[cols]
 
     return df_po_data
+
+
+def nxos_get_vlan_db(username,
+                     password,
+                     host_group,
+                     play_path,
+                     private_data_dir):
+    '''
+    Gets the VLAN database for NXOS devices.
+
+    Args:
+        username (str):         The username to login to devices
+        password (str):         The password to login to devices
+        host_group (str):       The inventory host group
+        play_path (str):        The path to the playbooks directory
+        private_data_dir (str): The path to the Ansible private data directory
+        nm_path (str):          The path to the Net-Manage repository
+
+    Returns:
+        df_vlans (DataFrame):   The VLAN database
+    '''
+    cmd = 'show vlan brief | grep "Status    Ports\\|active\\|suspend\\|shut"'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'ansible_command_timeout': '240',
+                 'commands': cmd}
+
+    # Execute the pre-checks
+    playbook = f'{play_path}/cisco_nxos_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse the output and add it to 'data'
+    df_data = list()
+
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout'][0].split('\n')
+
+            # Get the position of "Ports" column
+            pos = output[0].index('Ports')
+
+            for line in output[1:]:
+                v_id = line.split()[0]
+                name = line.split()[1]
+                status = line.split()[2]
+                ports = line[pos:].strip()
+                df_data.append([device,
+                                v_id,
+                                name,
+                                status,
+                                ports])
+
+    # Create the dataframe and return it
+    cols = ['device',
+            'id',
+            'name',
+            'status',
+            'ports']
+
+    df_vlans = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_vlans
 
 
 def nxos_get_vpc_state(username,
