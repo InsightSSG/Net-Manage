@@ -397,6 +397,38 @@ def set_filepath(filepath):
     return filepath
 
 
+def suppress_extravars(extravars):
+    '''
+    ansible_runner.run stores extravars to a file named 'extravars' then saves
+    it to the local drive. The file is unencrypted, so any sensitive data, like
+    usernames and password, are stored in plain text.
+
+    People have complained about this for years. Finally, starting in version
+    2.x, the devs added the 'suppress_env_files' arg. This keeps extravars from
+    being stored locally.
+
+    The sole purpose of this function is to ensure that legacy Ansible-Runner
+    commands add that argument. *All ansible_runner.run args should be passed
+    to this function, no exceptions.*
+
+
+
+
+    
+    If they do not use extravars, then just pass an empty dict.
+    This will ensure the functions are secure if someone adds extravars to them
+    later.
+
+    Args:
+        extravars (dict):       A dictionary containing the extravars. If your
+                                function does not use it, then pass an empty
+                                dict instead.
+
+    Returns: extravars (dict):  'extravars' with the 'suppress_env_files' key.
+    '''
+    # if not extravars.get('')
+
+
 def get_net_manage_path():
     '''
     Set the absolute path to the Net-Manage repository.
