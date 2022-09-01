@@ -1,6 +1,6 @@
 ansible
 ansible-pylibssh
-ansible-runner
+ansible-runner>=2.2.1
 # colorama
 # cryptography==36.0.2  # See https://github.com/paramiko/paramiko/issues/2038
 git+https://github.com/wangoloj/python3-nmap.git
