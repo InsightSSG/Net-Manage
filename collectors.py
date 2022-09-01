@@ -254,6 +254,10 @@ def find_mac_vendor(addresses, nm_path):
 
     # Get the OUIs
     # TODO: Optimize so df_ouis isn't recreated every time function is called
+    # TODO: This could be added to the database once at first run-time. A
+    #       query could be run after that just to make sure the table exists
+    #       and is populated.
+    #
     df_ouis = update_ouis(nm_path)
 
     # Search df_ouis for the vendor, add it to 'vendors', and return it
@@ -476,8 +480,6 @@ def f5_get_interface_status(username,
     for event in runner.events:
         if event['event'] == 'runner_on_ok':
             event_data = event['event_data']
-            # from pprint import pprint
-            # pprint(event_data)
 
             device = event_data['remote_addr']
 
@@ -664,35 +666,6 @@ def f5_get_pool_availability(username,
             'reason']
 
     df_pools = pd.DataFrame(data=df_pools_data, columns=cols)
-
-    # df_members_data = list()
-    # for key, value in pool_members.items():
-    #     device = value['device']
-    #     member = key
-    #     ip = value['ip']
-    #     partition = value['partition']
-    #     pool = value['pool']
-    #     availability = value['availability']
-    #     state = value['state']
-    #     reason = value['reason']
-    #     df_members_data.append([device,
-    #                             partition,
-    #                             pool,
-    #                             member,
-    #                             ip,
-    #                             availability,
-    #                             state,
-    #                             reason])
-
-    # cols = ['device',
-    #         'partition',
-    #         'pool',
-    #         'member',
-    #         'ip',
-    #         'availability',
-    #         'state',
-    #         'reason']
-    # df_members = pd.DataFrame(data=df_members_data, columns=cols)
 
     return df_pools
 
@@ -1344,6 +1317,61 @@ def cisco_ios_get_interface_ips(username,
     return df_ip
 
 
+def nxos_diff_running_config(username,
+                             password,
+                             host_group,
+                             play_path,
+                             private_data_dir,
+                             nm_path,
+                             interface=None):
+    '''
+    Gets the running-config diff for NXOS devices.
+
+    Args:
+        username (str):         The username to login to devices
+        password (str):         The password to login to devices
+        host_group (str):       The inventory host group
+        play_path (str):        The path to the playbooks directory
+        private_data_dir (str): The path to the Ansible private data directory
+        interface (str):        The interface (defaults to all interfaces)
+        nm_path (str):          The path to the Net-Manage repository
+
+    Returns:
+        df_diff (DataFrame):    The diff
+    '''
+    cmd = 'show running-config diff'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute the command and parse the output
+    playbook = f'{play_path}/cisco_nxos_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    df_data = list()
+
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout'][0].split('\n')[3:]
+
+            for line in output:
+                df_data.append([device, line])
+
+    # Create the dataframe and return it
+    cols = ['device', 'diff']
+    df_diff = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_diff
+
+
 def nxos_get_arp_table(username,
                        password,
                        host_group,
@@ -1605,6 +1633,62 @@ def nxos_get_cam_table(username,
     return df_cam
 
 
+def nxos_get_hostname(username,
+                      password,
+                      host_group,
+                      play_path,
+                      private_data_dir,
+                      nm_path,
+                      interface=None):
+    '''
+    Gets the hostname for NXOS devices.
+
+    Args:
+        username (str):         The username to login to devices
+        password (str):         The password to login to devices
+        host_group (str):       The inventory host group
+        play_path (str):        The path to the playbooks directory
+        private_data_dir (str): The path to the Ansible private data directory
+        interface (str):        The interface (defaults to all interfaces)
+        nm_path (str):          The path to the Net-Manage repository
+
+    Returns:
+        df_name (DataFrame):    The hostname
+    '''
+    cmd = 'show hostname'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute the command and parse the output
+    playbook = f'{play_path}/cisco_nxos_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    df_data = dict()
+    df_data['device'] = list()
+    df_data['hostname'] = list()
+
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout'][0]
+
+            df_data['device'].append(device)
+            df_data['hostname'].append(output)
+
+    # Create the dataframe and return it
+    df_name = pd.DataFrame.from_dict(df_data)
+
+    return df_name
+
+
 def nxos_get_interface_descriptions(username,
                                     password,
                                     host_group,
@@ -1740,6 +1824,66 @@ def nxos_get_interface_status(username,
     df_inf_status = pd.DataFrame(data=df_data, columns=cols)
 
     return df_inf_status
+
+
+def nxos_get_logs(username,
+                  password,
+                  host_group,
+                  play_path,
+                  private_data_dir):
+    '''
+    Gets the latest log messages for NXOS devices.
+
+    Args:
+        username (str):         The username to login to devices
+        password (str):         The password to login to devices
+        host_group (str):       The inventory host group
+        play_path (str):        The path to the playbooks directory
+        private_data_dir (str): The path to the Ansible private data directory
+        nm_path (str):          The path to the Net-Manage repository
+
+    Returns:
+        df_logs (DataFrame):    The latest log messages
+    '''
+    cmd = 'show logging last 999'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute the pre-checks
+    playbook = f'{play_path}/cisco_nxos_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse the output and add it to 'data'
+    df_data = list()
+
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout'][0].split('\n')
+
+            for line in output:
+                _time = line[:21].strip()
+                _msg = line[21:].strip()
+                df_data.append([device,
+                                _time,
+                                _msg])
+
+    # Create the dataframe and return it
+    cols = ['device',
+            'time',
+            'message']
+
+    df_logs = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_logs
 
 
 def nxos_get_port_channel_data(username,
@@ -2111,3 +2255,72 @@ def panos_get_arp_table(username,
 
     df_arp = pd.DataFrame(data=arp_table, columns=cols)
     return df_arp
+
+
+def main():
+    import argparse
+    import helpers as hp
+    import os
+    from tabulate import tabulate
+
+    # Create the parser for command line arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-u', '--username',
+                        help='''The username for connecting to the devices. If
+                                missing, script will prompt for it.''',
+                        action='store'
+                        )
+    parser.add_argument('-P', '--password',
+                        help='''The password for connecting to the devices.
+                                For testing only. DO NOT USE ON SHARED OR
+                                INSECURE DEVICES. Always follow your
+                                organization's policies.''',
+                        action='store'
+                        )
+    requiredNamed = parser.add_argument_group('required named arguments')
+    requiredNamed.add_argument('-H', '--hostgroup',
+                               help='The hostgroup to test.',
+                               required=True,
+                               action='store'
+                               )
+    requiredNamed.add_argument('-n', '--nm_path',
+                               help='The path to the Net-Manage repository',
+                               required=True,
+                               action='store'
+                               )
+    requiredNamed.add_argument('-p', '--private_data_dir',
+                               help='''The path to the Ansible private data
+                                       directory (I.e., the directory containing
+                                       the 'inventory' and 'env' folders).''',
+                               required=True,
+                               action='store'
+                               )
+    args = parser.parse_args()
+    if not args.password:
+        password = hp.get_password()
+    else:
+        password = args.password
+    if not args.username:
+        username = hp.get_username()
+    else:
+        username = args.username
+
+    host_group = args.hostgroup
+    nm_path = os.path.expanduser(args.nm_path)
+    play_path = f'{nm_path}/playbooks'
+    private_data_dir = os.path.expanduser(args.private_data_dir)
+
+    result = nxos_get_logs(username,
+                               password,
+                               host_group,
+                               play_path,
+                               private_data_dir)    
+
+    print(tabulate(result,
+                   headers='keys',
+                   tablefmt='psql',
+                   showindex=False))
+
+
+if __name__ == '__main__':
+    main()
