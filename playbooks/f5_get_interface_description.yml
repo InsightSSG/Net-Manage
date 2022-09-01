@@ -1,0 +1,16 @@
+- name: Get F5 Interface Statuses
+  gather_facts: no
+  hosts: "{{ host_group }}"
+  
+  tasks:
+    - name: get F5 interface descriptions on {{host_group}}
+      f5networks.f5_modules.bigip_command:
+        commands:
+          - list net all-properties | grep "net interface\|net trunk\|description" | grep -v "module-description"
+        provider:
+          user: "{{ username }}"
+          server: "{{ ansible_host }}"
+          password: "{{ password }}"
+          server_port: "{{ ansible_port | default('443') }}"
+          validate_certs: "{{ validate_certs | default('yes')}}"
+      delegate_to: localhost
