@@ -6,14 +6,15 @@ Runs data collectors and stores them in a sqlite database.
 
 import argparse
 import datetime as dt
-import getpass
+from re import S
+import sys
 
-import helpers as hp
 import collectors as cl
+import helpers as hp
 import os
 import pandas as pd
 import sqlite3 as sl
-import sys
+# import sys
 
 from tabulate import tabulate
 
@@ -32,22 +33,16 @@ parser.add_argument('-o', '--out_dir',
                     default=os.path.expanduser('~'),
                     action='store'
                     )
-parser.add_argument('-P', '--password',
-                    help='''SSH password. DO NOT use on a shared computer or
-                            unencrypted drive. Follow your organization's
-                            policies.''',
-                    action='store'
-                    )
 parser.add_argument('-u', '--username',
                     help='''The username for connecting to the devices. If
-                            missing, will default to current user.''',
-                    default=getpass.getuser(),
+                            missing, script will prompt for it.''',
                     action='store'
                     )
 requiredNamed = parser.add_argument_group('required named arguments')
 requiredNamed.add_argument('-i', '--in_file',
                            help='''The path the Excel spreadsheet defining
                                    tests to run''',
+                           required=True,
                            action='store'
                            )
 requiredNamed.add_argument('-n', '--nm_path',
@@ -65,6 +60,12 @@ requiredNamed.add_argument('-p', '--private_data_dir',
 args = parser.parse_args()
 
 
+# Import the helpers and collectors libraries nm_path.
+# sys.path.append(args.nm_path)
+# import helpers as hp
+# import collectors as cl
+
+
 def arg_parser():
     '''
     Extract system args and assign variable names.
@@ -80,13 +81,16 @@ def arg_parser():
     nm_path = os.path.expanduser(args.nm_path)
     out_dir = os.path.expanduser(args.out_dir)
     private_data_dir = os.path.expanduser(args.private_data_dir)
-    username = args.username
+
+    if not args.username:
+        username = hp.get_username()
+    else:
+        username = args.username
+
     db = f'{out_dir}/{args.database}'
     # Get the user's SSH password
-    if not args.password:
-        password = hp.get_password()
-    else:
-        password = args.password
+    password = hp.get_password()
+
     return db, in_file, nm_path, out_dir, private_data_dir, username, password
 
 
@@ -145,6 +149,22 @@ def validate(collector, db, df, testit=False):
                          con)
     con.close()
 
+    def create_df_pre(device, collector):
+        '''
+        Create df_pre. Have to do it this way in case the first timestamp for
+        each device in a table is different.
+        '''
+        table = collector
+        con = sl.connect(db)
+        df_ts = pd.read_sql(f'''select timestamp from {table} 
+                                where device like "{device}"
+                                limit 1''', con)
+        ts = df_ts['timestamp'].to_list()[0]
+        df_pre = pd.read_sql(f'select * from {table} where timestamp = "{ts}"',
+                             con)
+        con.close()
+        return df_pre
+
     # Validate F5 Pool Availability
     if collector == 'f5_pool_availability':
         print(collector.upper())
@@ -159,31 +179,20 @@ def validate(collector, db, df, testit=False):
             new_vals = df.loc[(df['device'] == device) &
                               (df['partition'] == partition) &
                               (df['pool'] == pool)]
-            new_availability = new_vals['availability'][0]
-            new_avail = new_vals['avail'][0]
-            new_total = new_vals['total'][0]
-            new_cur = new_vals['cur'][0]
-            new_reason = new_vals['reason'][0]
+            new_availability = new_vals['availability'].values
+            # if pre_availability != new_availability[0]:
             if pre_availability != new_availability:
-                # down_rows.append(row)
-                # down_rows.append(row.to_list())
-                _row = row.to_list()
-                print(_row)
-                _row[-7] = new_availability
-                _row[-5] = new_total
-                _row[-4] = new_avail
-                _row[-3] = new_cur
-                _row[-1] = new_reason
-                down_rows.append(_row)
-
+                # del new_vals['reason']
+                down_rows.append(new_vals.iloc[0].to_list())
+        if testit:  # Insert a false positive for testing
+            down_rows.append(new_vals.iloc[0].to_list())
         if down_rows:
-            cols = df_pre.columns.to_list()
+            cols = df_pre.columns.to_list()[:-1]
             df_down = pd.DataFrame(data=down_rows, columns=cols)
 
             print(tabulate(df_down,
                            headers='keys',
                            tablefmt='psql'))
-            # print(df_down.info())
 
     # Validate F5 VIP availability
     if collector == 'f5_vip_availability':
@@ -198,98 +207,97 @@ def validate(collector, db, df, testit=False):
             new_vals = df.loc[(df['device'] == device) &
                               (df['partition'] == partition) &
                               (df['vip'] == vip)]
-            new_avail = new_vals['availability'][0]
-            new_state = new_vals['state'][0]
-            new_reason = new_vals['reason'][0]
+
+            new_avail = new_vals['availability'].values
             if avail != new_avail:
-                _row = row.to_list()
-                _row[-3] = new_avail
-                _row[-2] = new_state
-                _row[-1] = new_reason
-                down_rows.append(_row)
+                down_rows.append(new_vals.iloc[0].to_list())
+
+        if testit:  # Insert a false positive for testing
+            down_rows.append(new_vals.iloc[0].to_list())
         if down_rows:
-            cols = df_pre.columns.to_list()
+            # cols = df_pre.columns.to_list()
+            cols = df_pre.columns.to_list()[:-1]
             df_down = pd.DataFrame(data=down_rows, columns=cols)
             print(tabulate(df_down,
                            headers='keys',
                            tablefmt='psql'))
 
-    # Validate F5 pool member availability
+    # Validate F5 Pool Member Availability
     if collector == 'f5_pool_member_availability':
         print(collector.upper())
-        df['timestamp'] = df.index.to_list()  # TODO: Move this out of if/then
         df_pre = df_pre.loc[df_pre['pool_member_state'] == 'available'].copy()
         down_rows = list()
+        # missing_rows = list()
         for idx, row in df_pre.iterrows():
-            device = row['device'].strip()
-            pool = row['pool_name'].strip()
-            member = row['pool_member'].strip()
-            pre_state = row['pool_member_state']
+            device = row['device']
+            pool_name = row['pool_name']
+            pool_member = row['pool_member']
+            pre_availability = row['pool_member_state']
             new_vals = df.loc[(df['device'] == device) &
-                              (df['pool_name'] == pool) &
-                              (df['pool_member'] == member)]
-            new_state = new_vals['pool_member_state'][0].strip()
-            if pre_state != new_state:
-                _row = row.to_list()
-                _row[-1] = new_state
-                down_rows.append(_row)
-                # down_rows.append(new_vals.iloc[0].to_list()[1:])
+                              (df['pool_name'] == pool_name) &
+                              (df['pool_member'] == pool_member)]
+            new_availability = new_vals['pool_member_state'].values
+            # if pre_availability != new_availability[0]:
+            if pre_availability != new_availability:
+                # del new_vals['reason']
+                down_rows.append(new_vals.iloc[0].to_list())
+        if testit:  # Insert a false positive for testing
+            down_rows.append(new_vals.iloc[0].to_list())
         if down_rows:
-            cols = df_pre.columns.to_list()
+            cols = df_pre.columns.to_list()[:-1]
             df_down = pd.DataFrame(data=down_rows, columns=cols)
 
             print(tabulate(df_down,
                            headers='keys',
                            tablefmt='psql'))
 
-    print(len(df))
-    if testit:
-        df = df_pre[10:-10].copy()
+    # Validate Interface Statuses
+    # if collector == 'interface_status':
+    #     testit = True
+    #     print(collector.upper())
 
-        # val_1 = df['vip'].to_list()
-        # val_2 = df['partition'].to_list()
-        # val_3 = df['destination'].to_list()
-        # val_4 = df['port'].to_list()
-        # val_5 = df['device'].to_list()
+    #     # TODO: Find a way to create dataframes for each device that does not
+    #     #       require loading them all into memory. The current method is a
+    #     #       workaround for when the first timestamp in the table does not
+    #     #       contain the device that is being queried (usually this happens
+    #     #       because a hostgroup was added after the first run of the
+    #     #       script).
+    #     uniques = list(df.device.unique())
+    #     devices = dict()
+    #     for d in uniques:
+    #         devices[d] = create_df_pre(d, collector)
 
-        # Returns correct number of results (9)
-        # '''df_missing = df_pre.query('vip not in @val_1 and partition not in
-        #    @val_2 and destination not in @val_3')'''
+    #     down_rows = list()
+    #     for d in devices:
+    #         df_pre = devices[d]
+    #         for idx, row in df_pre.iterrows():
+    #             device = row['device']
+    #             interface = row['interface']
+    #             pre_availability = row['status']
 
-        # Returns only 2 results, even though combination does not appear
-        # elsewhere in dataframe
-        # '''df_missing = df_pre.query('vip not in @val_1 and partition not in
-        #    @val_2 and destination not in @val_3 and port not in @val_4')'''
+    #             new_vals = df.query(f"device == '{device}' and \
+    #                                 interface == '{interface}'")
 
-        # Note: When I tried to include device (@val_5) it returned no results
+    #             new_availability = new_vals['status'].values
+    #             if len(new_vals) > 0:
+    #                 # Insert a false positive for testing
+    #                 if testit and len(down_rows) == 0:
+    #                     down_rows.append(new_vals.iloc[0].to_list())
+    #                 # Continue
+    #                 if pre_availability != new_availability:
+    #                     down_rows.append(new_vals.iloc[0].to_list())
 
-        # TODO: Re-write this using df.query (see comments above). I tried to
-        #       do it that way, but could not get consistent results. I had
-        #       the same problem when using ".isna". I am sure it is user
-        #       error on my part, but this method is acceptable for now.
+    #     if down_rows:
+    #         print(df_pre.columns.to_list())
+    #         print(df_pre.columns.to_list()[:-1])
+    #         print(df.columns.to_list())
+    #         # cols = df_pre.columns.to_list()[:-1]
+    #         cols = df.columns.to_list()
+    #         df_down = pd.DataFrame(data=down_rows, columns=cols)
 
-        # Iterate over the pre_check data and ensure each row is present in
-        # 'df'. If it is not present, add it to 'missing_rows,' then create a
-        # dataframe from it.
-        missing_rows = list()
-        for idx, row in df_pre.iterrows():
-            device = row['device']
-            partition = row['partition']
-            vip = row['vip']
-            new_vals = df.loc[(df['device'] == device) &
-                              (df['partition'] == partition) &
-                              (df['vip'] == vip)]
-            if len(new_vals) == 0:
-                missing_rows.append(row)
-
-        if missing_rows:
-            cols = df_pre.columns.to_list()
-            df_missing = pd.DataFrame(data=missing_rows, columns=cols)
-
-        print(tabulate(df_missing.drop('reason', axis=1),
-                       headers='keys',
-                       tablefmt='psql'))
-        print(df_missing.info())
+    #         print(tabulate(df_down,
+    #                        headers='keys',
+    #                        tablefmt='psql'))
 
 
 def main():
@@ -314,8 +322,6 @@ def main():
                    headers='keys',
                    tablefmt='psql',
                    showindex=False))
-
-    sys.exit()
 
     # Set the timestamp. This is for database queries. Setting it a single time
     # at the start of the script will allow all collectors to have the same
