@@ -78,6 +78,28 @@ def ansible_get_hostgroup():
     return host_group
 
 
+def ansible_get_hostgroups(host_files, quiet=True):
+    '''
+    Gets the devices inside an Ansible inventory hostgroup.
+    Args:
+        host_files (list): The path to one or more Ansible host files
+                           (I.e., ['inventory/hosts'])
+        quiet (bool):      Whether to output the entire graph.
+    Returns:
+        devices (list):  A list of devices in the hostgroup
+    '''
+    graph = ansible_runner.interface.get_inventory('graph',
+                                                   host_files,
+                                                   quiet=True)
+    graph = str(graph).strip("('")
+    hostgroups = list()
+    graph = list(filter(None, graph.split('@')))
+    for item in graph:
+        hostgroup = item.split(':')[0]
+        hostgroups.append(hostgroup)
+    return hostgroups
+
+
 def ansible_get_host_variables(host_group, private_data_dir):
     '''
     Gets the variables for a host or host group in the hosts file.
@@ -411,10 +433,6 @@ def suppress_extravars(extravars):
     commands add that argument. *All ansible_runner.run args should be passed
     to this function, no exceptions.*
 
-
-
-
-    
     If they do not use extravars, then just pass an empty dict.
     This will ensure the functions are secure if someone adds extravars to them
     later.
@@ -426,7 +444,9 @@ def suppress_extravars(extravars):
 
     Returns: extravars (dict):  'extravars' with the 'suppress_env_files' key.
     '''
-    # if not extravars.get('')
+    # TODO: Finish this function. (Note: I thought about adding a check to
+    #       manually delete any files in extravars at beginning and end of
+    #       each run, but users might not want that.)
 
 
 def get_net_manage_path():

@@ -6,8 +6,10 @@ ansible-runner>=2.2.1
 git+https://github.com/wangoloj/python3-nmap.git
 flake8  # Linter used for CI/CD
 # graphviz
+ipywidgets
 jinja2>=3.0.3
 jupyterlab
+jupyterlab_widgets
 # mac-vendor-lookup
 # netaddr>=0.7.14
 nest-asyncio

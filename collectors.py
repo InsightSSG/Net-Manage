@@ -11,184 +11,6 @@ import re
 import socket
 
 
-def collect(ansible_os,
-            collector,
-            username,
-            password,
-            hostgroup,
-            play_path,
-            private_data_dir,
-            nm_path,
-            ansible_timeout='300',
-            validate_certs=True):
-    '''
-    This function calls the test that the user requested.
-
-    Args:
-        os (str):               The ansible_network_os variable
-        collector (str):        The name of the test that the user requested
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): The path to the Ansible private data directory
-        nm_path (str):          The path to the Net-Manage repository
-        interface (str):        The interface (defaults to all interfaces)
-        validate_certs (bool):  Whether to validate SSL certs (used for F5s)
-    '''
-    if collector == 'cam_table':
-        if ansible_os == 'cisco.ios.ios':
-            result = ios_get_cam_table(username,
-                                       password,
-                                       hostgroup,
-                                       play_path,
-                                       private_data_dir,
-                                       nm_path)
-
-        if ansible_os == 'cisco.nxos.nxos':
-            result = nxos_get_cam_table(username,
-                                        password,
-                                        hostgroup,
-                                        play_path,
-                                        private_data_dir,
-                                        nm_path)
-
-    if collector == 'arp_table':
-        if ansible_os == 'cisco.nxos.nxos':
-            result = nxos_get_arp_table(username,
-                                        password,
-                                        hostgroup,
-                                        nm_path,
-                                        play_path,
-                                        private_data_dir)
-
-        if ansible_os == 'bigip':
-            result = f5_get_arp_table(username,
-                                      password,
-                                      hostgroup,
-                                      nm_path,
-                                      play_path,
-                                      private_data_dir,
-                                      validate_certs=False)
-
-        if ansible_os == 'paloaltonetworks.panos':
-            result = panos_get_arp_table(username,
-                                         password,
-                                         hostgroup,
-                                         play_path,
-                                         private_data_dir)
-
-    if collector == 'f5_pool_availability':
-        if ansible_os == 'bigip':
-            result = f5_get_pool_availability(username,
-                                              password,
-                                              hostgroup,
-                                              play_path,
-                                              private_data_dir,
-                                              validate_certs=False)
-
-    if collector == 'f5_pool_member_availability':
-        if ansible_os == 'bigip':
-            result = f5_get_pool_member_availability(username,
-                                                     password,
-                                                     hostgroup,
-                                                     play_path,
-                                                     private_data_dir,
-                                                     validate_certs=False)
-
-    if collector == 'f5_vip_availability':
-        if ansible_os == 'bigip':
-            result = f5_get_vip_availability(username,
-                                             password,
-                                             hostgroup,
-                                             play_path,
-                                             private_data_dir,
-                                             validate_certs=False)
-
-    if collector == 'interface_description':
-        if ansible_os == 'cisco.ios.ios':
-            result = ios_get_interface_descriptions(username,
-                                                    password,
-                                                    hostgroup,
-                                                    play_path,
-                                                    private_data_dir)
-
-        if ansible_os == 'cisco.nxos.nxos':
-            result = nxos_get_interface_descriptions(username,
-                                                     password,
-                                                     hostgroup,
-                                                     play_path,
-                                                     private_data_dir)
-
-        if ansible_os == 'bigip':
-            result = f5_get_interface_descriptions(username,
-                                                   password,
-                                                   hostgroup,
-                                                   nm_path,
-                                                   play_path,
-                                                   private_data_dir,
-                                                   reverse_dns=False,
-                                                   validate_certs=False)
-
-    if collector == 'interface_status':
-        if ansible_os == 'cisco.nxos.nxos':
-            result = nxos_get_interface_status(username,
-                                               password,
-                                               hostgroup,
-                                               play_path,
-                                               private_data_dir)
-
-        if ansible_os == 'bigip':
-            result = f5_get_interface_status(username,
-                                             password,
-                                             hostgroup,
-                                             play_path,
-                                             private_data_dir,
-                                             validate_certs=False)
-
-    if collector == 'find_uplink_by_ip':
-        if ansible_os == 'cisco.ios.ios':
-            result = ios_find_uplink_by_ip(username,
-                                           password,
-                                           hostgroup,
-                                           play_path,
-                                           private_data_dir)
-
-    if collector == 'port_channel_data':
-        if ansible_os == 'cisco.nxos.nxos':
-            result = nxos_get_port_channel_data(username,
-                                                password,
-                                                hostgroup,
-                                                play_path,
-                                                private_data_dir)
-
-    if collector == 'vpc_state':
-        if ansible_os == 'cisco.nxos.nxos':
-            result = nxos_get_vpc_state(username,
-                                        password,
-                                        hostgroup,
-                                        play_path,
-                                        private_data_dir)
-
-    if collector == 'vlan_database':
-        if ansible_os == 'cisco.nxos.nxos':
-            result = nxos_get_vlan_db(username,
-                                      password,
-                                      hostgroup,
-                                      play_path,
-                                      private_data_dir)
-
-        if ansible_os == 'bigip':
-            result = f5_get_vlan_db(username,
-                                    password,
-                                    hostgroup,
-                                    play_path,
-                                    private_data_dir,
-                                    validate_certs=False)
-
-    return result
-
-
 def update_ouis(nm_path):
     '''
     Creates a dataframe of vendor OUIs. List is taken from
@@ -2290,8 +2112,9 @@ def main():
                                )
     requiredNamed.add_argument('-p', '--private_data_dir',
                                help='''The path to the Ansible private data
-                                       directory (I.e., the directory containing
-                                       the 'inventory' and 'env' folders).''',
+                                       directory (I.e., the directory
+                                       containing the 'inventory' and 'env'
+                                       folders).''',
                                required=True,
                                action='store'
                                )
@@ -2311,10 +2134,10 @@ def main():
     private_data_dir = os.path.expanduser(args.private_data_dir)
 
     result = nxos_get_logs(username,
-                               password,
-                               host_group,
-                               play_path,
-                               private_data_dir)    
+                           password,
+                           host_group,
+                           play_path,
+                           private_data_dir)
 
     print(tabulate(result,
                    headers='keys',
