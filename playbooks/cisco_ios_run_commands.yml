@@ -1,6 +1,7 @@
 - name: Cisco IOS Run Arbitrary Commands Playbook
   gather_facts: no
   hosts: "{{ host_group }}"
+  order: sorted
 
   tasks:
 
@@ -10,3 +11,4 @@
         commands: "{{ commands }}"
       vars:
         ansible_command_timeout: "{{ ansible_timeout | default('30') }}"
+        ansible_network_os: cisco.ios.ios

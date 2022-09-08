@@ -1,17 +1,33 @@
 ansible
-ansible-runner
+ansible-pylibssh
+ansible-runner>=2.2.1
 # colorama
 # cryptography==36.0.2  # See https://github.com/paramiko/paramiko/issues/2038
+git+https://github.com/wangoloj/python3-nmap.git
+flake8  # Linter used for CI/CD
 # graphviz
+ipywidgets
+jinja2>=3.0.3
 jupyterlab
+jupyterlab_widgets
+# mac-vendor-lookup
 # netaddr>=0.7.14
+nest-asyncio
 openpyxl
 # ouilookup
+pan-os-python  # THIS MUST *ALSO* BE INSTALLED OUTSIDE THE VIRTUAL ENVIRONMENT
+pan-python  # THIS MUST *ALSO* BE INSTALLED OUTSIDE THE VIRTUAL ENVIRONMENT
 pandas
+pandevice
 paramiko
 # prettytable
 # pydot
 # pyparsing
 # pysnmp>=4.2.5
+pykeepass
+python3-nmap
+simplejson  # Requirement for python3-nmap
+tabulate
 # urllib3==1.23
 # xlrd
+xmltodict

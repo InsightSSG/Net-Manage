@@ -1,0 +1,13 @@
+- name: Cisco IOS Get VLAN SUmmary Playbook
+  gather_facts: no
+  hosts: "{{ host_group }}"
+  order: sorted
+
+  tasks:
+
+    - name: getting vlan summary on remote devices
+      connection: network_cli
+      cisco.ios.ios_command:
+        commands: "{{ command | default('show vlan summary') }}"
+      vars:
+        ansible_command_timeout: "{{ ansible_timeout | default('30') }}"

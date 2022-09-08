@@ -6,9 +6,9 @@
     - name: get F5 ARP table on {{host_group}}
       f5networks.f5_modules.bigip_command:
         commands:
-          - show net arp | grep -v "\\-\\-\\-\\-\\|Net::Arp\|Expire-in-sec"
+          - show net arp | grep -v "\\-\\-\\-\\-\|Net::Arp\|Expire-in-sec"
         provider:
-          user: "{{ user }}"
+          user: "{{ username }}"
           server: "{{ ansible_host }}"
           password: "{{ password }}"
           server_port: "{{ ansible_port | default('443') }}"
