@@ -6,17 +6,22 @@ Runs data collectors and stores them in a sqlite database.
 
 import argparse
 import datetime as dt
-from re import S
+# from re import S
 import sys
 
-import collectors as cl
+# import collectors as cl
 import helpers as hp
 import os
 import pandas as pd
+import readline
+import run_collectors as rc
 import sqlite3 as sl
 # import sys
 
 from tabulate import tabulate
+
+# Protect creds by not writing history to .python_history
+readline.write_history_file = lambda *args: None
 
 
 # Create the parser for command line arguments
@@ -36,6 +41,14 @@ parser.add_argument('-o', '--out_dir',
 parser.add_argument('-u', '--username',
                     help='''The username for connecting to the devices. If
                             missing, script will prompt for it.''',
+                    action='store'
+                    )
+parser.add_argument('-P', '--password',
+                    help='''The password for connecting to the devices. This is
+                            included for automation, but I do not recommend
+                            using it when running the script manually. If you
+                            do, then your password could show up in the command
+                            history.''',
                     action='store'
                     )
 requiredNamed = parser.add_argument_group('required named arguments')
@@ -89,7 +102,10 @@ def arg_parser():
 
     db = f'{out_dir}/{args.database}'
     # Get the user's SSH password
-    password = hp.get_password()
+    if not args.password:
+        password = hp.get_password()
+    else:
+        password = args.password
 
     return db, in_file, nm_path, out_dir, private_data_dir, username, password
 
@@ -116,7 +132,7 @@ def connect_to_db(db):
     return con
 
 
-def validate(collector, db, df, testit=False):
+def validate(collector, db, df, ts, testit=False):
     '''
     This function does four things:
 
@@ -141,29 +157,14 @@ def validate(collector, db, df, testit=False):
     Returns:
         df_missing (DataFrame): The missing rows
     '''
-    table = collector
-    con = sl.connect(db)
-    df_ts = pd.read_sql(f'select timestamp from {table} limit 1', con)
-    ts = df_ts['timestamp'].to_list()[0]
-    df_pre = pd.read_sql(f'select * from {table} where timestamp = "{ts}"',
-                         con)
-    con.close()
-
-    def create_df_pre(device, collector):
-        '''
-        Create df_pre. Have to do it this way in case the first timestamp for
-        each device in a table is different.
-        '''
+    if len(df) > 0:  # Skip empty dataframes
         table = collector
         con = sl.connect(db)
-        df_ts = pd.read_sql(f'''select timestamp from {table} 
-                                where device like "{device}"
-                                limit 1''', con)
-        ts = df_ts['timestamp'].to_list()[0]
+        df_ts = pd.read_sql(f'select timestamp from {table} limit 1', con)
+        first_ts = df_ts['timestamp'].to_list()[0]
         df_pre = pd.read_sql(f'select * from {table} where timestamp = "{ts}"',
                              con)
         con.close()
-        return df_pre
 
     # Validate F5 Pool Availability
     if collector == 'f5_pool_availability':
@@ -187,40 +188,37 @@ def validate(collector, db, df, testit=False):
         if testit:  # Insert a false positive for testing
             down_rows.append(new_vals.iloc[0].to_list())
         if down_rows:
-            cols = df_pre.columns.to_list()[:-1]
+            cols = df_pre.columns.to_list()[1:]
             df_down = pd.DataFrame(data=down_rows, columns=cols)
 
             print(tabulate(df_down,
                            headers='keys',
-                           tablefmt='psql'))
+                           tablefmt='psql',
+                           showindex=False))
 
     # Validate F5 VIP availability
     if collector == 'f5_vip_availability':
         print(collector.upper())
-        df_pre = df_pre.loc[df_pre['availability'] == 'available'].copy()
-        down_rows = list()
-        for idx, row in df_pre.iterrows():
-            device = row['device']
-            partition = row['partition']
-            vip = row['vip']
-            avail = row['availability']
-            new_vals = df.loc[(df['device'] == device) &
-                              (df['partition'] == partition) &
-                              (df['vip'] == vip)]
-
-            new_avail = new_vals['availability'].values
-            if avail != new_avail:
-                down_rows.append(new_vals.iloc[0].to_list())
-
-        if testit:  # Insert a false positive for testing
-            down_rows.append(new_vals.iloc[0].to_list())
-        if down_rows:
-            # cols = df_pre.columns.to_list()
-            cols = df_pre.columns.to_list()[:-1]
-            df_down = pd.DataFrame(data=down_rows, columns=cols)
-            print(tabulate(df_down,
+        # ts = '2022-09-18_0131'
+        con = sl.connect(db)
+        return_cols = 'device, partition, vip, destination, port, availability'
+        query_1 = f'availability = "available" and timestamp = "{first_ts}"'
+        query_2 = f'availability = "available" and timestamp = "{ts}"'
+        df_diff = pd.read_sql(f'''select {return_cols}
+                              from f5_vip_availability
+                              where {query_1}
+                              except
+                              select {return_cols}
+                              from f5_vip_availability
+                              where {query_2}
+                              ''',
+                              con)
+        con.close()
+        if len(df_diff) > 0:
+            print(tabulate(df_diff,
                            headers='keys',
-                           tablefmt='psql'))
+                           tablefmt='psql',
+                           showindex=False))        
 
     # Validate F5 Pool Member Availability
     if collector == 'f5_pool_member_availability':
@@ -244,60 +242,13 @@ def validate(collector, db, df, testit=False):
         if testit:  # Insert a false positive for testing
             down_rows.append(new_vals.iloc[0].to_list())
         if down_rows:
-            cols = df_pre.columns.to_list()[:-1]
+            cols = df_pre.columns.to_list()[1:]
             df_down = pd.DataFrame(data=down_rows, columns=cols)
 
             print(tabulate(df_down,
                            headers='keys',
-                           tablefmt='psql'))
-
-    # Validate Interface Statuses
-    # if collector == 'interface_status':
-    #     testit = True
-    #     print(collector.upper())
-
-    #     # TODO: Find a way to create dataframes for each device that does not
-    #     #       require loading them all into memory. The current method is a
-    #     #       workaround for when the first timestamp in the table does not
-    #     #       contain the device that is being queried (usually this happens
-    #     #       because a hostgroup was added after the first run of the
-    #     #       script).
-    #     uniques = list(df.device.unique())
-    #     devices = dict()
-    #     for d in uniques:
-    #         devices[d] = create_df_pre(d, collector)
-
-    #     down_rows = list()
-    #     for d in devices:
-    #         df_pre = devices[d]
-    #         for idx, row in df_pre.iterrows():
-    #             device = row['device']
-    #             interface = row['interface']
-    #             pre_availability = row['status']
-
-    #             new_vals = df.query(f"device == '{device}' and \
-    #                                 interface == '{interface}'")
-
-    #             new_availability = new_vals['status'].values
-    #             if len(new_vals) > 0:
-    #                 # Insert a false positive for testing
-    #                 if testit and len(down_rows) == 0:
-    #                     down_rows.append(new_vals.iloc[0].to_list())
-    #                 # Continue
-    #                 if pre_availability != new_availability:
-    #                     down_rows.append(new_vals.iloc[0].to_list())
-
-    #     if down_rows:
-    #         print(df_pre.columns.to_list())
-    #         print(df_pre.columns.to_list()[:-1])
-    #         print(df.columns.to_list())
-    #         # cols = df_pre.columns.to_list()[:-1]
-    #         cols = df.columns.to_list()
-    #         df_down = pd.DataFrame(data=down_rows, columns=cols)
-
-    #         print(tabulate(df_down,
-    #                        headers='keys',
-    #                        tablefmt='psql'))
+                           tablefmt='psql',
+                           showindex=False))
 
 
 def main():
@@ -342,7 +293,7 @@ def main():
                 collect_vars = df_vars.loc[df_vars['host_group'] == hostgroup]
                 ansible_os = collect_vars['ansible_network_os'].values[0]
 
-                result = cl.collect(ansible_os,
+                result = rc.collect(ansible_os,
                                     collector,
                                     username,
                                     password,
@@ -385,7 +336,7 @@ def main():
                 # print(df_tmp.info())
 
                 # Run validators
-                validate(collector, db, result, testit=False)
+                validate(collector, db, result, ts, testit=False)
 
 
 if __name__ == '__main__':
