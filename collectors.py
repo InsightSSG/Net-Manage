@@ -205,7 +205,7 @@ def f5_get_interface_descriptions(username,
                                   reverse_dns=False,
                                   validate_certs=True):
     '''
-    Gets IOS interface descriptions.
+    Gets F5 interface descriptions.
 
     Args:
         username (str):         The username to login to devices
@@ -1989,7 +1989,10 @@ def nxos_get_vpc_state(username,
                     'Auto-recovery status']
 
     # Create the dataframe and return it
-    df_vpc_state = pd.DataFrame(data=df_data, columns=cols)
+    if len(df_data) > 0:
+        df_vpc_state = pd.DataFrame(data=df_data, columns=cols)
+    else:
+        df_vpc_state = pd.DataFrame()
 
     return df_vpc_state
 
