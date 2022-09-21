@@ -199,26 +199,47 @@ def validate(collector, db, df, ts, testit=False):
     # Validate F5 VIP availability
     if collector == 'f5_vip_availability':
         print(collector.upper())
-        # ts = '2022-09-18_0131'
+        ts = '2022-09-18_0131'
         con = sl.connect(db)
         return_cols = 'device, partition, vip, destination, port, availability'
         query_1 = f'availability = "available" and timestamp = "{first_ts}"'
         query_2 = f'availability = "available" and timestamp = "{ts}"'
-        df_diff = pd.read_sql(f'''select {return_cols}
-                              from f5_vip_availability
-                              where {query_1}
-                              except
-                              select {return_cols}
-                              from f5_vip_availability
-                              where {query_2}
-                              ''',
-                              con)
+        query = f'''select {return_cols}
+                    from f5_vip_availability
+                    where {query_1}
+                    except
+                    select {return_cols}
+                    from f5_vip_availability
+                    where {query_2}
+                    '''
+        # print(query)
+        df_diff = pd.read_sql(query, con)
+
+        # if len(df_diff) > 0:
+        #     print(tabulate(df_diff,
+        #                    headers='keys',
+        #                    tablefmt='psql',
+        #                    showindex=False))
+
+        query_1 = f'availability != "available" and timestamp = "{first_ts}"'
+        query_2 = f'availability != "available" and timestamp = "{ts}"'
+        query = f'''select {return_cols}
+                    from f5_vip_availability
+                    where {query_1}
+                    except
+                    select {return_cols}
+                    from f5_vip_availability
+                    where {query_2}
+                    '''
+        print(query)
+        df_diff = pd.read_sql(query, con)
+
         con.close()
         if len(df_diff) > 0:
             print(tabulate(df_diff,
                            headers='keys',
                            tablefmt='psql',
-                           showindex=False))        
+                           showindex=False))
 
     # Validate F5 Pool Member Availability
     if collector == 'f5_pool_member_availability':
