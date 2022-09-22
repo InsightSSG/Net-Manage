@@ -26,9 +26,21 @@ readline.write_history_file = lambda *args: None
 
 # Create the parser for command line arguments
 parser = argparse.ArgumentParser()
+parser.add_argument('-c', '--collectors',
+                    help='''A comma-delimited list of collectors to run. This
+                            arg *or* --in_file is required when running from
+                            the command line''',
+                    action='store'
+                    )
 parser.add_argument('-d', '--database',
                     help='''The database name. Defaults to YYYY-MM-DD.db.''',
                     default=f'{str(dt.datetime.now()).split()[0]}.db',
+                    action='store'
+                    )
+parser.add_argument('-i', '--in_file',
+                    help='''The path the Excel spreadsheet defining tests to
+                            run. This arg *or* --collectors is required when
+                            running from the command line''',
                     action='store'
                     )
 parser.add_argument('-o', '--out_dir',
@@ -52,9 +64,8 @@ parser.add_argument('-P', '--password',
                     action='store'
                     )
 requiredNamed = parser.add_argument_group('required named arguments')
-requiredNamed.add_argument('-i', '--in_file',
-                           help='''The path the Excel spreadsheet defining
-                                   tests to run''',
+requiredNamed.add_argument('-H', '--hostgroups',
+                           help='A comma-delimited list of hostgroups',
                            required=True,
                            action='store'
                            )
@@ -89,25 +100,55 @@ def arg_parser():
     Returns:
         vars_dict (dict):   A dictionary containing arg variables
     '''
+    args_dict = dict()
+
     # Parse the command line arguments
-    in_file = os.path.expanduser(args.in_file)
+
+    # Set the in_file or list of collectors. If a user passed both args for
+    # some reason, then only args.collectors is read
+    collectors = None
+    in_file = None
+    if not args.collectors and not args.in_file:
+        parser.print_help(sys.stderr)
+        sys.exit()
+    elif args.collectors:
+        collectors = args.collectors
+        collectors = [c.strip() for c in collectors.split(',')]
+    else:
+        in_file = os.path.expanduser(args.in_file)
+
+    # Set the hostgroups
+    hostgroups = args.hostgroups
+    hostgroups = [h.strip() for h in hostgroups.split(',')]
+
+    # Set the nm_path, out_dir and private_data_dir
     nm_path = os.path.expanduser(args.nm_path)
     out_dir = os.path.expanduser(args.out_dir)
     private_data_dir = os.path.expanduser(args.private_data_dir)
 
+    # Set the user credentials
+    # TODO: Add support for using different credentials for each device or
+    #       hostgroup. That is a common scenario.
     if not args.username:
         username = hp.get_username()
     else:
         username = args.username
+    if not args.password:
+        password = hp.get_password()
+    else:
+        password = args.password
 
-    db = f'{out_dir}/{args.database}'
+    username, password = hp.get_creds()
+
+    db = f'{args_dict["out_dir"]}/{args.database}'
     # Get the user's SSH password
     if not args.password:
         password = hp.get_password()
     else:
         password = args.password
 
-    return db, in_file, nm_path, out_dir, private_data_dir, username, password
+    return collectors, db, in_file, nm_path, out_dir, username, password,\
+        private_data_dir,
 
 
 def connect_to_db(db):
@@ -201,25 +242,31 @@ def validate(collector, db, df, ts, testit=False):
         print(collector.upper())
         ts = '2022-09-18_0131'
         con = sl.connect(db)
-        return_cols = 'device, partition, vip, destination, port, availability'
-        query_1 = f'availability = "available" and timestamp = "{first_ts}"'
-        query_2 = f'availability = "available" and timestamp = "{ts}"'
+        return_cols = ','.join(['device',
+                                'partition',
+                                'vip',
+                                'destination',
+                                'port,'
+                                'availability,'
+                                'reason'])
+        where_1 = f'availability = "available" and timestamp = "{first_ts}"'
+        where_2 = f'availability = "available" and timestamp = "{ts}"'
         query = f'''select {return_cols}
                     from f5_vip_availability
-                    where {query_1}
+                    where {where_1}
                     except
                     select {return_cols}
                     from f5_vip_availability
-                    where {query_2}
+                    where {where_2}
                     '''
-        # print(query)
+        print(query)
         df_diff = pd.read_sql(query, con)
 
-        # if len(df_diff) > 0:
-        #     print(tabulate(df_diff,
-        #                    headers='keys',
-        #                    tablefmt='psql',
-        #                    showindex=False))
+        if len(df_diff) > 0:
+            print(tabulate(df_diff,
+                           headers='keys',
+                           tablefmt='psql',
+                           showindex=False))
 
         query_1 = f'availability != "available" and timestamp = "{first_ts}"'
         query_2 = f'availability != "available" and timestamp = "{ts}"'
@@ -231,7 +278,7 @@ def validate(collector, db, df, ts, testit=False):
                     from f5_vip_availability
                     where {query_2}
                     '''
-        print(query)
+        # print(query)
         df_diff = pd.read_sql(query, con)
 
         con.close()
@@ -274,14 +321,15 @@ def validate(collector, db, df, ts, testit=False):
 
 def main():
     # Parse the command line arguments
-    db, in_file, nm_path, out_dir, private_data_dir, username, password = \
-        arg_parser()
+    collectors, db, in_file, nm_path, out_dir, username, password,\
+        private_data_dir = arg_parser()
 
     # Create the variables required for running data collectors
-    df_collectors, df_vars, nm_path, play_path = \
-        hp.map_tests_to_os(private_data_dir,
-                           nm_path,
-                           in_file)
+    df_collectors, df_vars = hp.map_tests_to_os(nm_path,
+                                                private_data_dir,
+                                                collectors,
+                                                in_file,
+                                                inventories=str())
 
     print('COLLECTORS:')
     print(tabulate(df_collectors,
