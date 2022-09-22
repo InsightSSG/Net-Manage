@@ -78,28 +78,6 @@ def ansible_get_hostgroup():
     return host_group
 
 
-def ansible_get_hostgroups(host_files, quiet=True):
-    '''
-    Gets the devices inside an Ansible inventory hostgroup.
-    Args:
-        host_files (list): The path to one or more Ansible host files
-                           (I.e., ['inventory/hosts'])
-        quiet (bool):      Whether to output the entire graph.
-    Returns:
-        devices (list):  A list of devices in the hostgroup
-    '''
-    graph = ansible_runner.interface.get_inventory('graph',
-                                                   host_files,
-                                                   quiet=True)
-    graph = str(graph).strip("('")
-    hostgroups = list()
-    graph = list(filter(None, graph.split('@')))
-    for item in graph:
-        hostgroup = item.split(':')[0]
-        hostgroups.append(hostgroup)
-    return hostgroups
-
-
 def ansible_get_host_variables(host_group, private_data_dir):
     '''
     Gets the variables for a host or host group in the hosts file.
@@ -176,6 +154,30 @@ def get_hostgroup():
     return host_group
 
 
+def ansible_get_hostgroups(inventories, quiet=True):
+    '''
+    Gets the devices inside an Ansible inventory hostgroup.
+    Args:
+        inventories (list): The path to one or more Ansible host files
+                            (I.e., ['inventory/hosts'])
+        quiet (bool):       Whether to output the entire graph.
+    Returns:
+        devices (list):  A list of devices in the hostgroup
+    '''
+    graph = ansible_runner.interface.get_inventory('graph',
+                                                   inventories,
+                                                   quiet=True)
+    graph = str(graph).strip("('")
+    # graph = list(filter(None, graph))
+    hostgroups = list()
+    graph = list(filter(None, graph.split('@')))
+    # TODO: Write a better parser
+    for item in graph:
+        hostgroup = item.split(':')[0]
+        hostgroups.append(hostgroup)
+    return hostgroups
+
+
 def get_username():
     '''
     Gets the username to login to a device with
@@ -214,158 +216,55 @@ def get_password():
     return password
 
 
-def map_tests_to_os(private_data_dir,
+def map_tests_to_os(hostgroups,
                     nm_path,
-                    test_file):
+                    private_data_dir,
+                    collectors,
+                    in_file,
+                    sheet_name,
+                    inventories=str()):
     '''
     Maps the tests specified in 'test_file' to the Ansible OS.
 
+    NOTE: Right now, the inventory file defaults to
+          'private_data_dir/inventory/hosts', REGARDLESS of what the user
+          passes to the function.
+
+    TODO: Fix the note above, so that hostgroups can be read from multiple
+          inventory files.
+
     Args:
+        hostgroups (list):           A comma-delimited list of hostgroups. Only
+                                    required if the 'collectors' arg is passed
         private_data_dir (str):     The Ansible private data directory
         nm_path (str):              The path to the Net-Manage repository
-        test_file (str):            The path to the file containing tests
+        collectors (list):           One or more collectors, comma-delimited
+        inventories (str):          One or more inventory files,
+                                    comma-delimited
+        in_file (str):              The path to the file containing tests
+        sheet_name (str):           The sheet name in 'in_file' that contains
+                                    the hostgroups and collectors. Only
+                                    required if the 'in_file' arg is passed
 
     Returns:
-        df_collectors (DataFrame):       A DataFrame created from test_file
+        df_collectors (DataFrame):  A DataFrame created from test_file
         df_vars (DataFrame):        A DataFrame mapping the tests to Ansible OS
-        nm_path (str):              The path to the Net-Manage repository
-        play_path (str):            The path to the Ansible playbooks
-        test_map (dict):            A pre-defined dict for storing test results
     '''
-    nm_path = os.path.expanduser(nm_path)
-    play_path = f'{nm_path}/playbooks'
-    os.chdir(nm_path)
-
-    # Set the Ansible private data directory
-    private_data_dir = os.path.expanduser(private_data_dir)
-
     # Set the path to the inventory/hosts file
+    # TODO: Add support for reading one or more named inventory files
     inv_path = f'{private_data_dir}/inventory/hosts'
 
-    # Create a dictionary mapping ansible_network_os to the appropriate
-    # playbook. This dictionary is statically defined in case there is a need
-    # to specify a non-standard playbook for a future test. This dictionary
-    # will also be used to store the results of each test.
-
-    # TODO: Write results directly to a database. This method is not Pythonic,
-    # is hard to modify, and forces all test results to be loaded into memory.
-
-    # test_map = dict()
-
-    # test_map['pre_post_checks'] = dict()
-    # test_map['pre_post_checks']['cisco.ios.ios'] = dict()
-    # test_map['pre_post_checks']['cisco.nxos.nxos'] = dict()
-    # test_map['pre_post_checks']['cisco.nxos.nxos']['playbook'] = \
-    #     'cisco_nxos_pre_post_checks.yml'
-
-    # test_map['find_uplink_by_ip'] = dict()
-    # test_map['find_uplink_by_ip']['cisco.ios.ios'] = dict()
-    # test_map['find_uplink_by_ip']['cisco.ios.ios']['playbook'] = \
-    #     'cisco_ios_run_commands.yml'
-    # test_map['find_uplink_by_ip']['cisco.nxos.nxos'] = dict()
-    # test_map['find_uplink_by_ip']['cisco.nxos.nxos']['playbook'] = \
-    #     'cisco_nxos_run_commands.yml'
-
-    # test_map['port_channel_data'] = dict()
-    # test_map['port_channel_data']['cisco.ios.ios'] = dict()
-    # test_map['port_channel_data']['cisco.ios.ios']['playbook'] = \
-    #     'cisco_ios_run_commands.yml'
-    # test_map['port_channel_data']['cisco.nxos.nxos'] = dict()
-    # test_map['port_channel_data']['cisco.nxos.nxos']['playbook'] = \
-    #     'cisco_nxos_run_commands.yml'
-
-    # test_map['vrfs'] = dict()
-    # test_map['vrfs']['cisco.ios.ios'] = dict()
-    # test_map['vrfs']['cisco.ios.ios']['playbook'] = \
-    #     'cisco_ios_run_commands.yml'
-    # test_map['vrfs']['cisco.nxos.nxos'] = dict()
-    # test_map['vrfs']['cisco.nxos.nxos']['playbook'] = \
-    #     'cisco_nxos_run_commands.yml'
-
-    # test_map['interface_description'] = dict()
-    # test_map['interface_description']['cisco.ios.ios'] = dict()
-    # test_map['interface_description']['cisco.ios.ios']['playbook'] = \
-    #     'cisco_ios_run_commands.yml'
-    # test_map['interface_description']['cisco.nxos.nxos'] = dict()
-    # test_map['interface_description']['cisco.nxos.nxos']['playbook'] = \
-    #     'cisco_nxos_run_commands.yml'
-
-    # test_map['interface_status'] = dict()
-    # test_map['interface_status']['cisco.ios.ios'] = dict()
-    # test_map['interface_status']['cisco.ios.ios']['playbook'] = \
-    #     'cisco_ios_run_commands.yml'
-    # test_map['interface_status']['cisco.nxos.nxos'] = dict()
-    # test_map['interface_status']['cisco.nxos.nxos']['playbook'] = \
-    #     'cisco_nxos_run_commands.yml'
-
-    # test_map['trunk_status'] = dict()
-    # test_map['trunk_status']['cisco.ios.ios'] = dict()
-    # test_map['trunk_status']['cisco.ios.ios']['playbook'] = \
-    #     'cisco_ios_run_commands.yml'
-    # test_map['trunk_status']['cisco.nxos.nxos'] = dict()
-    # test_map['trunk_status']['cisco.nxos.nxos']['playbook'] = \
-    #     'cisco_nxos_run_commands.yml'
-
-    # test_map['vpc_state'] = dict()
-    # test_map['vpc_state']['cisco.ios.ios'] = dict()
-    # test_map['vpc_state']['cisco.nxos.nxos'] = dict()
-    # test_map['vpc_state']['cisco.nxos.nxos']['playbook'] = \
-    #     'cisco_nxos_run_commands.yml'
-
-    # test_map['vpc_status'] = dict()
-    # test_map['vpc_status']['cisco.ios.ios'] = dict()
-    # test_map['vpc_status']['cisco.nxos.nxos'] = dict()
-    # test_map['vpc_status']['cisco.nxos.nxos']['playbook'] = \
-    #     'cisco_nxos_run_commands.yml'
-
-    # test_map['vlan_database'] = dict()
-    # test_map['vlan_database']['cisco.ios.ios'] = dict()
-    # test_map['vlan_database']['cisco.ios.ios']['playbook'] = \
-    #     'cisco_ios_run_commands.yml'
-    # test_map['vlan_database']['cisco.nxos.nxos'] = dict()
-    # test_map['vlan_database']['cisco.nxos.nxos']['playbook'] = \
-    #     'cisco_nxos_run_commands.yml'
-
-    # test_map['arp_table'] = dict()
-    # test_map['arp_table']['cisco.ios.ios'] = dict()
-    # test_map['arp_table']['cisco.ios.ios']['playbook'] = \
-    #     'cisco_ios_run_commands.yml'
-    # test_map['arp_table']['cisco.nxos.nxos'] = dict()
-    # test_map['arp_table']['cisco.nxos.nxos']['playbook'] = \
-    #     'cisco_nxos_run_commands.yml'
-    # test_map['arp_table']['paloaltonetworks.panos'] = dict()
-    # test_map['arp_table']['paloaltonetworks.panos']['playbook'] = \
-    #     'palo_alto_run_command.yml'
-
-    # test_map['cam_table'] = dict()
-    # test_map['cam_table']['cisco.ios.ios'] = dict()
-    # test_map['cam_table']['cisco.ios.ios']['playbook'] = \
-    #     'cisco_ios_run_commands.yml'
-    # test_map['cam_table']['cisco.nxos.nxos'] = dict()
-    # test_map['cam_table']['cisco.nxos.nxos']['playbook'] = \
-    #     'cisco_nxos_run_commands.yml'
-
-    # test_map['routes'] = dict()
-    # test_map['routes']['cisco.ios.ios'] = dict()
-    # test_map['routes']['cisco.ios.ios']['playbook'] = \
-    #     'cisco_ios_run_commands.yml'
-    # test_map['routes']['cisco.nxos.nxos'] = dict()
-    # test_map['routes']['cisco.nxos.nxos']['playbook'] = \
-    #     'cisco_nxos_run_commands.yml'
-
-    # test_map['route_neighbors'] = dict()
-    # test_map['route_neighbors']['cisco.ios.ios'] = dict()
-    # test_map['route_neighbors']['cisco.ios.ios']['playbook'] = \
-    #     'cisco_ios_run_commands.yml'
-    # test_map['route_neighbors']['cisco.nxos.nxos'] = dict()
-    # test_map['route_neighbors']['cisco.nxos.nxos']['playbook'] = \
-    #     'cisco_nxos_run_commands.yml'
-
     # Read the spreadsheet containing tests and save the tests to a dataframe
-    df_collectors = pd.read_excel(test_file, sheet_name='tests')
+    if collectors:
+        df_data = list()
+        for c in collectors:
+            df_data.append([c, ','.join(hostgroups)])
+            df_collectors = pd.DataFrame(data=df_data, columns=['collector',
+                                                                'hostgroups'])
 
-    # df_collectors = df_collectors.T  # Transpose rows and columns
-    df_collectors = df_collectors.dropna(axis=1, how='all')
+    if in_file:
+        df_collectors = pd.read_excel(in_file, sheet_name=sheet_name)
+        df_collectors = df_collectors.dropna(axis=1, how='all')
     df_collectors = df_collectors.astype(str)
 
     # Create a dataframe containing the variables for host groups
@@ -380,7 +279,7 @@ def map_tests_to_os(private_data_dir,
         hostgroup_devices.append(devices)
     df_vars['devices'] = hostgroup_devices
 
-    return df_collectors, df_vars, nm_path, play_path
+    return df_collectors, df_vars
 
 
 def set_filepath(filepath):
@@ -462,6 +361,76 @@ def get_net_manage_path():
     nm_path = input("Enter the absolute path to the Net-Manage repository: ")
     nm_path = os.path.expanduser(nm_path)
     return nm_path
+
+
+def set_dependencies(selected):
+    '''
+    Ensures that dependent collectors are added to the selection. For example,
+    collecting 'f5_vip_destinations' requires collecting 'f5_vip_availability'.
+    If a user has selected the former without selecting the latter, then this
+    function adds the latter (in the proper order) to the selection.
+
+    Args:
+        selected (list): The list of selected collectors
+
+    Returns:
+        selected (list): The updated list of selected collectors
+    '''
+    s = selected
+    if 'f5_vip_destinations' in s and 'f5_vip_availability' not in s:
+        pos = s.index('f5_vip_destinations')
+        s.insert(pos-1, 'f5_vip_availability')
+    return selected
+
+
+def set_vars():
+    '''
+    Prompts the user for the required variables for running collectors and
+    validators. Several defaults are presented.
+
+    Note: The 'inventories' argument is a list of inventory file. Right now,
+          the function statically defines it as
+          ['private_data_dir/inventory/hosts']. If people want to use different
+          file names or more than one file name, that functionality can be
+          added later.
+
+    Args:
+        None
+
+    Returns:
+        db_path, inventories, nm_path, out_path, private_data_dir
+    '''
+    default_db = f'{str(dt.now()).split()[0]}.db'
+    default_nm_path = '~/source/repos/InsightSSG/Net-Manage/'
+
+    db = input(f'Enter the name of the database: [{default_db}]')
+    nm_path = input(f'Enter path to Net-Manage repository [{default_nm_path}]')
+    private_data_dir = input('Enter the path to the private data directory:')
+
+    default_out_path = f'{private_data_dir}/output'
+    out_path = input(f'Enter the path to store results: [{default_out_path}]')
+
+    if not db:
+        db = default_db
+    if not nm_path:
+        nm_path = default_nm_path
+    if not out_path:
+        out_path = default_out_path
+
+    # username, password = hp.get_creds()
+
+    db = os.path.expanduser(db)
+    nm_path = os.path.expanduser(nm_path)
+    out_path = os.path.expanduser(out_path)
+    private_data_dir = os.path.expanduser(private_data_dir)
+    db_path = f'{out_path}/{db}'
+
+    # TODO: Add support for a custom inventory file name
+    # TODO: Add support for more than one inventory file (Ansible-Runner
+    #       supports that, but I am not sure how common it is)
+    inventories = [f'{private_data_dir}/inventory/hosts']
+
+    return db_path, inventories, nm_path, out_path, private_data_dir
 
 
 def get_tests_file():
