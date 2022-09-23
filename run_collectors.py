@@ -36,6 +36,7 @@ def define_collectors():
                   'f5_vip_destinations',
                   'interface_description',
                   'interface_status',
+                  'interface_summary',
                   'port_channel_data',
                   'vlan_database',
                   'vpc_state',
@@ -52,6 +53,7 @@ def collect(ansible_os,
             private_data_dir,
             nm_path,
             ansible_timeout='300',
+            db_path=str(),
             validate_certs=True):
     '''
     This function calls the test that the user requested.
@@ -178,6 +180,10 @@ def collect(ansible_os,
                                                   hostgroup,
                                                   play_path,
                                                   private_data_dir)
+
+    if collector == 'interface_summary':
+        if ansible_os == 'cisco.nxos.nxos':
+            result = cl.nxos_get_interface_summary(db_path)
 
         if ansible_os == 'bigip':
             result = cl.f5_get_interface_status(username,
@@ -386,7 +392,8 @@ def main():
                              group,
                              play_path,
                              private_data_dir,
-                             nm_path)
+                             nm_path,
+                             db_path=db)
             # Set the timestamp as the index
             new_idx = list()
             for i in range(0, len(result)):

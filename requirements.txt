@@ -1,6 +1,7 @@
 ansible
 ansible-pylibssh
 ansible-runner>=2.2.1
+dtale
 # colorama
 # cryptography==36.0.2  # See https://github.com/paramiko/paramiko/issues/2038
 git+https://github.com/wangoloj/python3-nmap.git
@@ -18,7 +19,6 @@ openpyxl
 pan-os-python  # THIS MUST *ALSO* BE INSTALLED OUTSIDE THE VIRTUAL ENVIRONMENT
 pan-python  # THIS MUST *ALSO* BE INSTALLED OUTSIDE THE VIRTUAL ENVIRONMENT
 pandas
-pandasgui
 pandevice
 paramiko
 # prettytable

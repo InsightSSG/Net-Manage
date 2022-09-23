@@ -9,6 +9,7 @@ import json
 import pandas as pd
 import re
 import socket
+import sqlite3 as sl
 
 
 def update_ouis(nm_path):
@@ -1647,6 +1648,122 @@ def nxos_get_interface_status(username,
     df_inf_status = pd.DataFrame(data=df_data, columns=cols)
 
     return df_inf_status
+
+
+def nxos_get_interface_summary(db_path):
+    '''
+    Gets a summary of the interfaces on a NXOS devices. The summary includes
+    the interface status, description, associated MACs, and vendor OUIs.
+
+    Args:
+        db_path (str):          The path to the database
+
+    Returns:
+        df_summary (DataFrame): The summaries of interfaces on the devices
+    '''
+    # Get the interface statuses, descriptions and cam table
+    print(db_path)
+    con = sl.connect(db_path)
+    table = 'interface_status'
+    df_ts = pd.read_sql(f'select distinct timestamp from {table}', con)
+    ts = df_ts['timestamp'].to_list()[-1]
+    df_inf = pd.read_sql(f'select * from {table} where timestamp = "{ts}"',
+                         con)
+
+    df_data = dict()
+    df_data['device'] = list()
+    df_data['interface'] = list()
+    df_data['status'] = list()
+    df_data['description'] = list()
+    df_data['vendors'] = list()
+    df_data['macs'] = list()
+
+    for idx, row in df_inf.iterrows():
+        device = row['device']
+        inf = row['interface']
+        status = row['status']
+
+        query = f'''SELECT mac,vendor
+                    FROM cam_table
+                    WHERE timestamp = "{ts}"
+                       AND device = "{device}"
+                       AND interface = "{inf}"'''
+        df_macs = pd.read_sql(query, con)
+        if len(df_macs) > 0:
+            macs = df_macs['mac'].to_list()
+            macs = '|'.join(macs)
+
+            vendors = list()
+            for idx, row in df_macs.iterrows():
+                vendor = row['vendor']
+                if vendor:
+                    vendor = vendor.replace(',', str())
+                    if vendor not in vendors:
+                        vendors.append(vendor)
+
+            vendors = '|'.join(vendors)
+
+            # vendors = str()
+            # for idx, row in df_macs.iterrows():
+            #     vendor = row['vendor']
+            #     if len(vendors) == 0:
+            #         if vendor:
+            #             vendors = vendor
+            #     elif vendor:
+            #         if not vendors:
+            #             vendors = vendor
+            #         else:
+            #             vendors = vendors + f' {vendor}'
+            #     else:
+            #         pass
+
+        else:
+            macs = str()
+            vendors = str()
+
+        query = f'''SELECT description
+                    FROM interface_description
+                    WHERE timestamp = "{ts}"
+                       AND device = "{device}"
+                       AND interface = "{inf}"'''
+        desc = pd.read_sql(query, con)
+        if len(desc) > 0:
+            desc = desc['description'].to_list()[0]
+        else:
+            desc = str()
+
+        df_data['device'].append(device)
+        df_data['interface'].append(inf)
+        df_data['status'].append(status)
+        df_data['description'].append(desc)
+        df_data['vendors'].append(vendors)
+        df_data['macs'].append(macs)
+
+    con.close()
+
+    df_summary = pd.DataFrame.from_dict(df_data)
+    df_summary = df_summary[['device',
+                             'interface',
+                             'status',
+                             'description',
+                             'vendors',
+                             'macs']]
+    # cols = ['device',
+    #         'interface',
+    #         'mac',
+    #         'vlan']
+
+    # cols = ['device', 'interface', 'description']
+
+    # cols = ['device',
+    #         'interface',
+    #         'status',
+    #         'vlan',
+    #         'duplex',
+    #         'speed',
+    #         'type']
+
+    return df_summary
 
 
 def nxos_get_logs(username,

@@ -261,6 +261,35 @@ def read_table(db_path, table):
     return df
 
 
+def set_dependencies(selected):
+    '''
+    Ensures that dependent collectors are added to the selection. For example,
+    collecting 'f5_vip_destinations' requires collecting 'f5_vip_availability'.
+    If a user has selected the former without selecting the latter, then this
+    function adds the latter (in the proper order) to the selection.
+
+    Args:
+        selected (list): The list of selected collectors
+
+    Returns:
+        selected (list): The updated list of selected collectors
+    '''
+    s = selected
+    if 'f5_vip_destinations' in s and 'f5_vip_availability' not in s:
+        pos = s.index('f5_vip_destinations')
+        s.insert(pos, 'f5_vip_availability')
+    if 'interface_summary' in s:
+        pos = s.index('interface_summary')
+        if 'cam_table' not in s:
+            s.insert(pos, 'cam_table')
+        if 'interface_description' not in s:
+            s.insert(pos, 'interface_description')
+        if 'interface_status' not in s:
+            s.insert(pos, 'interface_status')
+    selected = s
+    return s
+
+
 def set_filepath(filepath):
     '''
     Creates a filename with the date and time added to a path the user
@@ -340,26 +369,6 @@ def get_net_manage_path():
     nm_path = input("Enter the absolute path to the Net-Manage repository: ")
     nm_path = os.path.expanduser(nm_path)
     return nm_path
-
-
-def set_dependencies(selected):
-    '''
-    Ensures that dependent collectors are added to the selection. For example,
-    collecting 'f5_vip_destinations' requires collecting 'f5_vip_availability'.
-    If a user has selected the former without selecting the latter, then this
-    function adds the latter (in the proper order) to the selection.
-
-    Args:
-        selected (list): The list of selected collectors
-
-    Returns:
-        selected (list): The updated list of selected collectors
-    '''
-    s = selected
-    if 'f5_vip_destinations' in s and 'f5_vip_availability' not in s:
-        pos = s.index('f5_vip_destinations')
-        s.insert(pos, 'f5_vip_availability')
-    return selected
 
 
 def set_vars():
