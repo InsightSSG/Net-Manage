@@ -18,6 +18,7 @@ openpyxl
 pan-os-python  # THIS MUST *ALSO* BE INSTALLED OUTSIDE THE VIRTUAL ENVIRONMENT
 pan-python  # THIS MUST *ALSO* BE INSTALLED OUTSIDE THE VIRTUAL ENVIRONMENT
 pandas
+pandasgui
 pandevice
 paramiko
 # prettytable

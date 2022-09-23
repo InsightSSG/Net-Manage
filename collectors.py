@@ -608,7 +608,8 @@ def f5_get_vip_availability(username,
     runner = ansible_runner.run(private_data_dir=private_data_dir,
                                 playbook=playbook,
                                 extravars=extravars,
-                                suppress_env_files=True)
+                                suppress_env_files=True,
+                                quiet=True)
 
     df_data = list()
 

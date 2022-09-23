@@ -7,36 +7,52 @@ A library of generic helper functions for dynamic runbooks.
 import ansible_runner
 import os
 import pandas as pd
+import sqlite3 as sl
+import sys
+import yaml
 from datetime import datetime as dt
 from getpass import getpass
-import yaml
 
 
-def ansible_create_vars_df(test_dataframe, private_data_dir='.'):
+def ansible_create_collectors_df(hostgroups, collectors):
+    '''
+    Creates a dataframe where the index is the selected collectors and each row
+    contains a comma-delimited string of selected hostgroups.
+
+    Args:
+        hostgroups (list):          A comma-delimited list of hostgroups.
+        collectors (list):          One or more collectors, comma-delimited
+
+    Returns:
+        df_collectors (DataFrame):  A DataFrame created from test_file
+    '''
+    df_data = list()
+    for c in collectors:
+        df_data.append([c, ','.join(hostgroups)])
+        df_collectors = pd.DataFrame(data=df_data, columns=['collector',
+                                                            'hostgroups'])
+    df_collectors = df_collectors.set_index('collector')
+
+    return df_collectors
+
+
+def ansible_create_vars_df(hostgroups, private_data_dir):
     '''
     This function is created to be used with the maintenance tests notebooks.
     It reads all of the host groups from the 'df_test', gets the ansible
     variables for each group from the host file, creates a dataframe containing
     the variables, then returns it.
-
     Args:
-        test_dataframe (DataFrame): The dataframe containing the tests.
-        private_data_dir (str):     The path to the Ansible private_data_dir.
-                                    It is the path that the 'inventory' folder
-                                    is in. The default is the current folder.
-
+        hostgroups (list):      A list of hostgroups.
+        private_data_dir (str): The path to the Ansible private_data_dir.
+                                It is the path that the 'inventory' folder
+                                is in. The default is the current folder.
     Returns:
-        df_vars (DataFrame):        A dataframe containing the group variables
+        df_vars (DataFrame):    A dataframe containing the group variables
     '''
-    host_groups = list()
-    for c in test_dataframe.columns.to_list():
-        for item in test_dataframe[c].to_list():
-            if item not in host_groups and item != 'nan':
-                host_groups.append(item)
-
     host_vars = dict()
 
-    for g in host_groups:
+    for g in hostgroups:
         group_vars = ansible_get_host_variables(g, private_data_dir)
         host_vars[g] = group_vars
 
@@ -60,6 +76,8 @@ def ansible_create_vars_df(test_dataframe, private_data_dir='.'):
                 df_data[item].append(result)
 
     df_vars = pd.DataFrame.from_dict(df_data)
+
+    df_vars = df_vars.set_index('host_group')
 
     return df_vars
 
@@ -140,20 +158,6 @@ def get_creds():
     return username, password
 
 
-def get_hostgroup():
-    '''
-    Gets the Ansible hostgroup
-
-    Args:
-        None
-
-    Returns:
-        hostgroup (str): The Ansible hostgroup
-    '''
-    host_group = input('Enter the name of the host group in the hosts file: ')
-    return host_group
-
-
 def ansible_get_hostgroups(inventories, quiet=True):
     '''
     Gets the devices inside an Ansible inventory hostgroup.
@@ -176,6 +180,28 @@ def ansible_get_hostgroups(inventories, quiet=True):
         hostgroup = item.split(':')[0]
         hostgroups.append(hostgroup)
     return hostgroups
+
+
+def connect_to_db(db):
+    '''
+    Opens a connection to the sqlite database.
+
+    Args:
+        db (str):   Path to the database
+
+    Returns:
+        con (ob):   Connection to the database
+    '''
+    try:
+        con = sl.connect(db)
+    except Exception as e:
+        if str(e) == 'unable to open database file':
+            print(f'Cannot connect to db "{db}". Does directory exist?')
+            sys.exit()
+        else:
+            print(f'Caught exception "{str(e)}"')
+            sys.exit()
+    return con
 
 
 def get_username():
@@ -216,70 +242,23 @@ def get_password():
     return password
 
 
-def map_tests_to_os(hostgroups,
-                    nm_path,
-                    private_data_dir,
-                    collectors,
-                    in_file,
-                    sheet_name,
-                    inventories=str()):
+def read_table(db_path, table):
     '''
-    Maps the tests specified in 'test_file' to the Ansible OS.
-
-    NOTE: Right now, the inventory file defaults to
-          'private_data_dir/inventory/hosts', REGARDLESS of what the user
-          passes to the function.
-
-    TODO: Fix the note above, so that hostgroups can be read from multiple
-          inventory files.
+    Reads all columns for the latest timestamp from a database table.
 
     Args:
-        hostgroups (list):           A comma-delimited list of hostgroups. Only
-                                    required if the 'collectors' arg is passed
-        private_data_dir (str):     The Ansible private data directory
-        nm_path (str):              The path to the Net-Manage repository
-        collectors (list):           One or more collectors, comma-delimited
-        inventories (str):          One or more inventory files,
-                                    comma-delimited
-        in_file (str):              The path to the file containing tests
-        sheet_name (str):           The sheet name in 'in_file' that contains
-                                    the hostgroups and collectors. Only
-                                    required if the 'in_file' arg is passed
+        db_path (str):  The full path to the database
+        table (str):    The table name
 
     Returns:
-        df_collectors (DataFrame):  A DataFrame created from test_file
-        df_vars (DataFrame):        A DataFrame mapping the tests to Ansible OS
+        df (df):        A Pandas dataframe containing the data
     '''
-    # Set the path to the inventory/hosts file
-    # TODO: Add support for reading one or more named inventory files
-    inv_path = f'{private_data_dir}/inventory/hosts'
-
-    # Read the spreadsheet containing tests and save the tests to a dataframe
-    if collectors:
-        df_data = list()
-        for c in collectors:
-            df_data.append([c, ','.join(hostgroups)])
-            df_collectors = pd.DataFrame(data=df_data, columns=['collector',
-                                                                'hostgroups'])
-
-    if in_file:
-        df_collectors = pd.read_excel(in_file, sheet_name=sheet_name)
-        df_collectors = df_collectors.dropna(axis=1, how='all')
-    df_collectors = df_collectors.astype(str)
-
-    # Create a dataframe containing the variables for host groups
-    df_vars = ansible_create_vars_df(df_collectors, private_data_dir)
-
-    # Get the devices in each hostgroup and add them to df_vars as a new column
-    hostgroup_devices = list()
-    for idx, row in df_vars.iterrows():
-        hostgroup = row['host_group']
-        devices = ansible_get_hostgroup_devices(hostgroup, [inv_path])
-        devices = ','.join(devices)
-        hostgroup_devices.append(devices)
-    df_vars['devices'] = hostgroup_devices
-
-    return df_collectors, df_vars
+    con = connect_to_db(db_path)
+    df_ts = pd.read_sql(f'select timestamp from {table} limit 1', con)
+    ts = df_ts['timestamp'].to_list()[-1]
+    df = pd.read_sql(f'select * from {table} where timestamp = "{ts}"', con)
+    con.close()
+    return df
 
 
 def set_filepath(filepath):
@@ -379,7 +358,7 @@ def set_dependencies(selected):
     s = selected
     if 'f5_vip_destinations' in s and 'f5_vip_availability' not in s:
         pos = s.index('f5_vip_destinations')
-        s.insert(pos-1, 'f5_vip_availability')
+        s.insert(pos, 'f5_vip_availability')
     return selected
 
 
@@ -430,7 +409,7 @@ def set_vars():
     #       supports that, but I am not sure how common it is)
     inventories = [f'{private_data_dir}/inventory/hosts']
 
-    return db_path, inventories, nm_path, out_path, private_data_dir
+    return db, db_path, inventories, nm_path, out_path, private_data_dir
 
 
 def get_tests_file():
