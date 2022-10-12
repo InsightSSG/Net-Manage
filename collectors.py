@@ -9,6 +9,7 @@ import json
 import pandas as pd
 import re
 import socket
+import sqlite3 as sl
 
 
 def update_ouis(nm_path):
@@ -205,7 +206,7 @@ def f5_get_interface_descriptions(username,
                                   reverse_dns=False,
                                   validate_certs=True):
     '''
-    Gets IOS interface descriptions.
+    Gets F5 interface descriptions.
 
     Args:
         username (str):         The username to login to devices
@@ -608,7 +609,8 @@ def f5_get_vip_availability(username,
     runner = ansible_runner.run(private_data_dir=private_data_dir,
                                 playbook=playbook,
                                 extravars=extravars,
-                                suppress_env_files=True)
+                                suppress_env_files=True,
+                                quiet=True)
 
     df_data = list()
 
@@ -1648,6 +1650,122 @@ def nxos_get_interface_status(username,
     return df_inf_status
 
 
+def nxos_get_interface_summary(db_path):
+    '''
+    Gets a summary of the interfaces on a NXOS devices. The summary includes
+    the interface status, description, associated MACs, and vendor OUIs.
+
+    Args:
+        db_path (str):          The path to the database
+
+    Returns:
+        df_summary (DataFrame): The summaries of interfaces on the devices
+    '''
+    # Get the interface statuses, descriptions and cam table
+    print(db_path)
+    con = sl.connect(db_path)
+    table = 'interface_status'
+    df_ts = pd.read_sql(f'select distinct timestamp from {table}', con)
+    ts = df_ts['timestamp'].to_list()[-1]
+    df_inf = pd.read_sql(f'select * from {table} where timestamp = "{ts}"',
+                         con)
+
+    df_data = dict()
+    df_data['device'] = list()
+    df_data['interface'] = list()
+    df_data['status'] = list()
+    df_data['description'] = list()
+    df_data['vendors'] = list()
+    df_data['macs'] = list()
+
+    for idx, row in df_inf.iterrows():
+        device = row['device']
+        inf = row['interface']
+        status = row['status']
+
+        query = f'''SELECT mac,vendor
+                    FROM cam_table
+                    WHERE timestamp = "{ts}"
+                       AND device = "{device}"
+                       AND interface = "{inf}"'''
+        df_macs = pd.read_sql(query, con)
+        if len(df_macs) > 0:
+            macs = df_macs['mac'].to_list()
+            macs = '|'.join(macs)
+
+            vendors = list()
+            for idx, row in df_macs.iterrows():
+                vendor = row['vendor']
+                if vendor:
+                    vendor = vendor.replace(',', str())
+                    if vendor not in vendors:
+                        vendors.append(vendor)
+
+            vendors = '|'.join(vendors)
+
+            # vendors = str()
+            # for idx, row in df_macs.iterrows():
+            #     vendor = row['vendor']
+            #     if len(vendors) == 0:
+            #         if vendor:
+            #             vendors = vendor
+            #     elif vendor:
+            #         if not vendors:
+            #             vendors = vendor
+            #         else:
+            #             vendors = vendors + f' {vendor}'
+            #     else:
+            #         pass
+
+        else:
+            macs = str()
+            vendors = str()
+
+        query = f'''SELECT description
+                    FROM interface_description
+                    WHERE timestamp = "{ts}"
+                       AND device = "{device}"
+                       AND interface = "{inf}"'''
+        desc = pd.read_sql(query, con)
+        if len(desc) > 0:
+            desc = desc['description'].to_list()[0]
+        else:
+            desc = str()
+
+        df_data['device'].append(device)
+        df_data['interface'].append(inf)
+        df_data['status'].append(status)
+        df_data['description'].append(desc)
+        df_data['vendors'].append(vendors)
+        df_data['macs'].append(macs)
+
+    con.close()
+
+    df_summary = pd.DataFrame.from_dict(df_data)
+    df_summary = df_summary[['device',
+                             'interface',
+                             'status',
+                             'description',
+                             'vendors',
+                             'macs']]
+    # cols = ['device',
+    #         'interface',
+    #         'mac',
+    #         'vlan']
+
+    # cols = ['device', 'interface', 'description']
+
+    # cols = ['device',
+    #         'interface',
+    #         'status',
+    #         'vlan',
+    #         'duplex',
+    #         'speed',
+    #         'type']
+
+    return df_summary
+
+
 def nxos_get_logs(username,
                   password,
                   host_group,
@@ -1989,7 +2107,10 @@ def nxos_get_vpc_state(username,
                     'Auto-recovery status']
 
     # Create the dataframe and return it
-    df_vpc_state = pd.DataFrame(data=df_data, columns=cols)
+    if len(df_data) > 0:
+        df_vpc_state = pd.DataFrame(data=df_data, columns=cols)
+    else:
+        df_vpc_state = pd.DataFrame()
 
     return df_vpc_state
 
@@ -2077,73 +2198,3 @@ def panos_get_arp_table(username,
 
     df_arp = pd.DataFrame(data=arp_table, columns=cols)
     return df_arp
-
-
-def main():
-    import argparse
-    import helpers as hp
-    import os
-    from tabulate import tabulate
-
-    # Create the parser for command line arguments
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-u', '--username',
-                        help='''The username for connecting to the devices. If
-                                missing, script will prompt for it.''',
-                        action='store'
-                        )
-    parser.add_argument('-P', '--password',
-                        help='''The password for connecting to the devices.
-                                For testing only. DO NOT USE ON SHARED OR
-                                INSECURE DEVICES. Always follow your
-                                organization's policies.''',
-                        action='store'
-                        )
-    requiredNamed = parser.add_argument_group('required named arguments')
-    requiredNamed.add_argument('-H', '--hostgroup',
-                               help='The hostgroup to test.',
-                               required=True,
-                               action='store'
-                               )
-    requiredNamed.add_argument('-n', '--nm_path',
-                               help='The path to the Net-Manage repository',
-                               required=True,
-                               action='store'
-                               )
-    requiredNamed.add_argument('-p', '--private_data_dir',
-                               help='''The path to the Ansible private data
-                                       directory (I.e., the directory
-                                       containing the 'inventory' and 'env'
-                                       folders).''',
-                               required=True,
-                               action='store'
-                               )
-    args = parser.parse_args()
-    if not args.password:
-        password = hp.get_password()
-    else:
-        password = args.password
-    if not args.username:
-        username = hp.get_username()
-    else:
-        username = args.username
-
-    host_group = args.hostgroup
-    nm_path = os.path.expanduser(args.nm_path)
-    play_path = f'{nm_path}/playbooks'
-    private_data_dir = os.path.expanduser(args.private_data_dir)
-
-    result = nxos_get_logs(username,
-                           password,
-                           host_group,
-                           play_path,
-                           private_data_dir)
-
-    print(tabulate(result,
-                   headers='keys',
-                   tablefmt='psql',
-                   showindex=False))
-
-
-if __name__ == '__main__':
-    main()
