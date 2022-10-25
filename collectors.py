@@ -6,6 +6,7 @@ A library of functions for collecting data from network devices.
 
 import ansible_runner
 import json
+import meraki
 import pandas as pd
 import re
 import socket
@@ -1084,6 +1085,54 @@ def ios_get_interface_descriptions(username,
     cols = ['device', 'interface', 'description']
     df_desc = pd.DataFrame(data=df_data, columns=cols)
     return df_desc
+
+
+def meraki_get_org_device_statuses(api_key, org_id):
+    '''
+    Gets the device statuses for all devices in an org.
+
+    Args:
+        api_key (str):  The user's API key
+        org_id (str):   The organization ID
+
+    Returns:
+
+    '''
+
+
+def meraki_get_orgs(api_key):
+    '''
+    Gets a list of organizations and their associated parameters that the
+    user's API key has access to.
+
+    Args:
+        api_key (str):  The user's API key
+
+    Returns:
+        df_orgs (list): A dataframe containing a list of organizations the
+                        user's API key has access to
+    '''
+    dashboard = meraki.DashboardAPI(api_key=api_key)
+
+    # Get the organizations the user has access to
+    orgs = dashboard.organizations.getOrganizations()
+
+    # Create a dataframe from the results
+    df_data = dict()
+    df_data['id'] = list()
+    df_data['name'] = list()
+    df_data['cloud'] = list()
+    df_data['api'] = list()
+    df_data['licensing'] = list()
+    df_data['url'] = list()
+
+    for item in orgs:
+        for key, value in item.items():
+            df_data[key].append(value)
+
+    df_orgs = pd.DataFrame.from_dict(df_data)
+
+    return df_orgs
 
 
 def cisco_ios_get_interface_ips(username,
