@@ -6,6 +6,7 @@ A library of functions for collecting data from network devices.
 
 import ansible_runner
 import json
+import meraki
 import pandas as pd
 import re
 import socket
@@ -1086,6 +1087,54 @@ def ios_get_interface_descriptions(username,
     return df_desc
 
 
+def meraki_get_org_device_statuses(api_key, org_id):
+    '''
+    Gets the device statuses for all devices in an org.
+
+    Args:
+        api_key (str):  The user's API key
+        org_id (str):   The organization ID
+
+    Returns:
+
+    '''
+
+
+def meraki_get_orgs(api_key):
+    '''
+    Gets a list of organizations and their associated parameters that the
+    user's API key has access to.
+
+    Args:
+        api_key (str):  The user's API key
+
+    Returns:
+        df_orgs (list): A dataframe containing a list of organizations the
+                        user's API key has access to
+    '''
+    dashboard = meraki.DashboardAPI(api_key=api_key)
+
+    # Get the organizations the user has access to
+    orgs = dashboard.organizations.getOrganizations()
+
+    # Create a dataframe from the results
+    df_data = dict()
+    df_data['id'] = list()
+    df_data['name'] = list()
+    df_data['cloud'] = list()
+    df_data['api'] = list()
+    df_data['licensing'] = list()
+    df_data['url'] = list()
+
+    for item in orgs:
+        for key, value in item.items():
+            df_data[key].append(value)
+
+    df_orgs = pd.DataFrame.from_dict(df_data)
+
+    return df_orgs
+
+
 def cisco_ios_get_interface_ips(username,
                                 password,
                                 host_group,
@@ -2105,6 +2154,116 @@ def nxos_get_vpc_state(username,
                     'Graceful Consistency Check',
                     'Operational Layer3 Peer-router',
                     'Auto-recovery status']
+
+    # Create the dataframe and return it
+    if len(df_data) > 0:
+        df_vpc_state = pd.DataFrame(data=df_data, columns=cols)
+    else:
+        df_vpc_state = pd.DataFrame()
+
+    return df_vpc_state
+
+
+def nxos_get_vrfs(username,
+                  password,
+                  host_group,
+                  play_path,
+                  private_data_dir):
+    '''
+    Gets the VRFs on Nexus devices.
+
+    Args:
+        username (str):           The username to login to devices
+        password (str):           The password to login to devices
+        host_group (str):         The inventory host group
+        play_path (str):          The path to the playbooks directory
+        private_data_dir (str):   Path to the Ansible private data directory
+
+    Returns:
+    df_vrfs (DataFrame):          A dataframe containing the VRFs
+    '''
+    cmd = 'show vrf detail'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute the pre-checks
+    playbook = f'{play_path}/cisco_nxos_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse the output and add it to 'data'
+    df_data = list()
+
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout'][0].split('\n')
+
+            # Pre-define variables, since not all VRFs contain all parameters
+            df_data = list()
+            name = str()
+            vrf_id = str()
+            state = str()
+            description = str()
+            vpn_id = str()
+            route_domain = str()
+            max_routes = str()
+            mid_threshold = str()
+
+            pos = 0
+            for line in output:
+                if 'VRF-Name' in line:
+                    pos = output.index(line)+1
+                    line = line.split(',')
+                    line = [l.split(':')[-1].strip() for l in line]
+                    name = line[0]
+                    vrf_id = line[1]
+                    state = line[2]
+                    while 'Table-ID' not in output[pos]:
+                        if 'Description:' in output[pos]:
+                            description = output[pos+1].strip()
+                        if 'VPNID' in output[pos]:
+                            vpn_id = output[pos].split(': ')[-1]
+                        if 'RD:' in output[pos]:
+                            route_domain = output[pos].split()[-1]
+                        if 'Max Routes' in output[pos]:
+                            _ = output[pos].split(': ')
+                            max_routes = _[1].split()[0].strip()
+                            min_threshold = _[-1]
+                        pos += 1
+                    row = [device,
+                        name,
+                        vrf_id,
+                        state,
+                        description,
+                        vpn_id,
+                        route_domain,
+                        max_routes,
+                        min_threshold]
+                    df_data.append(row)
+
+            # Create the DataFrame columns
+            cols = ['device',
+                    'name',
+                    'vrf_id',
+                    'state',
+                    'description',
+                    'vpn_id',
+                    'route_domain',
+                    'max_routes',
+                    'min_threshold']
+
+            # Create the dataframe and return it
+            df_vrfs = pd.DataFrame(data=df_data, columns=cols)
+
+            return df_vrfs
 
     # Create the dataframe and return it
     if len(df_data) > 0:
