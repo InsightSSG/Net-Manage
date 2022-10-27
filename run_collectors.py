@@ -40,6 +40,7 @@ def define_collectors():
                   'port_channel_data',
                   'vlan_database',
                   'vpc_state',
+                  'vrfs'
                   ]
     return collectors
 
@@ -232,6 +233,14 @@ def collect(ansible_os,
                                        play_path,
                                        private_data_dir,
                                        validate_certs=False)
+
+    if collector == 'vrfs':
+        if ansible_os == 'cisco.nxos.nxos':
+            result = cl.nxos_get_vrfs(username,
+                                     password,
+                                     hostgroup,
+                                     play_path,
+                                     private_data_dir)
 
     return result
 
