@@ -1117,6 +1117,8 @@ def meraki_get_orgs(api_key):
     # Get the organizations the user has access to
     orgs = dashboard.organizations.getOrganizations()
 
+    print(orgs)
+
     # Create a dataframe from the results
     df_data = dict()
     df_data['id'] = list()

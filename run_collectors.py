@@ -37,6 +37,7 @@ def define_collectors():
                   'interface_description',
                   'interface_status',
                   'interface_summary',
+                  'meraki_get_orgs',
                   'port_channel_data',
                   'vlan_database',
                   'vpc_state',
@@ -45,14 +46,15 @@ def define_collectors():
     return collectors
 
 
-def collect(ansible_os,
-            collector,
-            username,
-            password,
-            hostgroup,
-            play_path,
-            private_data_dir,
+def collect(collector,
             nm_path,
+            private_data_dir,
+            ansible_os=str(),
+            username=str(),
+            password=str(),
+            hostgroup=str(),
+            play_path=str(),
+            api_key=str(),
             ansible_timeout='300',
             db_path=str(),
             validate_certs=True):
@@ -202,6 +204,9 @@ def collect(ansible_os,
                                               play_path,
                                               private_data_dir)
 
+    if collector == 'meraki_get_orgs':
+        result = cl.meraki_get_orgs(api_key)
+
     if collector == 'port_channel_data':
         if ansible_os == 'cisco.nxos.nxos':
             result = cl.nxos_get_port_channel_data(username,
@@ -273,6 +278,7 @@ def create_parser():
     parser.add_argument('-u', '--username',
                         help='''The username for connecting to the devices. If
                                 missing, script will prompt for it.''',
+                        default=str(),
                         action='store'
                         )
     parser.add_argument('-P', '--password',
@@ -281,33 +287,34 @@ def create_parser():
                                 do not recommend using it when running the
                                 script manually. If you do, then your password
                                 could show up in the command history.''',
+                        default=str(),
                         action='store'
                         )
-    requiredNamed = parser.add_argument_group('required named arguments')
-    requiredNamed.add_argument('-c', '--collectors',
-                               help='''A comma-delimited list of collectors to
-                                       run.''',
-                               required=True,
-                               action='store'
-                               )
-    requiredNamed.add_argument('-H', '--hostgroups',
-                               help='A comma-delimited list of hostgroups',
-                               required=True,
-                               action='store'
-                               )
-    requiredNamed.add_argument('-n', '--nm_path',
-                               help='The path to the Net-Manage repository',
-                               required=True,
-                               action='store'
-                               )
-    requiredNamed.add_argument('-p', '--private_data_dir',
-                               help='''The path to the Ansible private data
-                                       directory (I.e., the directory
-                                       containing the 'inventory' and 'env'
-                                       folders).''',
-                               required=True,
-                               action='store'
-                               )
+    # requiredNamed = parser.add_argument_group('required named arguments')
+    parser.add_argument('-c', '--collectors',
+                        help='''A comma-delimited list of collectors to
+                                run.''',
+                        required=True,
+                        action='store'
+                        )
+    parser.add_argument('-H', '--hostgroups',
+                        help='A comma-delimited list of hostgroups',
+                        default=str(),
+                        action='store'
+                        )
+    parser.add_argument('-n', '--nm_path',
+                        help='The path to the Net-Manage repository',
+                        required=True,
+                        action='store'
+                        )
+    parser.add_argument('-p', '--private_data_dir',
+                        help='''The path to the Ansible private data
+                                directory (I.e., the directory
+                                containing the 'inventory' and 'env'
+                                folders).''',
+                        required=True,
+                        action='store'
+                        )
     args = parser.parse_args()
     return args
 

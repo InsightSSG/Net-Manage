@@ -242,6 +242,20 @@ def get_password():
     return password
 
 
+def meraki_get_api_key():
+    '''
+    Gets the Meraki API key
+
+    Args:
+        None
+
+    Returns:
+        api_key (str):  The user's API key
+    '''
+    api_key = getpass('Enter your Meraki API key: ')
+    return api_key
+
+
 def read_table(db_path, table):
     '''
     Reads all columns for the latest timestamp from a database table.
@@ -386,7 +400,7 @@ def set_vars():
         None
 
     Returns:
-        db_path, inventories, nm_path, out_path, private_data_dir
+        api_key, db_path, inventories, nm_path, out_path, private_data_dir
     '''
     default_db = f'{str(dt.now()).split()[0]}.db'
     default_nm_path = '~/source/repos/InsightSSG/Net-Manage/'
@@ -398,14 +412,14 @@ def set_vars():
     default_out_path = f'{private_data_dir}/output'
     out_path = input(f'Enter the path to store results: [{default_out_path}]')
 
+    api_key = meraki_get_api_key()
+
     if not db:
         db = default_db
     if not nm_path:
         nm_path = default_nm_path
     if not out_path:
         out_path = default_out_path
-
-    # username, password = hp.get_creds()
 
     db = os.path.expanduser(db)
     nm_path = os.path.expanduser(nm_path)
@@ -418,7 +432,8 @@ def set_vars():
     #       supports that, but I am not sure how common it is)
     inventories = [f'{private_data_dir}/inventory/hosts']
 
-    return db, db_path, inventories, nm_path, out_path, private_data_dir
+    return api_key, db, db_path, inventories, nm_path, out_path, \
+        private_data_dir
 
 
 def get_tests_file():
