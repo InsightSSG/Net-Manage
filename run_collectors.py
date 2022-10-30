@@ -17,35 +17,6 @@ from tabulate import tabulate
 readline.write_history_file = lambda *args: None
 
 
-def define_collectors():
-    '''
-    Creates a list of collectors.
-
-    Args:
-        None
-
-    Returns:
-        collectors (list):  A list of collectors.
-    '''
-    collectors = [
-                  'arp_table',
-                  'cam_table',
-                  'f5_pool_availability',
-                  'f5_pool_member_availability',
-                  'f5_vip_availability',
-                  'f5_vip_destinations',
-                  'interface_description',
-                  'interface_status',
-                  'interface_summary',
-                  'meraki_get_orgs',
-                  'port_channel_data',
-                  'vlan_database',
-                  'vpc_state',
-                  'vrfs'
-                  ]
-    return collectors
-
-
 def collect(collector,
             nm_path,
             private_data_dir,

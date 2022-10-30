@@ -82,6 +82,49 @@ def ansible_create_vars_df(hostgroups, private_data_dir):
     return df_vars
 
 
+def ansible_get_all_hostgroup_os(private_data_dir):
+    '''
+    Gets the Ansible OS for every hostgroup.
+
+    Args:
+        private_data_dir (str): The path to the Ansible private_data_dir. This
+                                is the path that the 'inventory' folder is in.
+                                The default is the current folder.
+
+    Returns:
+        groups_os (dict):       The Ansible variables for all host groups
+    '''
+    # Get all group variables
+    groups_vars = ansible_get_all_host_variables(private_data_dir)
+    
+    groups_os = dict()
+    
+    for key, value in groups_vars.items():
+        group_vars = value.get('vars')
+        if group_vars and group_vars.get('ansible_network_os'):
+            groups_os[key] = value['vars']['ansible_network_os']
+    
+    return groups_os
+
+
+def ansible_get_all_host_variables(private_data_dir):
+    '''
+    Gets the Ansible variables for all hostgroups in the inventory.
+
+    Args:
+        private_data_dir (str): The path to the Ansible private_data_dir. This
+                                is the path that the 'inventory' folder is in.
+                                The default is the current folder.
+
+    Returns:
+        groups_vars (dict):     The Ansible variables for all host groups
+    '''
+    # Read the contents of the playbook into a dictionary
+    with open(f'{private_data_dir}/inventory/hosts') as f:
+        groups_vars = yaml.load(f, Loader=yaml.FullLoader)
+    return groups_vars
+
+
 def ansible_get_hostgroup():
     '''
     Gets the Ansible hostgroup
@@ -112,6 +155,7 @@ def ansible_get_host_variables(host_group, private_data_dir):
     # Read the contents of the playbook into a dictionary
     with open(f'{private_data_dir}/inventory/hosts') as f:
         hosts = yaml.load(f, Loader=yaml.FullLoader)
+        print(hosts)
 
     group_vars = hosts[host_group]['vars']
 
@@ -140,6 +184,74 @@ def ansible_get_hostgroup_devices(hostgroup, host_files, quiet=True):
             devices = [i.split('\\')[0] for i in item]
             break
     return devices
+
+
+def ansible_group_hostgroups_by_os(private_data_dir):
+    '''
+    Finds the ansible_network_os for all hostgroups that have defined it in the
+    variables, then organizes the hostgroups by os. For example:
+
+    groups_os['cisco.asa.asa'] = [asa_group_1]
+    groups_os['cisco.nxos.nxos'] = [nxos_group_1, nxos_group_2]
+
+    Args:
+        private_data_dir (str): The path to the Ansible private_data_dir. This
+                                is the path that the 'inventory' folder is in.
+                                The default is the current folder.
+
+    Returns:
+        hostgroup_by_os (dict): A dictionary containing the hostgroups, grouped
+                                by OS.
+    '''
+    # Get the OS for all Ansible hostgroups
+    groups_vars = ansible_get_all_host_variables(private_data_dir)
+    groups_os = ansible_get_all_hostgroup_os(private_data_dir)
+
+    # Extract the OS and create dict for all hostgroups that have defined it
+    groups_by_os = dict()
+    for key, value in groups_os.items():
+        if not groups_by_os.get(value):
+            groups_by_os[value] = list()
+        groups_by_os[value].append(key)
+    return groups_by_os
+
+
+def define_collectors(hostgroup):
+    '''
+    Creates a list of collectors.
+
+    Args:
+        hostgroup (str):    The name of the hostgroup
+
+    Returns:
+        available (dict):   The collectors supported by the hostgroup
+    '''
+    # TODO: Find a more dynamic way to create this dictionary
+    collectors = {'arp_table': ['bigip',
+                                'cisco.ios.ios',
+                                'cisco.nxos.nxos',
+                                'paloaltonetworks.panos'],
+                  'cam_table': ['cisco.ios.ios', 'cisco.nxos.nxos'],
+                  'f5_pool_availability': ['bigip'],
+                  'f5_pool_member_availability': ['bigip'],
+                  'f5_vip_availability': ['bigip'],
+                  'f5_vip_destinations': ['bigip'],
+                  'interface_description': ['bigip',
+                                            'cisco.ios.ios',
+                                            'cisco.nxos.nxos',],
+                  'interface_status': ['cisco.nxos.nxos'],
+                  'interface_summary': ['bigip', 'cisco.nxos.nxos'],
+                  'meraki_get_orgs': [],
+                  'port_channel_data': ['cisco.nxos.nxos'],
+                  'vlan_database': ['cisco.nxos.nxos'],
+                  'vpc_state': ['cisco.nxos.nxos'],
+                  'vrfs': ['cisco.nxos.nxos']}
+
+    available = list()
+    for key, value in collectors.items():
+        if hostgroup in value:
+            available.append(key)
+    return available
 
 
 def get_creds():
