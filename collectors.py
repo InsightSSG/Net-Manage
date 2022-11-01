@@ -1112,27 +1112,31 @@ def meraki_get_orgs(api_key):
         df_orgs (list): A dataframe containing a list of organizations the
                         user's API key has access to
     '''
-    dashboard = meraki.DashboardAPI(api_key=api_key)
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
 
-    # Get the organizations the user has access to
+    # Get the organizations the user has access to and add them to a dataframe
     orgs = dashboard.organizations.getOrganizations()
 
-    print(orgs)
-
-    # Create a dataframe from the results
-    df_data = dict()
-    df_data['id'] = list()
-    df_data['name'] = list()
-    df_data['cloud'] = list()
-    df_data['api'] = list()
-    df_data['licensing'] = list()
-    df_data['url'] = list()
+    df_data = list()
 
     for item in orgs:
-        for key, value in item.items():
-            df_data[key].append(value)
+        df_data.append([item['id'],
+                        item['name'],
+                        item['url'],
+                        item['api']['enabled'],
+                        item['licensing']['model'],
+                        item['cloud']['region']['name'],
+                        '|'.join(item['management']['details'])]
+                       )
+    cols = ['org_id',
+            'name',
+            'url',
+            'api',
+            'licensing_model',
+            'cloud_region',
+            'management_details']
 
-    df_orgs = pd.DataFrame.from_dict(df_data)
+    df_orgs = pd.DataFrame(data=df_data, columns=cols).astype(str)
 
     return df_orgs
 
@@ -2217,14 +2221,13 @@ def nxos_get_vrfs(username,
             vpn_id = str()
             route_domain = str()
             max_routes = str()
-            mid_threshold = str()
 
             pos = 0
             for line in output:
                 if 'VRF-Name' in line:
                     pos = output.index(line)+1
                     line = line.split(',')
-                    line = [l.split(':')[-1].strip() for l in line]
+                    line = [_.split(':')[-1].strip() for _ in line]
                     name = line[0]
                     vrf_id = line[1]
                     state = line[2]
@@ -2241,14 +2244,14 @@ def nxos_get_vrfs(username,
                             min_threshold = _[-1]
                         pos += 1
                     row = [device,
-                        name,
-                        vrf_id,
-                        state,
-                        description,
-                        vpn_id,
-                        route_domain,
-                        max_routes,
-                        min_threshold]
+                           name,
+                           vrf_id,
+                           state,
+                           description,
+                           vpn_id,
+                           route_domain,
+                           max_routes,
+                           min_threshold]
                     df_data.append(row)
 
             # Create the DataFrame columns
