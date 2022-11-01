@@ -82,6 +82,83 @@ def ansible_create_vars_df(hostgroups, private_data_dir):
     return df_vars
 
 
+def ansible_get_all_hostgroup_os(private_data_dir):
+    '''
+    Gets the Ansible OS for every hostgroup.
+
+    Args:
+        private_data_dir (str): The path to the Ansible private_data_dir. This
+                                is the path that the 'inventory' folder is in.
+                                The default is the current folder.
+
+    Returns:
+        groups_os (dict):       The Ansible variables for all host groups
+    '''
+    # Get all group variables
+    groups_vars = ansible_get_all_host_variables(private_data_dir)
+
+    groups_os = dict()
+
+    for key, value in groups_vars.items():
+        group_vars = value.get('vars')
+        if group_vars and group_vars.get('ansible_network_os'):
+            groups_os[key] = value['vars']['ansible_network_os']
+
+    return groups_os
+
+
+def ansible_get_all_host_variables(private_data_dir):
+    '''
+    Gets the Ansible variables for all hostgroups in the inventory.
+
+    Args:
+        private_data_dir (str): The path to the Ansible private_data_dir. This
+                                is the path that the 'inventory' folder is in.
+                                The default is the current folder.
+
+    Returns:
+        groups_vars (dict):     The Ansible variables for all host groups
+    '''
+    # Read the contents of the playbook into a dictionary
+    with open(f'{private_data_dir}/inventory/hosts') as f:
+        groups_vars = yaml.load(f, Loader=yaml.FullLoader)
+    return groups_vars
+
+
+def define_supported_validation_tables():
+    '''
+    Returns a list of tables that are supported for validation
+
+    Args:
+        None
+
+    Returns:
+        supported_tables (dict): A list of supported tables
+    '''
+    supported_tables = dict()
+    supported_tables['MERAKI_GET_ORG_DEVICE_STATUSES'] = dict()
+    supported_tables['MERAKI_GET_ORG_DEVICE_STATUSES']['status'] = 'online'
+    return supported_tables
+
+
+def get_database_tables(db_path):
+    '''
+    Gets all of the tables out of the database.
+
+    Args:
+        db_path (str): The path to the database
+
+    Returns:
+        tables (list): A list of tables
+    '''
+    con = connect_to_db(db_path)
+    query = '''select name from sqlite_schema
+               where type = "table" and name not like "sqlite_%"'''
+    df_tables = pd.read_sql(query, con)
+    tables = df_tables['name'].to_list()
+    return tables
+
+
 def ansible_get_hostgroup():
     '''
     Gets the Ansible hostgroup
@@ -112,6 +189,7 @@ def ansible_get_host_variables(host_group, private_data_dir):
     # Read the contents of the playbook into a dictionary
     with open(f'{private_data_dir}/inventory/hosts') as f:
         hosts = yaml.load(f, Loader=yaml.FullLoader)
+        print(hosts)
 
     group_vars = hosts[host_group]['vars']
 
@@ -140,6 +218,74 @@ def ansible_get_hostgroup_devices(hostgroup, host_files, quiet=True):
             devices = [i.split('\\')[0] for i in item]
             break
     return devices
+
+
+def ansible_group_hostgroups_by_os(private_data_dir):
+    '''
+    Finds the ansible_network_os for all hostgroups that have defined it in the
+    variables, then organizes the hostgroups by os. For example:
+
+    groups_os['cisco.asa.asa'] = [asa_group_1]
+    groups_os['cisco.nxos.nxos'] = [nxos_group_1, nxos_group_2]
+
+    Args:
+        private_data_dir (str): The path to the Ansible private_data_dir. This
+                                is the path that the 'inventory' folder is in.
+                                The default is the current folder.
+
+    Returns:
+        hostgroup_by_os (dict): A dictionary containing the hostgroups, grouped
+                                by OS.
+    '''
+    # Get the OS for all Ansible hostgroups
+    groups_os = ansible_get_all_hostgroup_os(private_data_dir)
+
+    # Extract the OS and create dict for all hostgroups that have defined it
+    groups_by_os = dict()
+    for key, value in groups_os.items():
+        if not groups_by_os.get(value):
+            groups_by_os[value] = list()
+        groups_by_os[value].append(key)
+    return groups_by_os
+
+
+def define_collectors(hostgroup):
+    '''
+    Creates a list of collectors.
+
+    Args:
+        hostgroup (str):    The name of the hostgroup
+
+    Returns:
+        available (dict):   The collectors supported by the hostgroup
+    '''
+    # TODO: Find a more dynamic way to create this dictionary
+    collectors = {'arp_table': ['bigip',
+                                'cisco.ios.ios',
+                                'cisco.nxos.nxos',
+                                'paloaltonetworks.panos'],
+                  'cam_table': ['cisco.ios.ios', 'cisco.nxos.nxos'],
+                  'f5_pool_availability': ['bigip'],
+                  'f5_pool_member_availability': ['bigip'],
+                  'f5_vip_availability': ['bigip'],
+                  'f5_vip_destinations': ['bigip'],
+                  'interface_description': ['bigip',
+                                            'cisco.ios.ios',
+                                            'cisco.nxos.nxos'],
+                  'interface_status': ['cisco.nxos.nxos'],
+                  'interface_summary': ['bigip', 'cisco.nxos.nxos'],
+                  'meraki_get_organizations': ['meraki'],
+                  'meraki_get_org_device_statuses': ['meraki'],
+                  'port_channel_data': ['cisco.nxos.nxos'],
+                  'vlan_database': ['cisco.nxos.nxos'],
+                  'vpc_state': ['cisco.nxos.nxos'],
+                  'vrfs': ['cisco.nxos.nxos']}
+
+    available = list()
+    for key, value in collectors.items():
+        if hostgroup in value:
+            available.append(key)
+    return available
 
 
 def get_creds():
@@ -242,6 +388,20 @@ def get_password():
     return password
 
 
+def meraki_get_api_key():
+    '''
+    Gets the Meraki API key
+
+    Args:
+        None
+
+    Returns:
+        api_key (str):  The user's API key
+    '''
+    api_key = getpass('Enter your Meraki API key: ')
+    return api_key
+
+
 def read_table(db_path, table):
     '''
     Reads all columns for the latest timestamp from a database table.
@@ -286,6 +446,28 @@ def set_dependencies(selected):
             s.insert(pos, 'interface_description')
         if 'interface_status' not in s:
             s.insert(pos, 'interface_status')
+    if 'get_device_statuses' in s:
+        pos1 = s.index('get_device_statuses')
+        if 'get_organizations' in s:
+            pos2 = s.index('get_organizations')
+            if pos2 > pos1:
+                del s[pos2]
+                s.insert(pos1, 'get_organizations')
+        else:
+            s.insert(pos1, 'get_organizations')
+
+    if 'meraki_get_vpn_statuses' in s:
+        if 'meraki_get_organizations' in s:
+            pos = s.index('meraki_get_organizations')
+            del s[pos]
+        s.insert(0, 'meraki_get_organizations')
+
+    if 'meraki_get_device_statuses' in s:
+        if 'meraki_get_organizations' in s:
+            pos = s.index('meraki_get_organizations')
+            del s[pos]
+        s.insert(0, 'meraki_get_organizations')
+
     selected = s
     return s
 
@@ -386,7 +568,7 @@ def set_vars():
         None
 
     Returns:
-        db_path, inventories, nm_path, out_path, private_data_dir
+        api_key, db_path, inventories, nm_path, out_path, private_data_dir
     '''
     default_db = f'{str(dt.now()).split()[0]}.db'
     default_nm_path = '~/source/repos/InsightSSG/Net-Manage/'
@@ -398,14 +580,14 @@ def set_vars():
     default_out_path = f'{private_data_dir}/output'
     out_path = input(f'Enter the path to store results: [{default_out_path}]')
 
+    api_key = meraki_get_api_key()
+
     if not db:
         db = default_db
     if not nm_path:
         nm_path = default_nm_path
     if not out_path:
         out_path = default_out_path
-
-    # username, password = hp.get_creds()
 
     db = os.path.expanduser(db)
     nm_path = os.path.expanduser(nm_path)
@@ -418,7 +600,8 @@ def set_vars():
     #       supports that, but I am not sure how common it is)
     inventories = [f'{private_data_dir}/inventory/hosts']
 
-    return db, db_path, inventories, nm_path, out_path, private_data_dir
+    return api_key, db, db_path, inventories, nm_path, out_path, \
+        private_data_dir
 
 
 def get_tests_file():
@@ -434,3 +617,38 @@ def get_tests_file():
     t_file = input("Enter the absolute path to the Net-Manage repository: ")
     t_file = os.path.expanduser(t_file)
     return t_file
+
+
+def validate_table(table, db_path, diff_col):
+    '''
+    Validates a table, based on the columns that the user passes to the
+    function.
+
+    Args:
+        table (str): The table to validate
+        db_path (str): The path to the database
+        diff_col (list): The column to diff. It should contain two items:
+                         item1: The column to diff (I.e., status)
+                         item2: The expected state (I.e., online)
+    '''
+    # Get the first and last timestamps from the table
+    con = sl.connect(db_path)
+    query = f'select distinct timestamp from {table}'
+    df_stamps = pd.read_sql(query, con)
+    stamps = df_stamps['timestamp'].to_list()
+    first_ts = stamps[0]
+    last_ts = stamps[-1]
+
+    # Execute the queries and diff the results
+    query1 = f'{diff_col[0]} = "{diff_col[1]}" and timestamp = "{first_ts}"'
+    query2 = f'{diff_col[0]} = "{diff_col[1]}" and timestamp = "{last_ts}"'
+    query = f'''select *
+                from {table}
+                where {query1}
+                except
+                select *
+                from {table}
+                where {query2}
+                '''
+    df_diff = pd.read_sql(query, con)
+    return df_diff

@@ -1087,20 +1087,67 @@ def ios_get_interface_descriptions(username,
     return df_desc
 
 
-def meraki_get_org_device_statuses(api_key, org_id):
+def meraki_get_org_device_statuses(api_key, db_path):
     '''
-    Gets the device statuses for all devices in an org.
+    Gets the device statuses for all organizations the user's API key has
+    access to.
 
     Args:
-        api_key (str):  The user's API key
-        org_id (str):   The organization ID
+        api_key (str):              The user's API key
 
     Returns:
-
+        df_statuses (DataFrame):    The device statuses for the organizations
     '''
+    # Get the organizations (collected by 'meraki_get_orgs') from the database
+    table = 'meraki_get_organizations'
+    con = sl.connect(db_path)
+    df_orgs = pd.read_sql(f'select distinct org_id from {table}', con)
+    orgs = df_orgs['org_id'].to_list()
+    con.close()
+
+    # Initialize Meraki dashboard
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
+    app = dashboard.organizations
+
+    df_data = list()
+    for org in orgs:
+        statuses = app.getOrganizationDevicesStatuses(org,
+                                                      total_pages="all")
+        for item in statuses:
+            network_id = item['networkId']
+            name = item['name']
+            status = item['status']
+            serial = item['serial']
+            model = item['model']
+            last_reported = item['lastReportedAt']
+            public_ip = item['publicIp']
+            product_type = item['productType']
+            df_data.append([org,
+                            network_id,
+                            name,
+                            status,
+                            serial,
+                            model,
+                            last_reported,
+                            public_ip,
+                            product_type])
+
+    # Create the dataframe and return it
+    cols = ['org_id',
+            'network_id',
+            'name',
+            'status',
+            'serial',
+            'model',
+            'last_reported',
+            'public_ip',
+            'product_type']
+    df_statuses = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_statuses
 
 
-def meraki_get_orgs(api_key):
+def meraki_get_organizations(api_key):
     '''
     Gets a list of organizations and their associated parameters that the
     user's API key has access to.
@@ -1112,25 +1159,31 @@ def meraki_get_orgs(api_key):
         df_orgs (list): A dataframe containing a list of organizations the
                         user's API key has access to
     '''
-    dashboard = meraki.DashboardAPI(api_key=api_key)
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
 
-    # Get the organizations the user has access to
+    # Get the organizations the user has access to and add them to a dataframe
     orgs = dashboard.organizations.getOrganizations()
 
-    # Create a dataframe from the results
-    df_data = dict()
-    df_data['id'] = list()
-    df_data['name'] = list()
-    df_data['cloud'] = list()
-    df_data['api'] = list()
-    df_data['licensing'] = list()
-    df_data['url'] = list()
+    df_data = list()
 
     for item in orgs:
-        for key, value in item.items():
-            df_data[key].append(value)
+        df_data.append([item['id'],
+                        item['name'],
+                        item['url'],
+                        item['api']['enabled'],
+                        item['licensing']['model'],
+                        item['cloud']['region']['name'],
+                        '|'.join(item['management']['details'])]
+                       )
+    cols = ['org_id',
+            'name',
+            'url',
+            'api',
+            'licensing_model',
+            'cloud_region',
+            'management_details']
 
-    df_orgs = pd.DataFrame.from_dict(df_data)
+    df_orgs = pd.DataFrame(data=df_data, columns=cols).astype(str)
 
     return df_orgs
 
@@ -2215,14 +2268,13 @@ def nxos_get_vrfs(username,
             vpn_id = str()
             route_domain = str()
             max_routes = str()
-            mid_threshold = str()
 
             pos = 0
             for line in output:
                 if 'VRF-Name' in line:
                     pos = output.index(line)+1
                     line = line.split(',')
-                    line = [l.split(':')[-1].strip() for l in line]
+                    line = [_.split(':')[-1].strip() for _ in line]
                     name = line[0]
                     vrf_id = line[1]
                     state = line[2]
@@ -2239,14 +2291,14 @@ def nxos_get_vrfs(username,
                             min_threshold = _[-1]
                         pos += 1
                     row = [device,
-                        name,
-                        vrf_id,
-                        state,
-                        description,
-                        vpn_id,
-                        route_domain,
-                        max_routes,
-                        min_threshold]
+                           name,
+                           vrf_id,
+                           state,
+                           description,
+                           vpn_id,
+                           route_domain,
+                           max_routes,
+                           min_threshold]
                     df_data.append(row)
 
             # Create the DataFrame columns

@@ -17,42 +17,16 @@ from tabulate import tabulate
 readline.write_history_file = lambda *args: None
 
 
-def define_collectors():
-    '''
-    Creates a list of collectors.
-
-    Args:
-        None
-
-    Returns:
-        collectors (list):  A list of collectors.
-    '''
-    collectors = [
-                  'arp_table',
-                  'cam_table',
-                  'f5_pool_availability',
-                  'f5_pool_member_availability',
-                  'f5_vip_availability',
-                  'f5_vip_destinations',
-                  'interface_description',
-                  'interface_status',
-                  'interface_summary',
-                  'port_channel_data',
-                  'vlan_database',
-                  'vpc_state',
-                  'vrfs'
-                  ]
-    return collectors
-
-
-def collect(ansible_os,
-            collector,
-            username,
-            password,
-            hostgroup,
-            play_path,
-            private_data_dir,
+def collect(collector,
             nm_path,
+            private_data_dir,
+            timestamp,
+            ansible_os=str(),
+            username=str(),
+            password=str(),
+            api_key=str(),
+            hostgroup=str(),
+            play_path=str(),
             ansible_timeout='300',
             db_path=str(),
             validate_certs=True):
@@ -149,6 +123,10 @@ def collect(ansible_os,
                                                 private_data_dir,
                                                 validate_certs=False)
 
+    if collector == 'get_organizations':
+        if ansible_os == 'meraki':
+            result = cl.meraki_get_orgs(api_key)
+
     if collector == 'interface_description':
         if ansible_os == 'cisco.ios.ios':
             result = cl.ios_get_interface_descriptions(username,
@@ -202,6 +180,12 @@ def collect(ansible_os,
                                               play_path,
                                               private_data_dir)
 
+    if collector == 'meraki_get_organizations':
+        result = cl.meraki_get_organizations(api_key)
+
+    if collector == 'meraki_get_org_device_statuses':
+        result = cl.meraki_get_org_device_statuses(api_key, db_path)
+
     if collector == 'port_channel_data':
         if ansible_os == 'cisco.nxos.nxos':
             result = cl.nxos_get_port_channel_data(username,
@@ -237,12 +221,48 @@ def collect(ansible_os,
     if collector == 'vrfs':
         if ansible_os == 'cisco.nxos.nxos':
             result = cl.nxos_get_vrfs(username,
-                                     password,
-                                     hostgroup,
-                                     play_path,
-                                     private_data_dir)
+                                      password,
+                                      hostgroup,
+                                      play_path,
+                                      private_data_dir)
+
+    # Write the result to the database
+    add_to_db(collector, result, timestamp, db_path)
 
     return result
+
+
+def add_to_db(collector, result, timestamp, db_path):
+    '''
+    Adds the output of a collector to the database
+
+    Args:
+        collector (str):    The name of the collector
+        result (DataFrame): The output of a collector
+        timestamp (str):    The timestamp
+        db_path (str):      The path to the database
+
+    Returns:
+        None
+    '''
+    # Set the timestamp as the index
+    new_idx = list()
+    for i in range(0, len(result)):
+        new_idx.append(timestamp)
+
+    # Display the output to the console
+    result['timestamp'] = new_idx
+    result = result.set_index('timestamp')
+    # print(tabulate(result, headers='keys', tablefmt='psql'))
+
+    # Add the output to the database
+    con = hp.connect_to_db(db_path)
+
+    # Add the dataframe to the database
+    table = collector.upper()
+    result.to_sql(table, con, if_exists='append')
+    con.commit()
+    con.close()
 
 
 def create_parser():
@@ -273,6 +293,7 @@ def create_parser():
     parser.add_argument('-u', '--username',
                         help='''The username for connecting to the devices. If
                                 missing, script will prompt for it.''',
+                        default=str(),
                         action='store'
                         )
     parser.add_argument('-P', '--password',
@@ -281,33 +302,34 @@ def create_parser():
                                 do not recommend using it when running the
                                 script manually. If you do, then your password
                                 could show up in the command history.''',
+                        default=str(),
                         action='store'
                         )
-    requiredNamed = parser.add_argument_group('required named arguments')
-    requiredNamed.add_argument('-c', '--collectors',
-                               help='''A comma-delimited list of collectors to
-                                       run.''',
-                               required=True,
-                               action='store'
-                               )
-    requiredNamed.add_argument('-H', '--hostgroups',
-                               help='A comma-delimited list of hostgroups',
-                               required=True,
-                               action='store'
-                               )
-    requiredNamed.add_argument('-n', '--nm_path',
-                               help='The path to the Net-Manage repository',
-                               required=True,
-                               action='store'
-                               )
-    requiredNamed.add_argument('-p', '--private_data_dir',
-                               help='''The path to the Ansible private data
-                                       directory (I.e., the directory
-                                       containing the 'inventory' and 'env'
-                                       folders).''',
-                               required=True,
-                               action='store'
-                               )
+    # requiredNamed = parser.add_argument_group('required named arguments')
+    parser.add_argument('-c', '--collectors',
+                        help='''A comma-delimited list of collectors to
+                                run.''',
+                        required=True,
+                        action='store'
+                        )
+    parser.add_argument('-H', '--hostgroups',
+                        help='A comma-delimited list of hostgroups',
+                        default=str(),
+                        action='store'
+                        )
+    parser.add_argument('-n', '--nm_path',
+                        help='The path to the Net-Manage repository',
+                        required=True,
+                        action='store'
+                        )
+    parser.add_argument('-p', '--private_data_dir',
+                        help='''The path to the Ansible private data
+                                directory (I.e., the directory
+                                containing the 'inventory' and 'env'
+                                folders).''',
+                        required=True,
+                        action='store'
+                        )
     args = parser.parse_args()
     return args
 
