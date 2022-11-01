@@ -1547,6 +1547,8 @@ def nxos_get_bgp_neighbors(username,
                             except Exception:
                                 pass
                             pos += 1
+                            if pos == len(output):
+                                break
 
     # Create dataframe and return it
     cols = ['device',
