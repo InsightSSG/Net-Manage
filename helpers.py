@@ -96,14 +96,14 @@ def ansible_get_all_hostgroup_os(private_data_dir):
     '''
     # Get all group variables
     groups_vars = ansible_get_all_host_variables(private_data_dir)
-    
+
     groups_os = dict()
-    
+
     for key, value in groups_vars.items():
         group_vars = value.get('vars')
         if group_vars and group_vars.get('ansible_network_os'):
             groups_os[key] = value['vars']['ansible_network_os']
-    
+
     return groups_os
 
 
@@ -204,7 +204,6 @@ def ansible_group_hostgroups_by_os(private_data_dir):
                                 by OS.
     '''
     # Get the OS for all Ansible hostgroups
-    groups_vars = ansible_get_all_host_variables(private_data_dir)
     groups_os = ansible_get_all_hostgroup_os(private_data_dir)
 
     # Extract the OS and create dict for all hostgroups that have defined it
@@ -239,7 +238,7 @@ def define_collectors(hostgroup):
                   'get_organizations': ['meraki'],
                   'interface_description': ['bigip',
                                             'cisco.ios.ios',
-                                            'cisco.nxos.nxos',],
+                                            'cisco.nxos.nxos'],
                   'interface_status': ['cisco.nxos.nxos'],
                   'interface_summary': ['bigip', 'cisco.nxos.nxos'],
                   'meraki_get_orgs': [],
