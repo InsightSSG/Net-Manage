@@ -136,8 +136,20 @@ def define_supported_validation_tables():
         supported_tables (dict): A list of supported tables
     '''
     supported_tables = dict()
+
     supported_tables['MERAKI_GET_ORG_DEVICE_STATUSES'] = dict()
     supported_tables['MERAKI_GET_ORG_DEVICE_STATUSES']['status'] = 'online'
+
+    supported_tables['F5_POOL_AVAILABILITY'] = dict()
+    supported_tables['F5_POOL_AVAILABILITY']['availability'] = 'available'
+
+    supported_tables['F5_POOL_MEMBER_AVAILABILITY'] = dict()
+    supported_tables['F5_POOL_MEMBER_AVAILABILITY']['pool_member_state'] = \
+        'available'
+
+    supported_tables['F5_VIP_AVAILABILITY'] = dict()
+    supported_tables['F5_VIP_AVAILABILITY']['availability'] = 'available'
+
     return supported_tables
 
 
@@ -151,10 +163,20 @@ def get_database_tables(db_path):
     Returns:
         tables (list): A list of tables
     '''
+    # sqlite_schema used to be named sqlite_master. This method tries the new
+    # name but will fail back to the old name if the user is on an older
+    # version
+    name_old = 'master'
+    name_new = 'schema'
     con = connect_to_db(db_path)
-    query = '''select name from sqlite_schema
-               where type = "table" and name not like "sqlite_%"'''
-    df_tables = pd.read_sql(query, con)
+    query1 = f'''select name from sqlite_{name_new}
+                 where type = "table" and name not like "sqlite_%"'''
+    query2 = f'''select name from sqlite_{name_old}
+                 where type = "table" and name not like "sqlite_%"'''
+    try:
+        df_tables = pd.read_sql(query1, con)
+    except Exception:
+        df_tables = pd.read_sql(query2, con)
     tables = df_tables['name'].to_list()
     return tables
 
@@ -457,6 +479,12 @@ def set_dependencies(selected):
         else:
             s.insert(pos1, 'get_organizations')
 
+    if 'f5_vip_destinations' in s:
+        if 'f5_vip_availability' in s:
+            pos = s.index('f5_vip_availability')
+            del s[pos]
+        s.insert(0, 'f5_vip_availability')
+
     if 'meraki_get_vpn_statuses' in s:
         if 'meraki_get_organizations' in s:
             pos = s.index('meraki_get_organizations')
@@ -651,5 +679,6 @@ def validate_table(table, db_path, diff_col):
                 from {table}
                 where {query2}
                 '''
+    print(query)
     df_diff = pd.read_sql(query, con)
     return df_diff
