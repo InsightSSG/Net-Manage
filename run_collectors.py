@@ -20,12 +20,13 @@ readline.write_history_file = lambda *args: None
 def collect(collector,
             nm_path,
             private_data_dir,
+            timestamp,
             ansible_os=str(),
             username=str(),
             password=str(),
+            api_key=str(),
             hostgroup=str(),
             play_path=str(),
-            api_key=str(),
             ansible_timeout='300',
             db_path=str(),
             validate_certs=True):
@@ -122,6 +123,10 @@ def collect(collector,
                                                 private_data_dir,
                                                 validate_certs=False)
 
+    if collector == 'get_organizations':
+        if ansible_os == 'meraki':
+            result = cl.meraki_get_orgs(api_key)
+
     if collector == 'interface_description':
         if ansible_os == 'cisco.ios.ios':
             result = cl.ios_get_interface_descriptions(username,
@@ -175,8 +180,11 @@ def collect(collector,
                                               play_path,
                                               private_data_dir)
 
-    if collector == 'meraki_get_orgs':
-        result = cl.meraki_get_orgs(api_key)
+    if collector == 'meraki_get_organizations':
+        result = cl.meraki_get_organizations(api_key)
+
+    if collector == 'meraki_get_org_device_statuses':
+        result = cl.meraki_get_org_device_statuses(api_key, db_path)
 
     if collector == 'port_channel_data':
         if ansible_os == 'cisco.nxos.nxos':
@@ -213,12 +221,48 @@ def collect(collector,
     if collector == 'vrfs':
         if ansible_os == 'cisco.nxos.nxos':
             result = cl.nxos_get_vrfs(username,
-                                     password,
-                                     hostgroup,
-                                     play_path,
-                                     private_data_dir)
+                                      password,
+                                      hostgroup,
+                                      play_path,
+                                      private_data_dir)
+
+    # Write the result to the database
+    add_to_db(collector, result, timestamp, db_path)
 
     return result
+
+
+def add_to_db(collector, result, timestamp, db_path):
+    '''
+    Adds the output of a collector to the database
+
+    Args:
+        collector (str):    The name of the collector
+        result (DataFrame): The output of a collector
+        timestamp (str):    The timestamp
+        db_path (str):      The path to the database
+
+    Returns:
+        None
+    '''
+    # Set the timestamp as the index
+    new_idx = list()
+    for i in range(0, len(result)):
+        new_idx.append(timestamp)
+
+    # Display the output to the console
+    result['timestamp'] = new_idx
+    result = result.set_index('timestamp')
+    # print(tabulate(result, headers='keys', tablefmt='psql'))
+
+    # Add the output to the database
+    con = hp.connect_to_db(db_path)
+
+    # Add the dataframe to the database
+    table = collector.upper()
+    result.to_sql(table, con, if_exists='append')
+    con.commit()
+    con.close()
 
 
 def create_parser():
