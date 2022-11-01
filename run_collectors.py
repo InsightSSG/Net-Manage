@@ -87,6 +87,15 @@ def collect(collector,
                                             play_path,
                                             private_data_dir)
 
+    if collector == 'bgp_neighbors':
+        if ansible_os == 'cisco.nxos.nxos':
+            result = cl.nxos_get_bgp_neighbors(username,
+                                               password,
+                                               hostgroup,
+                                               nm_path,
+                                               play_path,
+                                               private_data_dir)
+
     if collector == 'f5_pool_availability':
         if ansible_os == 'bigip':
             result = cl.f5_get_pool_availability(username,

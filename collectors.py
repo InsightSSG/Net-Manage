@@ -5,6 +5,7 @@ A library of functions for collecting data from network devices.
 '''
 
 import ansible_runner
+import ipaddress
 import json
 import meraki
 import pandas as pd
@@ -1478,6 +1479,88 @@ def nxos_get_fexes_table(username,
     df_arp['vendor'] = vendors
 
     return df_arp
+
+
+def nxos_get_bgp_neighbors(username,
+                           password,
+                           host_group,
+                           nm_path,
+                           play_path,
+                           private_data_dir):
+    '''
+    Gets the BGP neighbors for all VRFs on NXOS devices.
+
+    Args:
+        username (str):         The username to login to devices
+        password (str):         The password to login to devices
+        host_group (str):       The inventory host group
+        nm_path (str):          The path to the Net-Manage repository
+        play_path (str):        The path to the playbooks directory
+        private_data_dir (str): The path to the Ansible private data directory
+
+    Returns:
+        df_bgp (DataFrame):     The BGP neighbors
+    '''
+    cmd = 'show ip bgp summary vrf all'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute the command and parse the output
+    playbook = f'{play_path}/cisco_nxos_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Necessary to keep from exceeding 80-character line length
+    address = ipaddress.ip_address
+
+    # Phrase to search for to find the start of VRF neighbors
+    phrase = 'BGP summary information for VRF'
+
+    df_data = list()
+
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+            device = event_data['remote_addr']
+            output = event_data['res']['stdout'][0].split('\n')
+            for line in output:
+                if phrase in line:
+                    vrf = line.split(',')[0].split()[-1]
+                    pos = output.index(line)+1
+                    if pos < len(output):
+                        while phrase not in output[pos]:
+                            try:
+                                if address(output[pos].split()[0]):
+                                    row = output[pos].split()
+                                    df_data.append([device,
+                                                    vrf,
+                                                    row[0],
+                                                    row[1],
+                                                    row[2],
+                                                    row[3],
+                                                    row[4],
+                                                    row[5]])
+                            except Exception:
+                                pass
+                            pos += 1
+                            if pos == len(output):
+                                break
+
+    # Create dataframe and return it
+    cols = ['device',
+            'vrf',
+            'neighbor_id',
+            'pri',
+            'state',
+            'up_time',
+            'address',
+            'interface']
+    df_bgp = pd.DataFrame(data=df_data, columns=cols)
+    return df_bgp
 
 
 def nxos_get_cam_table(username,
