@@ -125,6 +125,40 @@ def ansible_get_all_host_variables(private_data_dir):
     return groups_vars
 
 
+def define_supported_validation_tables():
+    '''
+    Returns a list of tables that are supported for validation
+
+    Args:
+        None
+
+    Returns:
+        supported_tables (dict): A list of supported tables
+    '''
+    supported_tables = dict()
+    supported_tables['MERAKI_GET_ORG_DEVICE_STATUSES'] = dict()
+    supported_tables['MERAKI_GET_ORG_DEVICE_STATUSES']['status'] = 'online'
+    return supported_tables
+
+
+def get_database_tables(db_path):
+    '''
+    Gets all of the tables out of the database.
+
+    Args:
+        db_path (str): The path to the database
+
+    Returns:
+        tables (list): A list of tables
+    '''
+    con = connect_to_db(db_path)
+    query = '''select name from sqlite_schema
+               where type = "table" and name not like "sqlite_%"'''
+    df_tables = pd.read_sql(query, con)
+    tables = df_tables['name'].to_list()
+    return tables
+
+
 def ansible_get_hostgroup():
     '''
     Gets the Ansible hostgroup
@@ -235,13 +269,13 @@ def define_collectors(hostgroup):
                   'f5_pool_member_availability': ['bigip'],
                   'f5_vip_availability': ['bigip'],
                   'f5_vip_destinations': ['bigip'],
-                  'get_organizations': ['meraki'],
                   'interface_description': ['bigip',
                                             'cisco.ios.ios',
                                             'cisco.nxos.nxos'],
                   'interface_status': ['cisco.nxos.nxos'],
                   'interface_summary': ['bigip', 'cisco.nxos.nxos'],
-                  'meraki_get_orgs': [],
+                  'meraki_get_organizations': ['meraki'],
+                  'meraki_get_org_device_statuses': ['meraki'],
                   'port_channel_data': ['cisco.nxos.nxos'],
                   'vlan_database': ['cisco.nxos.nxos'],
                   'vpc_state': ['cisco.nxos.nxos'],
@@ -412,6 +446,28 @@ def set_dependencies(selected):
             s.insert(pos, 'interface_description')
         if 'interface_status' not in s:
             s.insert(pos, 'interface_status')
+    if 'get_device_statuses' in s:
+        pos1 = s.index('get_device_statuses')
+        if 'get_organizations' in s:
+            pos2 = s.index('get_organizations')
+            if pos2 > pos1:
+                del s[pos2]
+                s.insert(pos1, 'get_organizations')
+        else:
+            s.insert(pos1, 'get_organizations')
+
+    if 'meraki_get_vpn_statuses' in s:
+        if 'meraki_get_organizations' in s:
+            pos = s.index('meraki_get_organizations')
+            del s[pos]
+        s.insert(0, 'meraki_get_organizations')
+
+    if 'meraki_get_device_statuses' in s:
+        if 'meraki_get_organizations' in s:
+            pos = s.index('meraki_get_organizations')
+            del s[pos]
+        s.insert(0, 'meraki_get_organizations')
+
     selected = s
     return s
 
@@ -561,3 +617,38 @@ def get_tests_file():
     t_file = input("Enter the absolute path to the Net-Manage repository: ")
     t_file = os.path.expanduser(t_file)
     return t_file
+
+
+def validate_table(table, db_path, diff_col):
+    '''
+    Validates a table, based on the columns that the user passes to the
+    function.
+
+    Args:
+        table (str): The table to validate
+        db_path (str): The path to the database
+        diff_col (list): The column to diff. It should contain two items:
+                         item1: The column to diff (I.e., status)
+                         item2: The expected state (I.e., online)
+    '''
+    # Get the first and last timestamps from the table
+    con = sl.connect(db_path)
+    query = f'select distinct timestamp from {table}'
+    df_stamps = pd.read_sql(query, con)
+    stamps = df_stamps['timestamp'].to_list()
+    first_ts = stamps[0]
+    last_ts = stamps[-1]
+
+    # Execute the queries and diff the results
+    query1 = f'{diff_col[0]} = "{diff_col[1]}" and timestamp = "{first_ts}"'
+    query2 = f'{diff_col[0]} = "{diff_col[1]}" and timestamp = "{last_ts}"'
+    query = f'''select *
+                from {table}
+                where {query1}
+                except
+                select *
+                from {table}
+                where {query2}
+                '''
+    df_diff = pd.read_sql(query, con)
+    return df_diff

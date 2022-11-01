@@ -1087,20 +1087,67 @@ def ios_get_interface_descriptions(username,
     return df_desc
 
 
-def meraki_get_org_device_statuses(api_key, org_id):
+def meraki_get_org_device_statuses(api_key, db_path):
     '''
-    Gets the device statuses for all devices in an org.
+    Gets the device statuses for all organizations the user's API key has
+    access to.
 
     Args:
-        api_key (str):  The user's API key
-        org_id (str):   The organization ID
+        api_key (str):              The user's API key
 
     Returns:
-
+        df_statuses (DataFrame):    The device statuses for the organizations
     '''
+    # Get the organizations (collected by 'meraki_get_orgs') from the database
+    table = 'meraki_get_organizations'
+    con = sl.connect(db_path)
+    df_orgs = pd.read_sql(f'select distinct org_id from {table}', con)
+    orgs = df_orgs['org_id'].to_list()
+    con.close()
+
+    # Initialize Meraki dashboard
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
+    app = dashboard.organizations
+
+    df_data = list()
+    for org in orgs:
+        statuses = app.getOrganizationDevicesStatuses(org,
+                                                      total_pages="all")
+        for item in statuses:
+            network_id = item['networkId']
+            name = item['name']
+            status = item['status']
+            serial = item['serial']
+            model = item['model']
+            last_reported = item['lastReportedAt']
+            public_ip = item['publicIp']
+            product_type = item['productType']
+            df_data.append([org,
+                            network_id,
+                            name,
+                            status,
+                            serial,
+                            model,
+                            last_reported,
+                            public_ip,
+                            product_type])
+
+    # Create the dataframe and return it
+    cols = ['org_id',
+            'network_id',
+            'name',
+            'status',
+            'serial',
+            'model',
+            'last_reported',
+            'public_ip',
+            'product_type']
+    df_statuses = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_statuses
 
 
-def meraki_get_orgs(api_key):
+def meraki_get_organizations(api_key):
     '''
     Gets a list of organizations and their associated parameters that the
     user's API key has access to.
