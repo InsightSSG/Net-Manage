@@ -236,6 +236,7 @@ def define_collectors(hostgroup):
                   'f5_pool_member_availability': ['bigip'],
                   'f5_vip_availability': ['bigip'],
                   'f5_vip_destinations': ['bigip'],
+                  'get_organizations': ['meraki'],
                   'interface_description': ['bigip',
                                             'cisco.ios.ios',
                                             'cisco.nxos.nxos',],
