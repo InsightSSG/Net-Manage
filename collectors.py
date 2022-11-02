@@ -10,6 +10,7 @@ import json
 import meraki
 import pandas as pd
 import re
+import run_collectors as rc
 import socket
 import sqlite3 as sl
 
@@ -107,6 +108,8 @@ def f5_build_pool_table(username,
                         hostgroup,
                         play_path,
                         private_data_dir,
+                        db_path,
+                        timestamp,
                         validate_certs=True):
     '''
     Creates a custom table that contains the F5 pools, associated VIPs (if
@@ -132,12 +135,24 @@ def f5_build_pool_table(username,
                                         play_path,
                                         private_data_dir)
 
+    rc.add_to_db('f5_pool_summary',
+                 df_pools,
+                 timestamp,
+                 db_path,
+                 method='replace')
+
     df_vips = f5_get_vip_summary(username,
                                  password,
                                  hostgroup,
                                  play_path,
                                  private_data_dir,
                                  df_pools)
+
+    rc.add_to_db('f5_vip_summary',
+                 df_vips,
+                 timestamp,
+                 db_path,
+                 method='replace')
 
     return df_vips
 
@@ -759,7 +774,6 @@ def f5_get_vip_summary(username,
             event_data = event['event_data']
 
             device = event_data['remote_addr']
-            # pools[device] = dict()
 
             output = event_data['res']['stdout_lines'][0]
 

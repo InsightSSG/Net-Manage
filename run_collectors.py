@@ -55,12 +55,14 @@ def collect(collector,
                                          hostgroup,
                                          play_path,
                                          private_data_dir,
+                                         db_path,
+                                         timestamp,
                                          validate_certs=False)
-        add_to_db('f5_vip_summary',
-                  c_table,
-                  timestamp,
-                  db_path,
-                  method='replace')
+        # add_to_db('f5_vip_summary',
+        #           c_table,
+        #           timestamp,
+        #           db_path,
+        #           method='replace')
 
     # Run collectors the user requested
     if collector == 'cam_table':
