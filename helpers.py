@@ -479,6 +479,12 @@ def set_dependencies(selected):
         else:
             s.insert(pos1, 'get_organizations')
 
+    if 'interface_summary' in s:
+        if 'cam_table' in s:
+            pos = s.index('cam_table')
+            del s[pos]
+        s.insert(0, 'cam_table')
+
     if 'f5_vip_destinations' in s:
         if 'f5_vip_availability' in s:
             pos = s.index('f5_vip_availability')
