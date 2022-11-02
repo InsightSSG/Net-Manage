@@ -2343,7 +2343,6 @@ def nxos_get_vrfs(username,
             output = event_data['res']['stdout'][0].split('\n')
 
             # Pre-define variables, since not all VRFs contain all parameters
-            df_data = list()
             name = str()
             vrf_id = str()
             state = str()
@@ -2384,29 +2383,21 @@ def nxos_get_vrfs(username,
                            min_threshold]
                     df_data.append(row)
 
-            # Create the DataFrame columns
-            cols = ['device',
-                    'name',
-                    'vrf_id',
-                    'state',
-                    'description',
-                    'vpn_id',
-                    'route_domain',
-                    'max_routes',
-                    'min_threshold']
-
-            # Create the dataframe and return it
-            df_vrfs = pd.DataFrame(data=df_data, columns=cols)
-
-            return df_vrfs
+    # Create the DataFrame columns
+    cols = ['device',
+            'name',
+            'vrf_id',
+            'state',
+            'description',
+            'vpn_id',
+            'route_domain',
+            'max_routes',
+            'min_threshold']
 
     # Create the dataframe and return it
-    if len(df_data) > 0:
-        df_vpc_state = pd.DataFrame(data=df_data, columns=cols)
-    else:
-        df_vpc_state = pd.DataFrame()
+    df_vrfs = pd.DataFrame(data=df_data, columns=cols)
 
-    return df_vpc_state
+    return df_vrfs
 
 
 def panos_get_arp_table(username,
