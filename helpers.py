@@ -373,6 +373,44 @@ def connect_to_db(db):
     return con
 
 
+def get_first_last_timestamp(db_path, table):
+    '''
+    Gets the first and last timestamp from a database table for each unique
+    device
+
+    Args:
+        db_path (str):  The path to the database
+        table (str):    The table name
+
+    Returns:
+        df_stamps (df): A DataFrame containing the first and last timestamp for
+                        each unique device
+    '''
+    df_data = dict()
+    df_data['device'] = list()
+    df_data['first_ts'] = list()
+    df_data['last_ts'] = list()
+
+    con = sl.connect(db_path)
+    query = f'select distinct device from {table}'
+    df_devices = pd.read_sql(query, con)
+    devices = df_devices['device'].to_list()
+
+    for device in devices:
+        query = f'''select distinct timestamp from {table}
+                    where device = "{device}"'''
+        df_stamps = pd.read_sql(query, con)
+        stamps = df_stamps['timestamp'].to_list()
+        df_data['device'].append(device)
+        df_data['first_ts'].append(stamps[0])
+        df_data['last_ts'].append(stamps[-1])
+    con.close()
+
+    df_stamps = pd.DataFrame.from_dict(df_data)
+
+    return df_stamps
+
+
 def get_username():
     '''
     Gets the username to login to a device with

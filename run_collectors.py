@@ -45,6 +45,24 @@ def collect(collector,
         interface (str):        The interface (defaults to all interfaces)
         validate_certs (bool):  Whether to validate SSL certs (used for F5s)
     '''
+    # Call 'silent' (invisible to user) functions to populate custom database
+    # tables. For example, on F5s a view will be created that shows the pools,
+    # associated VIPs (if applicable) and pool members (if applicable). This
+    # shaves a significant amount of time off of troubleshooting.
+    if ansible_os == 'bigip':
+        c_table = cl.f5_build_pool_table(username,
+                                         password,
+                                         hostgroup,
+                                         play_path,
+                                         private_data_dir,
+                                         validate_certs=False)
+        add_to_db('f5_vip_summary',
+                  c_table,
+                  timestamp,
+                  db_path,
+                  method='replace')
+
+    # Run collectors the user requested
     if collector == 'cam_table':
         if ansible_os == 'cisco.ios.ios':
             result = cl.ios_get_cam_table(username,
@@ -241,7 +259,7 @@ def collect(collector,
     return result
 
 
-def add_to_db(collector, result, timestamp, db_path):
+def add_to_db(collector, result, timestamp, db_path, method='append'):
     '''
     Adds the output of a collector to the database
 
@@ -250,6 +268,9 @@ def add_to_db(collector, result, timestamp, db_path):
         result (DataFrame): The output of a collector
         timestamp (str):    The timestamp
         db_path (str):      The path to the database
+        method (str):       What to do if the database already exists. Options
+                            are 'append', 'fail', 'replace'. Defaults to
+                            'append'.
 
     Returns:
         None
@@ -269,7 +290,7 @@ def add_to_db(collector, result, timestamp, db_path):
 
     # Add the dataframe to the database
     table = collector.upper()
-    result.to_sql(table, con, if_exists='append')
+    result.to_sql(table, con, if_exists=method)
     con.commit()
     con.close()
 
