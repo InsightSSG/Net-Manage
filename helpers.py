@@ -136,8 +136,20 @@ def define_supported_validation_tables():
         supported_tables (dict): A list of supported tables
     '''
     supported_tables = dict()
+
     supported_tables['MERAKI_GET_ORG_DEVICE_STATUSES'] = dict()
     supported_tables['MERAKI_GET_ORG_DEVICE_STATUSES']['status'] = 'online'
+
+    supported_tables['F5_POOL_AVAILABILITY'] = dict()
+    supported_tables['F5_POOL_AVAILABILITY']['availability'] = 'available'
+
+    supported_tables['F5_POOL_MEMBER_AVAILABILITY'] = dict()
+    supported_tables['F5_POOL_MEMBER_AVAILABILITY']['pool_member_state'] = \
+        'available'
+
+    supported_tables['F5_VIP_AVAILABILITY'] = dict()
+    supported_tables['F5_VIP_AVAILABILITY']['availability'] = 'available'
+
     return supported_tables
 
 
@@ -151,10 +163,20 @@ def get_database_tables(db_path):
     Returns:
         tables (list): A list of tables
     '''
+    # sqlite_schema used to be named sqlite_master. This method tries the new
+    # name but will fail back to the old name if the user is on an older
+    # version
+    name_old = 'master'
+    name_new = 'schema'
     con = connect_to_db(db_path)
-    query = '''select name from sqlite_schema
-               where type = "table" and name not like "sqlite_%"'''
-    df_tables = pd.read_sql(query, con)
+    query1 = f'''select name from sqlite_{name_new}
+                 where type = "table" and name not like "sqlite_%"'''
+    query2 = f'''select name from sqlite_{name_old}
+                 where type = "table" and name not like "sqlite_%"'''
+    try:
+        df_tables = pd.read_sql(query1, con)
+    except Exception:
+        df_tables = pd.read_sql(query2, con)
     tables = df_tables['name'].to_list()
     return tables
 
@@ -351,6 +373,44 @@ def connect_to_db(db):
     return con
 
 
+def get_first_last_timestamp(db_path, table):
+    '''
+    Gets the first and last timestamp from a database table for each unique
+    device
+
+    Args:
+        db_path (str):  The path to the database
+        table (str):    The table name
+
+    Returns:
+        df_stamps (df): A DataFrame containing the first and last timestamp for
+                        each unique device
+    '''
+    df_data = dict()
+    df_data['device'] = list()
+    df_data['first_ts'] = list()
+    df_data['last_ts'] = list()
+
+    con = sl.connect(db_path)
+    query = f'select distinct device from {table}'
+    df_devices = pd.read_sql(query, con)
+    devices = df_devices['device'].to_list()
+
+    for device in devices:
+        query = f'''select distinct timestamp from {table}
+                    where device = "{device}"'''
+        df_stamps = pd.read_sql(query, con)
+        stamps = df_stamps['timestamp'].to_list()
+        df_data['device'].append(device)
+        df_data['first_ts'].append(stamps[0])
+        df_data['last_ts'].append(stamps[-1])
+    con.close()
+
+    df_stamps = pd.DataFrame.from_dict(df_data)
+
+    return df_stamps
+
+
 def get_username():
     '''
     Gets the username to login to a device with
@@ -456,6 +516,18 @@ def set_dependencies(selected):
                 s.insert(pos1, 'get_organizations')
         else:
             s.insert(pos1, 'get_organizations')
+
+    if 'interface_summary' in s:
+        if 'cam_table' in s:
+            pos = s.index('cam_table')
+            del s[pos]
+        s.insert(0, 'cam_table')
+
+    if 'f5_vip_destinations' in s:
+        if 'f5_vip_availability' in s:
+            pos = s.index('f5_vip_availability')
+            del s[pos]
+        s.insert(0, 'f5_vip_availability')
 
     if 'meraki_get_vpn_statuses' in s:
         if 'meraki_get_organizations' in s:
@@ -651,5 +723,6 @@ def validate_table(table, db_path, diff_col):
                 from {table}
                 where {query2}
                 '''
+    print(query)
     df_diff = pd.read_sql(query, con)
     return df_diff

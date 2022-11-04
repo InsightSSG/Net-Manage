@@ -10,6 +10,7 @@ import json
 import meraki
 import pandas as pd
 import re
+import run_collectors as rc
 import socket
 import sqlite3 as sl
 
@@ -100,6 +101,60 @@ def find_mac_vendor(addresses, nm_path):
                     unknown.append(mac)
         vendors.append(vendor)
     return vendors
+
+
+def f5_build_pool_table(username,
+                        password,
+                        hostgroup,
+                        play_path,
+                        private_data_dir,
+                        db_path,
+                        timestamp,
+                        validate_certs=True):
+    '''
+    Creates a custom table that contains the F5 pools, associated VIPs (if
+    applicable), and pool members (if applicable).
+
+    Args:
+        username (str):         The username to login to devices
+        password (str):         The password to login to devices
+        host_group (str):       The inventory host group
+        play_path (str):        The path to the playbooks directory
+        private_data_dir (str): Path to the Ansible private data directory
+        validate_certs (bool):  Whether to validate SSL certificates
+
+    Returns:
+        df_members (DataFrame): The pool availability and associated data
+    '''
+    # TODO: Optimize this so the table is only built for any device in the
+    #       hostgroup that does not exist in the table (or if the table is not
+    #       yet present)
+    df_pools = f5_get_pools_and_members(username,
+                                        password,
+                                        hostgroup,
+                                        play_path,
+                                        private_data_dir)
+
+    rc.add_to_db('f5_pool_summary',
+                 df_pools,
+                 timestamp,
+                 db_path,
+                 method='replace')
+
+    df_vips = f5_get_vip_summary(username,
+                                 password,
+                                 hostgroup,
+                                 play_path,
+                                 private_data_dir,
+                                 df_pools)
+
+    rc.add_to_db('f5_vip_summary',
+                 df_vips,
+                 timestamp,
+                 db_path,
+                 method='replace')
+
+    return df_vips
 
 
 def f5_get_arp_table(username,
@@ -579,6 +634,203 @@ def f5_get_pool_member_availability(username,
     return df_members
 
 
+def f5_get_pools_and_members(username,
+                             password,
+                             host_group,
+                             play_path,
+                             private_data_dir,
+                             validate_certs=False):
+    '''
+    Gets F5 pools and members.
+    Args:
+        username (str):         The username to login to devices
+        password (str):         The password to login to devices
+        host_group (str):       The inventory host group
+        play_path (str):        The path to the playbooks directory
+        private_data_dir (str): Path to the Ansible private data directory
+        validate_certs (bool):  Whether to validate SSL certificates
+    Returns:
+        df_pools (DataFrame):   The F5 pools and members
+    '''
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group}
+
+    if not validate_certs:
+        extravars['validate_certs'] = 'no'
+
+    # Execute the pre-checks
+    playbook = f'{play_path}/f5_get_pools_and_members.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True,
+                                quiet=True)
+
+    df_data = dict()
+    df_data['device'] = list()
+    df_data['partition'] = list()
+    df_data['pool'] = list()
+    df_data['member'] = list()
+    df_data['address'] = list()
+
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout_lines'][0]
+
+            for line in output:
+                if 'ltm pool ' in line:
+                    pos = output.index(line)+1
+
+                    name = line.split()[-2]
+                    if '/' in name:
+                        partition = name.split('/')[1]
+                        pool = name.split('/')[-1]
+                    else:
+                        partition = 'Common'
+                        pool = name
+
+                    addresses = False
+
+                    if pos < len(output):
+                        while 'ltm pool ' not in output[pos]:
+                            if 'address' in output[pos]:
+                                addresses = True
+                                df_data['device'].append(device)
+                                df_data['partition'].append(partition)
+                                df_data['pool'].append(pool)
+                                member = output[pos-1].split()[0]
+                                address = output[pos].split()[-1]
+                                df_data['member'].append(member)
+                                df_data['address'].append(address)
+                            pos += 1
+                            if pos == len(output):
+                                break
+                    if not addresses:
+                        df_data['device'].append(device)
+                        df_data['partition'].append(partition)
+                        df_data['pool'].append(pool)
+                        df_data['member'].append(str())
+                        df_data['address'].append(str())
+
+    df_pools = pd.DataFrame.from_dict(df_data)
+    return df_pools
+
+
+def f5_get_vip_summary(username,
+                       password,
+                       host_group,
+                       play_path,
+                       private_data_dir,
+                       df_pools,
+                       validate_certs=False):
+    '''
+    Gets F5 summary.
+
+    Args:
+        username (str):         The username to login to devices
+        password (str):         The password to login to devices
+        host_group (str):       The inventory host group
+        play_path (str):        The path to the playbooks directory
+        private_data_dir (str): Path to the Ansible private data directory
+        df_pools (obj):         A DataFrame containing a summary of the pools
+                                and members. This is created with the
+                                'f5_build_pool_table' function.
+        validate_certs (bool):  Whether to validate SSL certificates
+
+    Returns:
+        df_vips (DataFrame):    The F5 VIP summary
+    '''
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group}
+
+    if not validate_certs:
+        extravars['validate_certs'] = 'no'
+
+    # Execute the pre-checks
+    playbook = f'{play_path}/f5_get_vip_summary.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True,
+                                quiet=True)
+
+    df_data = dict()
+    df_data['device'] = list()
+    df_data['partition'] = list()
+    df_data['vip'] = list()
+    df_data['destination'] = list()
+    df_data['pool'] = list()
+    df_data['member'] = list()
+    df_data['address'] = list()
+
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout_lines'][0]
+
+            for line in output:
+                if 'ltm virtual ' in line:
+                    name = line.split()[-2]
+                    if '/' in name:
+                        partition = name.split('/')[1]
+                        vip = name.split('/')[-1]
+                    else:
+                        partition = 'Common'
+                        vip = name
+
+                    destination = str()
+                    pool = str()
+                    member = str()
+                    address = str()
+
+                    pos = output.index(line)+1
+                    if pos < len(output):
+                        while 'ltm virtual ' not in output[pos]:
+                            if output[pos].split()[0] == 'destination':
+                                destination = output[pos].split('/')[-1]
+                            if output[pos].split()[0] == 'pool':
+                                pool = output[pos].split('/')[-1]
+                            pos += 1
+                            if pos == len(output):
+                                break
+                    if pool:
+
+                        df_members = df_pools.loc[(df_pools['partition'] ==
+                                                   partition) &
+                                                  (df_pools['pool'] == pool)]
+                        if len(df_members) > 0:
+                            for idx, row in df_members.iterrows():
+                                member = row['member']
+                                address = row['address']
+                                df_data['device'].append(device)
+                                df_data['partition'].append(partition)
+                                df_data['vip'].append(vip)
+                                df_data['destination'].append(destination)
+                                df_data['pool'].append(pool)
+                                df_data['member'].append(member)
+                                df_data['address'].append(address)
+                    df_data['device'].append(device)
+                    df_data['partition'].append(partition)
+                    df_data['vip'].append(vip)
+                    df_data['destination'].append(destination)
+                    df_data['pool'].append(pool)
+                    df_data['member'].append(member)
+                    df_data['address'].append(address)
+
+    df_vips = pd.DataFrame.from_dict(df_data)
+
+    return df_vips
+
+
 def f5_get_vip_availability(username,
                             password,
                             host_group,
@@ -587,6 +839,7 @@ def f5_get_vip_availability(username,
                             validate_certs=True):
     '''
     Gets VIP availability from F5 LTMs.
+
     Args:
         username (str):         The username to login to devices
         password (str):         The password to login to devices
@@ -595,6 +848,7 @@ def f5_get_vip_availability(username,
         private_data_dir (str): Path to the Ansible private data directory
         nm_path (str):          The path to the Net-Manage repository
         validate_certs (bool):  Whether to validate SSL certificates
+
     Returns:
         df_vips (DataFrame):    The pool availability and associated data
     '''
@@ -2351,7 +2605,6 @@ def nxos_get_vrfs(username,
             output = event_data['res']['stdout'][0].split('\n')
 
             # Pre-define variables, since not all VRFs contain all parameters
-            df_data = list()
             name = str()
             vrf_id = str()
             state = str()
@@ -2392,29 +2645,21 @@ def nxos_get_vrfs(username,
                            min_threshold]
                     df_data.append(row)
 
-            # Create the DataFrame columns
-            cols = ['device',
-                    'name',
-                    'vrf_id',
-                    'state',
-                    'description',
-                    'vpn_id',
-                    'route_domain',
-                    'max_routes',
-                    'min_threshold']
-
-            # Create the dataframe and return it
-            df_vrfs = pd.DataFrame(data=df_data, columns=cols)
-
-            return df_vrfs
+    # Create the DataFrame columns
+    cols = ['device',
+            'name',
+            'vrf_id',
+            'state',
+            'description',
+            'vpn_id',
+            'route_domain',
+            'max_routes',
+            'min_threshold']
 
     # Create the dataframe and return it
-    if len(df_data) > 0:
-        df_vpc_state = pd.DataFrame(data=df_data, columns=cols)
-    else:
-        df_vpc_state = pd.DataFrame()
+    df_vrfs = pd.DataFrame(data=df_data, columns=cols)
 
-    return df_vpc_state
+    return df_vrfs
 
 
 def panos_get_arp_table(username,
