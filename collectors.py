@@ -1543,7 +1543,11 @@ def nxos_get_bgp_neighbors(username,
                                                     row[2],
                                                     row[3],
                                                     row[4],
-                                                    row[5]])
+                                                    row[5],
+                                                    row[6],
+                                                    row[7],
+                                                    row[8],
+                                                    row[9]])
                             except Exception:
                                 pass
                             pos += 1
@@ -1554,11 +1558,15 @@ def nxos_get_bgp_neighbors(username,
     cols = ['device',
             'vrf',
             'neighbor_id',
-            'pri',
-            'state',
-            'up_time',
-            'address',
-            'interface']
+            'version',
+            'as',
+            'msg_received',
+            'message_sent',
+            'table_version',
+            'in_q',
+            'out_q',
+            'up_down',
+            'state_pfx_rfx']
     df_bgp = pd.DataFrame(data=df_data, columns=cols)
     return df_bgp
 
