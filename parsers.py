@@ -4,99 +4,47 @@
 A library of functions for parsing network device command output.
 '''
 
-import pandas as pd
-import re
-from tabulate import tabulate
 
-def main():
-    output = '''VRF-Name: PEER, VRF-ID: 3, State: Up
-    Description:
-        VPC KEEP-ALIVE
-    VPNID: unknown
-    RD: 0:0
-    Max Routes: 0  Mid-Threshold: 0
-    Table-ID: 0x80000003, AF: IPv6, Fwd-ID: 0x80000003, State: Up
-    Table-ID: 0x00000003, AF: IPv4, Fwd-ID: 0x00000003, State: Up
-
-VRF-Name: Peer-keepalive, VRF-ID: 4, State: Up
-    Description:
-        VRF for VPC Peer-Keepalive
-    VPNID: unknown
-    RD: 0:0
-    Max Routes: 0  Mid-Threshold: 0
-    Table-ID: 0x80000004, AF: IPv6, Fwd-ID: 0x80000004, State: Up
-    Table-ID: 0x00000004, AF: IPv4, Fwd-ID: 0x00000004, State: Up
-
-VRF-Name: default, VRF-ID: 1, State: Up
-    VPNID: unknown
-    RD: 0:0
-    Max Routes: 0  Mid-Threshold: 0
-    Table-ID: 0x80000001, AF: IPv6, Fwd-ID: 0x80000001, State: Up
-    Table-ID: 0x00000001, AF: IPv4, Fwd-ID: 0x00000001, State: Up
-
-VRF-Name: management, VRF-ID: 2, State: Up
-    VPNID: unknown
-    RD: 0:0
-    Max Routes: 0  Mid-Threshold: 0
-    Table-ID: 0x80000002, AF: IPv6, Fwd-ID: 0x80000002, State: Up
-    Table-ID: 0x00000002, AF: IPv4, Fwd-ID: 0x00000002, State: Up
-
-VRF-Name: managment, VRF-ID: 5, State: Up
-    VPNID: unknown
-    RD: 0:0
-    Max Routes: 0  Mid-Threshold: 0
-    Table-ID: 0x80000005, AF: IPv6, Fwd-ID: 0x80000005, State: Up
-    Table-ID: 0x00000005, AF: IPv4, Fwd-ID: 0x00000005, State: Up'''
-
-    cols = ['device', #all
-            'name', #all
-            'description', # nxos
-            'vrf_id', # ios / ios-xe
-            'state', # nxos
-            'route_domain', # nxos
-            'default_rd', # ios / ios-xe
-            'protocols', # ios / ios-xe
-            'interfaces' # ios / ios-xe
-            ]
-
-    df_data = dict()
-    for c in cols:
-        df_data[c] = list()
-
-    for item in output.split('\n\n'):
-        device = 'abc'
-
-        data = dict()
-        for c in cols:
-            data[c] = str()    
+def f5_get_vip_data(line):
+    '''
+    Parses the command output for the 'f5_get_vip_data' collector.
+    
+    Example of VIP input and output:
+    - 'ltm virtual /PARTITION_A/VIP_A' = 'PARTITION_A', 'VIP_A', None
+    
+    Example of Destination input and output:
+    - 'destination 1.1.1.1:443': 'Common', '1.1.1.1', '443'
         
-        line = re.findall(r'VRF-Name.*', item)[0]
-        line = [l.split(': ')[-1] for l in line.split(', ')]
-        name, vrf_id, state = line[0], line[1], line[2]
 
-        data['device'] = device
-        data['name'] = name
-        data['state'] = state
-        data['vrf_id'] = vrf_id
+    Examples of Pool input and output:
+    - 'pool /PARTITION_B/POOL_A': 'PARTITION_B', 'POOL_A', None
+    - 'pool none': 'Common', 'none', None
 
-        _ = re.findall(r'Description:\n.*', item)
-        desc = _[0].split('\n')[-1].strip() if _ else str()
-        data['description'] = desc
+    Args:
+        line (str): One line of command output.
 
-        rd = re.findall(r'RD: .*:.*', item)[0].split()[-1]
-        data['route_domain'] = rd
+    Returns:
+        item (str):        The VIP, destination or pool, without the partition
+        partition (str):   The F5 partition that the VIP, destination and/or pool
+                           are in.
+        port (str):        The port for the destination. If the line does not
+                           contain 'destination' then an emptry string is
+                           returned.
+    '''
+    # Separate the partition from the item name
+    if '/' in line:
+        partition = line.split('/')[-2]
+        item = line.split('/')[-1]
+    else:
+        partition = 'Common'
+        item = line.split()[-1]
 
-        for key, value in data.items():
-            df_data[key].append(value)
+    # Set the port variable and modify 'item', if the line contains
+    # 'destination'
+    if 'destination' in line:
+        port = item.split(':')[-1]
+        item = item.split(':')[0]
+    else:
+        port = str()
 
-
-    df_vrfs = pd.DataFrame.from_dict(df_data)
-
-    print(tabulate(df_vrfs,
-                   headers='keys',
-                   tablefmt='psql',
-                   showindex=False))
-
-
-if __name__ == '__main__':
-    main()
+    return partition, item, port
