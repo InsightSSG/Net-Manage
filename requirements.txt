@@ -1,23 +1,24 @@
 ansible
 ansible-pylibssh
 ansible-runner>=2.2.1
-dtale
-git+https://github.com/wangoloj/python3-nmap.git
+# dtale
+# git+https://github.com/wangoloj/python3-nmap.git
 flake8  # Linter used for CI/CD
 ipywidgets
-jinja2>=3.0.3
+# jinja2>=3.0.3
 jupyterlab
 jupyterlab_widgets
 meraki
 nest-asyncio
-openpyxl
-pan-os-python  # THIS MUST *ALSO* BE INSTALLED OUTSIDE THE VIRTUAL ENVIRONMENT
-pan-python  # THIS MUST *ALSO* BE INSTALLED OUTSIDE THE VIRTUAL ENVIRONMENT
+# openpyxl
+# pan-os-python  # THIS MUST *ALSO* BE INSTALLED OUTSIDE THE VIRTUAL ENVIRONMENT
+# pan-python  # THIS MUST *ALSO* BE INSTALLED OUTSIDE THE VIRTUAL ENVIRONMENT
 pandas
-pandevice
-paramiko
-pykeepass
+# pandevice
+# paramiko
+# pykeepass
 python3-nmap
 simplejson  # Requirement for python3-nmap
-tabulate
-xmltodict
+pyyaml
+# tabulate
+# xmltodict
