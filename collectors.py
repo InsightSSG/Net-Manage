@@ -9,6 +9,7 @@ import ipaddress
 import json
 import meraki
 import pandas as pd
+import parsers as pa
 import re
 import run_collectors as rc
 import socket
@@ -134,6 +135,8 @@ def f5_build_pool_table(username,
                                         hostgroup,
                                         play_path,
                                         private_data_dir)
+
+    print(df_pools)
 
     rc.add_to_db('f5_pool_summary',
                  df_pools,
@@ -474,10 +477,10 @@ def f5_get_pool_availability(username,
             for line in output:
                 if 'Ltm::Pool:' in line:
                     if '/' in line:
-                        pool = line.split('/')[-1]
+                        pool = line.split('/')[-1].strip()
                         partition = line.split('/')[1].split('/')[-1]
                     else:
-                        pool = line.split()[-1]
+                        pool = line.split()[-1].strip()
                         partition = 'Common'
                     pools[device][pool] = dict()
                     pools[device][pool]['device'] = device
@@ -550,6 +553,103 @@ def f5_get_pool_availability(username,
     return df_pools
 
 
+def f5_get_pool_data(username,
+                     password,
+                     host_group,
+                     play_path,
+                     private_data_dir,
+                     validate_certs=False):
+    '''
+    Gets F5 pool and pool members
+
+    Args:
+        username (str):         The username to login to devices
+        password (str):         The password to login to devices
+        host_group (str):       The inventory host group
+        play_path (str):        The path to the playbooks directory
+        private_data_dir (str): Path to the Ansible private data directory
+        validate_certs (bool):  Whether to validate SSL certificates
+    Returns:
+        df_pools (DataFrame):   The F5 pools and members
+    '''
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group}
+
+    if not validate_certs:
+        extravars['validate_certs'] = 'no'
+
+    # Execute the pre-checks
+    playbook = f'{play_path}/f5_get_pool_data.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True,
+                                quiet=True)
+
+    df_data = list()
+
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+            device = event_data['remote_addr']
+
+            # Extract the command output and clean it up
+            output = event_data['res']['stdout_lines'][0]
+
+            output = [_ for _ in output if 'members {' not in _]
+            counter = 0
+            for line in output:
+                if 'ltm pool' in line:
+                    if '/' in line:
+                        partition = line.split('/')[-2]
+                    else:
+                        partition = 'Common'
+
+                    pool = line.strip(' {').split()[-1].split('/')[-1]
+
+                    next_line = output[counter+1]
+                    if ':' not in next_line and ' {' not in next_line:
+                        member = str()
+                        port = str()
+                        address = str()
+
+                        row = [device,
+                               partition,
+                               pool,
+                               str(),
+                               str(),
+                               str()]
+                        df_data.append(row)
+
+                if ':' in line and ' {' in line:
+                    member = line.split()[0]
+                    port = line.split(':')[-1].split()[0]
+                    address = output[counter+1].split()[-1]
+
+                    row = [device,
+                           partition,
+                           pool,
+                           member,
+                           port,
+                           address]
+                    df_data.append(row)
+
+                counter += 1
+
+    # Create the dataframe
+    cols = ['device',
+            'partition',
+            'pool',
+            'member',
+            'member_port',
+            'address']
+
+    df_pools = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_pools
+
+
 def f5_get_pool_member_availability(username,
                                     password,
                                     host_group,
@@ -602,9 +702,12 @@ def f5_get_pool_member_availability(username,
                 if 'Ltm::Pool:' in line:
                     # TODO: Separate partition from pool name.
                     if '/' in line:
-                        pool = line.split()[-1]
+                        name = line.split()['/']
+                        partition = name[1]
+                        pool = name[-1]
                     else:
                         pool = line.split()[-1]
+
                     # df_dict[device][pool] = dict()
                     counter = pos+1
                     while 'Ltm::Pool:' not in output[counter]:
@@ -615,6 +718,7 @@ def f5_get_pool_member_availability(username,
                             if 'Availability' in _:
                                 availability = _.split()[-1]
                                 df_data.append([device,
+                                                partition,
                                                 pool,
                                                 member,
                                                 availability])
@@ -625,6 +729,7 @@ def f5_get_pool_member_availability(username,
                 pos += 1
 
     cols = ['device',
+            'partition',
             'pool_name',
             'pool_member',
             'pool_member_state']
@@ -685,14 +790,13 @@ def f5_get_pools_and_members(username,
             for line in output:
                 if 'ltm pool ' in line:
                     pos = output.index(line)+1
-
-                    name = line.split()[-2]
-                    if '/' in name:
+                    if '/' in line:
+                        name = line.split()[-1]
                         partition = name.split('/')[1]
                         pool = name.split('/')[-1]
                     else:
                         partition = 'Common'
-                        pool = name
+                        pool = line.split()[-1]
 
                     addresses = False
 
@@ -719,6 +823,101 @@ def f5_get_pools_and_members(username,
 
     df_pools = pd.DataFrame.from_dict(df_data)
     return df_pools
+
+
+def f5_get_vip_availability(username,
+                            password,
+                            host_group,
+                            play_path,
+                            private_data_dir,
+                            validate_certs=True):
+    '''
+    Gets VIP availability from F5 LTMs.
+
+    Args:
+        username (str):         The username to login to devices
+        password (str):         The password to login to devices
+        host_group (str):       The inventory host group
+        play_path (str):        The path to the playbooks directory
+        private_data_dir (str): Path to the Ansible private data directory
+        nm_path (str):          The path to the Net-Manage repository
+        validate_certs (bool):  Whether to validate SSL certificates
+
+    Returns:
+        df_vips (DataFrame):    The pool availability and associated data
+    '''
+    # Get the interface statuses
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group}
+
+    if not validate_certs:
+        extravars['validate_certs'] = 'no'
+
+    # Execute the pre-checks
+    playbook = f'{play_path}/f5_get_vip_availability_and_destination.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True,
+                                quiet=True)
+
+    df_data = list()
+
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+            # pools[device] = dict()
+
+            output = event_data['res']['stdout_lines'][0]
+            pos = 0
+            for line in output:
+                if 'Ltm::Virtual Server:' in line:
+                    if '/' in line:
+                        vip = line.split('/')[-1]
+                        partition = line.split('/')[1].split('/')[-1]
+                    else:
+                        vip = line.split()[-1]
+                        partition = 'Common'
+                    counter = pos+1
+                    while 'Ltm::Virtual Server:' not in output[counter]:
+                        _ = output[counter]
+                        if 'Availability' in _:
+                            availability = _.split()[-1]
+                        if 'State' in _:
+                            state = _.split()[-1]
+                        if 'Reason' in _:
+                            reason = _.split(':')[-1].strip()
+                        if 'Destination' in _:
+                            destination = _.split()[-1].split(':')[0]
+                            port = _.split()[-1].split(':')[-1]
+                        counter += 1
+                        if counter == len(output):
+                            break
+                    df_data.append([device,
+                                    partition,
+                                    vip,
+                                    destination,
+                                    port,
+                                    availability,
+                                    state,
+                                    reason])
+                pos += 1
+
+    cols = ['device',
+            'partition',
+            'vip',
+            'destination',
+            'port',
+            'availability',
+            'state',
+            'reason']
+
+    df_vips = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_vips
 
 
 def f5_get_vip_summary(username,
@@ -831,28 +1030,24 @@ def f5_get_vip_summary(username,
     return df_vips
 
 
-def f5_get_vip_availability(username,
-                            password,
-                            host_group,
-                            play_path,
-                            private_data_dir,
-                            validate_certs=True):
+def f5_get_vip_data(username,
+                    password,
+                    host_group,
+                    play_path,
+                    private_data_dir,
+                    validate_certs=False):
     '''
-    Gets VIP availability from F5 LTMs.
-
+    Gets F5 VIPs and their associated destination and pool.
     Args:
         username (str):         The username to login to devices
         password (str):         The password to login to devices
         host_group (str):       The inventory host group
         play_path (str):        The path to the playbooks directory
         private_data_dir (str): Path to the Ansible private data directory
-        nm_path (str):          The path to the Net-Manage repository
         validate_certs (bool):  Whether to validate SSL certificates
-
     Returns:
-        df_vips (DataFrame):    The pool availability and associated data
+        df_vips (DataFrame):   The F5 pools and members
     '''
-    # Get the interface statuses
     extravars = {'username': username,
                  'password': password,
                  'host_group': host_group}
@@ -861,67 +1056,45 @@ def f5_get_vip_availability(username,
         extravars['validate_certs'] = 'no'
 
     # Execute the pre-checks
-    playbook = f'{play_path}/f5_get_vip_availability_and_destination.yml'
+    playbook = f'{play_path}/f5_get_vip_data.yml'
     runner = ansible_runner.run(private_data_dir=private_data_dir,
                                 playbook=playbook,
                                 extravars=extravars,
                                 suppress_env_files=True,
                                 quiet=True)
 
-    df_data = list()
+    df_vip_data = dict()
+    df_vip_data['device'] = list()
+    df_vip_data['partition'] = list()
+    df_vip_data['vip'] = list()
+    df_vip_data['destination'] = list()
+    df_vip_data['port'] = list()
+    df_vip_data['pool'] = list()
 
     for event in runner.events:
         if event['event'] == 'runner_on_ok':
             event_data = event['event_data']
-
             device = event_data['remote_addr']
-            # pools[device] = dict()
 
-            output = event_data['res']['stdout_lines'][0]
-            pos = 0
-            for line in output:
-                if 'Ltm::Virtual Server:' in line:
-                    if '/' in line:
-                        vip = line.split('/')[-1]
-                        partition = line.split('/')[1].split('/')[-1]
-                    else:
-                        vip = line.split()[-1]
-                        partition = 'Common'
-                    counter = pos+1
-                    while 'Ltm::Virtual Server:' not in output[counter]:
-                        _ = output[counter]
-                        if 'Availability' in _:
-                            availability = _.split()[-1]
-                        if 'State' in _:
-                            state = _.split()[-1]
-                        if 'Reason' in _:
-                            reason = _.split(':')[-1].strip()
-                        if 'Destination' in _:
-                            destination = _.split()[-1].split(':')[0]
-                            port = _.split()[-1].split(':')[-1]
-                        counter += 1
-                        if counter == len(output):
-                            break
-                    df_data.append([device,
-                                    partition,
-                                    vip,
-                                    destination,
-                                    port,
-                                    availability,
-                                    state,
-                                    reason])
-                pos += 1
+            # Extract the command output and clean it up
+            vip_output = event_data['res']['stdout_lines'][0]
+            vip_output = [_ for _ in vip_output if _ != '}']
+            vip_output = [_.replace(' {', str()) for _ in vip_output]
 
-    cols = ['device',
-            'partition',
-            'vip',
-            'destination',
-            'port',
-            'availability',
-            'state',
-            'reason']
+            # Parse the command output and add it to 'df_vip_data'
+            for line in vip_output:
+                partition, _, port = pa.f5_get_vip_data(line)
+                if 'ltm virtual' in line:
+                    df_vip_data['device'].append(device)
+                    df_vip_data['partition'].append(partition)
+                    df_vip_data['vip'].append(_)
+                if 'destination' in line:
+                    df_vip_data['destination'].append(_)
+                    df_vip_data['port'].append(port)
+                if 'pool' in line:
+                    df_vip_data['pool'].append(_)
 
-    df_vips = pd.DataFrame(data=df_data, columns=cols)
+    df_vips = pd.DataFrame.from_dict(df_vip_data)
 
     return df_vips
 

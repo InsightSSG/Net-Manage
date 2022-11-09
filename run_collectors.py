@@ -11,7 +11,7 @@ import helpers as hp
 import os
 import readline
 
-from tabulate import tabulate
+# from tabulate import tabulate
 
 # Protect creds by not writing history to .python_history
 readline.write_history_file = lambda *args: None
@@ -49,20 +49,20 @@ def collect(collector,
     # tables. For example, on F5s a view will be created that shows the pools,
     # associated VIPs (if applicable) and pool members (if applicable). This
     # shaves a significant amount of time off of troubleshooting.
-    if ansible_os == 'bigip':
-        c_table = cl.f5_build_pool_table(username,
-                                         password,
-                                         hostgroup,
-                                         play_path,
-                                         private_data_dir,
-                                         db_path,
-                                         timestamp,
-                                         validate_certs=False)
-        # add_to_db('f5_vip_summary',
-        #           c_table,
-        #           timestamp,
-        #           db_path,
-        #           method='replace')
+    # if ansible_os == 'bigip':
+    #     c_table = cl.f5_build_pool_table(username,
+    #                                      password,
+    #                                      hostgroup,
+    #                                      play_path,
+    #                                      private_data_dir,
+    #                                      db_path,
+    #                                      timestamp,
+    #                                      validate_certs=False)
+    #     add_to_db('f5_vip_summary',
+    #               c_table,
+    #               timestamp,
+    #               db_path,
+    #               method='replace')
 
     # Run collectors the user requested
     if collector == 'cam_table':
@@ -116,14 +116,40 @@ def collect(collector,
                                                play_path,
                                                private_data_dir)
 
-    if collector == 'f5_pool_availability':
+    # if collector == 'build_summary_view':
+    #     if ansible_os == 'bigip':
+    #         result = cl.f5_get_pool_data(username,
+    #                                      password,
+    #                                      hostgroup,
+    #                                      play_path,
+    #                                      private_data_dir,
+    #                                      validate_certs=False)
+
+    #         result = cl.f5_get_vip_data(username,
+    #                                     password,
+    #                                     hostgroup,
+    #                                     play_path,
+    #                                     private_data_dir,
+    #                                     validate_certs=False)
+
+    #         add_to_db(collector, result, timestamp, db_path)
+
+        # if ansible_os == 'bigip':
+        #     result = cl.f5_get_pool_data(username,
+        #                                  password,
+        #                                  hostgroup,
+        #                                  play_path,
+        #                                  private_data_dir,
+        #                                  validate_certs=False)
+
+    if collector == 'f5_pool_summary':
         if ansible_os == 'bigip':
-            result = cl.f5_get_pool_availability(username,
-                                                 password,
-                                                 hostgroup,
-                                                 play_path,
-                                                 private_data_dir,
-                                                 validate_certs=False)
+            result = cl.f5_get_pool_data(username,
+                                         password,
+                                         hostgroup,
+                                         play_path,
+                                         private_data_dir,
+                                         validate_certs=False)
 
     if collector == 'f5_pool_member_availability':
         if ansible_os == 'bigip':
@@ -142,6 +168,15 @@ def collect(collector,
                                                 play_path,
                                                 private_data_dir,
                                                 validate_certs=False)
+
+    if collector == 'f5_vip_summary':
+        if ansible_os == 'bigip':
+            result = cl.f5_get_vip_data(username,
+                                        password,
+                                        hostgroup,
+                                        play_path,
+                                        private_data_dir,
+                                        validate_certs=False)
 
     if collector == 'f5_vip_destinations':
         if ansible_os == 'bigip':
@@ -421,15 +456,15 @@ def main():
 
     df_vars = hp.ansible_create_vars_df(hostgroups, private_data_dir)
 
-    print('COLLECTORS:')
-    print(tabulate(df_collectors,
-                   headers='keys',
-                   tablefmt='psql'))
+    # print('COLLECTORS:')
+    # print(tabulate(df_collectors,
+    #                headers='keys',
+    #                tablefmt='psql'))
 
-    print('COLLECTOR VARIABLES')
-    print(tabulate(df_vars,
-                   headers='keys',
-                   tablefmt='psql'))
+    # print('COLLECTOR VARIABLES')
+    # print(tabulate(df_vars,
+    #                headers='keys',
+    #                tablefmt='psql'))
 
     # Set the timestamp. This is for database queries. Setting it a single time
     # at the start of the script will allow all collectors to have the same
