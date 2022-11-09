@@ -1,0 +1,20 @@
+- name: Get Pool and VIP availability
+  gather_facts: no
+  hosts: "{{ host_group }}"
+  
+  tasks:
+    - name: get F5 VIP and Pool availability {{host_group}}
+      f5networks.f5_modules.bigip_command:
+        commands:
+          - show ltm pool /*/* | grep "Ltm::Pool:\|Availability\|State\|Reason\|Ltm::Pool Member:\|IP Address\|Members"
+          - show ltm virtual /*/* | grep "Ltm::\|Availability\|State\|Reason\|Destination"
+          - show ltm pool /*/* members detail | grep "Ltm::Pool\|Availability"
+        provider:
+          user: "{{ username }}"
+          server: "{{ ansible_host }}"
+          password: "{{ password }}"
+          server_port: "{{ ansible_port | default('443') }}"
+          validate_certs: "{{ validate_certs | default('yes')}}"
+      delegate_to: localhost
+      vars:
+        ansible_command_timeout: "{{ ansible_timeout | default('240') }}"
