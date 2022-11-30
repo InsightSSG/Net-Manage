@@ -30,7 +30,7 @@ def collect(collector,
             ansible_timeout='300',
             db_path=str(),
             validate_certs=True,
-            org=str()):
+            orgs=list()):
     '''
     This function calls the test that the user requested.
 
@@ -259,10 +259,10 @@ def collect(collector,
         result = cl.meraki_get_organizations(api_key)
 
     if collector == 'meraki_get_org_device_statuses':
-        result = cl.meraki_get_org_device_statuses(api_key, db_path)
+        result = cl.meraki_get_org_device_statuses(api_key, db_path, orgs=orgs)
 
     if collector == 'meraki_get_org_networks':
-        result = cl.meraki_get_org_networks(api_key, db_path, org=org)
+        result = cl.meraki_get_org_networks(api_key, db_path, orgs=orgs)
 
     if collector == 'port_channel_data':
         if ansible_os == 'cisco.nxos.nxos':

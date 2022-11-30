@@ -732,6 +732,69 @@ def get_tests_file():
     return t_file
 
 
+def get_user_meraki_org_input(collectors):
+    '''
+    Gets and parses user input when they select collectors for Meraki
+    organizations.
+
+    Args:
+        collectors (list):  The list of collectors the user selected.
+
+    Returns:
+        orgs (list):        A list of organizations. The list will be empty
+                            if the user did not select any.
+    '''
+    orgs = list()
+
+    for c in collectors:
+        if 'meraki_get_org_' in c and not orgs:
+            question = ['Enter a comma-delimited list of organizations to',
+                        'query (leave blank to query all orgs):']
+            orgs = input(' '.join(question))
+            if orgs:
+                orgs = orgs.split(',')
+            if not orgs:
+                orgs = ['all']
+
+    # Remove leading & trailing spaces & empty elements created by extra commas
+    orgs = list(filter(None, [o.strip() for o in orgs]))
+    if orgs == ['all']:
+        orgs = list()
+
+    return orgs
+
+
+def parse_meraki_organizations(db_path, orgs, table):
+    '''
+    Parses a list of organizations that are passed to certain Meraki
+    collectors.
+
+    Args:
+        db_path (str):          The path to the database to store results
+        orgs (list):            One or more organization IDs. If none are
+                                specified, then the networks for all orgs
+                                will be returned.
+        table (str):            The database table to query
+
+    Returns:
+        organizations (list):   A list of organizations
+    '''
+    con = sl.connect(db_path)
+    organizations = list()
+    if orgs:
+        for org in orgs:
+            df_orgs = pd.read_sql(f'select distinct org_id from {table} \
+                where org_id = "{org}"', con)
+            organizations.append(df_orgs['org_id'].to_list().pop())
+    else:
+        df_orgs = pd.read_sql(f'select distinct org_id from {table}', con)
+        for org in df_orgs['org_id'].to_list():
+            organizations.append(org)
+    con.close()
+
+    return organizations
+
+
 def validate_table(table, db_path, diff_col):
     '''
     Validates a table, based on the columns that the user passes to the
