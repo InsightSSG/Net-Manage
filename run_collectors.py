@@ -29,7 +29,8 @@ def collect(collector,
             play_path=str(),
             ansible_timeout='300',
             db_path=str(),
-            validate_certs=True):
+            validate_certs=True,
+            org=str()):
     '''
     This function calls the test that the user requested.
 
@@ -44,6 +45,7 @@ def collect(collector,
         nm_path (str):          The path to the Net-Manage repository
         interface (str):        The interface (defaults to all interfaces)
         validate_certs (bool):  Whether to validate SSL certs (used for F5s)
+        org (str):              The organization ID for Meraki collectors
     '''
     # Call 'silent' (invisible to user) functions to populate custom database
     # tables. For example, on F5s a view will be created that shows the pools,
@@ -259,6 +261,9 @@ def collect(collector,
     if collector == 'meraki_get_org_device_statuses':
         result = cl.meraki_get_org_device_statuses(api_key, db_path)
 
+    if collector == 'meraki_get_org_networks':
+        result = cl.meraki_get_org_networks(api_key, db_path, org=org)
+
     if collector == 'port_channel_data':
         if ansible_os == 'cisco.nxos.nxos':
             result = cl.nxos_get_port_channel_data(username,
@@ -332,7 +337,7 @@ def add_to_db(collector, result, timestamp, db_path, method='append'):
     # print(tabulate(result, headers='keys', tablefmt='psql'))
 
     # Check if the output directory exists. If it does not, then create it.
-    exists = hp.check_dir_existence(db_path)
+    exists = hp.check_dir_existence('/'.join(db_path.split('/')[:-1]))
     if not exists:
         hp.create_dir('/'.join(db_path.split('/')[:-1]))
 
