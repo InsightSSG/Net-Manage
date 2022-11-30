@@ -1575,6 +1575,75 @@ def meraki_get_org_device_statuses(api_key, db_path):
     return df_statuses
 
 
+def meraki_get_org_networks(api_key, db_path, org=str()):
+    '''
+    Gets the networks for one or more organizations.
+
+    Args:
+        api_key (str):              The user's API key
+        db_path (str):              The path to the database to store results
+        org (str):                  The organization ID to query. If one is not
+                                    specified, then the networks for all orgs
+                                    will be returned.
+
+    Returns:
+        df_networks (DataFrame):    The networks in one or more organizations
+    '''
+    # Get the organizations (collected by 'meraki_get_orgs') from the database
+    table = 'meraki_get_organizations'
+    con = sl.connect(db_path)
+    if org:
+        df_orgs = pd.read_sql(f'select distinct org_id from {table}', con)
+    else:
+        df_orgs = pd.read_sql(f'select org_id from {table}', con)
+    orgs = df_orgs['org_id'].to_list()
+    con.close()
+
+    # Initialize Meraki dashboard
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
+    app = dashboard.organizations
+
+    df_data = list()
+    for org in orgs:
+        networks = app.getOrganizationNetworks(org, total_pages="all")
+        for item in networks:
+            network_id = item['id']
+            name = item['name']
+            product_types = '|'.join(item['productTypes'])
+            network_tz = item['timeZone']
+            tags = '|'.join(item['tags'])
+            enrollment_str = item['enrollmentString']
+            url = item['url']
+            notes = item['notes']
+            template_bound = item['isBoundToConfigTemplate']
+
+            df_data.append([org,
+                            network_id,
+                            name,
+                            product_types,
+                            network_tz,
+                            tags,
+                            enrollment_str,
+                            url,
+                            notes,
+                            template_bound])
+
+    # Create the dataframe and return it
+    cols = ['org_id',
+            'network_id',
+            'name',
+            'product_types',
+            'network_tz',
+            'tags',
+            'enrollment_str',
+            'url',
+            'notes',
+            'template_bound']
+    df_networks = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_networks
+
+
 def meraki_get_organizations(api_key):
     '''
     Gets a list of organizations and their associated parameters that the
