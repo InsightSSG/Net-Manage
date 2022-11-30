@@ -1541,26 +1541,29 @@ def meraki_get_org_device_statuses(api_key, db_path, orgs=list()):
 
     df_data = list()
     for org in organizations:
-        statuses = app.getOrganizationDevicesStatuses(org,
-                                                      total_pages="all")
-        for item in statuses:
-            network_id = item['networkId']
-            name = item['name']
-            status = item['status']
-            serial = item['serial']
-            model = item['model']
-            last_reported = item['lastReportedAt']
-            public_ip = item['publicIp']
-            product_type = item['productType']
-            df_data.append([org,
-                            network_id,
-                            name,
-                            status,
-                            serial,
-                            model,
-                            last_reported,
-                            public_ip,
-                            product_type])
+        # Check if API access is enabled for the org
+        enabled = hp.meraki_check_api_enablement(db_path, org)
+        if enabled:
+            statuses = app.getOrganizationDevicesStatuses(org,
+                                                          total_pages="all")
+            for item in statuses:
+                network_id = item['networkId']
+                name = item['name']
+                status = item['status']
+                serial = item['serial']
+                model = item['model']
+                last_reported = item['lastReportedAt']
+                public_ip = item['publicIp']
+                product_type = item['productType']
+                df_data.append([org,
+                                network_id,
+                                name,
+                                status,
+                                serial,
+                                model,
+                                last_reported,
+                                public_ip,
+                                product_type])
 
     # Create the dataframe and return it
     cols = ['org_id',
@@ -1601,28 +1604,31 @@ def meraki_get_org_networks(api_key, db_path, orgs=list()):
 
     df_data = list()
     for org in organizations:
-        networks = app.getOrganizationNetworks(org, total_pages="all")
-        for item in networks:
-            network_id = item['id']
-            name = item['name']
-            product_types = '|'.join(item['productTypes'])
-            network_tz = item['timeZone']
-            tags = '|'.join(item['tags'])
-            enrollment_str = item['enrollmentString']
-            url = item['url']
-            notes = item['notes']
-            template_bound = item['isBoundToConfigTemplate']
+        # Check if API access is enabled for the org
+        enabled = hp.meraki_check_api_enablement(db_path, org)
+        if enabled:
+            networks = app.getOrganizationNetworks(org, total_pages="all")
+            for item in networks:
+                network_id = item['id']
+                name = item['name']
+                product_types = '|'.join(item['productTypes'])
+                network_tz = item['timeZone']
+                tags = '|'.join(item['tags'])
+                enrollment_str = item['enrollmentString']
+                url = item['url']
+                notes = item['notes']
+                template_bound = item['isBoundToConfigTemplate']
 
-            df_data.append([org,
-                            network_id,
-                            name,
-                            product_types,
-                            network_tz,
-                            tags,
-                            enrollment_str,
-                            url,
-                            notes,
-                            template_bound])
+                df_data.append([org,
+                                network_id,
+                                name,
+                                product_types,
+                                network_tz,
+                                tags,
+                                enrollment_str,
+                                url,
+                                notes,
+                                template_bound])
 
     # Create the dataframe and return it
     cols = ['org_id',

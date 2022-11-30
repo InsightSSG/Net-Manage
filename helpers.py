@@ -749,7 +749,7 @@ def get_user_meraki_org_input(collectors):
     for c in collectors:
         if 'meraki_get_org_' in c and not orgs:
             question = ['Enter a comma-delimited list of organizations to',
-                        'query (leave blank to query all orgs):']
+                        'query:']
             orgs = input(' '.join(question))
             if orgs:
                 orgs = orgs.split(',')
@@ -762,6 +762,38 @@ def get_user_meraki_org_input(collectors):
         orgs = list()
 
     return orgs
+
+
+def get_user_meraki_networks_input(collectors):
+    '''
+    Gets and parses user input when they select collectors for Meraki
+    networks.
+
+    Args:
+        collectors (list):  The list of collectors the user selected.
+
+    Returns:
+        networks (list):    A list of networks. The list will be empty if the
+                            user did not select any.
+    '''
+    networks = list()
+
+    for c in collectors:
+        if 'meraki_get_network_' in c and not networks:
+            question = ['Enter a comma-delimited list of networks to query',
+                        '(leave blank to query all networks):']
+            networks = input(' '.join(question))
+            if networks:
+                networks = networks.split(',')
+            if not networks:
+                networks = ['all']
+
+    # Remove leading & trailing spaces & empty elements created by extra commas
+    networks = list(filter(None, [n.strip() for n in networks]))
+    if networks == ['all']:
+        networks = list()
+
+    return networks
 
 
 def parse_meraki_organizations(db_path, orgs, table):
@@ -793,6 +825,33 @@ def parse_meraki_organizations(db_path, orgs, table):
     con.close()
 
     return organizations
+
+
+def meraki_check_api_enablement(db_path, org):
+    '''
+    Queries the database to find if API access is enabled.
+
+    Args:
+        db_path (str):  The path to the database to store results
+        org (str):      The organization to check API access for.
+    '''
+    enabled = False
+
+    query = ['SELECT timestamp, api from MERAKI_GET_ORGANIZATIONS',
+             f'WHERE org_id = {org}',
+             'ORDER BY timestamp DESC',
+             'limit 1']
+    query = ' '.join(query)
+
+    con = sl.connect(db_path)
+    result = pd.read_sql(query, con)
+
+    con.close()
+
+    if result['api'].to_list()[0] == 'True':
+        enabled = True
+
+    return enabled
 
 
 def validate_table(table, db_path, diff_col):
