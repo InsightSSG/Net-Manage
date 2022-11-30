@@ -331,6 +331,11 @@ def add_to_db(collector, result, timestamp, db_path, method='append'):
     result = result.set_index('timestamp')
     # print(tabulate(result, headers='keys', tablefmt='psql'))
 
+    # Check if the output directory exists. If it does not, then create it.
+    exists = hp.check_dir_existence(db_path)
+    if not exists:
+        hp.create_dir('/'.join(db_path.split('/')[:-1]))
+
     # Add the output to the database
     con = hp.connect_to_db(db_path)
 
