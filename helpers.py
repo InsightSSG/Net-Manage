@@ -125,6 +125,37 @@ def ansible_get_all_host_variables(private_data_dir):
     return groups_vars
 
 
+def check_dir_existence(dir_path):
+    '''
+    Checks whether a directory exists.
+
+    Args:
+        dir_path (str): The path to the directory
+
+    Returns:
+        exists (bool):  A boolean to indicate whether the directory exists
+    ''' 
+    try:
+        os.listdir(dir_path)
+        exists = True
+    except Exception:
+        exists = False
+    return exists
+
+
+def create_dir(dir_path):
+    '''
+    Creates a directory
+
+    Args:
+        dir_path (str): The path to the directory
+
+    Returns:
+        None
+    '''
+    os.mkdir(dir_path)
+
+
 def define_supported_validation_tables():
     '''
     Returns a list of tables that are supported for validation
