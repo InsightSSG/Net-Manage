@@ -702,7 +702,7 @@ def f5_get_pool_member_availability(username,
                 if 'Ltm::Pool:' in line:
                     # TODO: Separate partition from pool name.
                     if '/' in line:
-                        name = line.split()['/']
+                        name = line.split('/')
                         partition = name[1]
                         pool = name[-1]
                     else:
