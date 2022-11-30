@@ -6,6 +6,7 @@ A library of functions for collecting data from network devices.
 
 import ansible_runner
 import ipaddress
+import helpers as hp
 import json
 import meraki
 import pandas as pd
@@ -1515,30 +1516,31 @@ def ios_get_interface_descriptions(username,
     return df_desc
 
 
-def meraki_get_org_device_statuses(api_key, db_path):
+def meraki_get_org_device_statuses(api_key, db_path, orgs=list()):
     '''
     Gets the device statuses for all organizations the user's API key has
     access to.
 
     Args:
         api_key (str):              The user's API key
+        db_path (str):              The path to the database to store results
+        orgs (list):                One or more organization IDs. If none are
+                                    specified, then the device statuses for all
+                                    orgs will be returned.
 
     Returns:
         df_statuses (DataFrame):    The device statuses for the organizations
     '''
     # Get the organizations (collected by 'meraki_get_orgs') from the database
     table = 'meraki_get_organizations'
-    con = sl.connect(db_path)
-    df_orgs = pd.read_sql(f'select distinct org_id from {table}', con)
-    orgs = df_orgs['org_id'].to_list()
-    con.close()
+    organizations = hp.parse_meraki_organizations(db_path, orgs, table)
 
     # Initialize Meraki dashboard
     dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
     app = dashboard.organizations
 
     df_data = list()
-    for org in orgs:
+    for org in organizations:
         statuses = app.getOrganizationDevicesStatuses(org,
                                                       total_pages="all")
         for item in statuses:
@@ -1575,14 +1577,14 @@ def meraki_get_org_device_statuses(api_key, db_path):
     return df_statuses
 
 
-def meraki_get_org_networks(api_key, db_path, org=str()):
+def meraki_get_org_networks(api_key, db_path, orgs=list()):
     '''
     Gets the networks for one or more organizations.
 
     Args:
         api_key (str):              The user's API key
         db_path (str):              The path to the database to store results
-        org (str):                  The organization ID to query. If one is not
+        orgs (list):                One or more organization IDs. If none are
                                     specified, then the networks for all orgs
                                     will be returned.
 
@@ -1591,20 +1593,14 @@ def meraki_get_org_networks(api_key, db_path, org=str()):
     '''
     # Get the organizations (collected by 'meraki_get_orgs') from the database
     table = 'meraki_get_organizations'
-    con = sl.connect(db_path)
-    if org:
-        df_orgs = pd.read_sql(f'select distinct org_id from {table}', con)
-    else:
-        df_orgs = pd.read_sql(f'select org_id from {table}', con)
-    orgs = df_orgs['org_id'].to_list()
-    con.close()
+    organizations = hp.parse_meraki_organizations(db_path, orgs, table)
 
     # Initialize Meraki dashboard
     dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
     app = dashboard.organizations
 
     df_data = list()
-    for org in orgs:
+    for org in organizations:
         networks = app.getOrganizationNetworks(org, total_pages="all")
         for item in networks:
             network_id = item['id']
