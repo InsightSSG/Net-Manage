@@ -1580,6 +1580,66 @@ def meraki_get_org_device_statuses(api_key, db_path, orgs=list()):
     return df_statuses
 
 
+def meraki_get_org_devices(api_key, db_path, orgs=list()):
+    '''
+    Gets the devices for all orgs that the user's API key has access to.
+
+    Args:
+        api_key (str):          The user's API key
+        db_path (str):          The path to the database to store results
+        orgs (list):            One or more organization IDs. If none are
+                                specified, then the devices for all orgs will
+                                be returned
+
+    Returns:
+        df_devices (DataFrame): The device statuses for the organizations
+    '''
+    # Get the organizations (collected by 'meraki_get_orgs') from the database
+    table = 'meraki_get_organizations'
+    organizations = hp.parse_meraki_organizations(db_path, orgs, table)
+
+    # Initialize Meraki dashboard
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
+    app = dashboard.organizations
+
+    # This list will contain all of the devices for each org. It will then be
+    # used to create the dataframe. This method accounts for orgs that have
+    # different device types, since not all device types contain the same keys.
+    data = list()
+
+    for org in organizations:
+        # Check if API access is enabled for the org
+        enabled = hp.meraki_check_api_enablement(db_path, org)
+        if enabled:
+            devices = app.getOrganizationDevices(org, total_pages="all")
+            for item in devices:
+                data.append(item)
+
+    df_data = dict()
+
+    # Get all of the keys from devices in 'data', and add them as a key to
+    # 'df_data'. The value of the key in 'df_data' will be a list.
+    for item in data:
+        for key in item:
+            if not df_data.get(key):
+                df_data[key] = list()
+
+    # Iterate over the devices, adding the data for each device to 'df_data'
+    for item in data:
+        for key in df_data:
+            df_data[key].append(item.get(key))
+
+    # Create and return the dataframe
+    df_devices = pd.DataFrame.from_dict(df_data)
+
+    # Convert all data to a string. This is because Pandas incorrectly detects
+    # the data type for latitude / longitude, which causes the table insertion
+    # to fail.
+    df_devices = df_devices.astype(str)
+
+    return df_devices
+
+
 def meraki_get_org_networks(api_key, db_path, orgs=list()):
     '''
     Gets the networks for one or more organizations.
