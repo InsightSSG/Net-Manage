@@ -258,6 +258,9 @@ def collect(collector,
     if collector == 'meraki_get_organizations':
         result = cl.meraki_get_organizations(api_key)
 
+    if collector == 'meraki_get_org_devices':
+        result = cl.meraki_get_org_devices(api_key, db_path, orgs=orgs)
+
     if collector == 'meraki_get_org_device_statuses':
         result = cl.meraki_get_org_device_statuses(api_key, db_path, orgs=orgs)
 
