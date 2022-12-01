@@ -331,6 +331,7 @@ def define_collectors(hostgroup):
                   'interface_status': ['cisco.nxos.nxos'],
                   'interface_summary': ['bigip', 'cisco.nxos.nxos'],
                   'meraki_get_organizations': ['meraki'],
+                  'meraki_get_org_devices': ['meraki'],
                   'meraki_get_org_device_statuses': ['meraki'],
                   'meraki_get_org_networks': ['meraki'],
                   'port_channel_data': ['cisco.nxos.nxos'],
@@ -564,6 +565,12 @@ def set_dependencies(selected):
         s.insert(0, 'f5_vip_availability')
 
     if 'meraki_get_device_statuses' in s:
+        if 'meraki_get_organizations' in s:
+            pos = s.index('meraki_get_organizations')
+            del s[pos]
+        s.insert(0, 'meraki_get_organizations')
+
+    if 'meraki_get_org_devices' in s:
         if 'meraki_get_organizations' in s:
             pos = s.index('meraki_get_organizations')
             del s[pos]
