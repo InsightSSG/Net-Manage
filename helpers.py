@@ -330,6 +330,7 @@ def define_collectors(hostgroup):
                                             'cisco.nxos.nxos'],
                   'interface_status': ['cisco.nxos.nxos'],
                   'interface_summary': ['bigip', 'cisco.nxos.nxos'],
+                  'meraki_get_network_devices': ['meraki'],
                   'meraki_get_organizations': ['meraki'],
                   'meraki_get_org_devices': ['meraki'],
                   'meraki_get_org_device_statuses': ['meraki'],

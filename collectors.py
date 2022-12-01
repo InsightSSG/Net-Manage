@@ -1516,6 +1516,63 @@ def ios_get_interface_descriptions(username,
     return df_desc
 
 
+def meraki_get_network_devices(api_key, networks):
+    '''
+    Gets the devices for all orgs that the user's API key has access to.
+
+    Args:
+        api_key (str):          The user's API key
+        db_path (str):          The path to the database to store results
+        networks (list):        One or more network IDs.
+
+    Returns:
+        df_devices (DataFrame): The device statuses for the network(s)
+    '''
+    # Initialize Meraki dashboard
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
+    app = dashboard.networks
+
+    # This list will contain all of the devices for each network. It will be
+    # used to create the dataframe. This method accounts for networks that have
+    # different device types, since not all device types contain the same keys.
+    data = list()
+
+    for net in networks:
+        print(net)
+        # There is no easy way to check if the user's API key has access to
+        # each network, so this is wrapped in a try/except block.
+        try:
+            devices = app.getNetworkDevices(net)
+            for item in devices:
+                data.append(item)
+        except Exception as e:
+            print(str(e))
+
+    df_data = dict()
+
+    # Get all of the keys from devices in 'data', and add them as a key to
+    # 'df_data'. The value of the key in 'df_data' will be a list.
+    for item in data:
+        for key in item:
+            if not df_data.get(key):
+                df_data[key] = list()
+
+    # Iterate over the devices, adding the data for each device to 'df_data'
+    for item in data:
+        for key in df_data:
+            df_data[key].append(item.get(key))
+
+    # Create and return the dataframe
+    df_devices = pd.DataFrame.from_dict(df_data)
+
+    # Convert all data to a string. This is because Pandas incorrectly detects
+    # the data type for latitude / longitude, which causes the table insertion
+    # to fail.
+    df_devices = df_devices.astype(str)
+
+    return df_devices
+
+
 def meraki_get_org_device_statuses(api_key, db_path, orgs=list()):
     '''
     Gets the device statuses for all organizations the user's API key has
