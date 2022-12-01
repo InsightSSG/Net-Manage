@@ -854,6 +854,26 @@ def meraki_check_api_enablement(db_path, org):
     return enabled
 
 
+def read_table_schema(db_path, table):
+    '''
+    Gets the schema of a table
+
+    Args:
+        db_path (str):      The path to the database
+        table (str):        The table from which to get the schema
+
+    Returns:
+        df_schema (obj):    The table schema. If the table does not exist then
+                            an empty dataframe will be returned.
+    '''
+    query = f'pragma table_info("{table}")'
+
+    con = sl.connect(db_path)
+    df_schema = pd.read_sql(query, con)
+
+    return df_schema
+
+
 def validate_table(table, db_path, diff_col):
     '''
     Validates a table, based on the columns that the user passes to the
