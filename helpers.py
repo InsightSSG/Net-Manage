@@ -579,6 +579,12 @@ def set_dependencies(selected):
             del s[pos]
         s.insert(0, 'meraki_get_organizations')
 
+    if 'meraki_get_network_devices' in s:
+        if 'meraki_get_organizations' in s:
+            pos = s.index('meraki_get_organizations')
+            del s[pos]
+        s.insert(0, 'meraki_get_organizations')
+
     if 'meraki_get_org_devices' in s:
         if 'meraki_get_organizations' in s:
             pos = s.index('meraki_get_organizations')
@@ -870,7 +876,7 @@ def meraki_check_api_enablement(db_path, org):
     return enabled
 
 
-def read_table_schema(db_path, table):
+def sql_get_table_schema(db_path, table):
     '''
     Gets the schema of a table
 
