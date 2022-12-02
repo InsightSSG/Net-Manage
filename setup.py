@@ -63,29 +63,38 @@ def create_collectors_df(collector_select, hostgroup_select):
     df_data['hostgroup'] = list()
     df_data['collector'] = list()
 
-    # Create a list of collectors the user selected
-    to_run = list()
-    for key, value in collector_select.items():
-        for item in value:
-            if item.value == True:
-                to_run.append(item.description)
-
-    # Enable any dependencies and put them in the correct order
-    to_run = hp.set_dependencies(to_run)
-    for key, value in collector_select.items():
-        for item in value:
-            if item.description in to_run and item.value != True:
-                item.value = True
-
+    # Iterate through the hostgroups the user selected. Each key will be an
+    # ansible_os. Its value will be the parameters for a checkbox
     for key, value in hostgroup_select.items():
-        for item in value:
-            if item.value == True:
-                collectors = [c.description for c in collector_select.get(key) if \
-                              c.value == True]
-                for c in collectors:
-                    df_data['ansible_os'].append(key)
-                    df_data['hostgroup'].append(item.description)
-                    df_data['collector'].append(c)
+        # Create an empty list to store hostgroups the user selected
+        to_run = list()
+        # Iterate over the parameters for each checkbox
+        for _ in value:
+            # If the user selected the checkbox, define the ansible_os and
+            # hostgroup variables
+            if _.value == True:
+                ansible_os = key
+                hostgroup = _.description
+                # Get the checkboxes for the ansible_os from 'collector_select'
+                for collector in collector_select.get(key):
+                    # If the user selected the collector, append it to
+                    # 'to_run'
+                    description = collector.description
+                    if collector.value == True and description not in to_run:
+                        to_run.append(collector.description)
+                # Pass the list of selected collectors to hp.set_dependencies.
+                # It will add any missing dependencies and return the list.
+                to_run = hp.set_dependencies(to_run)
+                
+                # Add the complete list of collectors that the user selected
+                # for this ansible_os and hostgroup to 'df_data'
+                for item in to_run:
+                    for collector in collector_select.get(key):
+                        if collector.description == item:
+                            df_data['ansible_os'].append(ansible_os)
+                            df_data['hostgroup'].append(hostgroup)
+                            df_data['collector'].append(collector.description)
+
     df_collectors = pd.DataFrame.from_dict(df_data)
     return df_collectors
 
