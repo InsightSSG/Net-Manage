@@ -1,0 +1,19 @@
+- name: Get Node Availability
+  gather_facts: no
+  hosts: "{{ host_group }}"
+  
+  tasks:
+    - name: get F5 Node availability {{host_group}}
+      f5networks.f5_modules.bigip_command:
+        commands:
+          - show ltm node /*/* field-fmt
+          # - cd / ; show ltm pool recursive members | grep "Ltm::Pool:\|Availability\|State\|Reason\|Ltm::Pool Member:\|IP Address\|Members"
+          # - show ltm virtual /*/* | grep "Ltm::\|Availability"
+          # - list ltm virtual /*/* | grep "ltm virtual\|pool"
+        provider:
+          user: "{{ username }}"
+          server: "{{ ansible_host }}"
+          password: "{{ password }}"
+          server_port: "{{ ansible_port | default('443') }}"
+          validate_certs: "{{ validate_certs | default('yes')}}"
+      delegate_to: localhost

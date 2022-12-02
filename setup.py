@@ -39,6 +39,11 @@ pd.set_option('display.width', 1000)
 pd.set_option('display.colheader_justify', 'center')
 pd.set_option('display.precision', 3)
 
+# Pre-define some global variables
+orgs = list()
+networks = list()
+validate_certs = True
+
 # Define several functions that need to be run within Jupyter
 def create_collectors_df(collector_select, hostgroup_select):
     '''

@@ -422,6 +422,97 @@ def f5_get_interface_status(username,
     return df_inf_status
 
 
+def f5_get_node_availability(username,
+                             password,
+                             host_group,
+                             play_path,
+                             private_data_dir,
+                             validate_certs=True):
+    '''
+    Gets node availability from F5 LTMs.
+
+    Args:
+        username (str):         The username to login to devices
+        password (str):         The password to login to devices
+        host_group (str):       The inventory host group
+        play_path (str):        The path to the playbooks directory
+        private_data_dir (str): Path to the Ansible private data directory
+        validate_certs (bool):  Whether to validate SSL certificates
+
+    Returns:
+        df_nodes (DataFrame):   The node availability and associated data
+    '''
+    # Get the interface statuses
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group}
+
+    if not validate_certs:
+        extravars['validate_certs'] = 'no'
+
+    # Execute the pre-checks
+    playbook = f'{play_path}/f5_get_node_availability.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    df_data = dict()
+
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout_lines'][0]
+
+            # Create the dictionary structure for 'df_data'
+            df_data['device'] = list()
+            df_data['partition'] = list()
+            df_data['node'] = list()
+
+            for line in output:
+                if 'ltm node' in line and '{' in line:
+                    pos = output.index(line)
+                    while '}' not in output[pos+1]:
+                        key = output[pos+1].split()[0]
+                        df_data[key] = list()
+                        pos += 1
+                break
+
+            # Populate 'df_data'
+            for line in output:
+                if 'ltm node' in line and '{' in line:
+                    # Add the device to 'df_data'
+                    df_data['device'].append(device)
+
+                    # Set the partition and node and add them to 'df_data'
+                    if '/' not in line:
+                        partition = 'Common'
+                        node = line.split()[2]
+                    else:
+                        partition = line.split()[2].split('/')[1]
+                        node = line.split()[2].split('/')[-1]
+
+                    # Add the node to 'df_data'
+                    df_data['partition'].append(partition)
+                    df_data['node'].append(node)
+
+                    # Add the node details to 'df_data'
+                    pos = output.index(line)
+                    while '}' not in output[pos+1]:
+                        key = output[pos+1].split()[0]
+                        value = ' '.join(output[pos+1].split()[1:])
+                        df_data[key].append(value)
+                        pos += 1
+
+    # Create the dataframe
+    df_nodes = pd.DataFrame.from_dict(df_data)
+
+    return df_nodes
+
+
 def f5_get_pool_availability(username,
                              password,
                              host_group,
@@ -1514,6 +1605,63 @@ def ios_get_interface_descriptions(username,
     cols = ['device', 'interface', 'description']
     df_desc = pd.DataFrame(data=df_data, columns=cols)
     return df_desc
+
+
+def meraki_get_network_devices(api_key, networks):
+    '''
+    Gets the devices for all orgs that the user's API key has access to.
+
+    Args:
+        api_key (str):          The user's API key
+        db_path (str):          The path to the database to store results
+        networks (list):        One or more network IDs.
+
+    Returns:
+        df_devices (DataFrame): The device statuses for the network(s)
+    '''
+    # Initialize Meraki dashboard
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
+    app = dashboard.networks
+
+    # This list will contain all of the devices for each network. It will be
+    # used to create the dataframe. This method accounts for networks that have
+    # different device types, since not all device types contain the same keys.
+    data = list()
+
+    for net in networks:
+        print(net)
+        # There is no easy way to check if the user's API key has access to
+        # each network, so this is wrapped in a try/except block.
+        try:
+            devices = app.getNetworkDevices(net)
+            for item in devices:
+                data.append(item)
+        except Exception as e:
+            print(str(e))
+
+    df_data = dict()
+
+    # Get all of the keys from devices in 'data', and add them as a key to
+    # 'df_data'. The value of the key in 'df_data' will be a list.
+    for item in data:
+        for key in item:
+            if not df_data.get(key):
+                df_data[key] = list()
+
+    # Iterate over the devices, adding the data for each device to 'df_data'
+    for item in data:
+        for key in df_data:
+            df_data[key].append(item.get(key))
+
+    # Create and return the dataframe
+    df_devices = pd.DataFrame.from_dict(df_data)
+
+    # Convert all data to a string. This is because Pandas incorrectly detects
+    # the data type for latitude / longitude, which causes the table insertion
+    # to fail.
+    df_devices = df_devices.astype(str)
+
+    return df_devices
 
 
 def meraki_get_org_device_statuses(api_key, db_path, orgs=list()):

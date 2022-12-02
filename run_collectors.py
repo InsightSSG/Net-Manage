@@ -26,6 +26,7 @@ def collect(collector,
             password=str(),
             api_key=str(),
             hostgroup=str(),
+            networks=list(),
             play_path=str(),
             ansible_timeout='300',
             db_path=str(),
@@ -40,6 +41,7 @@ def collect(collector,
         username (str):         The username to login to devices
         password (str):         The password to login to devices
         host_group (str):       The inventory host group
+        networks (list):        A list of Meraki networks to query
         play_path (str):        The path to the playbooks directory
         private_data_dir (str): The path to the Ansible private data directory
         nm_path (str):          The path to the Net-Manage repository
@@ -143,6 +145,15 @@ def collect(collector,
         #                                  play_path,
         #                                  private_data_dir,
         #                                  validate_certs=False)
+
+    if collector == 'f5_node_availability':
+        if ansible_os == 'bigip':
+            result = cl.f5_get_node_availability(username,
+                                                 password,
+                                                 hostgroup,
+                                                 play_path,
+                                                 private_data_dir,
+                                                 validate_certs=False)
 
     if collector == 'f5_pool_availability':
         if ansible_os == 'bigip':
@@ -254,6 +265,9 @@ def collect(collector,
                                               hostgroup,
                                               play_path,
                                               private_data_dir)
+
+    if collector == 'meraki_get_network_devices':
+        result = cl.meraki_get_network_devices(api_key, networks)
 
     if collector == 'meraki_get_organizations':
         result = cl.meraki_get_organizations(api_key)
