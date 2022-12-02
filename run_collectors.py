@@ -146,6 +146,15 @@ def collect(collector,
         #                                  private_data_dir,
         #                                  validate_certs=False)
 
+    if collector == 'f5_node_availability':
+        if ansible_os == 'bigip':
+            result = cl.f5_get_node_availability(username,
+                                                 password,
+                                                 hostgroup,
+                                                 play_path,
+                                                 private_data_dir,
+                                                 validate_certs=False)
+
     if collector == 'f5_pool_availability':
         if ansible_os == 'bigip':
             result = cl.f5_get_pool_availability(username,

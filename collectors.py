@@ -422,6 +422,97 @@ def f5_get_interface_status(username,
     return df_inf_status
 
 
+def f5_get_node_availability(username,
+                             password,
+                             host_group,
+                             play_path,
+                             private_data_dir,
+                             validate_certs=True):
+    '''
+    Gets node availability from F5 LTMs.
+
+    Args:
+        username (str):         The username to login to devices
+        password (str):         The password to login to devices
+        host_group (str):       The inventory host group
+        play_path (str):        The path to the playbooks directory
+        private_data_dir (str): Path to the Ansible private data directory
+        validate_certs (bool):  Whether to validate SSL certificates
+
+    Returns:
+        df_nodes (DataFrame):   The node availability and associated data
+    '''
+    # Get the interface statuses
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group}
+
+    if not validate_certs:
+        extravars['validate_certs'] = 'no'
+
+    # Execute the pre-checks
+    playbook = f'{play_path}/f5_get_node_availability.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    df_data = dict()
+
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout_lines'][0]
+
+            # Create the dictionary structure for 'df_data'
+            df_data['device'] = list()
+            df_data['partition'] = list()
+            df_data['node'] = list()
+
+            for line in output:
+                if 'ltm node' in line and '{' in line:
+                    pos = output.index(line)
+                    while '}' not in output[pos+1]:
+                        key = output[pos+1].split()[0]
+                        df_data[key] = list()
+                        pos += 1
+                break
+
+            # Populate 'df_data'
+            for line in output:
+                if 'ltm node' in line and '{' in line:
+                    # Add the device to 'df_data'
+                    df_data['device'].append(device)
+
+                    # Set the partition and node and add them to 'df_data'
+                    if '/' not in line:
+                        partition = 'Common'
+                        node = line.split()[2]
+                    else:
+                        partition = line.split()[2].split('/')[1]
+                        node = line.split()[2].split('/')[-1]
+
+                    # Add the node to 'df_data'
+                    df_data['partition'].append(partition)
+                    df_data['node'].append(node)
+
+                    # Add the node details to 'df_data'
+                    pos = output.index(line)
+                    while '}' not in output[pos+1]:
+                        key = output[pos+1].split()[0]
+                        value = ' '.join(output[pos+1].split()[1:])
+                        df_data[key].append(value)
+                        pos += 1
+
+    # Create the dataframe
+    df_nodes = pd.DataFrame.from_dict(df_data)
+
+    return df_nodes
+
+
 def f5_get_pool_availability(username,
                              password,
                              host_group,

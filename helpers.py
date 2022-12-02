@@ -319,6 +319,7 @@ def define_collectors(hostgroup):
                                 'paloaltonetworks.panos'],
                   'bgp_neighbors': ['cisco.nxos.nxos'],
                   'cam_table': ['cisco.ios.ios', 'cisco.nxos.nxos'],
+                  'f5_node_availability': ['bigip'],
                   'f5_pool_availability': ['bigip'],
                   'f5_pool_member_availability': ['bigip'],
                   'f5_pool_summary': ['bigip'],
