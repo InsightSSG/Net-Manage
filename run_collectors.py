@@ -267,7 +267,10 @@ def collect(collector,
                                               private_data_dir)
 
     if collector == 'meraki_get_network_devices':
-        result = cl.meraki_get_network_devices(api_key, networks)
+        result = cl.meraki_get_network_devices(api_key,
+                                               db_path,
+                                               networks=networks,
+                                               orgs=orgs)
 
     if collector == 'meraki_get_organizations':
         result = cl.meraki_get_organizations(api_key)

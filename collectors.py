@@ -1607,14 +1607,28 @@ def ios_get_interface_descriptions(username,
     return df_desc
 
 
-def meraki_get_network_devices(api_key, networks):
+def meraki_get_network_devices(api_key, db_path, networks=list(), orgs=list()):
     '''
-    Gets the devices for all orgs that the user's API key has access to.
+    Gets the devices for all orgs that the user's API key has access to. This
+    function uses the following logic:
+
+    1. If a user passes a list of networks, the list of orgs is ignored.
+
+    2. If a user passes a list of orgs but not a list of networks, the function
+       will query all networks in the list of orgs that the user's API key has
+       access to.
+
+    3. If a user does not pass a list of networks or a list of orgs, the
+       function will query all networks in all orgs the user's API key has
+       access to.
 
     Args:
         api_key (str):          The user's API key
         db_path (str):          The path to the database to store results
         networks (list):        One or more network IDs.
+        orgs (list):            One or more organization IDs. If none are
+                                specified, then the devices for all orgs will
+                                be returned
 
     Returns:
         df_devices (DataFrame): The device statuses for the network(s)
@@ -1628,8 +1642,11 @@ def meraki_get_network_devices(api_key, networks):
     # different device types, since not all device types contain the same keys.
     data = list()
 
+    if not networks:
+        df_networks = meraki_get_org_networks(api_key, db_path, orgs=orgs)
+        networks = df_networks['network_id'].to_list()
+
     for net in networks:
-        print(net)
         # There is no easy way to check if the user's API key has access to
         # each network, so this is wrapped in a try/except block.
         try:
@@ -1648,7 +1665,8 @@ def meraki_get_network_devices(api_key, networks):
             if not df_data.get(key):
                 df_data[key] = list()
 
-    # Iterate over the devices, adding the data for each device to 'df_data'
+    # Iterate over the devices, adding the data for each device to
+    # 'df_data'
     for item in data:
         for key in df_data:
             df_data[key].append(item.get(key))

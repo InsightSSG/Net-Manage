@@ -579,6 +579,12 @@ def set_dependencies(selected):
             del s[pos]
         s.insert(0, 'meraki_get_organizations')
 
+    if 'meraki_get_network_devices' in s:
+        if 'meraki_get_organizations' in s:
+            pos = s.index('meraki_get_organizations')
+            del s[pos]
+        s.insert(0, 'meraki_get_organizations')
+
     if 'meraki_get_org_devices' in s:
         if 'meraki_get_organizations' in s:
             pos = s.index('meraki_get_organizations')
