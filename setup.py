@@ -57,11 +57,25 @@ def create_collectors_df(collector_select, hostgroup_select):
     Returns:
         df_collectors (DataFrame): A dataframe of collectors to run
     '''
-    
+
     df_data = dict()
     df_data['ansible_os'] = list()
     df_data['hostgroup'] = list()
     df_data['collector'] = list()
+
+    # Create a list of collectors the user selected
+    to_run = list()
+    for key, value in collector_select.items():
+        for item in value:
+            if item.value == True:
+                to_run.append(item.description)
+
+    # Enable any dependencies and put them in the correct order
+    to_run = hp.set_dependencies(to_run)
+    for key, value in collector_select.items():
+        for item in value:
+            if item.description in to_run and item.value != True:
+                item.value = True
 
     for key, value in hostgroup_select.items():
         for item in value:
@@ -74,6 +88,7 @@ def create_collectors_df(collector_select, hostgroup_select):
                     df_data['collector'].append(c)
     df_collectors = pd.DataFrame.from_dict(df_data)
     return df_collectors
+
 
 def select_collectors(collector_select, hostgroup_select):
     '''

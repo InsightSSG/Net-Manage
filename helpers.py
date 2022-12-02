@@ -526,6 +526,13 @@ def set_dependencies(selected):
     If a user has selected the former without selecting the latter, then this
     function adds the latter (in the proper order) to the selection.
 
+    TODO: Currently, all dependencies are within the same hostgroup. By that I
+          mean, F5 collectors are dependent on other F5 collectors, Meraki
+          collectors are dependent on other Meraki collectors, and so on.
+          It is possible that at some point collectors will be dependent on
+          hostgroups that the user did not select. If that happens, this
+          function will need to be modified accordingly.
+
     Args:
         selected (list): The list of selected collectors
 
