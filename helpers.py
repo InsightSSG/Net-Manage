@@ -876,7 +876,7 @@ def meraki_check_api_enablement(db_path, org):
     return enabled
 
 
-def read_table_schema(db_path, table):
+def sql_get_table_schema(db_path, table):
     '''
     Gets the schema of a table
 

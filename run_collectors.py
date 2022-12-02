@@ -354,15 +354,27 @@ def add_to_db(collector, result, timestamp, db_path, method='append'):
     # Display the output to the console
     result['timestamp'] = new_idx
     result = result.set_index('timestamp')
-    # print(tabulate(result, headers='keys', tablefmt='psql'))
 
     # Check if the output directory exists. If it does not, then create it.
     exists = hp.check_dir_existence('/'.join(db_path.split('/')[:-1]))
     if not exists:
         hp.create_dir('/'.join(db_path.split('/')[:-1]))
 
-    # Add the output to the database
+    # Connect to the database
     con = hp.connect_to_db(db_path)
+
+    # Check if all of the columns in 'result' are in the table schema and add
+    # them if they are not (this check is obviously skipped if the table
+    # doesn't exist yet)
+    schema = hp.sql_get_table_schema(db_path, collector)
+    # from tabulate import tabulate
+    # print(tabulate(schema, headers='keys', tablefmt='psql'))
+
+    if len(schema) >= 1:  # A length of 0 indicates the table doesn't exist
+        for col in result.columns.to_list():
+            if col not in schema['name'].to_list():
+                cur = con.cursor()
+                cur.execute(f'ALTER TABLE {collector} ADD COLUMN {col} text')
 
     # Add the dataframe to the database
     table = collector.upper()
