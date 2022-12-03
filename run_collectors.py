@@ -31,7 +31,8 @@ def collect(collector,
             ansible_timeout='300',
             db_path=str(),
             validate_certs=True,
-            orgs=list()):
+            orgs=list(),
+            total_pages='all'):
     '''
     This function calls the test that the user requested.
 
@@ -48,6 +49,8 @@ def collect(collector,
         interface (str):        The interface (defaults to all interfaces)
         validate_certs (bool):  Whether to validate SSL certs (used for F5s)
         org (str):              The organization ID for Meraki collectors
+        total_pages (str):      The number of pages to query. Used for some
+                                Meraki collectors.
     '''
     # Call 'silent' (invisible to user) functions to populate custom database
     # tables. For example, on F5s a view will be created that shows the pools,
@@ -279,7 +282,11 @@ def collect(collector,
         result = cl.meraki_get_org_devices(api_key, db_path, orgs=orgs)
 
     if collector == 'meraki_get_org_device_statuses':
-        result = cl.meraki_get_org_device_statuses(api_key, db_path, orgs=orgs)
+        result = cl.meraki_get_org_device_statuses(api_key,
+                                                   db_path,
+                                                   networks=networks,
+                                                   orgs=orgs,
+                                                   total_pages=total_pages)
 
     if collector == 'meraki_get_org_networks':
         result = cl.meraki_get_org_networks(api_key, db_path, orgs=orgs)
