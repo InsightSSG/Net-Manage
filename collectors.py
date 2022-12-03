@@ -1751,14 +1751,14 @@ def meraki_get_org_device_statuses(api_key,
         enabled = hp.meraki_check_api_enablement(db_path, key)
         if enabled:
             if value:
-                statuses = app.getOrganizationDevicesStatuses(org,
+                statuses = app.getOrganizationDevicesStatuses(key,
                                                               networkIds=value,
                                                               total_pages=tp)
             else:
-                statuses = app.getOrganizationDevicesStatuses(org,
+                statuses = app.getOrganizationDevicesStatuses(key,
                                                               total_pages=tp)
             for item in statuses:
-                item['orgId'] = org  # Add the orgId to each device status
+                item['orgId'] = key  # Add the orgId to each device status
                 data.append(item)
 
     # Create the dictionary 'df_data' from the device statuses in 'data'.
