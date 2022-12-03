@@ -1682,7 +1682,11 @@ def meraki_get_network_devices(api_key, db_path, networks=list(), orgs=list()):
     return df_devices
 
 
-def meraki_get_org_device_statuses(api_key, db_path, orgs=list()):
+def meraki_get_org_device_statuses(api_key,
+                                   db_path,
+                                   networks=list(),
+                                   orgs=list(),
+                                   total_pages='all'):
     '''
     Gets the device statuses for all organizations the user's API key has
     access to.
@@ -1690,58 +1694,94 @@ def meraki_get_org_device_statuses(api_key, db_path, orgs=list()):
     Args:
         api_key (str):              The user's API key
         db_path (str):              The path to the database to store results
-        orgs (list):                One or more organization IDs. If none are
-                                    specified, then the device statuses for all
-                                    orgs will be returned.
+        networks (list):            (Optional) One or more network IDs.
+        orgs (list):                (Optional) One or more organization IDs. If
+                                    none are specified, then the device
+                                    statuses for all orgs will be returned.
+        total_pages (int):          (Optional) The number of pages to retrieve.
+                                    Defaults to 'all'. Note that value
+                                    besides 'all' must be an integer.
 
     Returns:
         df_statuses (DataFrame):    The device statuses for the organizations
     '''
-    # Get the organizations (collected by 'meraki_get_orgs') from the database
-    table = 'meraki_get_organizations'
-    organizations = hp.parse_meraki_organizations(db_path, orgs, table)
-
     # Initialize Meraki dashboard
     dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
     app = dashboard.organizations
 
-    df_data = list()
-    for org in organizations:
+    # If the user did not specify any organization IDs, then get them by
+    # querying the database
+    if not orgs:
+        table = 'meraki_get_organizations'
+        orgs = hp.parse_meraki_organizations(db_path, orgs, table)
+
+    # Create a dictionary to map organization IDs to network IDs
+    mapper = dict()
+    for org in orgs:
+        if not mapper.get(org):
+            mapper[org] = list()
+
+    # If the user provided any networks, add them to 'mapper'
+    if networks:
+        for net_id in networks:
+            # Get the organization ID for the network ID
+            org_id = hp.map_meraki_network_to_orginization(net_id, db_path)
+            # Add the network ID to 'mapper'. If the user provided lists of
+            # organization IDs and network IDs, and the network ID belongs to
+            # one of the organization IDs, then the organization ID will be
+            # filtered to only include network IDs from the 'networks'
+            # parameter. This is designed behavior.
+            if not mapper.get(org_id):
+                mapper[org_id] = list()
+            mapper[org_id].append(net_id)
+
+    # Create a list to store raw results from the API (the results are
+    # returned as a list of dictionaries--one dictionary per device)
+    data = list()
+
+    # If the user specified a specific number of pages to return, then convert
+    # the parameter to an integer
+    tp = total_pages
+    if tp != 'all':
+        tp = int(tp)
+
+    # Query the API for the device statuses and add them to 'data')
+    for key, value in mapper.items():
         # Check if API access is enabled for the org
-        enabled = hp.meraki_check_api_enablement(db_path, org)
+        enabled = hp.meraki_check_api_enablement(db_path, key)
         if enabled:
-            statuses = app.getOrganizationDevicesStatuses(org,
-                                                          total_pages="all")
+            if value:
+                statuses = app.getOrganizationDevicesStatuses(org,
+                                                              networkIds=value,
+                                                              total_pages=tp)
+            else:
+                statuses = app.getOrganizationDevicesStatuses(org,
+                                                              total_pages=tp)
             for item in statuses:
-                network_id = item['networkId']
-                name = item['name']
-                status = item['status']
-                serial = item['serial']
-                model = item['model']
-                last_reported = item['lastReportedAt']
-                public_ip = item['publicIp']
-                product_type = item['productType']
-                df_data.append([org,
-                                network_id,
-                                name,
-                                status,
-                                serial,
-                                model,
-                                last_reported,
-                                public_ip,
-                                product_type])
+                item['orgId'] = org  # Add the orgId to each device status
+                data.append(item)
+
+    # Create the dictionary 'df_data' from the device statuses in 'data'.
+    # This method adds all possible keys from the devices to 'df_data' before
+    # adding the device statuses to 'df_data'. If a device status does not
+    # contain a particular key then it will be added as None
+    df_data = dict()
+    for item in data:
+        for key in item:
+            if not df_data.get(key):
+                df_data[key] = list()
+
+    # Populate 'df_data'
+    for item in data:
+        for key in df_data:
+            df_data[key].append(item.get(key))
 
     # Create the dataframe and return it
-    cols = ['org_id',
-            'network_id',
-            'name',
-            'status',
-            'serial',
-            'model',
-            'last_reported',
-            'public_ip',
-            'product_type']
-    df_statuses = pd.DataFrame(data=df_data, columns=cols)
+    df_statuses = pd.DataFrame.from_dict(df_data)
+
+    # Set all datatypes to string. Otherwise it will fail when adding the
+    # dataframe to the database
+    df_statuses = df_statuses.astype(str)
 
     return df_statuses
 

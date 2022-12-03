@@ -591,6 +591,12 @@ def set_dependencies(selected):
             del s[pos]
         s.insert(0, 'meraki_get_organizations')
 
+    if 'meraki_get_org_device_statuses' in s:
+        if 'meraki_get_org_networks' in s:
+            pos = s.index('meraki_get_org_networks')
+            del s[pos]
+        s.insert(0, 'meraki_get_org_networks')
+
     if 'meraki_get_org_networks' in s:
         if 'meraki_get_organizations' in s:
             pos = s.index('meraki_get_organizations')
@@ -754,71 +760,77 @@ def get_tests_file():
     return t_file
 
 
-def get_user_meraki_org_input(collectors):
+def get_user_meraki_input(collectors=str()):
     '''
     Gets and parses user input when they select collectors for Meraki
     organizations.
 
     Args:
-        collectors (list):  The list of collectors the user selected.
+        collectors (list):  (Optional) The list of collectors the user
+                            selected. This is here for future compatibility.
 
     Returns:
         orgs (list):        A list of organizations. The list will be empty
                             if the user did not select any.
-    '''
-    orgs = list()
-
-    for c in collectors:
-        if 'meraki_get_org_' in c and not orgs:
-            question = ['Enter a comma-delimited list of organizations to',
-                        'query:']
-            orgs = input(' '.join(question))
-            if orgs:
-                orgs = orgs.split(',')
-            if not orgs:
-                orgs = ['all']
-
-    # Remove leading & trailing spaces & empty elements created by extra commas
-    orgs = list(filter(None, [o.strip() for o in orgs]))
-    if orgs == ['all']:
-        orgs = list()
-
-    return orgs
-
-
-def get_user_meraki_networks_input(collectors):
-    '''
-    Gets and parses user input when they select collectors for Meraki
-    networks.
-
-    Args:
-        collectors (list):  The list of collectors the user selected.
-
-    Returns:
         networks (list):    A list of networks. The list will be empty if the
                             user did not select any.
     '''
-    networks = list()
+    # Get the list of organizations
+    question = ['Enter a comma-delimited list of organizations to',
+                'query:']
+    orgs = input(' '.join(question))
+    if orgs:
+        orgs = orgs.split(',')
+    if not orgs:
+        orgs = ['all']
 
-    for c in collectors:
-        if 'meraki_get_network_' in c and not networks:
-            question = ['Enter a comma-delimited list of networks to query',
-                        '(leave blank to query all networks):']
-            networks = input(' '.join(question))
-            if networks:
-                networks = networks.split(',')
-            if not networks:
-                networks = ['all']
+    # Get the list of networks
+    question = ['Enter a comma-delimited list of networks to query',
+                '(leave blank to query all networks):']
+    networks = input(' '.join(question))
+    if networks:
+        networks = networks.split(',')
+    if not networks:
+        networks = ['all']
 
     # Remove leading & trailing spaces & empty elements created by extra commas
     networks = list(filter(None, [n.strip() for n in networks]))
     if networks == ['all']:
         networks = list()
 
-    return networks
+    orgs = list(filter(None, [o.strip() for o in orgs]))
+    if orgs == ['all']:
+        orgs = list()
+
+    return networks, orgs
 
 
-def parse_meraki_organizations(db_path, orgs, table):
+def map_meraki_network_to_orginization(db_path,
+                                       network,
+                                       col='org_id',
+                                       table='MERAKI_GET_ORG_NETWORKS'):
+    '''
+    Args:
+        db_path (str):  The path to the database to query
+        network (str):  The network ID to query
+        col_name (str): (Optional) The column name to query. Defaults to
+                        'org_id'
+        table (str):    (Optional) The table name to query. Defaults to
+                        'meraki_get_org_networks'
+
+    Returns:
+        org_id (str):   The organization ID
+    '''
+    con = connect_to_db(db_path)
+    cur = con.cursor()
+    cur.execute(f'SELECT {col} FROM {table} WHERE network_id = "{network}"')
+    org_id = cur.fetchone()[0]
+    cur.close()
+
+    return org_id
+
+
+def parse_meraki_organizations(db_path, orgs=list(), table=str()):
     '''
     Parses a list of organizations that are passed to certain Meraki
     collectors.
