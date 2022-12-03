@@ -32,7 +32,7 @@ def collect(collector,
             db_path=str(),
             validate_certs=True,
             orgs=list(),
-            total_pages=str()):
+            total_pages='all'):
     '''
     This function calls the test that the user requested.
 

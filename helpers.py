@@ -805,8 +805,8 @@ def get_user_meraki_input(collectors=str()):
     return networks, orgs
 
 
-def map_meraki_network_to_orginization(db_path,
-                                       network,
+def map_meraki_network_to_orginization(network,
+                                       db_path,
                                        col='org_id',
                                        table='MERAKI_GET_ORG_NETWORKS'):
     '''
