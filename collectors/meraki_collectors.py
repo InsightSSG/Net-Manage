@@ -381,67 +381,101 @@ def meraki_get_org_device_statuses(api_key,
     return df_statuses
 
 
-def meraki_get_org_networks(api_key, db_path, orgs=list()):
+def meraki_get_org_networks(api_key,
+                            db_path=str(),
+                            orgs=list(),
+                            use_db=False):
     '''
     Gets the networks for one or more organizations.
 
     Args:
         api_key (str):              The user's API key
         db_path (str):              The path to the database to store results
-        orgs (list):                One or more organization IDs. If none are
-                                    specified, then the networks for all orgs
-                                    will be returned.
+        orgs (list):                A list of organization IDs to query. NOTE:
+                                    The function assumes that the orgs are
+                                    accessible with the user's API key. It will
+                                    not do a separate check unless 'use_db' is
+                                    set to True.
+        use_db (bool):              Whether to use a database. Results will be
+                                    stored in memory if this is set to False.
 
     Returns:
         df_networks (DataFrame):    The networks in one or more organizations
     '''
-    # Get the organizations (collected by 'meraki_get_orgs') from the database
-    table = 'meraki_get_organizations'
-    organizations = helpers.parse_meraki_organizations(db_path, orgs, table)
+    if use_db:
+        # Get the organizations (collected by 'meraki_get_orgs') from the database
+        table = 'meraki_get_organizations'
+        organizations = helpers.parse_meraki_organizations(db_path, orgs, table)
+    else:
+        organizations = orgs
 
     # Initialize Meraki dashboard
     dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
     app = dashboard.organizations
 
-    df_data = list()
+    # Create a list to store the results for all orgs. This is necessary to
+    # ensure that the DataFrame contains columns for all networks (not all
+    # networks return the same keys)
+    data = list()
+
+    df_data = dict()
     for org in organizations:
-        # Check if API access is enabled for the org
-        enabled = helpers.meraki_check_api_enablement(db_path, org)
-        if enabled:
+        if use_db:
+            # Check if API access is enabled for the org
+            enabled = helpers.meraki_check_api_enablement(db_path, org)
+        else:
+            enabled = False
+        if enabled or not use_db:
             networks = app.getOrganizationNetworks(org, total_pages="all")
             for item in networks:
-                network_id = item['id']
-                name = item['name']
-                product_types = '|'.join(item['productTypes'])
-                network_tz = item['timeZone']
-                tags = '|'.join(item['tags'])
-                enrollment_str = item['enrollmentString']
-                url = item['url']
-                notes = item['notes']
-                template_bound = item['isBoundToConfigTemplate']
+                for key, value in item.items():
+                    data.append(item)
 
-                df_data.append([org,
-                                network_id,
-                                name,
-                                product_types,
-                                network_tz,
-                                tags,
-                                enrollment_str,
-                                url,
-                                notes,
-                                template_bound])
+    print(len(data))
 
-    # Create the dataframe and return it
-    cols = ['org_id',
-            'network_id',
-            'name',
-            'product_types',
-            'network_tz',
-            'tags',
-            'enrollment_str',
-            'url',
-            'notes',
-            'template_bound']
-    df_networks = pd.DataFrame(data=df_data, columns=cols)
+    # Iterate over 'data', creating the keys for the DataFrame
+    for item in data:
+        for key in item:
+            if not df_data.get(key):
+                df_data[key] = list()
+
+    # Iterate over 'data', adding the networks to 'df_data'
+    for item in data:
+        for key in df_data:
+            df_data[key].append(item.get(key))
+    #             network_id = item['id']
+    #             name = item['name']
+    #             product_types = '|'.join(item['productTypes'])
+    #             network_tz = item['timeZone']
+    #             tags = '|'.join(item['tags'])
+    #             enrollment_str = item['enrollmentString']
+    #             url = item['url']
+    #             notes = item['notes']
+    #             template_bound = item['isBoundToConfigTemplate']
+
+    #             df_data.append([org,
+    #                             network_id,
+    #                             name,
+    #                             product_types,
+    #                             network_tz,
+    #                             tags,
+    #                             enrollment_str,
+    #                             url,
+    #                             notes,
+    #                             template_bound])
+
+    # # Create the dataframe and return it
+    # cols = ['org_id',
+    #         'network_id',
+    #         'name',
+    #         'product_types',
+    #         'network_tz',
+    #         'tags',
+    #         'enrollment_str',
+    #         'url',
+    #         'notes',
+    #         'template_bound']
+    # df_networks = pd.DataFrame(data=df_data, columns=cols)
+    df_networks = pd.DataFrame.from_dict(df_data)
 
     return df_networks
