@@ -6,9 +6,7 @@ A library of functions for collecting data from network devices.
 
 import ansible_runner
 import ipaddress
-import helpers as hp
 import json
-import meraki
 import pandas as pd
 import parsers as pa
 import re
@@ -1312,11 +1310,11 @@ def ios_find_uplink_by_ip(username,
     '''
 
     # Get the IP addresses on the devices in the host group
-    df_ip = cisco_ios_get_interface_ips(username,
-                                        password,
-                                        host_group,
-                                        play_path,
-                                        private_data_dir)
+    df_ip = ios_get_interface_ips(username,
+                                  password,
+                                  host_group,
+                                  play_path,
+                                  private_data_dir)
 
     # Get the CDP neighbors for the device
     df_cdp = ios_get_cdp_neighbors(username,
@@ -1607,357 +1605,11 @@ def ios_get_interface_descriptions(username,
     return df_desc
 
 
-def meraki_get_network_devices(api_key, db_path, networks=list(), orgs=list()):
-    '''
-    Gets the devices for all orgs that the user's API key has access to. This
-    function uses the following logic:
-
-    1. If a user passes a list of networks, the list of orgs is ignored.
-
-    2. If a user passes a list of orgs but not a list of networks, the function
-       will query all networks in the list of orgs that the user's API key has
-       access to.
-
-    3. If a user does not pass a list of networks or a list of orgs, the
-       function will query all networks in all orgs the user's API key has
-       access to.
-
-    Args:
-        api_key (str):          The user's API key
-        db_path (str):          The path to the database to store results
-        networks (list):        One or more network IDs.
-        orgs (list):            One or more organization IDs. If none are
-                                specified, then the devices for all orgs will
-                                be returned
-
-    Returns:
-        df_devices (DataFrame): The device statuses for the network(s)
-    '''
-    # Initialize Meraki dashboard
-    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
-    app = dashboard.networks
-
-    # This list will contain all of the devices for each network. It will be
-    # used to create the dataframe. This method accounts for networks that have
-    # different device types, since not all device types contain the same keys.
-    data = list()
-
-    if not networks:
-        df_networks = meraki_get_org_networks(api_key, db_path, orgs=orgs)
-        networks = df_networks['network_id'].to_list()
-
-    for net in networks:
-        # There is no easy way to check if the user's API key has access to
-        # each network, so this is wrapped in a try/except block.
-        try:
-            devices = app.getNetworkDevices(net)
-            for item in devices:
-                data.append(item)
-        except Exception as e:
-            print(str(e))
-
-    df_data = dict()
-
-    # Get all of the keys from devices in 'data', and add them as a key to
-    # 'df_data'. The value of the key in 'df_data' will be a list.
-    for item in data:
-        for key in item:
-            if not df_data.get(key):
-                df_data[key] = list()
-
-    # Iterate over the devices, adding the data for each device to
-    # 'df_data'
-    for item in data:
-        for key in df_data:
-            df_data[key].append(item.get(key))
-
-    # Create and return the dataframe
-    df_devices = pd.DataFrame.from_dict(df_data)
-
-    # Convert all data to a string. This is because Pandas incorrectly detects
-    # the data type for latitude / longitude, which causes the table insertion
-    # to fail.
-    df_devices = df_devices.astype(str)
-
-    return df_devices
-
-
-def meraki_get_org_device_statuses(api_key,
-                                   db_path,
-                                   networks=list(),
-                                   orgs=list(),
-                                   total_pages='all'):
-    '''
-    Gets the device statuses for all organizations the user's API key has
-    access to.
-
-    Args:
-        api_key (str):              The user's API key
-        db_path (str):              The path to the database to store results
-        networks (list):            (Optional) One or more network IDs.
-        orgs (list):                (Optional) One or more organization IDs. If
-                                    none are specified, then the device
-                                    statuses for all orgs will be returned.
-        total_pages (int):          (Optional) The number of pages to retrieve.
-                                    Defaults to 'all'. Note that value
-                                    besides 'all' must be an integer.
-
-    Returns:
-        df_statuses (DataFrame):    The device statuses for the organizations
-    '''
-    # Initialize Meraki dashboard
-    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
-    app = dashboard.organizations
-
-    # If the user did not specify any organization IDs, then get them by
-    # querying the database
-    if not orgs:
-        table = 'meraki_get_organizations'
-        orgs = hp.parse_meraki_organizations(db_path, orgs, table)
-
-    # Create a dictionary to map organization IDs to network IDs
-    mapper = dict()
-    for org in orgs:
-        if not mapper.get(org):
-            mapper[org] = list()
-
-    # If the user provided any networks, add them to 'mapper'
-    if networks:
-        for net_id in networks:
-            # Get the organization ID for the network ID
-            org_id = hp.map_meraki_network_to_orginization(net_id, db_path)
-            # Add the network ID to 'mapper'. If the user provided lists of
-            # organization IDs and network IDs, and the network ID belongs to
-            # one of the organization IDs, then the organization ID will be
-            # filtered to only include network IDs from the 'networks'
-            # parameter. This is designed behavior.
-            if not mapper.get(org_id):
-                mapper[org_id] = list()
-            mapper[org_id].append(net_id)
-
-    # Create a list to store raw results from the API (the results are
-    # returned as a list of dictionaries--one dictionary per device)
-    data = list()
-
-    # If the user specified a specific number of pages to return, then convert
-    # the parameter to an integer
-    tp = total_pages
-    if tp != 'all':
-        tp = int(tp)
-
-    # Query the API for the device statuses and add them to 'data')
-    for key, value in mapper.items():
-        # Check if API access is enabled for the org
-        enabled = hp.meraki_check_api_enablement(db_path, key)
-        if enabled:
-            if value:
-                statuses = app.getOrganizationDevicesStatuses(org,
-                                                              networkIds=value,
-                                                              total_pages=tp)
-            else:
-                statuses = app.getOrganizationDevicesStatuses(org,
-                                                              total_pages=tp)
-            for item in statuses:
-                item['orgId'] = org  # Add the orgId to each device status
-                data.append(item)
-
-    # Create the dictionary 'df_data' from the device statuses in 'data'.
-    # This method adds all possible keys from the devices to 'df_data' before
-    # adding the device statuses to 'df_data'. If a device status does not
-    # contain a particular key then it will be added as None
-    df_data = dict()
-    for item in data:
-        for key in item:
-            if not df_data.get(key):
-                df_data[key] = list()
-
-    # Populate 'df_data'
-    for item in data:
-        for key in df_data:
-            df_data[key].append(item.get(key))
-
-    # Create the dataframe and return it
-    df_statuses = pd.DataFrame.from_dict(df_data)
-
-    # Set all datatypes to string. Otherwise it will fail when adding the
-    # dataframe to the database
-    df_statuses = df_statuses.astype(str)
-
-    return df_statuses
-
-
-def meraki_get_org_devices(api_key, db_path, orgs=list()):
-    '''
-    Gets the devices for all orgs that the user's API key has access to.
-
-    Args:
-        api_key (str):          The user's API key
-        db_path (str):          The path to the database to store results
-        orgs (list):            One or more organization IDs. If none are
-                                specified, then the devices for all orgs will
-                                be returned
-
-    Returns:
-        df_devices (DataFrame): The device statuses for the organizations
-    '''
-    # Get the organizations (collected by 'meraki_get_orgs') from the database
-    table = 'meraki_get_organizations'
-    organizations = hp.parse_meraki_organizations(db_path, orgs, table)
-
-    # Initialize Meraki dashboard
-    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
-    app = dashboard.organizations
-
-    # This list will contain all of the devices for each org. It will then be
-    # used to create the dataframe. This method accounts for orgs that have
-    # different device types, since not all device types contain the same keys.
-    data = list()
-
-    for org in organizations:
-        # Check if API access is enabled for the org
-        enabled = hp.meraki_check_api_enablement(db_path, org)
-        if enabled:
-            devices = app.getOrganizationDevices(org, total_pages="all")
-            for item in devices:
-                data.append(item)
-
-    df_data = dict()
-
-    # Get all of the keys from devices in 'data', and add them as a key to
-    # 'df_data'. The value of the key in 'df_data' will be a list.
-    for item in data:
-        for key in item:
-            if not df_data.get(key):
-                df_data[key] = list()
-
-    # Iterate over the devices, adding the data for each device to 'df_data'
-    for item in data:
-        for key in df_data:
-            df_data[key].append(item.get(key))
-
-    # Create and return the dataframe
-    df_devices = pd.DataFrame.from_dict(df_data)
-
-    # Convert all data to a string. This is because Pandas incorrectly detects
-    # the data type for latitude / longitude, which causes the table insertion
-    # to fail.
-    df_devices = df_devices.astype(str)
-
-    return df_devices
-
-
-def meraki_get_org_networks(api_key, db_path, orgs=list()):
-    '''
-    Gets the networks for one or more organizations.
-
-    Args:
-        api_key (str):              The user's API key
-        db_path (str):              The path to the database to store results
-        orgs (list):                One or more organization IDs. If none are
-                                    specified, then the networks for all orgs
-                                    will be returned.
-
-    Returns:
-        df_networks (DataFrame):    The networks in one or more organizations
-    '''
-    # Get the organizations (collected by 'meraki_get_orgs') from the database
-    table = 'meraki_get_organizations'
-    organizations = hp.parse_meraki_organizations(db_path, orgs, table)
-
-    # Initialize Meraki dashboard
-    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
-    app = dashboard.organizations
-
-    df_data = list()
-    for org in organizations:
-        # Check if API access is enabled for the org
-        enabled = hp.meraki_check_api_enablement(db_path, org)
-        if enabled:
-            networks = app.getOrganizationNetworks(org, total_pages="all")
-            for item in networks:
-                network_id = item['id']
-                name = item['name']
-                product_types = '|'.join(item['productTypes'])
-                network_tz = item['timeZone']
-                tags = '|'.join(item['tags'])
-                enrollment_str = item['enrollmentString']
-                url = item['url']
-                notes = item['notes']
-                template_bound = item['isBoundToConfigTemplate']
-
-                df_data.append([org,
-                                network_id,
-                                name,
-                                product_types,
-                                network_tz,
-                                tags,
-                                enrollment_str,
-                                url,
-                                notes,
-                                template_bound])
-
-    # Create the dataframe and return it
-    cols = ['org_id',
-            'network_id',
-            'name',
-            'product_types',
-            'network_tz',
-            'tags',
-            'enrollment_str',
-            'url',
-            'notes',
-            'template_bound']
-    df_networks = pd.DataFrame(data=df_data, columns=cols)
-
-    return df_networks
-
-
-def meraki_get_organizations(api_key):
-    '''
-    Gets a list of organizations and their associated parameters that the
-    user's API key has access to.
-
-    Args:
-        api_key (str):  The user's API key
-
-    Returns:
-        df_orgs (list): A dataframe containing a list of organizations the
-                        user's API key has access to
-    '''
-    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
-
-    # Get the organizations the user has access to and add them to a dataframe
-    orgs = dashboard.organizations.getOrganizations()
-
-    df_data = list()
-
-    for item in orgs:
-        df_data.append([item['id'],
-                        item['name'],
-                        item['url'],
-                        item['api']['enabled'],
-                        item['licensing']['model'],
-                        item['cloud']['region']['name'],
-                        '|'.join(item['management']['details'])]
-                       )
-    cols = ['org_id',
-            'name',
-            'url',
-            'api',
-            'licensing_model',
-            'cloud_region',
-            'management_details']
-
-    df_orgs = pd.DataFrame(data=df_data, columns=cols).astype(str)
-
-    return df_orgs
-
-
-def cisco_ios_get_interface_ips(username,
-                                password,
-                                host_group,
-                                play_path,
-                                private_data_dir):
+def ios_get_interface_ips(username,
+                          password,
+                          host_group,
+                          play_path,
+                          private_data_dir):
     '''
     Gets the IP addresses assigned to interfaces.
 
@@ -1971,7 +1623,10 @@ def cisco_ios_get_interface_ips(username,
     Returns:
         df_ip (df):             A DataFrame containing the interfaces and IPs
     '''
-    cmd = 'show ip interface | include line protocol|Internet address'
+    cmd = ['show ip interface',
+           '|',
+           'include line protocol|Internet address is|VPN Routing']
+    cmd = ' '.join(cmd)
     extravars = {'username': username,
                  'password': password,
                  'host_group': host_group,
@@ -1985,7 +1640,7 @@ def cisco_ios_get_interface_ips(username,
                                 suppress_env_files=True)
 
     # Parse the results
-    ip_data = list()
+    df_data = list()
     for event in runner.events:
         if event['event'] == 'runner_on_ok':
             event_data = event['event_data']
@@ -1994,17 +1649,24 @@ def cisco_ios_get_interface_ips(username,
 
             output = event_data['res']['stdout'][0].split('\n')
             output.reverse()  # Reverse the output to make it easier to iterate
+            counter = 0
             for line in output:
                 if 'Internet address' in line:
+                    pos = counter
+                    if 'VPN Routing/Forwarding' in output[pos-1]:
+                        vrf = output[pos-1].split()[-1].strip('"')
+                    else:
+                        vrf = 'None'
                     ip = line.split()[-1]
-                    pos = output.index(line)+1
-                    inf = output[pos].split()[0]
-                    status = output[pos].split()[-1]
-                    row = [device, inf, ip, status]
-                    ip_data.append(row)
-    # Create a dataframe from ip_data and return it
-    cols = ['Device', 'Interface', 'IP', 'Status']
-    df_ip = pd.DataFrame(data=ip_data, columns=cols)
+                    inf = output[pos+1].split()[0]
+                    row = [device, inf, ip, vrf]
+                    df_data.append(row)
+                counter += 1
+
+    # Create a dataframe from df_data and return it
+    df_data.reverse()
+    cols = ['device', 'interface', 'ip', 'vrf']
+    df_ip = pd.DataFrame(data=df_data, columns=cols)
     return df_ip
 
 
@@ -2528,6 +2190,70 @@ def nxos_get_interface_descriptions(username,
     cols = ['device', 'interface', 'description']
     df_desc = pd.DataFrame(data=df_data, columns=cols)
     return df_desc
+
+
+def nxos_get_interface_ips(username,
+                           password,
+                           host_group,
+                           play_path,
+                           private_data_dir):
+    '''
+    Gets the IP addresses assigned to interfaces.
+
+    Args:
+        username (str):         The username to login to devices
+        password (str):         The password to login to devices
+        host_group (str):       The inventory host group
+        play_path (str):        The path to the playbooks directory
+        private_data_dir (str): The path to the Ansible private data directory
+
+    Returns:
+        df_ip (df):             A DataFrame containing the interfaces and IPs
+    '''
+    grep = 'Interface status:\\|IP address:\\|IP Interface Status for VRF'
+    cmd = f'show ip interface vrf all | grep "{grep}"'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute the command
+    playbook = f'{play_path}/cisco_nxos_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse the results
+    df_data = list()
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout'][0].split('\n')
+
+            counter = 0
+            for line in output:
+                if 'IP Interface Status for VRF' in line:
+                    vrf = line.split()[-1].strip('"')
+
+                if 'IP address:' in line:
+                    pos = counter
+                    inf = output[pos-1].split(',')[0]
+                    ip = line.split(',')[0].split()[-1]
+                    subnet = line.split(',')[1].split()[2].split('/')[-1]
+                    ip = f'{ip}/{subnet}'
+                    row = [device, inf, ip, vrf]
+                    df_data.append(row)
+
+                counter += 1
+
+    # Create a dataframe from df_data and return it
+    cols = ['device', 'interface', 'ip', 'vrf']
+    df_ip = pd.DataFrame(data=df_data, columns=cols)
+    return df_ip
 
 
 def nxos_get_interface_status(username,
