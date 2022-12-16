@@ -143,6 +143,20 @@ def check_dir_existence(dir_path):
     return exists
 
 
+def convert_mask_to_cidr(netmask):
+    '''
+    Converts a subnet mask to CIDR notation.
+
+    Args:
+        netmask (str):  A subnet mask in xxx.xxx.xxx.xxx format
+
+    Returns:
+        cidr (str):     The number of bits in the subnet mask (CIDR)
+    '''
+    cidr = sum(bin(int(x)).count('1') for x in netmask.split('.'))
+    return cidr
+
+
 def create_dir(dir_path):
     '''
     Creates a directory
@@ -329,8 +343,10 @@ def define_collectors(hostgroup):
                   'interface_description': ['bigip',
                                             'cisco.ios.ios',
                                             'cisco.nxos.nxos'],
-                  'interface_ip_addresses': ['cisco.ios.ios',
-                                             'cisco.nxos.nxos'],
+                  'interface_ip_addresses': ['cisco.asa.asa',
+                                             'cisco.ios.ios',
+                                             'cisco.nxos.nxos',
+                                             'paloaltonetworks.panos'],
                   'interface_status': ['cisco.nxos.nxos'],
                   'interface_summary': ['bigip', 'cisco.nxos.nxos'],
                   'meraki_get_network_devices': ['meraki'],
