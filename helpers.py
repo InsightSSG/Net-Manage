@@ -329,6 +329,7 @@ def define_collectors(hostgroup):
                   'interface_description': ['bigip',
                                             'cisco.ios.ios',
                                             'cisco.nxos.nxos'],
+                  'interface_ip_addresses': ['cisco.ios.ios'],
                   'interface_status': ['cisco.nxos.nxos'],
                   'interface_summary': ['bigip', 'cisco.nxos.nxos'],
                   'meraki_get_network_devices': ['meraki'],
@@ -803,89 +804,6 @@ def get_user_meraki_input(collectors=str()):
         orgs = list()
 
     return networks, orgs
-
-
-def map_meraki_network_to_orginization(network,
-                                       db_path,
-                                       col='org_id',
-                                       table='MERAKI_GET_ORG_NETWORKS'):
-    '''
-    Args:
-        db_path (str):  The path to the database to query
-        network (str):  The network ID to query
-        col_name (str): (Optional) The column name to query. Defaults to
-                        'org_id'
-        table (str):    (Optional) The table name to query. Defaults to
-                        'meraki_get_org_networks'
-
-    Returns:
-        org_id (str):   The organization ID
-    '''
-    con = connect_to_db(db_path)
-    cur = con.cursor()
-    cur.execute(f'SELECT {col} FROM {table} WHERE network_id = "{network}"')
-    org_id = cur.fetchone()[0]
-    cur.close()
-
-    return org_id
-
-
-def parse_meraki_organizations(db_path, orgs=list(), table=str()):
-    '''
-    Parses a list of organizations that are passed to certain Meraki
-    collectors.
-
-    Args:
-        db_path (str):          The path to the database to store results
-        orgs (list):            One or more organization IDs. If none are
-                                specified, then the networks for all orgs
-                                will be returned.
-        table (str):            The database table to query
-
-    Returns:
-        organizations (list):   A list of organizations
-    '''
-    con = sl.connect(db_path)
-    organizations = list()
-    if orgs:
-        for org in orgs:
-            df_orgs = pd.read_sql(f'select distinct org_id from {table} \
-                where org_id = "{org}"', con)
-            organizations.append(df_orgs['org_id'].to_list().pop())
-    else:
-        df_orgs = pd.read_sql(f'select distinct org_id from {table}', con)
-        for org in df_orgs['org_id'].to_list():
-            organizations.append(org)
-    con.close()
-
-    return organizations
-
-
-def meraki_check_api_enablement(db_path, org):
-    '''
-    Queries the database to find if API access is enabled.
-
-    Args:
-        db_path (str):  The path to the database to store results
-        org (str):      The organization to check API access for.
-    '''
-    enabled = False
-
-    query = ['SELECT timestamp, api from MERAKI_GET_ORGANIZATIONS',
-             f'WHERE org_id = {org}',
-             'ORDER BY timestamp DESC',
-             'limit 1']
-    query = ' '.join(query)
-
-    con = sl.connect(db_path)
-    result = pd.read_sql(query, con)
-
-    con.close()
-
-    if result['api'].to_list()[0] == 'True':
-        enabled = True
-
-    return enabled
 
 
 def sql_get_table_schema(db_path, table):
