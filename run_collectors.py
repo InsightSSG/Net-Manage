@@ -111,6 +111,7 @@ def collect(collector,
             result = cl.panos_get_arp_table(username,
                                             password,
                                             hostgroup,
+                                            nm_path,
                                             play_path,
                                             private_data_dir)
 
@@ -255,6 +256,13 @@ def collect(collector,
                                                hostgroup,
                                                play_path,
                                                private_data_dir)
+
+        if ansible_os == 'paloaltonetworks.panos':
+            result = cl.panos_get_interface_ips(username,
+                                                password,
+                                                hostgroup,
+                                                play_path,
+                                                private_data_dir)
 
     if collector == 'interface_status':
         if ansible_os == 'cisco.nxos.nxos':
