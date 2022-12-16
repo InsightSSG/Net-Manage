@@ -249,6 +249,13 @@ def collect(collector,
                                               play_path,
                                               private_data_dir)
 
+        if ansible_os == 'cisco.nxos.nxos':
+            result = cl.nxos_get_interface_ips(username,
+                                               password,
+                                               hostgroup,
+                                               play_path,
+                                               private_data_dir)
+
     if collector == 'interface_status':
         if ansible_os == 'cisco.nxos.nxos':
             result = cl.nxos_get_interface_status(username,

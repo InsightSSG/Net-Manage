@@ -1663,7 +1663,7 @@ def ios_get_interface_ips(username,
                     df_data.append(row)
                 counter += 1
 
-    # Create a dataframe from ip_data and return it
+    # Create a dataframe from df_data and return it
     df_data.reverse()
     cols = ['device', 'interface', 'ip', 'vrf']
     df_ip = pd.DataFrame(data=df_data, columns=cols)
@@ -2190,6 +2190,70 @@ def nxos_get_interface_descriptions(username,
     cols = ['device', 'interface', 'description']
     df_desc = pd.DataFrame(data=df_data, columns=cols)
     return df_desc
+
+
+def nxos_get_interface_ips(username,
+                           password,
+                           host_group,
+                           play_path,
+                           private_data_dir):
+    '''
+    Gets the IP addresses assigned to interfaces.
+
+    Args:
+        username (str):         The username to login to devices
+        password (str):         The password to login to devices
+        host_group (str):       The inventory host group
+        play_path (str):        The path to the playbooks directory
+        private_data_dir (str): The path to the Ansible private data directory
+
+    Returns:
+        df_ip (df):             A DataFrame containing the interfaces and IPs
+    '''
+    grep = 'Interface status:\\|IP address:\\|IP Interface Status for VRF'
+    cmd = f'show ip interface vrf all | grep "{grep}"'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute the command
+    playbook = f'{play_path}/cisco_nxos_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse the results
+    df_data = list()
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout'][0].split('\n')
+
+            counter = 0
+            for line in output:
+                if 'IP Interface Status for VRF' in line:
+                    vrf = line.split()[-1].strip('"')
+
+                if 'IP address:' in line:
+                    pos = counter
+                    inf = output[pos-1].split(',')[0]
+                    ip = line.split(',')[0].split()[-1]
+                    subnet = line.split(',')[1].split()[2].split('/')[-1]
+                    ip = f'{ip}/{subnet}'
+                    row = [device, inf, ip, vrf]
+                    df_data.append(row)
+
+                counter += 1
+
+    # Create a dataframe from df_data and return it
+    cols = ['device', 'interface', 'ip', 'vrf']
+    df_ip = pd.DataFrame(data=df_data, columns=cols)
+    return df_ip
 
 
 def nxos_get_interface_status(username,
