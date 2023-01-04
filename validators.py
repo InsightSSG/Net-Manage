@@ -177,3 +177,54 @@ def f5_vip_availability(db_path, table):
         df_diff = pd.concat([df_diff, df])
 
     return df_diff
+
+
+def meraki_device_statuses_availability(db_path, table):
+    '''
+    Validates the state of Meraki devices based on the 'status' column.
+
+    Args:
+        db_path (str):  The path to the database
+        table (str):    The name of the table
+
+    Returns:
+        df_diff (obj):  A DataFrame containing any differences
+    '''
+    # Get the first and last timestamp for each unique device in the table
+    df_stamps = hp.get_first_last_timestamp(db_path, table, 'name')
+
+    cols = ['orgId',
+            'networkId',
+            'name',
+            'model',
+            'lanIp',
+            'publicIp',
+            'status']
+
+    return_cols = ','.join(cols)
+
+    df_diff = pd.DataFrame(data=list(), columns=cols)
+
+    con = sl.connect(db_path)
+    for idx, row in df_stamps.iterrows():
+        name = row['name']
+        first_ts = row['first_ts']
+        last_ts = row['last_ts']
+
+        query = f'''select {return_cols} from {table}
+                    where (status = "online"
+                        or status != "online")
+                      and timestamp = "{first_ts}"
+                      and name = "{name}"
+                    except
+                    select {return_cols} from {table}
+                    where (status = "online"
+                        or status != "online")
+                      and timestamp = "{last_ts}"
+                      and name = "{name}"
+                '''
+
+        df = pd.read_sql(query, con)
+        df_diff = pd.concat([df_diff, df])
+
+    return df_diff
