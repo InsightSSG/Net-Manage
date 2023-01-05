@@ -213,8 +213,6 @@ def f5_build_pool_table(username,
                                         play_path,
                                         private_data_dir)
 
-    print(df_pools)
-
     rc.add_to_db('f5_pool_summary',
                  df_pools,
                  timestamp,
@@ -2423,7 +2421,6 @@ def nxos_get_interface_summary(db_path):
         df_summary (DataFrame): The summaries of interfaces on the devices
     '''
     # Get the interface statuses, descriptions and cam table
-    print(db_path)
     con = sl.connect(db_path)
     table = 'interface_status'
     df_ts = pd.read_sql(f'select distinct timestamp from {table}', con)

@@ -191,7 +191,8 @@ def meraki_device_statuses_availability(db_path, table):
         df_diff (obj):  A DataFrame containing any differences
     '''
     # Get the first and last timestamp for each unique device in the table
-    df_stamps = hp.get_first_last_timestamp(db_path, table, 'name')
+    df_stamps = hp.get_first_last_timestamp(db_path, table, 'mac')
+    print(df_stamps.info())
 
     cols = ['orgId',
             'networkId',
@@ -199,32 +200,48 @@ def meraki_device_statuses_availability(db_path, table):
             'model',
             'lanIp',
             'publicIp',
+            'mac',
             'status']
 
     return_cols = ','.join(cols)
 
     df_diff = pd.DataFrame(data=list(), columns=cols)
 
+    # return df_stamps
+
     con = sl.connect(db_path)
+
+    # query = f'''SELECT {return_cols}
+    #             FROM meraki_get_org_device_statuses
+    #             where timestamp = "{first_ts}"
+    #             except
+    #             SELECT {return_cols}
+    #             FROM meraki_get_org_device_statuses
+    #             where timestamp = "{first_ts}"
+    # '''
+
     for idx, row in df_stamps.iterrows():
-        name = row['name']
+        mac = row['mac']
         first_ts = row['first_ts']
         last_ts = row['last_ts']
+
+        status = row['status']
 
         query = f'''select {return_cols} from {table}
                     where (status = "online"
                         or status != "online")
                       and timestamp = "{first_ts}"
-                      and name = "{name}"
+                      and mac = "{mac}"
                     except
                     select {return_cols} from {table}
                     where (status = "online"
                         or status != "online")
                       and timestamp = "{last_ts}"
-                      and name = "{name}"
+                      and mac = "{mac}"
                 '''
 
         df = pd.read_sql(query, con)
+        # original_status = df[0]['original_status']
         df_diff = pd.concat([df_diff, df])
 
     return df_diff
