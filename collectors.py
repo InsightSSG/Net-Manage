@@ -1086,6 +1086,42 @@ def f5_get_vip_availability(username,
     return df_vips
 
 
+def f5_get_vip_destinations(db_path):
+    '''
+    Creates a summary view of the VIP destinations on F5 LTMs. It pulls the
+    data from the 'f5_get_vip_availability' table. The view can be queried
+    just like a regular table.
+
+    Args:
+        db_path (str):  The path to the database
+
+    Returns:
+        result (ob):    A dataframe containing the view's data
+    '''
+    # Connect to the database
+    con = hp.connect_to_db(db_path)
+    cur = con.cursor()
+
+    # Create the view and return the results so the user can see that the
+    # operation was successful
+    cur.execute('''create view if not exists F5_GET_VIP_DESTINATIONS
+                   as
+                   select timestamp,
+                          device,
+                          partition,
+                          vip,
+                          destination,
+                          port
+                   from F5_GET_VIP_AVAILABILITY
+                   ''')
+
+    query = 'select * from F5_GET_VIP_AVAILABILITY'
+
+    result = pd.read_sql(query, con)
+
+    return result
+
+
 def f5_get_vip_summary(username,
                        password,
                        host_group,

@@ -586,9 +586,6 @@ def set_dependencies(selected):
         selected (list): The updated list of selected collectors
     '''
     s = selected
-    if 'f5_vip_destinations' in s and 'f5_vip_availability' not in s:
-        pos = s.index('f5_vip_destinations')
-        s.insert(pos, 'f5_vip_availability')
     if 'interface_summary' in s:
         pos = s.index('interface_summary')
         if 'cam_table' not in s:
@@ -613,9 +610,9 @@ def set_dependencies(selected):
             del s[pos]
         s.insert(0, 'cam_table')
 
-    if 'f5_vip_destinations' in s:
-        if 'f5_vip_availability' in s:
-            pos = s.index('f5_vip_availability')
+    if 'f5_get_vip_destinations' in s:
+        if 'f5_get_vip_availability' in s:
+            pos = s.index('f5_get_vip_availability')
             del s[pos]
         s.insert(0, 'f5_vip_availability')
 
