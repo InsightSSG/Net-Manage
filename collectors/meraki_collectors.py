@@ -4,100 +4,9 @@
 Define Meraki collectors.
 '''
 
+import helpers as hp
 import meraki
 import pandas as pd
-import sqlite3 as sl
-
-
-def helpers(cols=str(),
-            db_path=str(),
-            network=str(),
-            org=str(),
-            orgs=str(),
-            table=str()
-            ):
-    '''
-
-    '''
-    def meraki_check_api_enablement(db_path, org):
-        '''
-        Queries the database to find if API access is enabled.
-
-        Args:
-            db_path (str):  The path to the database to store results
-            org (str):      The organization to check API access for.
-        '''
-        enabled = False
-
-        query = ['SELECT timestamp, api from MERAKI_GET_ORGANIZATIONS',
-                 f'WHERE org_id = {org}',
-                 'ORDER BY timestamp DESC',
-                 'limit 1']
-        query = ' '.join(query)
-
-        con = sl.connect(db_path)
-        result = pd.read_sql(query, con)
-
-        con.close()
-
-        if result['api'].to_list()[0] == 'True':
-            enabled = True
-
-        return enabled
-
-    def map_meraki_network_to_organization(network,
-                                           db_path,
-                                           col='org_id',
-                                           table='MERAKI_GET_ORG_NETWORKS'):
-        '''
-        Args:
-            db_path (str):  The path to the database to query
-            network (str):  The network ID to query
-            col_name (str): (Optional) The column name to query. Defaults to
-                            'org_id'
-            table (str):    (Optional) The table name to query. Defaults to
-                            'meraki_get_org_networks'
-
-        Returns:
-            org_id (str):   The organization ID
-        '''
-        con = sl.connect(db_path)
-        cur = con.cursor()
-        cur.execute(f'SELECT {col} FROM {table} WHERE network_id="{network}"')
-        org_id = cur.fetchone()[0]
-        cur.close()
-
-        return org_id
-
-    def parse_meraki_organizations(db_path, orgs=list(), table=str()):
-        '''
-        Parses a list of organizations that are passed to certain Meraki
-        collectors.
-
-        Args:
-            db_path (str):          The path to the database to store results
-            orgs (list):            One or more organization IDs. If none are
-                                    specified, then the networks for all orgs
-                                    will be returned.
-            table (str):            The database table to query
-
-        Returns:
-            organizations (list):   A list of organizations
-        '''
-        con = sl.connect(db_path)
-        organizations = list()
-        if orgs:
-            for org in orgs:
-                df_orgs = pd.read_sql(f'select distinct org_id from {table} \
-                    where org_id = "{org}"', con)
-                organizations.append(df_orgs['org_id'].to_list().pop())
-        else:
-            df_orgs = pd.read_sql(f'select distinct org_id from {table}', con)
-            for org in df_orgs['org_id'].to_list():
-                organizations.append(org)
-        con.close()
-
-        return organizations
 
 
 def meraki_get_network_devices(api_key, db_path, networks=list(), orgs=list()):
@@ -232,7 +141,7 @@ def meraki_get_org_devices(api_key, db_path, orgs=list()):
     '''
     # Get the organizations (collected by 'meraki_get_orgs') from the database
     table = 'meraki_get_organizations'
-    organizations = helpers.parse_meraki_organizations(db_path, orgs, table)
+    organizations = hp.meraki_parse_organizations(db_path, orgs, table)
 
     # Initialize Meraki dashboard
     dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
@@ -245,7 +154,7 @@ def meraki_get_org_devices(api_key, db_path, orgs=list()):
 
     for org in organizations:
         # Check if API access is enabled for the org
-        enabled = helpers.meraki_check_api_enablement(db_path, org)
+        enabled = hp.meraki_check_api_enablement(db_path, org)
         if enabled:
             devices = app.getOrganizationDevices(org, total_pages="all")
             for item in devices:
@@ -307,7 +216,7 @@ def meraki_get_org_device_statuses(api_key,
     # querying the database
     if not orgs:
         table = 'meraki_get_organizations'
-        orgs = helpers.parse_meraki_organizations(db_path, orgs, table)
+        orgs = hp.meraki_parse_organizations(db_path, orgs, table)
 
     # Create a dictionary to map organization IDs to network IDs
     mapper = dict()
@@ -319,8 +228,8 @@ def meraki_get_org_device_statuses(api_key,
     if networks:
         for net_id in networks:
             # Get the organization ID for the network ID
-            org_id = helpers.map_meraki_network_to_organization(net_id,
-                                                                db_path)
+            org_id = hp.map_meraki_network_to_organization(net_id,
+                                                           db_path)
             # Add the network ID to 'mapper'. If the user provided lists of
             # organization IDs and network IDs, and the network ID belongs to
             # one of the organization IDs, then the organization ID will be
@@ -343,7 +252,7 @@ def meraki_get_org_device_statuses(api_key,
     # Query the API for the device statuses and add them to 'data')
     for key, value in mapper.items():
         # Check if API access is enabled for the org
-        enabled = helpers.meraki_check_api_enablement(db_path, key)
+        enabled = hp.meraki_check_api_enablement(db_path, key)
         if enabled:
             if value:
                 statuses = app.getOrganizationDevicesStatuses(key,
@@ -378,7 +287,10 @@ def meraki_get_org_device_statuses(api_key,
     # dataframe to the database
     df_statuses = df_statuses.astype(str)
 
-    return df_statuses
+    # Set the columns to use for the SQL database table index
+    idx_cols = ['timestamp', 'mac', 'table_id']
+
+    return df_statuses, idx_cols
 
 
 def meraki_get_org_networks(api_key,
@@ -403,9 +315,10 @@ def meraki_get_org_networks(api_key,
         df_networks (DataFrame):    The networks in one or more organizations
     '''
     if use_db:
-        # Get the organizations (collected by 'meraki_get_orgs') from the database
+        # Get the organizations (collected by 'meraki_get_orgs') from the
+        # database
         table = 'meraki_get_organizations'
-        organizations = helpers.parse_meraki_organizations(db_path, orgs, table)
+        organizations = hp.meraki_parse_organizations(db_path, orgs, table)
     else:
         organizations = orgs
 
@@ -422,16 +335,13 @@ def meraki_get_org_networks(api_key,
     for org in organizations:
         if use_db:
             # Check if API access is enabled for the org
-            enabled = helpers.meraki_check_api_enablement(db_path, org)
+            enabled = hp.meraki_check_api_enablement(db_path, org)
         else:
             enabled = False
         if enabled or not use_db:
             networks = app.getOrganizationNetworks(org, total_pages="all")
             for item in networks:
-                for key, value in item.items():
-                    data.append(item)
-
-    print(len(data))
+                data.append(item)
 
     # Iterate over 'data', creating the keys for the DataFrame
     for item in data:
@@ -443,39 +353,7 @@ def meraki_get_org_networks(api_key,
     for item in data:
         for key in df_data:
             df_data[key].append(item.get(key))
-    #             network_id = item['id']
-    #             name = item['name']
-    #             product_types = '|'.join(item['productTypes'])
-    #             network_tz = item['timeZone']
-    #             tags = '|'.join(item['tags'])
-    #             enrollment_str = item['enrollmentString']
-    #             url = item['url']
-    #             notes = item['notes']
-    #             template_bound = item['isBoundToConfigTemplate']
 
-    #             df_data.append([org,
-    #                             network_id,
-    #                             name,
-    #                             product_types,
-    #                             network_tz,
-    #                             tags,
-    #                             enrollment_str,
-    #                             url,
-    #                             notes,
-    #                             template_bound])
-
-    # # Create the dataframe and return it
-    # cols = ['org_id',
-    #         'network_id',
-    #         'name',
-    #         'product_types',
-    #         'network_tz',
-    #         'tags',
-    #         'enrollment_str',
-    #         'url',
-    #         'notes',
-    #         'template_bound']
-    # df_networks = pd.DataFrame(data=df_data, columns=cols)
-    df_networks = pd.DataFrame.from_dict(df_data)
+    df_networks = pd.DataFrame.from_dict(df_data).astype(str)
 
     return df_networks

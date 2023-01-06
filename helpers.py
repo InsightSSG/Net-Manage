@@ -256,7 +256,6 @@ def ansible_get_host_variables(host_group, private_data_dir):
     # Read the contents of the playbook into a dictionary
     with open(f'{private_data_dir}/inventory/hosts') as f:
         hosts = yaml.load(f, Loader=yaml.FullLoader)
-        print(hosts)
 
     group_vars = hosts[host_group]['vars']
 
@@ -428,37 +427,66 @@ def connect_to_db(db):
     return con
 
 
-def get_first_last_timestamp(db_path, table):
+def get_first_last_timestamp(db_path, table, col_name):
     '''
     Gets the first and last timestamp from a database table for each unique
-    device
+    entry in a column.
 
     Args:
         db_path (str):  The path to the database
         table (str):    The table name
+        col_name (str): The column name to search by ('device', 'networkId',
+                        etc)
 
     Returns:
         df_stamps (df): A DataFrame containing the first and last timestamp for
                         each unique device
     '''
     df_data = dict()
-    df_data['device'] = list()
+    df_data[col_name] = list()
     df_data['first_ts'] = list()
     df_data['last_ts'] = list()
 
+    # Get the unique entries for col_name (usually a device name, MAC address,
+    # etc). This is necessary since the first timestamp in the table won't
+    # always have all the entries for that table (devices might be added or
+    # removed, ARP tables might change, and so on)
     con = sl.connect(db_path)
-    query = f'select distinct device from {table}'
-    df_devices = pd.read_sql(query, con)
-    devices = df_devices['device'].to_list()
+    query = f'select distinct {col_name} from {table}'
+    df_uniques = pd.read_sql(query, con)
+    uniques = df_uniques[col_name].to_list()
 
-    for device in devices:
-        query = f'''select distinct timestamp from {table}
-                    where device = "{device}"'''
-        df_stamps = pd.read_sql(query, con)
-        stamps = df_stamps['timestamp'].to_list()
-        df_data['device'].append(device)
+    # Create a dictionary to store the first and last timestamps for col_name.
+    # This will be used to create df_stamps
+    # df_data = dict()
+
+    query = f'select distinct timestamp from {table}'
+    timestamps = pd.read_sql(query, con)['timestamp'].to_list()
+
+    for unique in uniques:
+        stamps = list()
+        for ts in timestamps:
+            query = f'''select timestamp from {table}
+                        where timestamp = "{ts}" and {col_name} = "{unique}"'''
+            for item in pd.read_sql(query, con)['timestamp'].to_list():
+                stamps.append(item)
+        df_data[col_name].append(unique)
         df_data['first_ts'].append(stamps[0])
         df_data['last_ts'].append(stamps[-1])
+
+    # This is an alternative way to collect the first and last timestamps for
+    # each col_name. It does not utilize an index (assuming the table has one),
+    # but the speed was about the same. I am leaving it here to do more
+    # testing with in the future.
+
+    # for unique in uniques:
+    #     query = f'''select distinct timestamp from {table}
+    #                 where {col_name} = "{unique}"'''
+    #     df_stamps = pd.read_sql(query, con)
+    #     stamps = df_stamps['timestamp'].to_list()
+    #     df_data[col_name].append(unique)
+    #     df_data['first_ts'].append(stamps[0])
+    #     df_data['last_ts'].append(stamps[-1])
     con.close()
 
     df_stamps = pd.DataFrame.from_dict(df_data)
@@ -823,6 +851,64 @@ def get_user_meraki_input(collectors=str()):
     return networks, orgs
 
 
+def meraki_check_api_enablement(db_path, org):
+    '''
+    Queries the database to find if API access is enabled.
+
+    Args:
+        db_path (str):  The path to the database to store results
+        org (str):      The organization to check API access for.
+    '''
+    enabled = False
+
+    query = ['SELECT timestamp, api from MERAKI_GET_ORGANIZATIONS',
+             f'WHERE org_id = "{org}"',
+             'ORDER BY timestamp DESC',
+             'limit 1']
+    query = ' '.join(query)
+
+    con = sl.connect(db_path)
+    result = pd.read_sql(query, con)
+
+    con.close()
+
+    if result['api'].to_list()[0] == 'True':
+        enabled = True
+
+    return enabled
+
+
+def meraki_parse_organizations(db_path, orgs=list(), table=str()):
+    '''
+    Parses a list of organizations that are passed to certain Meraki
+    collectors.
+
+    Args:
+        db_path (str):          The path to the database to store results
+        orgs (list):            One or more organization IDs. If none are
+                                specified, then the networks for all orgs
+                                will be returned.
+        table (str):            The database table to query
+
+    Returns:
+        organizations (list):   A list of organizations
+    '''
+    con = sl.connect(db_path)
+    organizations = list()
+    if orgs:
+        for org in orgs:
+            df_orgs = pd.read_sql(f'select distinct org_id from {table} \
+                where org_id = "{org}"', con)
+            organizations.append(df_orgs['org_id'].to_list().pop())
+    else:
+        df_orgs = pd.read_sql(f'select distinct org_id from {table}', con)
+        for org in df_orgs['org_id'].to_list():
+            organizations.append(org)
+    con.close()
+
+    return organizations
+
+
 def sql_get_table_schema(db_path, table):
     '''
     Gets the schema of a table
@@ -874,6 +960,5 @@ def validate_table(table, db_path, diff_col):
                 from {table}
                 where {query2}
                 '''
-    print(query)
     df_diff = pd.read_sql(query, con)
     return df_diff

@@ -11,6 +11,8 @@ import helpers as hp
 import os
 import readline
 
+from collectors import meraki_collectors as mc
+
 # from tabulate import tabulate
 
 # Protect creds by not writing history to .python_history
@@ -32,7 +34,9 @@ def collect(collector,
             db_path=str(),
             validate_certs=True,
             orgs=list(),
-            total_pages='all'):
+            total_pages='all',
+            idx_cols=list(),
+            method=str()):
     '''
     This function calls the test that the user requested.
 
@@ -51,6 +55,9 @@ def collect(collector,
         org (str):              The organization ID for Meraki collectors
         total_pages (str):      The number of pages to query. Used for some
                                 Meraki collectors.
+        idx_cols (list):        The list of columns to use for indexing the SQL
+                                table. Note that this is NOT related to the
+                                dataframe index; it is only applicable to SQL
     '''
     # Call 'silent' (invisible to user) functions to populate custom database
     # tables. For example, on F5s a view will be created that shows the pools,
@@ -213,10 +220,6 @@ def collect(collector,
                                                 private_data_dir,
                                                 validate_certs=False)
 
-    if collector == 'get_organizations':
-        if ansible_os == 'meraki':
-            result = cl.meraki_get_orgs(api_key)
-
     if collector == 'interface_description':
         if ansible_os == 'cisco.ios.ios':
             result = cl.ios_get_interface_descriptions(username,
@@ -300,26 +303,30 @@ def collect(collector,
                                               private_data_dir)
 
     if collector == 'meraki_get_network_devices':
-        result = cl.meraki_get_network_devices(api_key,
+        result = mc.meraki_get_network_devices(api_key,
                                                db_path,
                                                networks=networks,
                                                orgs=orgs)
 
     if collector == 'meraki_get_organizations':
-        result = cl.meraki_get_organizations(api_key)
+        result = mc.meraki_get_organizations(api_key)
 
     if collector == 'meraki_get_org_devices':
-        result = cl.meraki_get_org_devices(api_key, db_path, orgs=orgs)
+        result = mc.meraki_get_org_devices(api_key, db_path, orgs=orgs)
 
     if collector == 'meraki_get_org_device_statuses':
-        result = cl.meraki_get_org_device_statuses(api_key,
-                                                   db_path,
-                                                   networks=networks,
-                                                   orgs=orgs,
-                                                   total_pages=total_pages)
+        tp = total_pages
+        result, idx_cols = mc.meraki_get_org_device_statuses(api_key,
+                                                             db_path,
+                                                             networks=networks,
+                                                             orgs=orgs,
+                                                             total_pages=tp)
 
     if collector == 'meraki_get_org_networks':
-        result = cl.meraki_get_org_networks(api_key, db_path, orgs=orgs)
+        result = mc.meraki_get_org_networks(api_key,
+                                            db_path,
+                                            orgs=orgs,
+                                            use_db=True)
 
     if collector == 'port_channel_data':
         if ansible_os == 'cisco.nxos.nxos':
@@ -362,12 +369,17 @@ def collect(collector,
                                       private_data_dir)
 
     # Write the result to the database
-    add_to_db(collector, result, timestamp, db_path)
+    add_to_db(collector, result, timestamp, db_path, method, idx_cols)
 
     return result
 
 
-def add_to_db(collector, result, timestamp, db_path, method='append'):
+def add_to_db(collector,
+              result,
+              timestamp,
+              db_path,
+              method='append',
+              idx_cols=list()):
     '''
     Adds the output of a collector to the database
 
@@ -379,11 +391,15 @@ def add_to_db(collector, result, timestamp, db_path, method='append'):
         method (str):       What to do if the database already exists. Options
                             are 'append', 'fail', 'replace'. Defaults to
                             'append'.
+        idx_cols (list):    The list of columns to use for indexing the table.
+                            Note that this is NOT related to the dataframe
+                            index; it is for indexing the sqlite database table
 
     Returns:
         None
     '''
-    # Set the timestamp as the index
+    # Set the timestamp as the index of the dataframe (this is unrelated to
+    # the 'idx_cols' arg)
     new_idx = list()
     for i in range(0, len(result)):
         new_idx.append(timestamp)
@@ -399,23 +415,56 @@ def add_to_db(collector, result, timestamp, db_path, method='append'):
 
     # Connect to the database
     con = hp.connect_to_db(db_path)
+    cur = con.cursor()
+
+    # Get the table schema. This also checks if the table exists, because the
+    # length of 'schema' will be 0 if it hasn't been created yet.
+    schema = hp.sql_get_table_schema(db_path, collector)
+
+    # If the table doesn't exist, create it. (Pandas will automatically create
+    # the table, but doing it manually allows us to create an auto-incrementing
+    # ID column)
+    if len(schema) == 0:
+        fields = ',\n'.join(result.columns.to_list())
+        cur.execute(f'''CREATE TABLE {collector.upper()} (
+                    table_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    timestamp,
+                    {fields}
+                    )''')
 
     # Check if all of the columns in 'result' are in the table schema and add
-    # them if they are not (this check is obviously skipped if the table
-    # doesn't exist yet)
-    schema = hp.sql_get_table_schema(db_path, collector)
-    # from tabulate import tabulate
-    # print(tabulate(schema, headers='keys', tablefmt='psql'))
-
-    if len(schema) >= 1:  # A length of 0 indicates the table doesn't exist
+    # them if they are not. This accounts for a common scenario that happens
+    # when device output is inconsistent. For example, on Cisco NXOS devices
+    # this command returns different rows if the device is using Layer 3 VPC.
+    # 'show vpc brief | begin "vPC domain id" | end "vPC Peer-link status'
+    # If the collector is run against devices using Layer 2 VPC, then run again
+    # on devices using Layer 3 VPC, an additional column must be added or the
+    # table insertion will fail.
+    #
+    # This scenario is very common, and it's not always possible to
+    # future-proof collectors to account for it,
+    if len(schema) >= 1:
         for col in result.columns.to_list():
             if col not in schema['name'].to_list():
-                cur = con.cursor()
                 cur.execute(f'ALTER TABLE {collector} ADD COLUMN {col} text')
+
+    # from tabulate import tabulate
+    # print(tabulate(result, headers='keys', tablefmt='psql'))
 
     # Add the dataframe to the database
     table = collector.upper()
     result.to_sql(table, con, if_exists=method)
+
+    # Create the SQL table index, if applicable
+    if idx_cols:
+        idx_name = f'idx_{collector.lower()}'
+        try:
+            cur.execute(f'''CREATE INDEX {idx_name}
+                            ON {collector.upper()} ({','.join(idx_cols)})
+                        ''')
+        except Exception as e:
+            print(f'Caught Exception: {str(e)}')
+
     con.commit()
     con.close()
 
