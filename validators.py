@@ -192,8 +192,8 @@ def meraki_device_statuses_availability(db_path, table):
     '''
     # Get the first and last timestamp for each unique device in the table
     df_stamps = hp.get_first_last_timestamp(db_path, table, 'mac')
-    print(df_stamps.info())
 
+    # Define the columns to query
     cols = ['orgId',
             'networkId',
             'name',
@@ -202,31 +202,38 @@ def meraki_device_statuses_availability(db_path, table):
             'publicIp',
             'mac',
             'status']
-
     return_cols = ',\n'.join(cols)
 
+    # Create an empty dataframe to store the devices that have changed status
     df_diff = pd.DataFrame(data=list(), columns=cols)
 
-    # return df_stamps
-
+    # Create the database connection
     con = sl.connect(db_path)
 
-    # query = f'''SELECT {return_cols}
-    #             FROM meraki_get_org_device_statuses
-    #             where timestamp = "{first_ts}"
-    #             except
-    #             SELECT {return_cols}
-    #             FROM meraki_get_org_device_statuses
-    #             where timestamp = "{first_ts}"
-    # '''
-
+    # For each device, compare the most recent status to the original status.
+    # This method deserves some explanation.
+    #
+    # I experimented with many ways to compare the original status to the most
+    # recent status. Out of all of them, this method was the fastest, even
+    # though it requires running two queries for each device.
+    #
+    # The reason two queries are necessary is because a comparison done with
+    # 'except' only returns the left side of the query (e.g., the first
+    # timestamp). In other words, the comparison actually happens, but the
+    # output only shows what the original status was.
+    #
+    # That is why two queries are needed. The first query compares the first
+    # timestamp to the last timestamp, and the second query compares the last
+    # timestamp to the first timestamp. That way we can see exactly what
+    # changed--e.g., 'online' to 'alerting', 'dormant' to 'online', etc.
     for idx, row in df_stamps.iterrows():
         mac = row['mac']
         first_ts = row['first_ts']
         last_ts = row['last_ts']
 
-        # status = row['status']
-
+        # This query compares the status of the device in the first timestamp
+        # to the status in the second timestamp, and stores the results in a
+        # dataframe.
         query = f'''select {return_cols} from {table}
                     where (status = "online"
                         or status != "online")
@@ -241,10 +248,12 @@ def meraki_device_statuses_availability(db_path, table):
                 '''
         df_left = pd.read_sql(query, con)
 
+        # If any results were returned, then we know that data in one of the
+        # 'return_cols' has changed.
         if len(df_left) > 0:
-            from tabulate import tabulate
-            print(tabulate(df_left, headers='keys', tablefmt='psql'))
-            # break
+            # This query compares the status of the device in the last
+            # timestamp to the status in the first timestamp, then stores the
+            # result in a dataframe.
             query = f'''select {return_cols} from {table}
                         where (status = "online"
                             or status != "online")
@@ -257,32 +266,21 @@ def meraki_device_statuses_availability(db_path, table):
                         and timestamp = "{first_ts}"
                         and mac = "{mac}"
                     '''
-            # print(query)
             df_right = pd.read_sql(query, con)
-            from tabulate import tabulate
-            print(tabulate(df_right, headers='keys', tablefmt='psql'))
-            # break
 
+            # 'except' will return results if the data in any of the columns
+            # changed, so it is necessary to compare the two statuses.
             original_status = df_left['status'].to_list()
             new_status = df_right['status'].to_list()
 
-            print(original_status)
-            print(new_status)
-
+            # If the status changed, then add the new status to 'df_left' as a
+            # new column, then add 'df_left' to 'df_diff'
             if original_status != new_status:
-                df_left = df_left.rename(columns={'status': 'original_status'})
                 df_left['new_status'] = new_status
-                from tabulate import tabulate
-                print(tabulate(df_left, headers='keys', tablefmt='psql'))
-        # print(query)
-            # break
-        # df = pd.read_sql(query, con)
-        # original_status = df[0]['original_status']
                 df_diff = pd.concat([df_diff, df_left])
-                from tabulate import tabulate
-                print(tabulate(df_diff, headers='keys', tablefmt='psql'))
-                break
 
-    del df_diff['status']
+    # Rename the 'status' column to 'original_status'
+    df_diff.rename(columns={'status': 'original_status'},
+                   inplace=True)
 
     return df_diff

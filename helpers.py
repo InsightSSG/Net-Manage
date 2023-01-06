@@ -460,15 +460,33 @@ def get_first_last_timestamp(db_path, table, col_name):
     # This will be used to create df_stamps
     # df_data = dict()
 
-    # Get the first and last timestamps for the identifiers by creating two datafra
+    query = f'select distinct timestamp from {table}'
+    timestamps = pd.read_sql(query, con)['timestamp'].to_list()
+
     for unique in uniques:
-        query = f'''select distinct timestamp from {table}
-                    where {col_name} = "{unique}"'''
-        df_stamps = pd.read_sql(query, con)
-        stamps = df_stamps['timestamp'].to_list()
+        stamps = list()
+        for ts in timestamps:
+            query = f'''select timestamp from {table}
+                        where timestamp = "{ts}" and {col_name} = "{unique}"'''
+            for item in pd.read_sql(query, con)['timestamp'].to_list():
+                stamps.append(item)
         df_data[col_name].append(unique)
         df_data['first_ts'].append(stamps[0])
         df_data['last_ts'].append(stamps[-1])
+
+    # This is an alternative way to collect the first and last timestamps for
+    # each col_name. It does not utilize an index (assuming the table has one),
+    # but the speed was about the same. I am leaving it here to do more
+    # testing with in the future.
+
+    # for unique in uniques:
+    #     query = f'''select distinct timestamp from {table}
+    #                 where {col_name} = "{unique}"'''
+    #     df_stamps = pd.read_sql(query, con)
+    #     stamps = df_stamps['timestamp'].to_list()
+    #     df_data[col_name].append(unique)
+    #     df_data['first_ts'].append(stamps[0])
+    #     df_data['last_ts'].append(stamps[-1])
     con.close()
 
     df_stamps = pd.DataFrame.from_dict(df_data)
