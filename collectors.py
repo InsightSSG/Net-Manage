@@ -2867,7 +2867,10 @@ def nxos_get_vpc_state(username,
                                 suppress_env_files=True)
 
     # Parse the output and add it to 'data'
-    df_data = list()
+    # df_data = list()
+
+    df_data = dict()
+    df_data['device'] = list()
 
     for event in runner.events:
         if event['event'] == 'runner_on_ok':
@@ -2877,34 +2880,45 @@ def nxos_get_vpc_state(username,
 
             output = event_data['res']['stdout'][0].split('\n')
 
-            row = [device]
-            for line in output[:-2]:
-                line = line.split(':')[-1].strip()
-                row.append(line)
-            df_data.append(row)
+            # row = [device]
+            # for line in output[:-2]:
+            #     line = line.split(':')[-1].strip()
+            #     row.append(line)
+            # df_data.append(row)
 
-            # Create the DataFrame columns
-            cols = ['device',
-                    'vPC domain id',
-                    'Peer status',
-                    'vPC keep-alive status',
-                    'Configuration consistency status',
-                    'Per-vlan consistency status',
-                    'Type-2 consistency status',
-                    'vPC role',
-                    'Number of vPCs configured',
-                    'Peer Gateway',
-                    'Peer gateway excluded VLANs',
-                    'Dual-active excluded VLANs',
-                    'Graceful Consistency Check',
-                    'Operational Layer3 Peer-router',
-                    'Auto-recovery status']
+            for line in output:
+                df_data['device'].append(device)
 
-    # Create the dataframe and return it
-    if len(df_data) > 0:
-        df_vpc_state = pd.DataFrame(data=df_data, columns=cols)
-    else:
-        df_vpc_state = pd.DataFrame()
+                col_name = line.split(':')[0].strip()
+                if not df_data[col_name]:
+                    df_data[col_name] = list()
+
+                df_data[col_name].append(line.split(':')[1].strip())
+
+            # # Create the DataFrame columns
+            # cols = ['device',
+            #         'vPC domain id',
+            #         'Peer status',
+            #         'vPC keep-alive status',
+            #         'Configuration consistency status',
+            #         'Per-vlan consistency status',
+            #         'Type-2 consistency status',
+            #         'vPC role',
+            #         'Number of vPCs configured',
+            #         'Peer Gateway',
+            #         'Peer gateway excluded VLANs',
+            #         'Dual-active excluded VLANs',
+            #         'Graceful Consistency Check',
+            #         'Operational Layer3 Peer-router',
+            #         'Auto-recovery status']
+
+    df_vpc_state = pd.DataFrame.from_dict(df_data)
+
+    # # Create the dataframe and return it
+    # if len(df_data) > 0:
+    #     df_vpc_state = pd.DataFrame(data=df_data, columns=cols)
+    # else:
+    #     df_vpc_state = pd.DataFrame()
 
     return df_vpc_state
 
