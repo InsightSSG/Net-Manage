@@ -203,7 +203,7 @@ def meraki_device_statuses_availability(db_path, table):
             'mac',
             'status']
 
-    return_cols = ','.join(cols)
+    return_cols = ',\n'.join(cols)
 
     df_diff = pd.DataFrame(data=list(), columns=cols)
 
@@ -225,7 +225,7 @@ def meraki_device_statuses_availability(db_path, table):
         first_ts = row['first_ts']
         last_ts = row['last_ts']
 
-        status = row['status']
+        # status = row['status']
 
         query = f'''select {return_cols} from {table}
                     where (status = "online"
@@ -239,9 +239,50 @@ def meraki_device_statuses_availability(db_path, table):
                       and timestamp = "{last_ts}"
                       and mac = "{mac}"
                 '''
+        df_left = pd.read_sql(query, con)
 
-        df = pd.read_sql(query, con)
+        if len(df_left) > 0:
+            from tabulate import tabulate
+            print(tabulate(df_left, headers='keys', tablefmt='psql'))
+            # break
+            query = f'''select {return_cols} from {table}
+                        where (status = "online"
+                            or status != "online")
+                        and timestamp = "{last_ts}"
+                        and mac = "{mac}"
+                        except
+                        select {return_cols} from {table}
+                        where (status = "online"
+                            or status != "online")
+                        and timestamp = "{first_ts}"
+                        and mac = "{mac}"
+                    '''
+            # print(query)
+            df_right = pd.read_sql(query, con)
+            from tabulate import tabulate
+            print(tabulate(df_right, headers='keys', tablefmt='psql'))
+            # break
+
+            original_status = df_left['status'].to_list()
+            new_status = df_right['status'].to_list()
+
+            print(original_status)
+            print(new_status)
+
+            if original_status != new_status:
+                df_left = df_left.rename(columns={'status': 'original_status'})
+                df_left['new_status'] = new_status
+                from tabulate import tabulate
+                print(tabulate(df_left, headers='keys', tablefmt='psql'))
+        # print(query)
+            # break
+        # df = pd.read_sql(query, con)
         # original_status = df[0]['original_status']
-        df_diff = pd.concat([df_diff, df])
+                df_diff = pd.concat([df_diff, df_left])
+                from tabulate import tabulate
+                print(tabulate(df_diff, headers='keys', tablefmt='psql'))
+                break
+
+    del df_diff['status']
 
     return df_diff
