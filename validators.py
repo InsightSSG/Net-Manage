@@ -283,11 +283,11 @@ def validator_single_col(columns,
             # 'df_left' as a new column, then add'df_left' to 'df_diff' as a
             # new row.
             if original != new:
-                df_left[f'new_{identifier_col}'] = new
+                df_left[f'new_{validation_col}'] = new
                 df_diff = pd.concat([df_diff, df_left])
 
     # Rename the 'status' column to 'original_status'
-    df_diff.rename(columns={identifier_col: f'original_{identifier_col}'},
+    df_diff.rename(columns={validation_col: f'original_{validation_col}'},
                    inplace=True)
 
     return df_diff
