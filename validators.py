@@ -11,138 +11,77 @@ import sqlite3 as sl
 
 def f5_pool_availability(db_path, table):
     '''
-    Validates a table based on a single column (I.e., "available", "status,
-    etc)
+    Validates the state of F5 pools based on the 'availability' column.
 
     Args:
         db_path (str):  The path to the database
         table (str):    The name of the table
-        col_name (str): The name of the column to validate against
-        columns (list): A list of specific columns to include in the query.
-                        This is so columns that have data that frequently
-                        changes--like traffic counters--will not create false
-                        positives. If the table does not have any data like
-                        that then the arg does not need to be passed.
 
     Returns:
         df_diff (obj):  A DataFrame containing any differences
     '''
-    # Get the first and last timestamp for each unique device in the table
-    df_stamps = hp.get_first_last_timestamp(db_path, table)
-
+    # Define the columns to query
     cols = ['device',
             'partition',
             'pool',
             'availability',
             'state',
-            'total',
-            'avail',
-            'cur',
             'reason']
 
-    return_cols = ','.join(cols)
+    df_diff = validator_single_col(cols,
+                                   db_path,
+                                   'available',
+                                   'device',
+                                   table,
+                                   'availability')
 
-    df_diff = pd.DataFrame(data=list(), columns=cols)
-
-    con = sl.connect(db_path)
-    for idx, row in df_stamps.iterrows():
-        device = row['device']
-        first_ts = row['first_ts']
-        last_ts = row['last_ts']
-
-        query = f'''select {return_cols} from {table}
-                    where (availability = "available"
-                        or availability != "available")
-                      and timestamp = "{first_ts}"
-                      and device = "{device}"
-                    except
-                    select {return_cols} from {table}
-                    where (availability = "available"
-                        or availability != "available")
-                      and timestamp = "{last_ts}"
-                      and device = "{device}"
-                 '''
-        df = pd.read_sql(query, con)
-        df_diff = pd.concat([df_diff, df])
+    # Re-order columns so that 'original_status' and 'new_status' are last
+    cols = ['original_availability', 'new_availability']
+    hp.move_cols_to_end(df_diff, cols)
 
     return df_diff
 
 
 def f5_pool_member_availability(db_path, table):
     '''
-    Validates a table based on a single column (I.e., "available", "status,
-    etc)
+    Validates the state of F5 pool members based on the 'availability' column.
 
     Args:
         db_path (str):  The path to the database
         table (str):    The name of the table
-        col_name (str): The name of the column to validate against
-        columns (list): A list of specific columns to include in the query.
-                        This is so columns that have data that frequently
-                        changes--like traffic counters--will not create false
-                        positives. If the table does not have any data like
-                        that then the arg does not need to be passed.
 
     Returns:
         df_diff (obj):  A DataFrame containing any differences
     '''
-    # Get the first and last timestamp for each unique device in the table
-    df_stamps = hp.get_first_last_timestamp(db_path, table)
-
+    # Define the columns to query
     cols = ['device',
+            'partition',
             'pool_name',
             'pool_member',
             'pool_member_state']
 
-    return_cols = ','.join(cols)
-
-    df_diff = pd.DataFrame(data=list(), columns=cols)
-
-    con = sl.connect(db_path)
-    for idx, row in df_stamps.iterrows():
-        device = row['device']
-        first_ts = row['first_ts']
-        last_ts = row['last_ts']
-
-        query = f'''select {return_cols} from {table}
-                    where (pool_member_state = "available"
-                        or pool_member_state != "available")
-                      and timestamp = "{first_ts}"
-                      and device = "{device}"
-                    except
-                    select {return_cols} from {table}
-                    where (pool_member_state = "available"
-                        or pool_member_state != "available")
-                      and timestamp = "{last_ts}"
-                      and device = "{device}"
-                 '''
-        df = pd.read_sql(query, con)
-        df_diff = pd.concat([df_diff, df])
+    df_diff = validator_single_col(cols,
+                                   db_path,
+                                   'available',
+                                   'device',
+                                   table,
+                                   'pool_member_state')
 
     return df_diff
 
 
 def f5_vip_availability(db_path, table):
     '''
-    Validates a table based on a single column (I.e., "available", "status,
-    etc)
+    Validates the state of F5 VIPs based on the 'availability' column.
 
     Args:
         db_path (str):  The path to the database
         table (str):    The name of the table
-        col_name (str): The name of the column to validate against
-        columns (list): A list of specific columns to include in the query.
-                        This is so columns that have data that frequently
-                        changes--like traffic counters--will not create false
-                        positives. If the table does not have any data like
-                        that then the arg does not need to be passed.
 
     Returns:
         df_diff (obj):  A DataFrame containing any differences
     '''
-    # Get the first and last timestamp for each unique device in the table
-    df_stamps = hp.get_first_last_timestamp(db_path, table)
-
+    # Define the columns to query
     cols = ['device',
             'partition',
             'vip',
@@ -151,30 +90,47 @@ def f5_vip_availability(db_path, table):
             'availability',
             'reason']
 
-    return_cols = ','.join(cols)
+    df_diff = validator_single_col(cols,
+                                   db_path,
+                                   'available',
+                                   'device',
+                                   table,
+                                   'availability')
 
-    df_diff = pd.DataFrame(data=list(), columns=cols)
+    # Re-order columns so that 'original_status' and 'new_status' are last
+    cols = ['original_availability', 'new_availability']
+    hp.move_cols_to_end(df_diff, cols)
 
-    con = sl.connect(db_path)
-    for idx, row in df_stamps.iterrows():
-        device = row['device']
-        first_ts = row['first_ts']
-        last_ts = row['last_ts']
+    return df_diff
 
-        query = f'''select {return_cols} from {table}
-                    where (availability = "available"
-                        or availability != "available")
-                      and timestamp = "{first_ts}"
-                      and device = "{device}"
-                    except
-                    select {return_cols} from {table}
-                    where (availability = "available"
-                        or availability != "available")
-                      and timestamp = "{last_ts}"
-                      and device = "{device}"
-                 '''
-        df = pd.read_sql(query, con)
-        df_diff = pd.concat([df_diff, df])
+
+def meraki_device_statuses_availability(db_path, table):
+    '''
+    Validates the state of Meraki devices based on the 'status' column.
+
+    Args:
+        db_path (str):  The path to the database
+        table (str):    The name of the table
+
+    Returns:
+        df_diff (obj):  A DataFrame containing any differences
+    '''
+    # Define the columns to query
+    cols = ['orgId',
+            'networkId',
+            'name',
+            'model',
+            'lanIp',
+            'publicIp',
+            'mac',
+            'status']
+
+    df_diff = validator_single_col(cols,
+                                   db_path,
+                                   'online',
+                                   'mac',
+                                   table,
+                                   'status')
 
     return df_diff
 
@@ -283,45 +239,11 @@ def validator_single_col(columns,
             # 'df_left' as a new column, then add'df_left' to 'df_diff' as a
             # new row.
             if original != new:
-                df_left[f'new_{identifier_col}'] = new
+                df_left[f'new_{validation_col}'] = new
                 df_diff = pd.concat([df_diff, df_left])
 
     # Rename the 'status' column to 'original_status'
-    df_diff.rename(columns={identifier_col: f'original_{identifier_col}'},
+    df_diff.rename(columns={validation_col: f'original_{validation_col}'},
                    inplace=True)
-
-    return df_diff
-
-
-def meraki_device_statuses_availability(db_path, table):
-    '''
-    Validates the state of Meraki devices based on the 'status' column.
-
-    Args:
-        db_path (str):  The path to the database
-        table (str):    The name of the table
-
-    Returns:
-        df_diff (obj):  A DataFrame containing any differences
-    '''
-    # # Get the first and last timestamp for each unique device in the table
-    # df_stamps = hp.get_first_last_timestamp(db_path, table, 'mac')
-
-    # Define the columns to query
-    cols = ['orgId',
-            'networkId',
-            'name',
-            'model',
-            'lanIp',
-            'publicIp',
-            'mac',
-            'status']
-
-    df_diff = validator_single_col(cols,
-                                   db_path,
-                                   'online',
-                                   'mac',
-                                   table,
-                                   'status')
 
     return df_diff

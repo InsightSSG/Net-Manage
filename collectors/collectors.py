@@ -869,10 +869,10 @@ def f5_get_pool_member_availability(username,
                     # TODO: Separate partition from pool name.
                     if '/' in line:
                         name = line.split('/')
-                        partition = name[1]
-                        pool = name[-1]
+                        partition = name[1].strip()
+                        pool = name[-1].strip()
                     else:
-                        pool = line.split()[-1]
+                        pool = line.split()[-1].strip()
 
                     # df_dict[device][pool] = dict()
                     counter = pos+1
@@ -1084,6 +1084,42 @@ def f5_get_vip_availability(username,
     df_vips = pd.DataFrame(data=df_data, columns=cols)
 
     return df_vips
+
+
+def f5_get_vip_destinations(db_path):
+    '''
+    Creates a summary view of the VIP destinations on F5 LTMs. It pulls the
+    data from the 'f5_get_vip_availability' table. The view can be queried
+    just like a regular table.
+
+    Args:
+        db_path (str):  The path to the database
+
+    Returns:
+        result (ob):    A dataframe containing the view's data
+    '''
+    # Connect to the database
+    con = hp.connect_to_db(db_path)
+    cur = con.cursor()
+
+    # Create the view and return the results so the user can see that the
+    # operation was successful
+    cur.execute('''create view if not exists F5_GET_VIP_DESTINATIONS
+                   as
+                   select timestamp,
+                          device,
+                          partition,
+                          vip,
+                          destination,
+                          port
+                   from F5_GET_VIP_AVAILABILITY
+                   ''')
+
+    query = 'select * from F5_GET_VIP_AVAILABILITY'
+
+    result = pd.read_sql(query, con)
+
+    return result
 
 
 def f5_get_vip_summary(username,
@@ -2831,7 +2867,10 @@ def nxos_get_vpc_state(username,
                                 suppress_env_files=True)
 
     # Parse the output and add it to 'data'
-    df_data = list()
+    # df_data = list()
+
+    df_data = dict()
+    df_data['device'] = list()
 
     for event in runner.events:
         if event['event'] == 'runner_on_ok':
@@ -2841,34 +2880,45 @@ def nxos_get_vpc_state(username,
 
             output = event_data['res']['stdout'][0].split('\n')
 
-            row = [device]
-            for line in output[:-2]:
-                line = line.split(':')[-1].strip()
-                row.append(line)
-            df_data.append(row)
+            # row = [device]
+            # for line in output[:-2]:
+            #     line = line.split(':')[-1].strip()
+            #     row.append(line)
+            # df_data.append(row)
 
-            # Create the DataFrame columns
-            cols = ['device',
-                    'vPC domain id',
-                    'Peer status',
-                    'vPC keep-alive status',
-                    'Configuration consistency status',
-                    'Per-vlan consistency status',
-                    'Type-2 consistency status',
-                    'vPC role',
-                    'Number of vPCs configured',
-                    'Peer Gateway',
-                    'Peer gateway excluded VLANs',
-                    'Dual-active excluded VLANs',
-                    'Graceful Consistency Check',
-                    'Operational Layer3 Peer-router',
-                    'Auto-recovery status']
+            for line in output:
+                df_data['device'].append(device)
 
-    # Create the dataframe and return it
-    if len(df_data) > 0:
-        df_vpc_state = pd.DataFrame(data=df_data, columns=cols)
-    else:
-        df_vpc_state = pd.DataFrame()
+                col_name = line.split(':')[0].strip()
+                if not df_data[col_name]:
+                    df_data[col_name] = list()
+
+                df_data[col_name].append(line.split(':')[1].strip())
+
+            # # Create the DataFrame columns
+            # cols = ['device',
+            #         'vPC domain id',
+            #         'Peer status',
+            #         'vPC keep-alive status',
+            #         'Configuration consistency status',
+            #         'Per-vlan consistency status',
+            #         'Type-2 consistency status',
+            #         'vPC role',
+            #         'Number of vPCs configured',
+            #         'Peer Gateway',
+            #         'Peer gateway excluded VLANs',
+            #         'Dual-active excluded VLANs',
+            #         'Graceful Consistency Check',
+            #         'Operational Layer3 Peer-router',
+            #         'Auto-recovery status']
+
+    df_vpc_state = pd.DataFrame.from_dict(df_data)
+
+    # # Create the dataframe and return it
+    # if len(df_data) > 0:
+    #     df_vpc_state = pd.DataFrame(data=df_data, columns=cols)
+    # else:
+    #     df_vpc_state = pd.DataFrame()
 
     return df_vpc_state
 
