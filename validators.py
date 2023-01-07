@@ -23,10 +23,9 @@ def f5_pool_availability(db_path, table):
     # Define the columns to query
     cols = ['device',
             'partition',
-            'vip',
-            'destination',
-            'port',
+            'pool',
             'availability',
+            'state',
             'reason']
 
     df_diff = validator_single_col(cols,
@@ -35,6 +34,10 @@ def f5_pool_availability(db_path, table):
                                    'device',
                                    table,
                                    'availability')
+
+    # Re-order columns so that 'original_status' and 'new_status' are last
+    cols = ['original_availability', 'new_availability']
+    hp.move_cols_to_end(df_diff, cols)
 
     return df_diff
 
@@ -53,11 +56,9 @@ def f5_pool_member_availability(db_path, table):
     # Define the columns to query
     cols = ['device',
             'partition',
-            'vip',
-            'destination',
-            'port',
-            'availability',
-            'reason']
+            'pool_name',
+            'pool_member',
+            'pool_member_state']
 
     df_diff = validator_single_col(cols,
                                    db_path,
@@ -95,6 +96,10 @@ def f5_vip_availability(db_path, table):
                                    'device',
                                    table,
                                    'availability')
+
+    # Re-order columns so that 'original_status' and 'new_status' are last
+    cols = ['original_availability', 'new_availability']
+    hp.move_cols_to_end(df_diff, cols)
 
     return df_diff
 

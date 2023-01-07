@@ -546,6 +546,27 @@ def meraki_get_api_key():
     return api_key
 
 
+def move_cols_to_end(df, cols):
+    '''
+    Moves one or more columns on a dataframe to be the end. For example,
+    if the dataframe columns are ['A', 'C', B'], then this function can be
+    used to re-order them to ['A', 'B', 'C']
+
+    Args:
+        df (DataFrame): The Pandas dataframe to re-order.
+        cols (list):    A list of one or more columns to move. If more than one
+                        column is specified, then they will be added to the end
+                        in the order that is in the list.
+
+    Returns:
+        df (DataFrame): The re-ordered DataFrame
+
+    '''
+    for c in cols:
+        df[c] = df.pop(c)
+    return df
+
+
 def read_table(db_path, table):
     '''
     Reads all columns for the latest timestamp from a database table.
