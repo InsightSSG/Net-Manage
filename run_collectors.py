@@ -422,8 +422,10 @@ def add_to_db(collector,
     # If the table doesn't exist, create it. (Pandas will automatically create
     # the table, but doing it manually allows us to create an auto-incrementing
     # ID column)
+    columns = result.columns.to_list()
+    columns = [f'"{c}"' for c in columns]
     if len(schema) == 0:
-        fields = ',\n'.join(result.columns.to_list())
+        fields = ',\n'.join(columns)
         cur.execute(f'''CREATE TABLE {collector.upper()} (
                     table_id INTEGER PRIMARY KEY AUTOINCREMENT,
                     timestamp,
@@ -442,9 +444,13 @@ def add_to_db(collector,
     # This scenario is very common, and it's not always possible to
     # future-proof collectors to account for it,
     if len(schema) >= 1:
+        # columns = result.columns.to_list()
+        # columns = [f'"{c}"' for c in columns]
+        print(columns)
         for col in result.columns.to_list():
             if col not in schema['name'].to_list():
-                cur.execute(f'ALTER TABLE {collector} ADD COLUMN {col} text')
+                print(col)
+                cur.execute(f'ALTER TABLE {collector} ADD COLUMN "{col}" text')
 
     # from tabulate import tabulate
     # print(tabulate(result, headers='keys', tablefmt='psql'))
