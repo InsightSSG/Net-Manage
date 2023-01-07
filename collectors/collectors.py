@@ -869,10 +869,10 @@ def f5_get_pool_member_availability(username,
                     # TODO: Separate partition from pool name.
                     if '/' in line:
                         name = line.split('/')
-                        partition = name[1]
-                        pool = name[-1]
+                        partition = name[1].strip()
+                        pool = name[-1].strip()
                     else:
-                        pool = line.split()[-1]
+                        pool = line.split()[-1].strip()
 
                     # df_dict[device][pool] = dict()
                     counter = pos+1

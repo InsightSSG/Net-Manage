@@ -3,7 +3,6 @@
 # flake8: noqa
 
 import ansible_runner
-import collectors as cl
 import datetime as dt
 # import dtale
 import helpers as hp
@@ -16,6 +15,7 @@ import readline
 import run_collectors as rc
 import validators as vl
 
+from collectors import collectors as cl
 from IPython.display import clear_output
 from IPython.display import display
 
