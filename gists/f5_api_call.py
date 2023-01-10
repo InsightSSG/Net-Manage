@@ -26,11 +26,11 @@ def main():
                'loginProviderName': 'tmos'}
     response = requests.post(url, json=content, verify=verify)
     token = response.json()['token']['token']
-    
+
     # Create the header to use for future API calls
     header = {'X-F5-Auth-Token': token}
 
-    # There is a bug in some versions of F5 code that cause API calls to fail
+    # There is a bug in some versions of F5 code that causes API calls to fail
     # if the token is used within 1 second of requesting it.
     # See: https://cdn.f5.com/product/bugtracker/ID1108181.html
     sleep(1.5)
