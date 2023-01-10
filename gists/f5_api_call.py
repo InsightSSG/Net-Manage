@@ -24,7 +24,7 @@ def main():
     content = {'username': username,
                'password': password,
                'loginProviderName': 'tmos'}
-    response = requests.post(url, json=content, verify=False)
+    response = requests.post(url, json=content, verify=verify)
     token = response.json()['token']['token']
     
     # Create the header to use for future API calls
@@ -37,29 +37,30 @@ def main():
 
     # Get a list of collections (node, pool, VIP, etc) within the LTM module
     url = f'{device}/mgmt/tm/ltm'
-    response = requests.get(url, headers=header, verify=False)
+    response = requests.get(url, headers=header, verify=verify)
     pprint(response.json())
 
     # Get a list of all nodes within the all partitions LTM module
     url = f'{device}/mgmt/tm/ltm/node'
-    response = requests.get(url, headers=header, verify=False)
+    response = requests.get(url, headers=header, verify=verify)
     # pprint(response.json())
 
     # Get a list of all nodes within the /Common partition
     url = f'{device}/mgmt/tm/ltm/node?$filter=partition eq Common'
-    response = requests.get(url, headers=header, verify=False)
+    response = requests.get(url, headers=header, verify=verify)
     # pprint(response.json())
 
     # The same format applies to VIPs, pools, SNAT, and any other collectors
     # within the LTM module. Here are two more examples. The first collects the
     # pools and the second collects the VIPs.
     url = f'{device}/mgmt/tm/ltm/pool'
-    response = requests.get(url, headers=header, verify=False)
+    response = requests.get(url, headers=header, verify=verify)
     # pprint(response.json())
 
     url = f'{device}/mgmt/tm/ltm/virtual'
-    response = requests.get(url, headers=header, verify=False)
+    response = requests.get(url, headers=header, verify=verify)
     # pprint(response.json())
+
 
 if __name__ == '__main__':
     main()
