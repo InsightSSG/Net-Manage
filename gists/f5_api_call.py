@@ -51,8 +51,8 @@ def main():
     # pprint(response.json())
 
     # The same format applies to VIPs, pools, SNAT, and any other collectors
-    # within the LTM module. Here are two more examples. The first collectors
-    # the pools and the second collectors the VIPs.
+    # within the LTM module. Here are two more examples. The first collects the
+    # pools and the second collects the VIPs.
     url = f'{device}/mgmt/tm/ltm/pool'
     response = requests.get(url, headers=header, verify=False)
     # pprint(response.json())
