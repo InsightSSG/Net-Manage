@@ -14,8 +14,10 @@ def main():
     device = f'https://{device}'
 
     # Since this is a test environment, I disabled SSL cert verification and
-    # suppressed warnings. These variables should be commented out in a
-    # production environment unless you are using self-signed certificates.
+    # suppressed warnings. If you run this in a production environment then I
+    # recommend changing 'verify' to True and commenting out or removing
+    # 'requests.urllib3.disable_warnings()' (unless you are using self-signed
+    # certificates).
     verify = False
     requests.urllib3.disable_warnings()
 
