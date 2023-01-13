@@ -2684,6 +2684,7 @@ def nxos_get_port_channel_data(username,
             device = event_data['remote_addr']
 
             output = event_data['res']['stdout'][0].split('\n')
+
             # output.append(str())  # For finding the end of database entries
             output = [_ for _ in output if _ != 'Legend:']
             output = [_ for _ in output if '"*":' not in _]
@@ -2867,58 +2868,36 @@ def nxos_get_vpc_state(username,
                                 suppress_env_files=True)
 
     # Parse the output and add it to 'data'
-    # df_data = list()
-
-    df_data = dict()
-    df_data['device'] = list()
+    data = dict()
 
     for event in runner.events:
         if event['event'] == 'runner_on_ok':
             event_data = event['event_data']
-
             device = event_data['remote_addr']
-
             output = event_data['res']['stdout'][0].split('\n')
 
-            # row = [device]
-            # for line in output[:-2]:
-            #     line = line.split(':')[-1].strip()
-            #     row.append(line)
-            # df_data.append(row)
+            # Remove empty lines
+            output = list(filter(None, output))
+            # Remove 'vPC Peer-link status'
+            output = [_ for _ in output if _ != 'vPC Peer-link status']
 
+            data[device] = dict()
+            data[device]['device'] = device
             for line in output:
-                df_data['device'].append(device)
-
                 col_name = line.split(':')[0].strip()
-                if not df_data[col_name]:
-                    df_data[col_name] = list()
+                data[device][col_name] = line.split(':')[1].strip()
 
-                df_data[col_name].append(line.split(':')[1].strip())
+    df_data = dict()
+    df_data['device'] = list()
+    for key in data:
+        for k in data[key]:
+            df_data[k] = list()
 
-            # # Create the DataFrame columns
-            # cols = ['device',
-            #         'vPC domain id',
-            #         'Peer status',
-            #         'vPC keep-alive status',
-            #         'Configuration consistency status',
-            #         'Per-vlan consistency status',
-            #         'Type-2 consistency status',
-            #         'vPC role',
-            #         'Number of vPCs configured',
-            #         'Peer Gateway',
-            #         'Peer gateway excluded VLANs',
-            #         'Dual-active excluded VLANs',
-            #         'Graceful Consistency Check',
-            #         'Operational Layer3 Peer-router',
-            #         'Auto-recovery status']
+    for device in data:
+        for key in df_data:
+            df_data[key].append(data[device].get(key))
 
     df_vpc_state = pd.DataFrame.from_dict(df_data)
-
-    # # Create the dataframe and return it
-    # if len(df_data) > 0:
-    #     df_vpc_state = pd.DataFrame(data=df_data, columns=cols)
-    # else:
-    #     df_vpc_state = pd.DataFrame()
 
     return df_vpc_state
 
