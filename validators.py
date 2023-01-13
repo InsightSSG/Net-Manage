@@ -28,16 +28,13 @@ def f5_pool_availability(db_path, table):
             'state',
             'reason']
 
+    validation_col = 'availability'
     df_diff = validator_single_col(cols,
                                    db_path,
                                    'available',
                                    'device',
                                    table,
-                                   'availability')
-
-    # Re-order columns so that 'original_status' and 'new_status' are last
-    cols = ['original_availability', 'new_availability']
-    hp.move_cols_to_end(df_diff, cols)
+                                   validation_col)
 
     return df_diff
 
@@ -60,12 +57,13 @@ def f5_pool_member_availability(db_path, table):
             'pool_member',
             'pool_member_state']
 
+    validation_col = 'pool_member_state'
     df_diff = validator_single_col(cols,
                                    db_path,
                                    'available',
                                    'device',
                                    table,
-                                   'pool_member_state')
+                                   validation_col)
 
     return df_diff
 
@@ -90,16 +88,13 @@ def f5_vip_availability(db_path, table):
             'availability',
             'reason']
 
+    validation_col = 'availability'
     df_diff = validator_single_col(cols,
                                    db_path,
                                    'available',
                                    'device',
                                    table,
-                                   'availability')
-
-    # Re-order columns so that 'original_status' and 'new_status' are last
-    cols = ['original_availability', 'new_availability']
-    hp.move_cols_to_end(df_diff, cols)
+                                   validation_col)
 
     return df_diff
 
@@ -125,12 +120,13 @@ def meraki_device_statuses_availability(db_path, table):
             'mac',
             'status']
 
+    validation_col = 'status'
     df_diff = validator_single_col(cols,
                                    db_path,
                                    'online',
                                    'mac',
                                    table,
-                                   'status')
+                                   validation_col)
 
     return df_diff
 
@@ -154,7 +150,7 @@ def validator_single_col(columns,
                                 below)
         identifier_col (str):   The column name to use for identifying a unique
                                 entity (e.g., device, network, organization,
-                                etc)
+                                mac, etc)
         table (str):            The name of the table
         validation_col (str):   The column name to use for validation
 
@@ -242,8 +238,13 @@ def validator_single_col(columns,
                 df_left[f'new_{validation_col}'] = new
                 df_diff = pd.concat([df_diff, df_left])
 
-    # Rename the 'status' column to 'original_status'
+    # Rename the validation column to 'original_{validation_col}'
     df_diff.rename(columns={validation_col: f'original_{validation_col}'},
                    inplace=True)
+
+    # Move the original and new validation columns to the last two columns
+    if len(df_diff) >= 1:  # To keep empty dataframe from causing an exception
+        cols = [f'original_{validation_col}', f'new_{validation_col}']
+        hp.move_cols_to_end(df_diff, cols)
 
     return df_diff

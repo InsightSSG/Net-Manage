@@ -444,9 +444,6 @@ def add_to_db(collector,
     # This scenario is very common, and it's not always possible to
     # future-proof collectors to account for it,
     if len(schema) >= 1:
-        # columns = result.columns.to_list()
-        # columns = [f'"{c}"' for c in columns]
-        print(columns)
         for col in result.columns.to_list():
             if col not in schema['name'].to_list():
                 print(col)
