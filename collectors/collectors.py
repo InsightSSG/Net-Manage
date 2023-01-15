@@ -532,6 +532,9 @@ def f5_get_node_availability(username,
                                 suppress_env_files=True)
 
     df_data = dict()
+    df_data['device'] = list()
+    df_data['partition'] = list()
+    df_data['node'] = list()
 
     for event in runner.events:
         if event['event'] == 'runner_on_ok':
@@ -541,17 +544,14 @@ def f5_get_node_availability(username,
 
             output = event_data['res']['stdout_lines'][0]
 
-            # Create the dictionary structure for 'df_data'
-            df_data['device'] = list()
-            df_data['partition'] = list()
-            df_data['node'] = list()
-
+            # Create remaining dictionary structure for 'df_data'
             for line in output:
                 if 'ltm node' in line and '{' in line:
                     pos = output.index(line)
                     while '}' not in output[pos+1]:
                         key = output[pos+1].split()[0]
-                        df_data[key] = list()
+                        if not df_data.get(key):
+                            df_data[key] = list()
                         pos += 1
                 break
 

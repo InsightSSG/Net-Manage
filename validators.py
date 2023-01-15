@@ -9,6 +9,37 @@ import pandas as pd
 import sqlite3 as sl
 
 
+def f5_node_availability(db_path, table):
+    '''
+    Validates the state of F5 nodes based on the 'monitor-status' column.
+
+    Args:
+        db_path (str):  The path to the database
+        table (str):    The name of the table
+
+    Returns:
+        df_diff (obj):  A DataFrame containing any differences
+    '''
+    # Define the columns to query
+    cols = ['device',
+            'partition',
+            'node',
+            'name',
+            'addr',
+            'monitor-rule',
+            'monitor-status']
+
+    validation_col = 'monitor-status'
+    df_diff = validator_single_col(cols,
+                                   db_path,
+                                   'up',
+                                   'device',
+                                   table,
+                                   validation_col)
+
+    return df_diff
+
+
 def f5_pool_availability(db_path, table):
     '''
     Validates the state of F5 pools based on the 'availability' column.
@@ -157,6 +188,8 @@ def validator_single_col(columns,
     Returns:
         df_diff (obj):  A DataFrame containing any differences
     '''
+    # Wrap 'columns' in quotes
+    columns = [f'"{_}"' for _ in columns]
     return_cols = ',\n'.join(columns)
 
     # Get the first and last timestamp for each unique device in the table
@@ -193,14 +226,14 @@ def validator_single_col(columns,
         # to the status in the second timestamp, and stores the results in a
         # dataframe.
         query = f'''select {return_cols} from {table}
-                    where ({validation_col} = "{expected}"
-                        or {validation_col} != "{expected}")
+                    where ("{validation_col}" = "{expected}"
+                        or "{validation_col}" != "{expected}")
                       and timestamp = "{first_ts}"
                       and {identifier_col} = "{unique}"
                     except
                     select {return_cols} from {table}
-                    where ({validation_col} = "{expected}"
-                        or {validation_col} != "{expected}")
+                    where ("{validation_col}" = "{expected}"
+                        or "{validation_col}" != "{expected}")
                       and timestamp = "{last_ts}"
                       and {identifier_col} = "{unique}"
                 '''
@@ -213,14 +246,14 @@ def validator_single_col(columns,
             # timestamp to the status in the first timestamp, then stores the
             # result in a dataframe.
             query = f'''select {return_cols} from {table}
-                        where ({validation_col} = "{expected}"
-                            or {validation_col} != "{expected}")
+                        where ("{validation_col}" = "{expected}"
+                            or "{validation_col}" != "{expected}")
                         and timestamp = "{last_ts}"
                         and {identifier_col} = "{unique}"
                         except
                         select {return_cols} from {table}
-                        where ({validation_col} = "{expected}"
-                            or {validation_col} != "{expected}")
+                        where ("{validation_col}" = "{expected}"
+                            or "{validation_col}" != "{expected}")
                         and timestamp = "{first_ts}"
                         and {identifier_col} = "{unique}"
                     '''
@@ -241,6 +274,9 @@ def validator_single_col(columns,
     # Rename the validation column to 'original_{validation_col}'
     df_diff.rename(columns={validation_col: f'original_{validation_col}'},
                    inplace=True)
+
+    # Drop NaNs (empty columns were created by wrapping 'columns' in quotes)
+    df_diff = df_diff.dropna(axis=1, how='all')
 
     # Move the original and new validation columns to the last two columns
     if len(df_diff) >= 1:  # To keep empty dataframe from causing an exception

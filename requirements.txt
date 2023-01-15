@@ -1,16 +1,18 @@
-# Install with Conda
+# Install with Conda Forge
 
-ansible
+ansible # conda install conda-forge::ansible
 # ansible-pylibssh
-ansible-runner>=2.2.1
+ansible-runner>=2.2.1 # conda install conda-forge::ansible-runner
 # dtale
 # git+https://github.com/wangoloj/python3-nmap.git
+
+# Install with Conda
+
 flake8  # Linter used for CI/CD
-ipywidgets
 # jinja2>=3.0.3
 jupyterlab
+ipywidgets
 # jupyterlab_widgets
-pip
 # meraki
 nest-asyncio
 # openpyxl
@@ -26,6 +28,13 @@ simplejson  # Requirement for python3-nmap
 # tabulate
 # xmltodict
 
-# Install with pip
-meraki
-python3-nmap
+
+pip # Install this within the Conda environment. Do not skip this step. If it
+    # says it is already installed, you can verify it is running within the
+    # conda environment by typing 'pip --version'. You should see output like
+    # this:
+    # 'pip 22.3.1 from /home/>user>/miniconda3/envs/Net-Manage-Portable/lib/python3.10/site-packages/pip (python 3.10)'
+
+# Install with pip *after* installing pip within the conda environment
+meraki  # pip install meraki
+python3-nmap  # pip install python3-nmap
