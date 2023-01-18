@@ -353,6 +353,7 @@ def define_collectors(hostgroup):
                   'meraki_get_org_devices': ['meraki'],
                   'meraki_get_org_device_statuses': ['meraki'],
                   'meraki_get_org_networks': ['meraki'],
+                  'meraki_get_switch_port_statuses': ['meraki'],
                   'port_channel_data': ['cisco.nxos.nxos'],
                   'vlan_database': ['cisco.nxos.nxos'],
                   'vpc_state': ['cisco.nxos.nxos'],
@@ -667,11 +668,27 @@ def set_dependencies(selected):
             del s[pos]
         s.insert(0, 'meraki_get_organizations')
 
+    if 'meraki_get_switch_port_statuses' in s:
+        if 'meraki_get_org_devices' in s:
+            pos = s.index('meraki_get_org_devices')
+            del s[pos]
+        s.insert(0, 'meraki_get_org_devices')
+        if 'meraki_get_organizations' in s:
+            del s[pos]
+        s.insert(0, 'meraki_get_organizations')
+
     if 'meraki_get_vpn_statuses' in s:
         if 'meraki_get_organizations' in s:
             pos = s.index('meraki_get_organizations')
             del s[pos]
         s.insert(0, 'meraki_get_organizations')
+
+    # Remove duplicate collectors from 's'
+    non_dups = list()
+    for item in s:
+        if item not in non_dups:
+            non_dups.append(item)
+    s = non_dups
 
     selected = s
     return s
