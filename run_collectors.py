@@ -300,6 +300,9 @@ def collect(collector,
                                               play_path,
                                               private_data_dir)
 
+    if collector == 'meraki_get_lldp_neighbors_switch':
+        result = mc.meraki_get_lldp_neighbors_switch(db_path)
+
     if collector == 'meraki_get_network_devices':
         result = mc.meraki_get_network_devices(api_key,
                                                db_path,

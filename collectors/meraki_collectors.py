@@ -5,9 +5,106 @@ Define Meraki collectors.
 '''
 
 import helpers as hp
+import json
 import meraki
 import pandas as pd
 import sqlite3 as sl
+
+
+def meraki_get_lldp_neighbors_switch(db_path):
+    '''
+    Uses the data returned from the 'meraki_get_switch_port_statuses' collector
+    to create a dataframe containing switch LLDP neighbors.
+
+    Args:
+        db_path (str):          The path to the database containing the
+                                'meraki_get_switch_port_statuses' collector
+                                output
+
+    Returns:
+        df_lldp (dataframe):    A dataframe containing the LLDP neighbors for
+                                the switch(es)
+    '''
+    # Query the database to get the LLDP neighbors
+    headers = ['orgId',
+               'networkId',
+               'name',
+               'serial',
+               'portId as local_port',
+               'lldp']
+    query = f'''SELECT {','.join(headers)}
+    FROM MERAKI_GET_SWITCH_PORT_STATUSES
+    WHERE lldp != 'None'
+    '''
+    con = sl.connect(db_path)
+    result = pd.read_sql(query, con)
+
+    # Rename 'portId as local_port' to 'local_port' and update 'headers'
+    result.rename(columns={'portId as local': 'local_port'}, inplace=True)
+    headers = result.columns.to_list()
+
+    # Perform the following steps:
+    # 1. Convert result['lldp'] to dictionaries
+    # 2. Append them to a list
+    # 3. Use the keys in each dictionary to populate the 'headers' dictionary,
+    #    which will become the column headers for 'df_lldp'. This is necessary
+    #    because the Meraki API does not return keys that have no value.
+    lldp_col = result['lldp'].to_list()
+
+    lldp_col = [json.loads(_.replace("'", '"')) for _ in lldp_col]
+    # lldp_col = [json.loads(_) for _ in lldp_col]
+
+    for item in lldp_col:
+        for key in item:
+            if key not in headers:
+                headers.append(key)
+
+    # print(result)
+    from pprint import pprint
+    pprint(lldp_col)
+    print(result)
+    print(headers)
+
+    # Create a list to store the data that will be used to create the
+    # dataframe. This method ensures that keys that the Meraki API did not
+    # return (because they were empty) are added to 'df_lldp'
+    df_data = list()
+
+    # Create a list from the values of each LLDP neighbor, and append the
+    # values to df_data
+    for item in lldp_col:
+        row = list()
+        for header in headers:
+            row.append(item.get(header))
+        df_data.append(row)
+
+    print(headers)
+
+    # Create the dataframe
+    df_lldp = pd.DataFrame(data=df_data, columns=headers)
+
+    # Re-order columns. Only certain columns are selected. This ensures that
+    # the code will continue to function if Meraki adds additional keys in the
+    # future.
+    col_order = ['orgId',
+                 'networkId',
+                 'name',
+                 'serial',
+                 'portId',
+                 'chassisId',
+                 'portId',
+                 'systemName',
+                 'systemDescription',
+                 'managementAddress']
+
+    # Reverse the list so the last item becomes the first column, the next to
+    # last item becomes the second column, and so on.
+    col_order.reverse()
+    # Re-order the columns
+    for c in col_order:
+        df_lldp.insert(0, c, df_lldp.pop(c))
+
+    return df_lldp
 
 
 def meraki_get_network_devices(api_key, db_path, networks=list(), orgs=list()):
@@ -379,7 +476,7 @@ def meraki_get_switch_port_statuses(api_key, db_path, networks):
     # Query the database to get all switches in the network(s)
     statement = f'''networkId = "{'" or networkId = "'.join(networks)}"'''
     query = f'''SELECT distinct orgId, networkId, name, serial
-    FROM MERAKI_GET_ORG_DEVICEs
+    FROM MERAKI_GET_ORG_DEVICES
     WHERE ({statement}) and productType = 'switch'
     '''
 
