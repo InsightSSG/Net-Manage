@@ -5,8 +5,10 @@ Define Meraki collectors.
 '''
 
 import helpers as hp
+import json
 import meraki
 import pandas as pd
+import sqlite3 as sl
 
 
 def meraki_get_network_devices(api_key, db_path, networks=list(), orgs=list()):
@@ -158,15 +160,17 @@ def meraki_get_org_devices(api_key, db_path, orgs=list()):
         if enabled:
             devices = app.getOrganizationDevices(org, total_pages="all")
             for item in devices:
+                item['orgId'] = org
                 data.append(item)
 
     df_data = dict()
+    df_data['orgId'] = list()
 
     # Get all of the keys from devices in 'data', and add them as a key to
     # 'df_data'. The value of the key in 'df_data' will be a list.
     for item in data:
         for key in item:
-            if not df_data.get(key):
+            if not df_data.get(key) and key != 'orgId':
                 df_data[key] = list()
 
     # Iterate over the devices, adding the data for each device to 'df_data'
@@ -357,3 +361,173 @@ def meraki_get_org_networks(api_key,
     df_networks = pd.DataFrame.from_dict(df_data).astype(str)
 
     return df_networks
+
+
+def meraki_get_switch_lldp_neighbors(db_path):
+    '''
+    Uses the data returned from the 'meraki_get_switch_port_statuses' collector
+    to create a dataframe containing switch LLDP neighbors.
+
+    Args:
+        db_path (str):          The path to the database containing the
+                                'meraki_get_switch_port_statuses' collector
+                                output
+
+    Returns:
+        df_lldp (dataframe):    A dataframe containing the LLDP neighbors for
+                                the switch(es)
+    '''
+    # Query the database to get the LLDP neighbors
+    headers = ['orgId',
+               'networkId',
+               'name',
+               'serial',
+               'portId as local_port',
+               'lldp']
+    query = f'''SELECT {','.join(headers)}
+    FROM MERAKI_GET_SWITCH_PORT_STATUSES
+    WHERE lldp != 'None'
+    '''
+    con = sl.connect(db_path)
+    result = pd.read_sql(query, con)
+
+    # Rename 'portId as local_port' to 'local_port' and update 'headers'
+    result.rename(columns={'portId as local': 'local_port'}, inplace=True)
+    headers = result.columns.to_list()
+
+    # Add result['lldp'] to a list and convert each item into a dictionary. The
+    # dictionaries will be used to create the column headers.
+    lldp_col = result['lldp'].to_list()
+    lldp_col = [json.loads(_.replace("'", '"')) for _ in lldp_col]
+
+    # keys = headers
+    keys = list()
+    for item in lldp_col:
+        for key in item:
+            if key not in keys:
+                keys.append(key)
+
+    # Create a list to store the data that will be used to create the
+    # dataframe. This method ensures that keys that the Meraki API did not
+    # return (because they were empty) are added to 'df_lldp'
+    df_data = list()
+
+    for idx, row in result.iterrows():
+        _row = [row['orgId'],
+                row['networkId'],
+                row['name'],
+                row['serial'],
+                row['local_port']]
+        lldp = json.loads(row['lldp'].replace("'", '"'))
+        for key in keys:
+            _row.append(lldp.get(key))
+        df_data.append(_row)
+
+    headers.reverse()
+    for item in headers:
+        if item != 'lldp':
+            keys.insert(0, item)
+
+    # Create the dataframe
+    df_lldp = pd.DataFrame(data=df_data, columns=keys)
+
+    df_lldp.rename(columns={'portId': 'remote_port'}, inplace=True)
+
+    # Re-order columns. Only certain columns are selected. This ensures that
+    # the code will continue to function if Meraki adds additional keys in the
+    # future.
+    col_order = ['orgId',
+                 'networkId',
+                 'name',
+                 'serial',
+                 'local_port',
+                 'remote_port',
+                 'systemName',
+                 'chassisId',
+                 'systemDescription',
+                 'managementAddress']
+
+    # Reverse the list so the last item becomes the first column, the next to
+    # last item becomes the second column, and so on.
+    col_order.reverse()
+    # Re-order the columns
+    for c in col_order:
+        df_lldp.insert(0, c, df_lldp.pop(c))
+
+    return df_lldp
+
+
+def meraki_get_switch_port_statuses(api_key, db_path, networks):
+    '''
+    Gets the port statuses and associated data (including errors and warnings)
+    for all Meraki switches in the specified network(s).
+
+    Args:
+        api_key (str):          The user's API key
+        db_path (str):          The path to the database to store results
+        networks (list):        The networks in which to gather switch port
+                                statuses.
+
+    Returns:
+        df_ports (DataFrame):   The port statuses
+    '''
+    # Query the database to get all switches in the network(s)
+    statement = f'''networkId = "{'" or networkId = "'.join(networks)}"'''
+    query = f'''SELECT distinct orgId, networkId, name, serial
+    FROM MERAKI_GET_ORG_DEVICES
+    WHERE ({statement}) and productType = 'switch'
+    '''
+
+    con = sl.connect(db_path)
+    df_ports = pd.read_sql(query, con)
+
+    # Initialize the dashboard
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
+    app = dashboard.switch
+
+    # Get the port statuses for the switches in df_ports
+    data = dict()
+    for idx, row in df_ports.iterrows():
+        orgId = row['orgId']
+        networkId = row['networkId']
+        name = row['name']
+        serial = row['serial']
+
+        data[serial] = dict()
+
+        ports = app.getDeviceSwitchPortsStatuses(serial)
+        for port in ports:
+            port_id = port['portId']
+            data[serial][port_id] = dict()
+            data[serial][port_id]['orgId'] = orgId
+            data[serial][port_id]['networkId'] = networkId
+            data[serial][port_id]['name'] = name
+            data[serial][port_id]['serial'] = serial
+            for key, value in port.items():
+                data[serial][port_id][key] = value
+
+    # Create a dictionary based on the contents of 'data'. This method ensures
+    # that all arrays are of equal length when we create the dataframe.
+    df_data = dict()
+    df_data['orgId'] = list()
+    df_data['networkId'] = list()
+    df_data['name'] = list()
+    df_data['serial'] = list()
+    for item in data:
+        device = data[item]
+        for port in device:
+            for key in device[port]:
+                if not df_data.get(key):
+                    df_data[key] = list()
+
+    # from pprint import pprint
+    for item in data:
+        device = data[item]
+        for port in device:
+            for key in df_data:
+                df_data[key].append(device[port].get(key))
+
+    df_ports = pd.DataFrame.from_dict(df_data)
+    df_ports = df_ports.astype(str)
+
+    return df_ports

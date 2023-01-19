@@ -326,6 +326,12 @@ def collect(collector,
                                             orgs=orgs,
                                             use_db=True)
 
+    if collector == 'meraki_get_switch_lldp_neighbors':
+        result = mc.meraki_get_switch_lldp_neighbors(db_path)
+
+    if collector == 'meraki_get_switch_port_statuses':
+        result = mc.meraki_get_switch_port_statuses(api_key, db_path, networks)
+
     if collector == 'port_channel_data':
         if ansible_os == 'cisco.nxos.nxos':
             result = cl.nxos_get_port_channel_data(username,
@@ -424,7 +430,7 @@ def add_to_db(collector,
     # ID column)
     columns = result.columns.to_list()
     columns = [f'"{c}"' for c in columns]
-    if len(schema) == 0:
+    if len(schema) == 0 and len(result) > 0:
         fields = ',\n'.join(columns)
         cur.execute(f'''CREATE TABLE {collector.upper()} (
                     table_id INTEGER PRIMARY KEY AUTOINCREMENT,
