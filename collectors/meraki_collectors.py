@@ -43,45 +43,43 @@ def meraki_get_lldp_neighbors_switch(db_path):
     result.rename(columns={'portId as local': 'local_port'}, inplace=True)
     headers = result.columns.to_list()
 
-    # Perform the following steps:
-    # 1. Convert result['lldp'] to dictionaries
-    # 2. Append them to a list
-    # 3. Use the keys in each dictionary to populate the 'headers' dictionary,
-    #    which will become the column headers for 'df_lldp'. This is necessary
-    #    because the Meraki API does not return keys that have no value.
+    # Add result['lldp'] to a list and convert each item into a dictionary. The
+    # dictionaries will be used to create the column headers.
     lldp_col = result['lldp'].to_list()
-
     lldp_col = [json.loads(_.replace("'", '"')) for _ in lldp_col]
-    # lldp_col = [json.loads(_) for _ in lldp_col]
 
+    # keys = headers
+    keys = list()
     for item in lldp_col:
         for key in item:
-            if key not in headers:
-                headers.append(key)
-
-    # print(result)
-    from pprint import pprint
-    pprint(lldp_col)
-    print(result)
-    print(headers)
+            if key not in keys:
+                keys.append(key)
 
     # Create a list to store the data that will be used to create the
     # dataframe. This method ensures that keys that the Meraki API did not
     # return (because they were empty) are added to 'df_lldp'
     df_data = list()
 
-    # Create a list from the values of each LLDP neighbor, and append the
-    # values to df_data
-    for item in lldp_col:
-        row = list()
-        for header in headers:
-            row.append(item.get(header))
-        df_data.append(row)
+    for idx, row in result.iterrows():
+        _row = [row['orgId'],
+                row['networkId'],
+                row['name'],
+                row['serial'],
+                row['local_port']]
+        lldp = json.loads(row['lldp'].replace("'", '"'))
+        for key in keys:
+            _row.append(lldp.get(key))
+        df_data.append(_row)
 
-    print(headers)
+    headers.reverse()
+    for item in headers:
+        if item != 'lldp':
+            keys.insert(0, item)
 
     # Create the dataframe
-    df_lldp = pd.DataFrame(data=df_data, columns=headers)
+    df_lldp = pd.DataFrame(data=df_data, columns=keys)
+
+    df_lldp.rename(columns={'portId': 'remote_port'}, inplace=True)
 
     # Re-order columns. Only certain columns are selected. This ensures that
     # the code will continue to function if Meraki adds additional keys in the
@@ -90,10 +88,10 @@ def meraki_get_lldp_neighbors_switch(db_path):
                  'networkId',
                  'name',
                  'serial',
-                 'portId',
-                 'chassisId',
-                 'portId',
+                 'local_port',
+                 'remote_port',
                  'systemName',
+                 'chassisId',
                  'systemDescription',
                  'managementAddress']
 
