@@ -531,3 +531,57 @@ def meraki_get_switch_port_statuses(api_key, db_path, networks):
     df_ports = df_ports.astype(str)
 
     return df_ports
+
+
+def meraki_get_switch_port_usages(api_key, db_path, networks, timestamp):
+    '''
+    Gets switch port usage in total rate per second.
+
+    Args:
+        api_key (str):          The user's API key
+        db_path (str):          The path to the database to store results
+        networks (list):        The networks in which to gather switch port
+                                statuses.
+        timestamp (str):        The timestamp passed to run_collectors
+
+    Returns:
+        df_usage (DataFrame):   The port statuses
+    '''
+    # Query the database to get all switches in the network(s)
+    statement = f'''networkId = "{'" or networkId = "'.join(networks)}"'''
+    query = f'''SELECT distinct orgId, networkId, name, serial, portId
+    FROM MERAKI_GET_SWITCH_PORT_STATUSES
+    WHERE {statement} and timestamp = "{timestamp}"
+    '''
+
+    con = sl.connect(db_path)
+    df_devices = pd.read_sql(query, con)
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
+    app = dashboard.switch
+
+    # Extract the unique serials
+    serials = [*set(df_devices['serial'].to_list())]
+
+    # Convert the dataframe to a list. The keys will be the column names, and
+    # the values will be a list containing the column data
+    df_data = df_devices.to_dict('list')
+    # Create empty lists for rate per second data that will be collected
+    df_data['ratePerSec'] = list()
+    df_data['sentRatePerSec'] = list()
+    df_data['recvRatePerSec'] = list()
+
+    # Get the port usage for each device in the network(s), and add it to
+    # df_data
+    for serial in serials:
+        for item in app.getDeviceSwitchPortsStatusesPackets(serial):
+            ratePerSec = item['packets'][0]['ratePerSec']['total']
+            sentRatePerSec = item['packets'][0]['ratePerSec']['sent']
+            recvRatePerSec = item['packets'][0]['ratePerSec']['recv']
+            df_data['ratePerSec'].append(ratePerSec)
+            df_data['sentRatePerSec'].append(sentRatePerSec)
+            df_data['recvRatePerSec'].append(recvRatePerSec)
+
+    # Create and return df_usage
+    df_usage = pd.DataFrame.from_dict(df_data)
+
+    return df_usage

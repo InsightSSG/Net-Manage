@@ -355,6 +355,7 @@ def define_collectors(hostgroup):
                   'meraki_get_org_networks': ['meraki'],
                   'meraki_get_switch_port_statuses': ['meraki'],
                   'meraki_get_switch_lldp_neighbors': ['meraki'],
+                  'meraki_get_switch_port_usages': ['meraki'],
                   'port_channel_data': ['cisco.nxos.nxos'],
                   'vlan_database': ['cisco.nxos.nxos'],
                   'vpc_state': ['cisco.nxos.nxos'],
@@ -677,6 +678,12 @@ def set_dependencies(selected):
                 del s[pos]
         for d in dependencies:
             s.insert(0, d)
+
+    if 'meraki_get_switch_port_usages' in s:
+        if 'meraki_get_switch_port_statuses' in s:
+            pos = s.index('meraki_get_switch_port_statuses')
+            del s[pos]
+        s.insert(0, 'meraki_get_switch_port_statuses')
 
     if 'meraki_get_switch_port_statuses' in s:
         if 'meraki_get_org_devices' in s:
