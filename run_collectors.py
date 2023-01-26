@@ -332,6 +332,12 @@ def collect(collector,
     if collector == 'meraki_get_switch_port_statuses':
         result = mc.meraki_get_switch_port_statuses(api_key, db_path, networks)
 
+    if collector == 'meraki_get_switch_port_usages':
+        result = mc.meraki_get_switch_port_usages(api_key,
+                                                  db_path,
+                                                  networks,
+                                                  timestamp)
+
     if collector == 'port_channel_data':
         if ansible_os == 'cisco.nxos.nxos':
             result = cl.nxos_get_port_channel_data(username,
