@@ -873,6 +873,7 @@ def f5_get_pool_member_availability(username,
                         pool = name[-1].strip()
                     else:
                         pool = line.split()[-1].strip()
+                        partition = 'Common'
 
                     # df_dict[device][pool] = dict()
                     counter = pos+1
