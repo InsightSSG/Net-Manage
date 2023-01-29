@@ -5,6 +5,7 @@ A library of generic helper functions for dynamic runbooks.
 '''
 
 import ansible_runner
+import numpy as np
 import os
 import pandas as pd
 import sqlite3 as sl
@@ -348,11 +349,16 @@ def define_collectors(hostgroup):
                                              'paloaltonetworks.panos'],
                   'interface_status': ['cisco.nxos.nxos'],
                   'interface_summary': ['bigip', 'cisco.nxos.nxos'],
+                  'meraki_get_network_clients': ['meraki'],
                   'meraki_get_network_devices': ['meraki'],
+                  'meraki_get_network_device_statuses': ['meraki'],
                   'meraki_get_organizations': ['meraki'],
                   'meraki_get_org_devices': ['meraki'],
                   'meraki_get_org_device_statuses': ['meraki'],
                   'meraki_get_org_networks': ['meraki'],
+                  'meraki_get_switch_port_statuses': ['meraki'],
+                  'meraki_get_switch_lldp_neighbors': ['meraki'],
+                  'meraki_get_switch_port_usages': ['meraki'],
                   'port_channel_data': ['cisco.nxos.nxos'],
                   'vlan_database': ['cisco.nxos.nxos'],
                   'vpc_state': ['cisco.nxos.nxos'],
@@ -643,6 +649,12 @@ def set_dependencies(selected):
             del s[pos]
         s.insert(0, 'meraki_get_organizations')
 
+    if 'meraki_get_network_device_statuses' in s:
+        if 'meraki_get_org_device_statuses' in s:
+            pos = s.index('meraki_get_org_device_statuses')
+            del s[pos]
+        s.insert(0, 'meraki_get_org_device_statuses')
+
     if 'meraki_get_network_devices' in s:
         if 'meraki_get_organizations' in s:
             pos = s.index('meraki_get_organizations')
@@ -667,11 +679,42 @@ def set_dependencies(selected):
             del s[pos]
         s.insert(0, 'meraki_get_organizations')
 
+    if 'meraki_get_switch_lldp_neighbors' in s:
+        dependencies = ['meraki_get_switch_port_statuses']
+        for d in dependencies:
+            if d in s:
+                pos = s.index(d)
+                del s[pos]
+        for d in dependencies:
+            s.insert(0, d)
+
+    if 'meraki_get_switch_port_usages' in s:
+        if 'meraki_get_switch_port_statuses' in s:
+            pos = s.index('meraki_get_switch_port_statuses')
+            del s[pos]
+        s.insert(0, 'meraki_get_switch_port_statuses')
+
+    if 'meraki_get_switch_port_statuses' in s:
+        if 'meraki_get_org_devices' in s:
+            pos = s.index('meraki_get_org_devices')
+            del s[pos]
+        s.insert(0, 'meraki_get_org_devices')
+        if 'meraki_get_organizations' in s:
+            del s[pos]
+        s.insert(0, 'meraki_get_organizations')
+
     if 'meraki_get_vpn_statuses' in s:
         if 'meraki_get_organizations' in s:
             pos = s.index('meraki_get_organizations')
             del s[pos]
         s.insert(0, 'meraki_get_organizations')
+
+    # Remove duplicate collectors from 's'
+    non_dups = list()
+    for item in s:
+        if item not in non_dups:
+            non_dups.append(item)
+    s = non_dups
 
     selected = s
     return s
@@ -824,49 +867,45 @@ def get_tests_file():
     return t_file
 
 
-def get_user_meraki_input(collectors=str()):
+def get_user_meraki_input():
     '''
     Gets and parses user input when they select collectors for Meraki
     organizations.
 
     Args:
-        collectors (list):  (Optional) The list of collectors the user
-                            selected. This is here for future compatibility.
+        None
 
     Returns:
+        args_dict (dict):   A dictionary containing the arguments
         orgs (list):        A list of organizations. The list will be empty
                             if the user did not select any.
         networks (list):    A list of networks. The list will be empty if the
                             user did not select any.
     '''
-    # Get the list of organizations
-    question = ['Enter a comma-delimited list of organizations to',
-                'query:']
-    orgs = input(' '.join(question))
+    orgs = input('Enter a comma-delimited list of organizations to query: ')\
+        or list()
     if orgs:
-        orgs = orgs.split(',')
-    if not orgs:
-        orgs = ['all']
+        orgs = [_.strip() for _ in orgs.split(',')]
 
-    # Get the list of networks
-    question = ['Enter a comma-delimited list of networks to query',
-                '(leave blank to query all networks):']
-    networks = input(' '.join(question))
+    networks = input('Enter a comma-delimited list of networks to query: ')\
+        or list()
     if networks:
-        networks = networks.split(',')
-    if not networks:
-        networks = ['all']
+        networks = [_.strip() for _ in networks.split(',')]
 
-    # Remove leading & trailing spaces & empty elements created by extra commas
-    networks = list(filter(None, [n.strip() for n in networks]))
-    if networks == ['all']:
-        networks = list()
+    macs = input('Enter a comma-delimited list of MAC addresses: ') or list()
+    if macs:
+        macs = [_.strip() for _ in macs.split(',')]
 
-    orgs = list(filter(None, [o.strip() for o in orgs]))
-    if orgs == ['all']:
-        orgs = list()
+    timespan = input('Enter the lookback timespan in seconds: ') or '86400'
+    timespan = np.prod([int(_) for _ in timespan.split('*')])
 
-    return networks, orgs
+    per_page = int(input('Enter the number of results per page: ') or 10)
+
+    total_pages = input('Enter the total number of pages to return: ') or 'all'
+    if total_pages[0].isdigit() or total_pages[0] == '-':
+        total_pages = int(total_pages)
+
+    return orgs, networks, macs, timespan, per_page, total_pages
 
 
 def meraki_check_api_enablement(db_path, org):
@@ -894,6 +933,32 @@ def meraki_check_api_enablement(db_path, org):
         enabled = True
 
     return enabled
+
+
+def meraki_map_network_to_organization(db_path, network):
+    '''
+    Gets the organization ID for a network.
+
+    Args:
+        network (str):  A network ID
+        db_path (str):  The path to the database
+
+    Returns:
+        org_id (str):   The organization ID
+    '''
+    query = f'''SELECT distinct timestamp, organizationId
+                FROM MERAKI_GET_ORG_NETWORKS
+                WHERE id = "{network}"
+                ORDER BY timestamp desc
+                LIMIT 1
+             '''
+    con = sl.connect(db_path)
+    result = pd.read_sql(query, con)
+    con.close()
+
+    org_id = result['organizationId'].to_list()[0]
+
+    return org_id
 
 
 def meraki_parse_organizations(db_path, orgs=list(), table=str()):

@@ -34,7 +34,10 @@ def collect(collector,
             orgs=list(),
             total_pages='all',
             idx_cols=list(),
-            method=str()):
+            method=str(),
+            macs=list(),
+            per_page=1000,
+            timespan=86400):
     '''
     This function calls the test that the user requested.
 
@@ -56,7 +59,21 @@ def collect(collector,
         idx_cols (list):        The list of columns to use for indexing the SQL
                                 table. Note that this is NOT related to the
                                 dataframe index; it is only applicable to SQL
+
+        # Default parameters for certain Meraki API calls
+        macs (list):            A list of one or more partial or complete MAC
+                                addresses. This is used for certain collectors,
+                                like 'meraki_get_network_clients'
+        per_page (int):         The number of results per page. Meraki defaults
+                                to 10. This function uses 1000. If performance
+                                is depreciated, choose a lower value.
+        timespan (int):         The lookback time in seconds. Meraki's default
+                                timespan is 1 day (86400 seconds), so the same
+                                default value is used in this function.
+
     '''
+    if total_pages == -1:
+        total_pages = 'all'
     # Call 'silent' (invisible to user) functions to populate custom database
     # tables. For example, on F5s a view will be created that shows the pools,
     # associated VIPs (if applicable) and pool members (if applicable). This
@@ -300,11 +317,22 @@ def collect(collector,
                                               play_path,
                                               private_data_dir)
 
+    if collector == 'meraki_get_network_clients':
+        result = mc.meraki_get_network_clients(api_key,
+                                               networks,
+                                               macs=macs,
+                                               per_page=per_page,
+                                               timespan=timespan,
+                                               total_pages=total_pages)
+
     if collector == 'meraki_get_network_devices':
         result = mc.meraki_get_network_devices(api_key,
                                                db_path,
                                                networks=networks,
                                                orgs=orgs)
+
+    if collector == 'meraki_get_network_device_statuses':
+        result = mc.meraki_get_network_device_statuses(db_path, networks)
 
     if collector == 'meraki_get_organizations':
         result = mc.meraki_get_organizations(api_key)
@@ -316,7 +344,6 @@ def collect(collector,
         tp = total_pages
         result, idx_cols = mc.meraki_get_org_device_statuses(api_key,
                                                              db_path,
-                                                             networks=networks,
                                                              orgs=orgs,
                                                              total_pages=tp)
 
@@ -325,6 +352,18 @@ def collect(collector,
                                             db_path,
                                             orgs=orgs,
                                             use_db=True)
+
+    if collector == 'meraki_get_switch_lldp_neighbors':
+        result = mc.meraki_get_switch_lldp_neighbors(db_path)
+
+    if collector == 'meraki_get_switch_port_statuses':
+        result = mc.meraki_get_switch_port_statuses(api_key, db_path, networks)
+
+    if collector == 'meraki_get_switch_port_usages':
+        result = mc.meraki_get_switch_port_usages(api_key,
+                                                  db_path,
+                                                  networks,
+                                                  timestamp)
 
     if collector == 'port_channel_data':
         if ansible_os == 'cisco.nxos.nxos':
@@ -421,10 +460,10 @@ def add_to_db(collector,
 
     # If the table doesn't exist, create it. (Pandas will automatically create
     # the table, but doing it manually allows us to create an auto-incrementing
-    # ID column)
+    # ID column))
     columns = result.columns.to_list()
     columns = [f'"{c}"' for c in columns]
-    if len(schema) == 0:
+    if len(schema) == 0 and len(result) > 0:
         fields = ',\n'.join(columns)
         cur.execute(f'''CREATE TABLE {collector.upper()} (
                     table_id INTEGER PRIMARY KEY AUTOINCREMENT,
