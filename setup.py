@@ -40,8 +40,12 @@ pd.set_option('display.colheader_justify', 'center')
 pd.set_option('display.precision', 3)
 
 # Pre-define some global variables
+macs = list()
 orgs = list()
 networks = list()
+per_page = 10
+timespan = '86400'
+total_pages = 'all'
 validate_certs = True
 
 # Define several functions that need to be run within Jupyter

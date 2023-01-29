@@ -11,6 +11,74 @@ import pandas as pd
 import sqlite3 as sl
 
 
+def meraki_get_network_clients(api_key,
+                               networks,
+                               macs=list(),
+                               per_page=1000,
+                               timespan=86400,
+                               total_pages='all'):
+    '''
+    Gets the list of clients on a network.
+
+    Args:
+        api_key (str):          The user's API key
+        db_path (str):          The path to the database to store results
+        networks (list):        One or more network IDs.
+
+    Returns:
+        df_clients (DataFrame): The clients for the network(s)
+    '''
+    # Create a list to store the individual clients for each network.
+    data = list()
+
+    # Iterate over the network(s), gathering the clients and adding them to
+    # 'data'
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
+    for network in networks:
+        clients = dashboard.networks.getNetworkClients(network,
+                                                       timespan=timespan,
+                                                       perPage=per_page,
+                                                       total_pages=total_pages)
+        for client in clients:
+            data.append(client)
+
+    # Create a dictionary to store the client data. It will be used to create
+    # 'df_clients'
+    df_data = dict()
+
+    # Each client is returned as a dictionary. Iterate over the keys in the
+    # dictionary and add them to 'df_data'. This requires iterating over all
+    # the clients twice, but it ensures that all keys are added to 'df_data'.
+    for client in data:
+        for key in client:
+            df_data[key] = list()
+
+    # Iterate over the clients, adding the data to 'df_data'
+    for client in data:
+        for key in df_data:
+            df_data[key].append(client.get(key))
+
+    # Create the dataframe and convert all datatypes to strings
+    df = pd.DataFrame.from_dict(df_data)
+    df = df.astype('str')
+
+    # Create 'df_clients'. If the user has provided a list of MACs, then only
+    # add those clients to 'df_clients'. Otherwise, add all clients.
+    if macs:
+        df_clients = pd.DataFrame()
+        for mac in macs:
+            mask = df['mac'].str.contains(mac)
+            df_clients = pd.concat([df_clients, df[mask]])
+        # Drop duplicate rows. They can be created if a user esarches for
+        # partial MAC addresses that overlap (e.g., 'ec:f0', 'ec:f0:b6')
+        df_clients = df_clients.drop_duplicates()
+        df_clients = df_clients.reset_index(drop=True)
+    else:
+        df_clients = df.copy()
+
+    return df_clients
+
+
 def meraki_get_network_devices(api_key, db_path, networks=list(), orgs=list()):
     '''
     Gets the devices for all orgs that the user's API key has access to. This
@@ -84,6 +152,41 @@ def meraki_get_network_devices(api_key, db_path, networks=list(), orgs=list()):
     df_devices = df_devices.astype(str)
 
     return df_devices
+
+
+def meraki_get_network_device_statuses(db_path, networks):
+    '''
+    Gets the statuses of all devices in a network. There is not an API
+    endpoint for this, so it leverages 'meraki_get_org_device_statuses'.
+
+    Args:
+        db_path (str):              The path to the database to store results
+        networks (list):            One or more network IDs.
+
+    Returns:
+        df_statuses (DataFrame):    A dataframe containing the device statuses
+    '''
+    df_statuses = pd.DataFrame()
+
+    con = sl.connect(db_path)
+
+    for network in networks:
+        query = f'''SELECT *
+        FROM meraki_get_org_device_statuses
+        WHERE networkId = "{network}"
+        ORDER BY timestamp desc
+        LIMIT 1
+        '''
+        result = pd.read_sql(query, con)
+        df_statuses = pd.concat([df_statuses, result])
+
+    con.close()
+
+    # Delete the 'table_id' column, since it was pulled from the
+    # 'meraki_get_org_device_statuses' table and will need to be recreated
+    del df_statuses['table_id']
+
+    return df_statuses
 
 
 def meraki_get_organizations(api_key):
@@ -191,7 +294,6 @@ def meraki_get_org_devices(api_key, db_path, orgs=list()):
 
 def meraki_get_org_device_statuses(api_key,
                                    db_path,
-                                   networks=list(),
                                    orgs=list(),
                                    total_pages='all'):
     '''
@@ -201,7 +303,6 @@ def meraki_get_org_device_statuses(api_key,
     Args:
         api_key (str):              The user's API key
         db_path (str):              The path to the database to store results
-        networks (list):            (Optional) One or more network IDs.
         orgs (list):                (Optional) One or more organization IDs. If
                                     none are specified, then the device
                                     statuses for all orgs will be returned.
@@ -211,6 +312,8 @@ def meraki_get_org_device_statuses(api_key,
 
     Returns:
         df_statuses (DataFrame):    The device statuses for the organizations
+        idx_cols (list):            The column names to use for creating the
+                                    SQL table index.
     '''
     # Initialize Meraki dashboard
     dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
@@ -222,51 +325,19 @@ def meraki_get_org_device_statuses(api_key,
         table = 'meraki_get_organizations'
         orgs = hp.meraki_parse_organizations(db_path, orgs, table)
 
-    # Create a dictionary to map organization IDs to network IDs
-    mapper = dict()
-    for org in orgs:
-        if not mapper.get(org):
-            mapper[org] = list()
-
-    # If the user provided any networks, add them to 'mapper'
-    if networks:
-        for net_id in networks:
-            # Get the organization ID for the network ID
-            org_id = hp.map_meraki_network_to_organization(net_id,
-                                                           db_path)
-            # Add the network ID to 'mapper'. If the user provided lists of
-            # organization IDs and network IDs, and the network ID belongs to
-            # one of the organization IDs, then the organization ID will be
-            # filtered to only include network IDs from the 'networks'
-            # parameter. This is designed behavior.
-            if not mapper.get(org_id):
-                mapper[org_id] = list()
-            mapper[org_id].append(net_id)
-
     # Create a list to store raw results from the API (the results are
     # returned as a list of dictionaries--one dictionary per device)
     data = list()
 
-    # If the user specified a specific number of pages to return, then convert
-    # the parameter to an integer
-    tp = total_pages
-    if tp != 'all':
-        tp = int(tp)
-
     # Query the API for the device statuses and add them to 'data')
-    for key, value in mapper.items():
+    tp = total_pages
+    for org in orgs:
         # Check if API access is enabled for the org
-        enabled = hp.meraki_check_api_enablement(db_path, key)
+        enabled = hp.meraki_check_api_enablement(db_path, org)
         if enabled:
-            if value:
-                statuses = app.getOrganizationDevicesStatuses(key,
-                                                              networkIds=value,
-                                                              total_pages=tp)
-            else:
-                statuses = app.getOrganizationDevicesStatuses(key,
-                                                              total_pages=tp)
+            statuses = app.getOrganizationDevicesStatuses(org, total_pages=tp)
             for item in statuses:
-                item['orgId'] = key  # Add the orgId to each device status
+                item['orgId'] = org  # Add the orgId to each device status
                 data.append(item)
 
     # Create the dictionary 'df_data' from the device statuses in 'data'.
