@@ -591,7 +591,6 @@ def meraki_get_switch_port_statuses(api_key, db_path, networks):
                 if not df_data.get(key):
                     df_data[key] = list()
 
-    # from pprint import pprint
     for item in data:
         device = data[item]
         for port in device:

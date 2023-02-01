@@ -485,7 +485,6 @@ def add_to_db(collector,
     if len(schema) >= 1:
         for col in result.columns.to_list():
             if col not in schema['name'].to_list():
-                print(col)
                 cur.execute(f'ALTER TABLE {collector} ADD COLUMN "{col}" text')
 
     # from tabulate import tabulate
