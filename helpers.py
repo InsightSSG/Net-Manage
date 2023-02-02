@@ -876,11 +876,23 @@ def get_user_meraki_input():
         None
 
     Returns:
-        args_dict (dict):   A dictionary containing the arguments
-        orgs (list):        A list of organizations. The list will be empty
-                            if the user did not select any.
-        networks (list):    A list of networks. The list will be empty if the
-                            user did not select any.
+        orgs (list):        A list of one or more organizations. Defaults to
+                            an empty list.
+        networks (list):    A list of one or more networks. Defaults to an
+                            empty list.
+        macs (list):        A list of one or more MAC addresses. Partial
+                            addresses are accepted. Defaults to an empty list.
+        timestamp (int):    The lookback timespan in seconds. Defaults to
+                            1 day (86400 seconds). If a user has an * between
+                            numbers, it will multiply them. It does not perform
+                            any other calculation (addition, subtraction, etc).
+        per_age (int):      The number of results to return per page. Defaults
+                            to 10. I recommend leaving it at 10, since
+                            increasing the number of results can reduce
+                            performance. However, you might try increasing it
+                            when working with large datasets.
+        total_pages (int):  The total number of pages to return. Defaults to
+                            '-1' (which is the equivalent of 'all')
     '''
     orgs = input('Enter a comma-delimited list of organizations to query: ')\
         or list()
