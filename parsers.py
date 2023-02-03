@@ -5,46 +5,79 @@ A library of functions for parsing network device command output.
 '''
 
 
-def f5_get_vip_data(line):
+def f5_convert_config_to_json(output):
     '''
-    Parses the command output for the 'f5_get_vip_data' collector.
-    
-    Example of VIP input and output:
-    - 'ltm virtual /PARTITION_A/VIP_A' = 'PARTITION_A', 'VIP_A', None
-    
-    Example of Destination input and output:
-    - 'destination 1.1.1.1:443': 'Common', '1.1.1.1', '443'
-        
+    Converts the F5 CLI output to JSON. This function needs further testing. I
+    have tested it with some F5 VIPs and it works.
 
-    Examples of Pool input and output:
-    - 'pool /PARTITION_B/POOL_A': 'PARTITION_B', 'POOL_A', None
-    - 'pool none': 'Common', 'none', None
+    TODO: Test on pools, nodes, and other config items.
+    TODO: Add comments.
 
     Args:
-        line (str): One line of command output.
+        output (str):   A single config element. For example, if parsing the
+                        output of 'tmsh list ltm virtual', then 'output' would
+                        start with the line 'ltm virtual vipName {' and end
+                        with the final '}'
 
     Returns:
-        item (str):        The VIP, destination or pool, without the partition
-        partition (str):   The F5 partition that the VIP, destination and/or pool
-                           are in.
-        port (str):        The port for the destination. If the line does not
-                           contain 'destination' then an emptry string is
-                           returned.
+        output (dict):  A dictionary containing the converted output.
     '''
-    # Separate the partition from the item name
-    if '/' in line:
-        partition = line.split('/')[-2]
-        item = line.split('/')[-1]
-    else:
-        partition = 'Common'
-        item = line.split()[-1]
+    formatted = ['{']
 
-    # Set the port variable and modify 'item', if the line contains
-    # 'destination'
-    if 'destination' in line:
-        port = item.split(':')[-1]
-        item = item.split(':')[0]
-    else:
-        port = str()
+    num_closers = 0
 
-    return partition, item, port
+    counter = 0
+    for line in output:
+        if len(line.split()) == 2:
+            if '{' in line:
+                line = f'"{line.split()[0]}": ' + '{'
+                formatted.append(line)
+            else:
+                next_line = output[counter+1]
+                line = f'"{line.split()[0]}": ' + f'"{line.split()[1]}"'
+                if len(next_line.split()) == 1 and '}' in next_line:
+                    pass
+                else:
+                    line = line + ','
+                formatted.append(line)
+        if len(line.split()) > 2:
+            if '{' in line and '}' in line:
+                line = f'"{line.split()[0]}": ' + '{}'
+                next_line = output[counter+1]
+                if len(next_line.split()) == 1 and '}' in next_line:
+                    pass
+                else:
+                    line = line + ','
+                formatted.append(line)
+            elif '{' in line:
+                for item in line.split()[:-1]:
+                    item = f'"{item}": ' + '{'
+                    formatted.append(item)
+                    num_closers += 1
+        if len(line.split()) == 1 and '}' in line:
+            try:
+                line = f'{line.split()[0]}'
+                scanner = output[counter+1]
+                if len(scanner.split()) == 1 and '}' in scanner:
+                    pass
+                else:
+                    line = line + ','
+            except Exception:
+                line = f'{line.split()[0]},'
+            formatted.append(line)
+        elif len(line.split()) == 1:
+            line = line.split()[0]
+            line = f'"{line}": ' + '{}'
+            next_line = output[counter+1]
+            if len(next_line.split()) == 1 and '}' in next_line:
+                pass
+            else:
+                line = line + ','
+            formatted.append(line)
+        counter += 1
+    formatted[-1] = formatted[-1].strip(',')
+    for item in range(1, num_closers+1):
+        formatted.append('}')
+    formatted = '\n'.join(formatted)
+    output = formatted
+    return output
