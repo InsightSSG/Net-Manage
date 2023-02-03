@@ -57,8 +57,8 @@ def f5_convert_config_to_json(output):
         if len(line.split()) == 1 and '}' in line:
             try:
                 line = f'{line.split()[0]}'
-                scanner = output[counter+1]
-                if len(scanner.split()) == 1 and '}' in scanner:
+                next_line = output[counter+1]
+                if len(next_line.split()) == 1 and '}' in next_line:
                     pass
                 else:
                     line = line + ','
