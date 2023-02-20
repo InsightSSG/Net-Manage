@@ -1,0 +1,16 @@
+- name: Palo Alto Get Security Rules
+  hosts: "{{ host_group }}"
+  connection: local
+  gather_facts: no
+
+  tasks:
+    - name: get a list of all security rules
+      paloaltonetworks.panos.panos_security_rule_facts:
+        all_details: yes
+        provider:
+          username: "{{ user }}"
+          ip_address: "{{ ansible_host }}"
+          password: "{{ password }}"
+      delegate_to: localhost
+      vars:
+        ansible_command_timeout: "{{ ansible_timeout | default('240') }}"
