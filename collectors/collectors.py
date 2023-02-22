@@ -2561,6 +2561,74 @@ def nxos_get_interface_summary(db_path):
     return df_summary
 
 
+def nxos_get_inventory(username,
+                       password,
+                       host_group,
+                       play_path,
+                       private_data_dir):
+    '''
+    Gets the interface status for NXOS devices.
+
+    Args:
+        username (str):             The username to login to devices
+        password (str):             The password to login to devices
+        host_group (str):           The inventory host group
+        play_path (str):            The path to the playbooks directory
+        private_data_dir (str):     The path to the Ansible private data
+                                    directory
+        nm_path (str):              The path to the Net-Manage repository
+
+    Returns:
+        df_inventory (DataFrame):   A dataframe containing the output of the
+                                    'show inventory | json' command.
+    '''
+    # Create the playbook variables
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group}
+    playbook = f'{play_path}/cisco_nxos_get_inventory.yml'
+
+    # Execute the playbook
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Create a list for holding the inventory items
+    data = list()
+
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout'][0]['TABLE_inv']['ROW_inv']
+
+            # Add the inventory items to the 'data' list
+            for item in output:
+                item['device'] = device
+                data.append(item)
+
+    # Create a dictionary for storing the output
+    df_data = dict()
+
+    # Create the dictionary keys
+    for item in data:
+        for key in item:
+            if not df_data.get(key):
+                df_data[key] = list()
+
+    # Add the inventory items to 'df_data'
+    for item in data:
+        for key in df_data:
+            df_data[key].append(item.get(key))
+
+    # Create and return the dataframe
+    df_inventory = pd.DataFrame.from_dict(df_data)
+
+    return df_inventory
+
+
 def nxos_get_logs(username,
                   password,
                   host_group,

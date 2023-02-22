@@ -351,6 +351,7 @@ def define_collectors(hostgroup):
                                              'paloaltonetworks.panos'],
                   'interface_status': ['cisco.nxos.nxos'],
                   'interface_summary': ['bigip', 'cisco.nxos.nxos'],
+                  'inventory_nxos': ['cisco.nxos.nxos'],
                   'meraki_get_network_clients': ['meraki'],
                   'meraki_get_network_devices': ['meraki'],
                   'meraki_get_network_device_statuses': ['meraki'],
