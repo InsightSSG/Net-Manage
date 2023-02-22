@@ -3149,7 +3149,8 @@ def panos_get_security_rules(username,
                              password,
                              host_group,
                              play_path,
-                             private_data_dir):
+                             private_data_dir,
+                             device_group='shared'):
     '''
     Gets a list of all security rules from a Palo Alto firewall.
 
@@ -3159,12 +3160,14 @@ def panos_get_security_rules(username,
         host_group (str):       The inventory host group
         play_path (str):        The path to the playbooks directory
         private_data_dir (str): The path to the Ansible private data directory
+        device_group (str):     The device group to query. Defaults to 'shared'
 
     Returns:
         df_rules (DataFrame):   A dataframe containing the rules
     '''
     extravars = {'user': username,
                  'password': password,
+                 'device_group': device_group,
                  'host_group': host_group}
 
     playbook = f'{play_path}/palo_alto_get_security_rules.yml'
@@ -3184,7 +3187,7 @@ def panos_get_security_rules(username,
         if event['event'] == 'runner_on_ok':
             event_data = event['event_data']
             device = event_data['remote_addr']
-            output = event_data['res']['rule_details']
+            output = event_data['res']['gathered']
 
             for item in output:
                 item['device'] = device

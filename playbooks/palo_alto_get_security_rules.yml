@@ -1,12 +1,14 @@
-- name: Palo Alto Get Security Rules
+- name: Palo Alto Get All Security Rules
   hosts: "{{ host_group }}"
   connection: local
   gather_facts: no
 
   tasks:
-    - name: get a list of all security rules
-      paloaltonetworks.panos.panos_security_rule_facts:
-        all_details: yes
+    - name: 
+      paloaltonetworks.panos.panos_security_rule:
+        state: 'gathered'
+        gathered_filter: '*'
+        device_group: "{{ device_group }}"
         provider:
           username: "{{ user }}"
           ip_address: "{{ ansible_host }}"
