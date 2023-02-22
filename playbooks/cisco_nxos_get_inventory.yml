@@ -1,0 +1,12 @@
+- name: Cisco NXOS Get Inventory Playbook
+  gather_facts: no
+  hosts: "{{ host_group }}"
+
+  tasks:
+
+    - name: collect the inventory on Cisco NXOS devices
+      connection: network_cli
+      cisco.nxos.nxos_command:
+        commands: show inventory | json
+      vars:
+        ansible_command_timeout: "{{ ansible_timeout | default('30') }}"
