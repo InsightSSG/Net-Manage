@@ -13,22 +13,14 @@ flake8  # Linter used for CI/CD
 jupyterlab
 ipywidgets
 # jupyterlab_widgets
-# meraki
 nest-asyncio
 # openpyxl
-# pan-os-python  # THIS MUST *ALSO* BE INSTALLED OUTSIDE THE VIRTUAL ENVIRONMENT
-# pan-python  # THIS MUST *ALSO* BE INSTALLED OUTSIDE THE VIRTUAL ENVIRONMENT
+# pan-os-python
+pan-python  # For Palo Alto firewalls and Panorama
 pandas
-# pandevice
-# paramiko  # installed with Ansible when using Conda
-# pykeepass
+pandevice  
 # python3-nmap
 simplejson  # Requirement for python3-nmap
-# pyyaml
-# tabulate
-# xmltodict
-
-
 pip # Install this within the Conda environment. Do not skip this step. If it
     # says it is already installed, you can verify it is running within the
     # conda environment by typing 'pip --version'. You should see output like
@@ -38,3 +30,4 @@ pip # Install this within the Conda environment. Do not skip this step. If it
 # Install with pip *after* installing pip within the conda environment
 meraki  # pip install meraki
 python3-nmap  # pip install python3-nmap
+xmltodict

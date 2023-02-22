@@ -1,0 +1,18 @@
+- name: Palo Alto Get All Security Rules
+  hosts: "{{ host_group }}"
+  connection: local
+  gather_facts: no
+
+  tasks:
+    - name: 
+      paloaltonetworks.panos.panos_security_rule:
+        state: 'gathered'
+        gathered_filter: '*'
+        device_group: "{{ device_group }}"
+        provider:
+          username: "{{ user }}"
+          ip_address: "{{ ansible_host }}"
+          password: "{{ password }}"
+      delegate_to: localhost
+      vars:
+        ansible_command_timeout: "{{ ansible_timeout | default('240') }}"

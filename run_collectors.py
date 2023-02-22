@@ -317,6 +317,13 @@ def collect(collector,
                                               play_path,
                                               private_data_dir)
 
+    if collector == 'inventory_nxos':
+        result = cl.nxos_get_inventory(username,
+                                       password,
+                                       hostgroup,
+                                       play_path,
+                                       private_data_dir)
+
     if collector == 'meraki_get_network_clients':
         result = mc.meraki_get_network_clients(api_key,
                                                networks,

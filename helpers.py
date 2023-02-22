@@ -8,8 +8,10 @@ import ansible_runner
 import numpy as np
 import os
 import pandas as pd
+import requests
 import sqlite3 as sl
 import sys
+import time
 import yaml
 from datetime import datetime as dt
 from getpass import getpass
@@ -349,6 +351,7 @@ def define_collectors(hostgroup):
                                              'paloaltonetworks.panos'],
                   'interface_status': ['cisco.nxos.nxos'],
                   'interface_summary': ['bigip', 'cisco.nxos.nxos'],
+                  'inventory_nxos': ['cisco.nxos.nxos'],
                   'meraki_get_network_clients': ['meraki'],
                   'meraki_get_network_devices': ['meraki'],
                   'meraki_get_network_device_statuses': ['meraki'],
@@ -369,6 +372,45 @@ def define_collectors(hostgroup):
         if hostgroup in value:
             available.append(key)
     return available
+
+
+def f5_create_authentication_token(device,
+                                   username,
+                                   password,
+                                   loginProviderName='tmos',
+                                   verify=True):
+    '''
+    Creates an authentication token to use for F5 REST API calls.
+
+    Args:
+        device (str):               The device name or IP address
+        username (str):             The user's username
+        password (str):             The user's password
+        loginProviderName (str):    The value to use for 'loginProviderName'.
+                                    Defaults to 'tmos'. It should only need to
+                                    be changed if F5 documentation or support
+                                    says it is necessary.
+        verify (bool):              Whether to verify certs. Defaults to
+                                    'True'. Should only be set to 'False' if it
+                                    is a dev environment or the F5 is using
+                                    self-signed certificates.
+    '''
+    # Create the URL used for creating the authentication token
+    url = f'{device}/mgmt/shared/authn/login'
+
+    # Request the token
+    content = {'username': username,
+               'password': password,
+               'loginProviderName': loginProviderName}
+    response = requests.post(url, json=content, verify=verify)
+    token = response.json()['token']['token']
+
+    # Sleep for 1.5 seconds. This is required due to F5 bug ID1108181
+    # https://cdn.f5.com/product/bugtracker/ID1108181.html
+    time.sleep(1.5)
+
+    # Return the token
+    return token
 
 
 def get_creds():
