@@ -140,6 +140,8 @@ output/
 natlas/.DS_Store
 natlas/modules/.DS_Store
 *test.py
+test*.py
+*test*.py
 tenants/
 
 # Visual Studio Code

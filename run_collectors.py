@@ -11,6 +11,7 @@ import os
 import readline
 from collectors import collectors as cl
 from collectors import meraki_collectors as mc
+from collectors import infoblox_nios_collectors as nc
 # from tabulate import tabulate
 
 # Protect creds by not writing history to .python_history
@@ -26,6 +27,10 @@ def collect(collector,
             password=str(),
             api_key=str(),
             hostgroup=str(),
+            infoblox_host=str(),
+            infoblox_user=str(),
+            infoblox_pass=str(),
+            infoblox_paging=True,
             networks=list(),
             play_path=str(),
             ansible_timeout='300',
@@ -47,12 +52,16 @@ def collect(collector,
         username (str):         The username to login to devices
         password (str):         The password to login to devices
         host_group (str):       The inventory host group
+        infoblox_host (str):    The host's IP address or FQDN
+        infoblox_user (str):    The user's username
+        infoblox_pass (str):    The user's password
+        infoblox_paging (bool): Whether to perform paging. Defaults to True
         networks (list):        A list of Meraki networks to query
         play_path (str):        The path to the playbooks directory
         private_data_dir (str): The path to the Ansible private data directory
         nm_path (str):          The path to the Net-Manage repository
         interface (str):        The interface (defaults to all interfaces)
-        validate_certs (bool):  Whether to validate SSL certs (used for F5s)
+        validate_certs (bool):  Whether to validate SSL certs
         org (str):              The organization ID for Meraki collectors
         total_pages (str):      The number of pages to query. Used for some
                                 Meraki collectors.
@@ -259,6 +268,13 @@ def collect(collector,
                                                       private_data_dir,
                                                       reverse_dns=False,
                                                       validate_certs=False)
+
+    if collector == 'infoblox_network_containers':
+        result = nc.get_network_containers(infoblox_host,
+                                           infoblox_user,
+                                           infoblox_pass,
+                                           infoblox_paging,
+                                           validate_certs=validate_certs)
 
     if collector == 'interface_ip_addresses':
         if ansible_os == 'cisco.asa.asa':
