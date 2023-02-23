@@ -269,12 +269,19 @@ def collect(collector,
                                                       reverse_dns=False,
                                                       validate_certs=False)
 
-    if collector == 'infoblox_network_containers':
+    if collector == 'infoblox_get_network_containers':
         result = nc.get_network_containers(infoblox_host,
                                            infoblox_user,
                                            infoblox_pass,
                                            infoblox_paging,
                                            validate_certs=validate_certs)
+
+    if collector == 'infoblox_get_networks':
+        result = nc.get_networks(infoblox_host,
+                                 infoblox_user,
+                                 infoblox_pass,
+                                 infoblox_paging,
+                                 validate_certs=validate_certs)
 
     if collector == 'interface_ip_addresses':
         if ansible_os == 'cisco.asa.asa':
