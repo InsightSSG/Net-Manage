@@ -28,6 +28,7 @@ pip # Install this within the Conda environment. Do not skip this step. If it
     # 'pip 22.3.1 from /home/>user>/miniconda3/envs/Net-Manage-Portable/lib/python3.10/site-packages/pip (python 3.10)'
 
 # Install with pip *after* installing pip within the conda environment
+infoblox-client  # pip install infoblox-client
 meraki  # pip install meraki
 python3-nmap  # pip install python3-nmap
-xmltodict
+xmltodict  # pip install xmltodict

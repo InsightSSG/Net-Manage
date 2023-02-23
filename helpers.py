@@ -342,6 +342,7 @@ def define_collectors(hostgroup):
                   'f5_vip_availability': ['bigip'],
                   'f5_vip_destinations': ['bigip'],
                   'f5_vip_summary': ['bigip'],
+                  'infoblox_network_containers': ['infoblox_nios'],
                   'interface_description': ['bigip',
                                             'cisco.ios.ios',
                                             'cisco.nxos.nxos'],
@@ -413,19 +414,24 @@ def f5_create_authentication_token(device,
     return token
 
 
-def get_creds():
+def get_creds(prompt=str()):
     '''
-    Gets the username and password to login to devices with.
+    Gets the username and password to use for authentication.
 
     Args:
-        None
+        prompt (str):   A one-word description to use inside the prompt. For
+                        example, if prompt == 'device', then the user would
+                        be presented with the full prompt of:
+                        'Enter the username to use for device authentication.'
+                        If no prompt is passed to the function, then the
+                        generic prompt will be used.
 
     Returns:
         username (str): The username
         password (str): The password
     '''
-    username = get_username()
-    password = get_password()
+    username = get_username(prompt)
+    password = get_password(prompt)
     return username, password
 
 
@@ -542,36 +548,59 @@ def get_first_last_timestamp(db_path, table, col_name):
     return df_stamps
 
 
-def get_username():
+def get_username(prompt=str()):
     '''
-    Gets the username to login to a device with
+    Gets the username to use for authentication
 
     Args:
-        None
+        prompt (str):   A one-word description to use inside the prompt. For
+                        example, if prompt == 'device', then the user would
+                        be presented with the full prompt of:
+                        'Enter the username to use for device authentication.'
+                        If no prompt is passed to the function, then the
+                        generic prompt will be used.
 
     Returns:
         username (str): The username
     '''
-    username = input('Enter the username to login to the devices with: ')
+    # Create the full prompt
+    if not prompt:
+        f_prompt = 'Enter the username to use for authentication: '
+    else:
+        f_prompt = f'Enter the username to use for {prompt} authentication: '
+
+    # Get the user's username
+    username = input(f_prompt)
 
     return username
 
 
-def get_password():
+def get_password(prompt=str()):
     '''
-    Gets the password to login to a device with
+    Gets the password to use for authentication
 
     Args:
-        None
+        prompt (str):   A one-word description to use inside the prompt. For
+                        example, if prompt == 'device', then the user would
+                        be presented with the full prompt of:
+                        'Enter the username to use for device authentication.'
+                        If no prompt is passed to the function, then the
+                        generic prompt will be used.
 
     Returns:
         password (str): The password
     '''
+    # Create the full prompt
+    if not prompt:
+        f_prompt = 'Enter the password to use for authentication: '
+    else:
+        f_prompt = f'Enter the password to use for {prompt} authentication: '
+
     # Get the user's password and have them type it twice for verification
     pass1 = str()
     pass2 = None
     while pass1 != pass2:
-        pass1 = getpass('Enter your password: ')
+        pass1 = getpass(f_prompt)
         pass2 = getpass('Confirm your password: ')
         if pass1 != pass2:
             print('Error: Passwords do not match.')
@@ -890,8 +919,8 @@ def set_vars():
     #       supports that, but I am not sure how common it is)
     inventories = [f'{private_data_dir}/inventory/hosts']
 
-    return api_key, db, db_path, inventories, nm_path, out_path, \
-        private_data_dir
+    return api_key, db, db_path, inventories, nm_path, \
+        out_path, private_data_dir
 
 
 def get_tests_file():
