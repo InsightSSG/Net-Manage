@@ -283,6 +283,9 @@ def collect(collector,
                                  infoblox_paging,
                                  validate_certs=validate_certs)
 
+    if collector == 'infoblox_get_networks_parent_containers':
+        result = nc.get_networks_parent_containers(db_path)
+
     if collector == 'interface_ip_addresses':
         if ansible_os == 'cisco.asa.asa':
             result = cl.asa_get_interface_ips(username,

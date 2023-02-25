@@ -344,6 +344,7 @@ def define_collectors(hostgroup):
                   'f5_vip_summary': ['bigip'],
                   'infoblox_get_network_containers': ['infoblox_nios'],
                   'infoblox_get_networks': ['infoblox_nios'],
+                  'infoblox_get_networks_parent_containers': ['infoblox_nios'],
                   'interface_description': ['bigip',
                                             'cisco.ios.ios',
                                             'cisco.nxos.nxos'],
@@ -714,6 +715,16 @@ def set_dependencies(selected):
             pos = s.index('f5_get_vip_availability')
             del s[pos]
         s.insert(0, 'f5_vip_availability')
+
+    if 'infoblox_get_networks_parent_containers' in s:
+        if 'infoblox_get_networks' in s:
+            pos = s.index('infoblox_get_networks')
+            del s[pos]
+            s.insert(0, 'infoblox_get_networks')
+        if 'infoblox_get_network_containers' in s:
+            pos = s.index('infoblox_get_network_containers')
+            del s[pos]
+            s.insert(0, 'infoblox_get_network_containers')
 
     if 'meraki_get_device_statuses' in s:
         if 'meraki_get_organizations' in s:
