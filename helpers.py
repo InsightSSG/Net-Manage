@@ -342,8 +342,8 @@ def define_collectors(hostgroup):
                   'f5_vip_availability': ['bigip'],
                   'f5_vip_destinations': ['bigip'],
                   'f5_vip_summary': ['bigip'],
-                  'infoblox_get_network_containers': ['infoblox_nios'],
                   'infoblox_get_networks': ['infoblox_nios'],
+                  'infoblox_get_network_containers': ['infoblox_nios'],
                   'infoblox_get_networks_parent_containers': ['infoblox_nios'],
                   'interface_description': ['bigip',
                                             'cisco.ios.ios',
@@ -720,11 +720,11 @@ def set_dependencies(selected):
         if 'infoblox_get_networks' in s:
             pos = s.index('infoblox_get_networks')
             del s[pos]
-            s.insert(0, 'infoblox_get_networks')
+        pos = s.insert(0, 'infoblox_get_networks')
         if 'infoblox_get_network_containers' in s:
             pos = s.index('infoblox_get_network_containers')
             del s[pos]
-            s.insert(0, 'infoblox_get_network_containers')
+        pos = s.insert(0, 'infoblox_get_network_containers')
 
     if 'meraki_get_device_statuses' in s:
         if 'meraki_get_organizations' in s:

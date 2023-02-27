@@ -283,6 +283,13 @@ def collect(collector,
                                  infoblox_paging,
                                  validate_certs=validate_certs)
 
+    if collector == 'infoblox_get_network_containers':
+        result = nc.get_network_containers(infoblox_host,
+                                           infoblox_user,
+                                           infoblox_pass,
+                                           infoblox_paging,
+                                           validate_certs=validate_certs)
+
     if collector == 'infoblox_get_networks_parent_containers':
         result = nc.get_networks_parent_containers(db_path)
 
