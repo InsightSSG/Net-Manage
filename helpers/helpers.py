@@ -345,6 +345,7 @@ def define_collectors(hostgroup):
                   'infoblox_get_networks': ['infoblox_nios'],
                   'infoblox_get_network_containers': ['infoblox_nios'],
                   'infoblox_get_networks_parent_containers': ['infoblox_nios'],
+                  'infoblox_get_vlan_ranges': ['infoblox_nios'],
                   'interface_description': ['bigip',
                                             'cisco.ios.ios',
                                             'cisco.nxos.nxos'],
