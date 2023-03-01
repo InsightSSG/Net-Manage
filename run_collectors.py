@@ -307,6 +307,13 @@ def collect(collector,
                                     infoblox_paging,
                                     validate_certs=validate_certs)
 
+    if collector == 'infoblox_get_vlans':
+        result = nc.get_vlans(infoblox_host,
+                              infoblox_user,
+                              infoblox_pass,
+                              infoblox_paging,
+                              validate_certs=validate_certs)
+
     if collector == 'interface_ip_addresses':
         if ansible_os == 'cisco.asa.asa':
             result = cl.asa_get_interface_ips(username,
