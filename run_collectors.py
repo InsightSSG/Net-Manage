@@ -300,6 +300,13 @@ def collect(collector,
     if collector == 'infoblox_get_networks_parent_containers':
         result = nc.get_networks_parent_containers(db_path)
 
+    if collector == 'infoblox_get_vlan_ranges':
+        result = nc.get_vlan_ranges(infoblox_host,
+                                    infoblox_user,
+                                    infoblox_pass,
+                                    infoblox_paging,
+                                    validate_certs=validate_certs)
+
     if collector == 'interface_ip_addresses':
         if ansible_os == 'cisco.asa.asa':
             result = cl.asa_get_interface_ips(username,
