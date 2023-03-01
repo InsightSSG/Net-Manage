@@ -365,6 +365,7 @@ def define_collectors(hostgroup):
                   'meraki_get_switch_port_statuses': ['meraki'],
                   'meraki_get_switch_lldp_neighbors': ['meraki'],
                   'meraki_get_switch_port_usages': ['meraki'],
+                  'netbox_get_ipam_prefixes': ['netbox'],
                   'port_channel_data': ['cisco.nxos.nxos'],
                   'vlan_database': ['cisco.nxos.nxos'],
                   'vpc_state': ['cisco.nxos.nxos'],

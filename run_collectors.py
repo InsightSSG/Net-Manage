@@ -10,8 +10,9 @@ import helpers as hp
 import os
 import readline
 from collectors import collectors as cl
-from collectors import meraki_collectors as mc
 from collectors import infoblox_nios_collectors as nc
+from collectors import meraki_collectors as mc
+from collectors import netbox_collectors as nbc
 # from tabulate import tabulate
 
 # Protect creds by not writing history to .python_history
@@ -31,6 +32,8 @@ def collect(collector,
             infoblox_user=str(),
             infoblox_pass=str(),
             infoblox_paging=True,
+            nb_path=str(),
+            nb_token=str(),
             networks=list(),
             play_path=str(),
             ansible_timeout='300',
@@ -56,6 +59,10 @@ def collect(collector,
         infoblox_user (str):    The user's username
         infoblox_pass (str):    The user's password
         infoblox_paging (bool): Whether to perform paging. Defaults to True
+        nb_path (str):          The path to the Netbox instance. Can be either
+                                an IP or a URL. Must be preceded by 'http://'
+                                or 'https://'.
+        nb_token (str):         The API token to use for authentication.
         networks (list):        A list of Meraki networks to query
         play_path (str):        The path to the playbooks directory
         private_data_dir (str): The path to the Ansible private data directory
@@ -404,6 +411,9 @@ def collect(collector,
                                                   db_path,
                                                   networks,
                                                   timestamp)
+
+    if collector == 'netbox_get_ipam_prefixes':
+        result = nbc.netbox_get_ipam_prefixes(nb_path, nb_token)
 
     if collector == 'port_channel_data':
         if ansible_os == 'cisco.nxos.nxos':

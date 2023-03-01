@@ -14,8 +14,8 @@ def create_netbox_handler(nb_path, token):
     Parameters
     ----------
     nb_path : str
-        The path to the Netbox instance. Can be either an IP or a URL. Must be
-        preceded by 'http://' or 'https://'
+        The path to the Netbox instance. Can be either an IP or a URL.
+        Must be preceded by 'http://' or 'https://'.
     token : str
         The API token to use for authentication.
 
@@ -34,13 +34,16 @@ def create_netbox_handler(nb_path, token):
     return nb
 
 
-def netbox_get_ipam_prefixes(nb):
-    '''Gets all prefixes from a Netbox instance.
+def netbox_get_ipam_prefixes(nb_path, token):
+    """Gets all prefixes from a Netbox instance.
 
     Parameters
     ----------
-    nb : pynetbox.core.api.Api
-        An object used to connect to the Netbox API.
+    nb_path : str
+        The path to the Netbox instance. Can be either an IP or a URL.
+        Must be preceded by 'http://' or 'https://'.
+    token : str
+        The API token to use for authentication.
 
     Returns
     ----------
@@ -55,19 +58,23 @@ def netbox_get_ipam_prefixes(nb):
     ----------
     The Netbox API returns the prefixes in the form of a nested dictionary.
     Some items in the nested dictionaries have keys that overlap with the
-    top-level dictionary. Because of that, the keys in the nested dictionaries
-    are prefixed with the key(s) in the level(s) above it, followed by an
-    underscore.
+    top-level dictionary. Because of that, the keys in the nested
+    dictionaries are prefixed with the key(s) in the level(s) above it,
+    followed by an underscore.
 
-    For example, a key named 'id' that is nested under 'tenant' would be added
-    as a column named 'tenant_id'.
+    For example, a key named 'id' that is nested under 'tenant' would be
+    added as a column named 'tenant_id'.
 
     Examples
     ----------
-    >>> df = netbox_get_ipam_prefixes(nb)
+    >>> df = netbox_get_ipam_prefixes(nb_path, token)
     print(type(df))
     >>> <class 'pandas.core.frame.DataFrame'>
-    '''
+    """
+    # Create the netbox handler
+    nb = create_netbox_handler(nb_path, token)
+
+    # Query the Netbox API for all IPAM prefixes
     result = nb.ipam.prefixes.all()
 
     # A dictionary to store each prefix.
@@ -105,5 +112,6 @@ def netbox_get_ipam_prefixes(nb):
         for col in columns:
             row.append(data[prefix].get(col))
         df.loc[len(df.index)] = row
+    df = df.astype('str')
 
     return df
