@@ -30,5 +30,6 @@ pip # Install this within the Conda environment. Do not skip this step. If it
 # Install with pip *after* installing pip within the conda environment
 infoblox-client  # pip install infoblox-client
 meraki  # pip install meraki
+pynetbox  # pip install pynetbox
 python3-nmap  # pip install python3-nmap
 xmltodict  # pip install xmltodict
