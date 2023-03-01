@@ -231,7 +231,7 @@ def get_vlan_ranges(host,
                     paging=True,
                     validate_certs=True):
     '''
-    Gets all network containers from an Infoblox API.
+    Gets all VLAN ranges from an Infoblox API.
 
     Args:
         host (str):                 The host's IP address or FQDN
@@ -258,7 +258,53 @@ def get_vlan_ranges(host,
     # then interate over 'response' to create the keys
     df_data = dict()
     for item in response:
-        for key, value in item.items():
+        for key in item:
+            df_data[key] = list()
+
+    # Populate 'df_data'
+    for item in response:
+        for key in df_data:
+            df_data[key].append(item.get(key))
+
+    df = pd.DataFrame.from_dict(df_data).astype('str')
+
+    return df
+
+
+def get_vlans(host,
+              username,
+              password,
+              paging=True,
+              validate_certs=True):
+    '''
+    Gets all VLAN from an Infoblox API.
+
+    Args:
+        host (str):                 The host's IP address or FQDN
+        username (str):             The user's username
+        password (str):             The user's password
+        paging (bool):              Whether to perform paging. Defaults to True
+        validate_certs (bool):      Whether to validate SSL certs
+
+
+    Returns:
+        df (DataFrame):             A DataFrame containing the VLANs
+    '''
+    # If the user has passed 'validate_certs=False', then disable SSL cert
+    # warnings.
+    disable_ssl_cert_warning(validate_certs)
+
+    # Create the connector to use to connect to the API
+    conn = create_connector(host, username, password)
+
+    # Get the network containers
+    response = conn.get_object('vlan', paging=paging)
+
+    # Create the dictionary to store the data needed to create the DataFrame,
+    # then interate over 'response' to create the keys
+    df_data = dict()
+    for item in response:
+        for key in item:
             df_data[key] = list()
 
     # Populate 'df_data'
