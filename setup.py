@@ -4,7 +4,6 @@
 
 import ansible_runner
 import datetime as dt
-import helpers as hp
 import importlib
 import ipywidgets as widgets
 import jupyterlab_widgets
@@ -15,6 +14,7 @@ import run_collectors as rc
 import validators as vl
 
 from collectors import collectors as cl
+from helpers import helpers as hp
 from IPython.display import clear_output
 from IPython.display import display
 

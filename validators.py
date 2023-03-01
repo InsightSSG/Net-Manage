@@ -4,9 +4,9 @@
 Runs data collectors and stores them in a sqlite database.
 '''
 
-import helpers as hp
 import pandas as pd
 import sqlite3 as sl
+from helpers import helpers as hp
 
 
 def f5_node_availability(db_path, table):

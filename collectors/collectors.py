@@ -5,7 +5,6 @@ A library of functions for collecting data from network devices.
 '''
 
 import ansible_runner
-import helpers as hp
 import ipaddress
 import json
 import pandas as pd
@@ -14,6 +13,8 @@ import re
 import run_collectors as rc
 import socket
 import sqlite3 as sl
+
+from helpers import helpers as hp
 
 
 def asa_get_interface_ips(username,

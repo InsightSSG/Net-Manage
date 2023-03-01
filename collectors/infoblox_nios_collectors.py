@@ -4,10 +4,11 @@
 A collection of collectors for the NIOS (Infoblox) operating system.
 '''
 
-import helpers as hp
 import ipaddress as ip
 import pandas as pd
 # import requests
+
+from helpers import helpers as hp
 
 from infoblox_client import connector
 

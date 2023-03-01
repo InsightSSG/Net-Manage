@@ -4,11 +4,12 @@
 Define Meraki collectors.
 '''
 
-import helpers as hp
 import json
 import meraki
 import pandas as pd
 import sqlite3 as sl
+
+from helpers import helpers as hp
 
 
 def meraki_get_network_clients(api_key,

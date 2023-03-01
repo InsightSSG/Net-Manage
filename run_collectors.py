@@ -6,13 +6,13 @@ Define collectors and map them to the correct function in colletors.py.
 
 import argparse
 import datetime as dt
-import helpers as hp
 import os
 import readline
 from collectors import collectors as cl
 from collectors import infoblox_nios_collectors as nc
 from collectors import meraki_collectors as mc
 from collectors import netbox_collectors as nbc
+from helpers import helpers as hp
 # from tabulate import tabulate
 
 # Protect creds by not writing history to .python_history
