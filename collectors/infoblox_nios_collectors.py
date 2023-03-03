@@ -13,43 +13,44 @@ from helpers import helpers as hp
 from infoblox_client import connector
 
 
-def create_connector(host, username, password):
-    '''
-    Creates the connector to use to connect to the Infoblox grid.
+def create_connector(host, username, password, validate_certs=True):
+    """Creates the connector to use to connect to the Infoblox grid.
 
-    Args:
-        host (str):     The host's IP address or FQDN
-        username (str): The user's username
-        password (str): The user's password
+    Parameters
+    ----------
+    host : str
+        The host's IP address or FQDN
+    username : str
+        The user's username.
+    password : str
+        The user's password.
+    validate_certs: bool
+        Whether to validate certificates. Defaults to 'True'
 
-    Returns:
-        conn (obj):     The connector
-    '''
-    opts = {'host': host, 'username': username, 'password': password}
+    Notes
+    ----------
+    If 'validate_certs=False', then 'silent_ssl_warnings' will be set to
+    'True'.
+
+    Returns
+    ----------
+    nb : infoblox_client.connector.Connector
+        The Infoblox Connector object.
+
+    Examples
+    ----------
+    >>> conn = create_connector(host, username, password)
+    >>> print(type(conn))
+    <class 'infoblox_client.connector.Connector'>
+    """
+    opts = {'host': host,
+            'username': username,
+            'password': password,
+            'ssl_verify': validate_certs}
+    if not validate_certs:
+        opts['silent_ssl_warnings'] = True
     conn = connector.Connector(opts)
     return conn
-
-
-def disable_ssl_cert_warning(validate_certs):
-    '''
-    Disables warnings for SSL cert validation, if the user has passed
-    'validate_certs=False' to a function.
-
-    # TODO: There does not seem to be a way to force cert verification on some
-    #       of the infoblox-client objects. Until this is fixed (or we
-    #       find a workaround), SSL cert validation warnings will be shown.
-    #       That way the user will at least know if cert validation is
-    #       disabled.
-
-    Args:
-        validate_certs (bool):  Whether to validate SSL certs
-
-    Returns:
-        None
-    '''
-    if not validate_certs:
-        # requests.packages.urllib3.disable_warnings()
-        pass
 
 
 def get_network_containers(host,
@@ -72,10 +73,6 @@ def get_network_containers(host,
         df_containers (DataFrame):  A DataFrame containing the network
                                     network containers
     '''
-    # If the user has passed 'validate_certs=False', then disable SSL cert
-    # warnings.
-    disable_ssl_cert_warning(validate_certs)
-
     # Create the connector to use to connect to the API
     conn = create_connector(host, username, password)
 
@@ -198,12 +195,11 @@ def get_networks(host,
         df_networks (DataFrame):    A DataFrame containing the network
                                     network containers
     '''
-    # If the user has passed 'validate_certs=False', then disable SSL cert
-    # warnings.
-    disable_ssl_cert_warning(validate_certs)
-
     # Create the connector to use to connect to the API
-    conn = create_connector(host, username, password)
+    conn = create_connector(host,
+                            username,
+                            password,
+                            validate_certs=validate_certs)
 
     # Get the network containers
     response = conn.get_object('network', paging=paging)
@@ -238,18 +234,17 @@ def get_vlan_ranges(host,
         username (str):             The user's username
         password (str):             The user's password
         paging (bool):              Whether to perform paging. Defaults to True
-        validate_certs (bool):      Whether to validate SSL certs
-
+    validate_certs: bool
+        Where to validate certs. Defaults to True
 
     Returns:
         df (DataFrame):             A DataFrame containing the VLAN ranges
     '''
-    # If the user has passed 'validate_certs=False', then disable SSL cert
-    # warnings.
-    disable_ssl_cert_warning(validate_certs)
-
     # Create the connector to use to connect to the API
-    conn = create_connector(host, username, password)
+    conn = create_connector(host,
+                            username,
+                            password,
+                            validate_certs=validate_certs)
 
     # Get the network containers
     response = conn.get_object('vlanrange', paging=paging)
@@ -290,12 +285,11 @@ def get_vlans(host,
     Returns:
         df (DataFrame):             A DataFrame containing the VLANs
     '''
-    # If the user has passed 'validate_certs=False', then disable SSL cert
-    # warnings.
-    disable_ssl_cert_warning(validate_certs)
-
     # Create the connector to use to connect to the API
-    conn = create_connector(host, username, password)
+    conn = create_connector(host,
+                            username,
+                            password,
+                            validate_certs=validate_certs)
 
     # Get the network containers
     response = conn.get_object('vlan', paging=paging)
