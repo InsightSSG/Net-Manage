@@ -5,6 +5,7 @@ A library of generic helper functions for dynamic runbooks.
 '''
 
 import ansible_runner
+import glob
 import numpy as np
 import os
 import pandas as pd
@@ -484,6 +485,44 @@ def connect_to_db(db):
             print(f'Caught exception "{str(e)}"')
             sys.exit()
     return con
+
+
+def get_dir_timestamps(path):
+    """Gets the timestamp for all files and folders in a directory.
+
+    This function is not recursive.
+
+    Parameters
+    ----------
+    path : str
+        The path to search.
+
+    Returns
+    ----------
+    result : dict
+        A dictionary for each file or folder, where the key is the file or
+        folder name and the value is a datetime object containing the
+        timestamp.
+
+    Examples
+    ----------
+    >>> from helpers import helpers as hp
+    >>> from pprint import pprint
+    >>> path = '/tmp/test/'
+    >>> result = hp.get_dir_timestamps(path)
+    >>> pprint(result)
+    {'/tmp/test/test.txt': datetime.datetime(2023, 3, 7, 16, 15, 9),
+    '/tmp/test/test2.txt': datetime.datetime(2023, 3, 7, 16, 16, 4)}
+    """
+    files = glob.glob(f'{path}/*')
+
+    result = dict()
+    for file in files:
+        ts = time.ctime(os.path.getctime(file)).split()
+        ts = ' '.join([ts[1], ts[2], ts[-1], ts[3]])
+        result[file] = dt.strptime(ts, "%b %d %Y %H:%M:%S")
+
+    return result
 
 
 def get_first_last_timestamp(db_path, table, col_name):
