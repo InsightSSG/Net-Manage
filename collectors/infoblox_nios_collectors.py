@@ -6,7 +6,6 @@ A collection of collectors for the NIOS (Infoblox) operating system.
 
 import ipaddress as ip
 import pandas as pd
-# import requests
 
 from helpers import helpers as hp
 
@@ -24,8 +23,6 @@ def create_connector(host, username, password, validate_certs=True):
         The user's username.
     password : str
         The user's password.
-    validate_certs: bool
-        Whether to validate certificates. Defaults to 'True'
 
     Notes
     ----------
@@ -36,6 +33,11 @@ def create_connector(host, username, password, validate_certs=True):
     ----------
     nb : infoblox_client.connector.Connector
         The Infoblox Connector object.
+
+    Other Parameters
+    ----------
+    validate_certs: bool, optional
+        Whether to validate certificates. Defaults to 'True'
 
     Examples
     ----------
@@ -58,23 +60,40 @@ def get_network_containers(host,
                            password,
                            paging=True,
                            validate_certs=True):
-    '''
-    Gets all network containers from an Infoblox API.
+    """Gets all network containers.
 
-    Args:
-        host (str):                 The host's IP address or FQDN
-        username (str):             The user's username
-        password (str):             The user's password
-        paging (bool):              Whether to perform paging. Defaults to True
-        validate_certs (bool):      Whether to validate SSL certs
+    Parameters
+    ----------
+    host : str
+        The host's IP address or FQDN
+    username : str
+        The user's username.
+    password : str
+        The user's password.
 
+    Returns
+    ----------
+    df : pandas.core.frame.DataFrame
+        A Pandas dataframe containing the network containers.
 
-    Returns:
-        df_containers (DataFrame):  A DataFrame containing the network
-                                    network containers
-    '''
+    Other Parameters
+    ----------
+    paging: bool, optional
+        Whether to perform paging. Defaults to True.
+    validate_certs: bool, optional
+        Whether to validate certificates. Defaults to 'True'
+
+    Examples
+    ----------
+    >>> df = get_network_containers(host, username, password)
+    >>> print(type(df))
+    <class 'pandas.core.frame.DataFrame'>
+    """
     # Create the connector to use to connect to the API
-    conn = create_connector(host, username, password)
+    conn = create_connector(host,
+                            username,
+                            password,
+                            validate_certs=validate_certs)
 
     # Get the network containers
     response = conn.get_object('networkcontainer', paging=paging)
@@ -91,24 +110,36 @@ def get_network_containers(host,
         for key in df_data:
             df_data[key].append(item.get(key))
 
-    df_containers = pd.DataFrame.from_dict(df_data)
+    df = pd.DataFrame.from_dict(df_data)
 
-    return df_containers
+    return df
 
 
 def get_networks_parent_containers(db_path):
-    '''
+    """
     Gets the parent containers for all networks in an Infoblox Grid.
 
-    Args:
-        db_path (str):      The path to the database which contains the
-                            'GET_NETWORKS' and 'GET_NETWORK_CONTAINER' tables
-        networks (list):    A list of one or more networks
+    This function does not connect to the Infoblox grid. Instead, it uses
+    the database to map networks to their parent container.
+
+    TODO: Test results when networks are under nested containers.
+
+    Parameters
+    ----------
+    db_path : str
+        The path to the database which contains the 'GET_NETWORKS' and
+        'GET_NETWORK_CONTAINER' tables.
 
     Returns:
-        df_parents (obj):   A dataframe containing the network container for
-                            each network.
-    '''
+    df : Pandas Dataframe:
+        A dataframe containing the network container for each network.
+
+    Examples
+    ----------
+    >>> df = get_networks_parent_containers(db_path)
+    >>> print(type(df))
+    <class 'pandas.core.frame.DataFrame'>
+    """
     # Connect to the database
     con = hp.connect_to_db(db_path)
 
@@ -125,7 +156,7 @@ def get_networks_parent_containers(db_path):
              f'FROM {table}',
              f'WHERE timestamp = "{last_ts}"']
     query = ' '.join(query)
-    df_networks = pd.read_sql(query, con)
+    df = pd.read_sql(query, con)
 
     # Get all the network containers
     table = 'INFOBLOX_GET_NETWORK_CONTAINERS'
@@ -156,7 +187,7 @@ def get_networks_parent_containers(db_path):
     # each view is sorted from the smallest to largest container.)
     parent_containers = list()
     not_found = list()
-    for idx, row in df_networks.iterrows():
+    for idx, row in df.iterrows():
         found = False
         network = ip.ip_network(row['network'], strict=False)
         view = row['network_view']
@@ -170,9 +201,9 @@ def get_networks_parent_containers(db_path):
             not_found.append(network)
 
     # Add the parent containers to 'df_networks'
-    df_networks['network_container'] = parent_containers
+    df['network_container'] = parent_containers
 
-    return df_networks
+    return df
 
 
 def get_networks(host,
@@ -180,21 +211,35 @@ def get_networks(host,
                  password,
                  paging=True,
                  validate_certs=True):
-    '''
-    Gets all network containers from an Infoblox API.
+    """Gets all networks.
 
-    Args:
-        host (str):                 The host's IP address or FQDN
-        username (str):             The user's username
-        password (str):             The user's password
-        paging (bool):              Whether to perform paging. Defaults to True
-        validate_certs (bool):      Whether to validate SSL certs
+    Parameters
+    ----------
+    host : str
+        The host's IP address or FQDN
+    username : str
+        The user's username.
+    password : str
+        The user's password.
 
+    Returns
+    ----------
+    df : pandas.core.frame.DataFrame
+        A Pandas dataframe containing the networks
 
-    Returns:
-        df_networks (DataFrame):    A DataFrame containing the network
-                                    network containers
-    '''
+    Other Parameters
+    ----------
+    paging: bool, optional
+        Whether to perform paging. Defaults to True.
+    validate_certs: bool, optional
+        Whether to validate certificates. Defaults to 'True'
+
+    Examples
+    ----------
+    >>> df = get_networks(host, username, password)
+    >>> print(type(df))
+    <class 'pandas.core.frame.DataFrame'>
+    """
     # Create the connector to use to connect to the API
     conn = create_connector(host,
                             username,
@@ -216,9 +261,9 @@ def get_networks(host,
         for key in df_data:
             df_data[key].append(item.get(key))
 
-    df_networks = pd.DataFrame.from_dict(df_data)
+    df = pd.DataFrame.from_dict(df_data)
 
-    return df_networks
+    return df
 
 
 def get_vlan_ranges(host,
@@ -226,20 +271,35 @@ def get_vlan_ranges(host,
                     password,
                     paging=True,
                     validate_certs=True):
-    '''
-    Gets all VLAN ranges from an Infoblox API.
+    """Gets all VLAN ranges.
 
-    Args:
-        host (str):                 The host's IP address or FQDN
-        username (str):             The user's username
-        password (str):             The user's password
-        paging (bool):              Whether to perform paging. Defaults to True
-    validate_certs: bool
-        Where to validate certs. Defaults to True
+    Parameters
+    ----------
+    host : str
+        The host's IP address or FQDN
+    username : str
+        The user's username.
+    password : str
+        The user's password.
 
-    Returns:
-        df (DataFrame):             A DataFrame containing the VLAN ranges
-    '''
+    Returns
+    ----------
+    df : pandas.core.frame.DataFrame
+        A Pandas dataframe containing the VLAN ranges.
+
+    Other Parameters
+    ----------
+    paging: bool, optional
+        Whether to perform paging. Defaults to True.
+    validate_certs: bool, optional
+        Whether to validate certificates. Defaults to 'True'.
+
+    Examples
+    ----------
+    >>> df = get_vlan_ranges(host, username, password)
+    >>> print(type(df))
+    <class 'pandas.core.frame.DataFrame'>
+    """
     # Create the connector to use to connect to the API
     conn = create_connector(host,
                             username,
@@ -271,20 +331,35 @@ def get_vlans(host,
               password,
               paging=True,
               validate_certs=True):
-    '''
-    Gets all VLAN from an Infoblox API.
+    """Gets all VLANs.
 
-    Args:
-        host (str):                 The host's IP address or FQDN
-        username (str):             The user's username
-        password (str):             The user's password
-        paging (bool):              Whether to perform paging. Defaults to True
-        validate_certs (bool):      Whether to validate SSL certs
+    Parameters
+    ----------
+    host : str
+        The host's IP address or FQDN
+    username : str
+        The user's username.
+    password : str
+        The user's password.
 
+    Returns
+    ----------
+    df : pandas.core.frame.DataFrame
+        A Pandas dataframe containing the VLAN ranges.
 
-    Returns:
-        df (DataFrame):             A DataFrame containing the VLANs
-    '''
+    Other Parameters
+    ----------
+    paging: bool, optional
+        Whether to perform paging. Defaults to True.
+    validate_certs: bool, optional
+        Whether to validate certificates. Defaults to 'True'.
+
+    Examples
+    ----------
+    >>> df = get_vlan_ranges(host, username, password)
+    >>> print(type(df))
+    <class 'pandas.core.frame.DataFrame'>
+    """
     # Create the connector to use to connect to the API
     conn = create_connector(host,
                             username,
