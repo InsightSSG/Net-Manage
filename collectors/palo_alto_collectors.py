@@ -92,6 +92,77 @@ def get_arp_table(username,
     return df
 
 
+def get_logical_interfaces(username,
+                           password,
+                           host_group,
+                           play_path,
+                           private_data_dir):
+    """Gets the logical interfaces on Palo Altos.
+
+    Parameters
+    ----------
+    username : str
+        The user's username.
+    password : str
+        The user's password.
+    host_group : str
+        The name of the Ansible inventory host group.
+    play_path : str
+        The path to the directory containing Ansible playbooks
+    private_data_dir : str
+        The path to the Ansible private data directory
+
+    Returns
+    ----------
+    df : Pandas Dataframe
+        A dataframe containing the logical interfaces.
+
+    Examples
+    ----------
+    >>> df = get_logical_interfaces(username,
+                                    password,
+                                    host_group,
+                                    nm_path,
+                                    play_path,
+                                    private_data_dir)
+    >>> df.columns.to_list()
+    ['device',
+    'name',
+    'zone',
+    'fwd',
+    'vsys',
+    'dyn-addr',
+    'addr6',
+    'tag',
+    'ip',
+    'id',
+    'addr']
+    """
+    result = pc.get_logical_interfaces(username,
+                                       password,
+                                       host_group,
+                                       play_path,
+                                       private_data_dir)
+
+    # Create a dictionary to store the data for 'df'.
+    df_data = dict()
+    df_data['device'] = list()
+
+    # Populate 'df_data' from 'result'.
+    for device in result:
+        for item in result[device]:
+            df_data['device'].append(device)
+            for key, value in item.items():
+                if not df_data.get(key):
+                    df_data[key] = list()
+                df_data[key].append(value)
+
+    # Create the dataframe.
+    df = pd.DataFrame.from_dict(df_data)
+
+    return df
+
+
 def get_physical_interfaces(username,
                             password,
                             host_group,

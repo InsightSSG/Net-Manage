@@ -1,0 +1,17 @@
+- name: Palo Alto Get Logical Interfaces
+  hosts: "{{ host_group }}"
+  connection: local
+  gather_facts: no
+
+  tasks:
+    - name: get logical interfaces on remote devices
+      paloaltonetworks.panos.panos_op:
+        cmd: show interface logical
+        cmd_is_xml: False
+        provider:
+          username: "{{ user }}"
+          ip_address: "{{ ansible_host }}"
+          password: "{{ password }}"
+      delegate_to: localhost
+      vars:
+        ansible_command_timeout: "{{ ansible_timeout | default('240') }}"
