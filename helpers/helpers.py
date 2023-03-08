@@ -9,6 +9,7 @@ import glob
 import numpy as np
 import os
 import pandas as pd
+import re
 import requests
 import sqlite3 as sl
 import sys
@@ -506,7 +507,6 @@ def get_dir_timestamps(path):
 
     Examples
     ----------
-    >>> from helpers import helpers as hp
     >>> from pprint import pprint
     >>> path = '/tmp/test/'
     >>> result = hp.get_dir_timestamps(path)
@@ -1147,6 +1147,98 @@ def sql_get_table_schema(db_path, table):
     df_schema = pd.read_sql(query, con)
 
     return df_schema
+
+
+def download_ouis(path):
+    """Downloads vendor OUIs from https://standards-oui.ieee.org/.
+
+    The results will be stored in a text file located at 'path'.
+
+    Parameters
+    ----------
+    path : str
+        The full path to the filename to store the results.
+
+    Raises
+    ----------
+    FileNotFoundError
+        If the directory in the path does not exist.
+    IsADirectoryError
+        If a filename was not included in 'path'.
+
+    Examples
+    ----------
+    >>> path = '/tmp/ouis.txt'
+    >>> download_ouis(path)
+    """
+    url = 'https://standards-oui.ieee.org/'
+    response = requests.get(url, stream=True)
+    with open(path, 'wb') as txt:
+        for chunk in response.iter_content(chunk_size=1024):
+            if chunk:
+                txt.write(chunk)
+
+
+def update_ouis(nm_path):
+    """Checks the date of 'ouis.txt' .
+
+    The data is pulled from https://standards-oui.ieee.org/ and saved to a
+    text file named 'ouis.txt'. If 'ouis.txt' does not exist or is more
+    than one week old, then it will be downloaded.
+
+    Parameters
+    ----------
+    nm_path : str
+        The path to the Net-Manage repository.
+
+    Notes
+    ----------
+    There is a Python library to do this, but it is quite slow.
+
+    It might seem inefficient to parse the OUIs from a text file on an
+    as-needed basis. However, testing found that the operation only takes
+    about 250ms, and the size of the resulting dataframe is only
+    approximately 500KB.
+
+    Returns
+    ----------
+    df : DataFrame
+        A Pandas DataFrame containing two columns. The first is the MAC
+        address base in base16 format, and the second is the corresponding
+        vendor OUI.
+
+    Examples:
+    ----------
+    >>> df = update_ouis(nm_path)
+    >>> print(df[:2].to_dict())
+    {'mac_base': {0: '002272', 1: '00D0EF'},
+    'vendor_oui': {0: 'American Micro-Fuel Device Corp.', 1: 'IGT'}}
+    """
+    # Check if 'ouis.txt' exists in 'nm_path', and, if so, get the timestamp.
+    files = get_dir_timestamps(nm_path)
+
+    # Check if 'ouis.txt' needs to be downloaded.
+    download = False
+    if f'{nm_path}/ouis.txt' not in files:
+        download = True
+    else:
+        delta = (dt.now().date() - files[f'{nm_path}/ouis.txt'].date()).days
+        if delta > 7:
+            download = True
+
+    # Download 'ouis.txt', if applicable.
+    if download:
+        download_ouis(f'{nm_path}/ouis.txt')
+
+    # Read 'ouis.txt' and extract the base16 and vendor combinations.
+    with open(f'{nm_path}/ouis.txt', 'r') as txt:
+        data = txt.read()
+    pattern = '.*base 16.*'
+    data = re.findall(pattern, data)
+    data = [[_.split()[0], _.split('\t')[-1]] for _ in data]
+    df = pd.DataFrame(data=data, columns=['base', 'vendor'])
+
+    return df
 
 
 def validate_table(table, db_path, diff_col):
