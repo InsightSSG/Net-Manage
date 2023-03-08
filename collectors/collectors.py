@@ -11,7 +11,6 @@ import pandas as pd
 import parsers as pa
 import re
 import run_collectors as rc
-import socket
 import sqlite3 as sl
 
 from helpers import helpers as hp
@@ -92,94 +91,6 @@ def asa_get_interface_ips(username,
     cols = ['device', 'interface', 'ip', 'nameif']
     df_ip = pd.DataFrame(data=df_data, columns=cols)
     return df_ip
-
-
-def update_ouis(nm_path):
-    '''
-    Creates a dataframe of vendor OUIs. List is taken from
-    https://standards-oui.ieee.org/. It is downloaded ahead of time to save
-    time.
-
-    There is a Python library for it, but it is prohibitively slow.
-
-    To update the OUIs, save the data in https://standards-oui.ieee.org/ to
-    Net-Manage/ouis.txt.
-
-    Note: It might seem inefficient to parse the OUIs and create the
-    dataframe as needed. However, it only takes 250ms~ to do, and the DataFrame
-    size is only 500KB~. Therefore, I find the overhead acceptable.
-
-    Args:
-        nm_path (str): Path to the Net-Manage repository.
-
-    Returns:
-        df_ouis (DataFrame): A DataFrame containing the vendor OUIs
-    '''
-    with open(f'{nm_path}/ouis.txt', 'r') as f:
-        data = f.read()
-    pattern = '.*base 16.*'
-    data = re.findall(pattern, data)
-    data = [[_.split()[0], _.split('\t')[-1]] for _ in data]
-    df_ouis = pd.DataFrame(data=data, columns=['base', 'vendor'])
-    return df_ouis
-
-
-def find_mac_vendor(addresses, nm_path):
-    '''
-    Finds the vendor OUI for a list of MAC addresses.
-
-    Note: This function could be improved by multi-threading. However, in
-    testing I found the performance in its current state to be acceptable. It
-    took about 30 seconds to get the vendors for 16,697 MAC addresses. That
-    DOES include the time it took for Ansible to connect to the devices and get
-    the CAM tables.
-
-    Args:
-        addresses (list):   A list of MAC adddresses.
-        nm_path (str):      The path to the Net-Manage repository
-
-    Returns:
-        vendors (list):     A list of vendors, ordered the same as 'addresses'
-    '''
-    # Convert MAC addresses to base 16
-    addresses = [m.replace(':', str()) for m in addresses]
-    addresses = [m.replace('-', str()) for m in addresses]
-    addresses = [m.replace('.', str()) for m in addresses]
-    addresses = [m[:6].upper() for m in addresses]
-    # Create a list to store vendors
-    vendors = list()
-
-    # Create a list to store unknown vendors. This is used to keep from
-    # repeatedly searching for vendor OUIs that are unknown
-    unknown = list()
-
-    # Create a dict to store known vendors. This is used to keep from
-    # repeatedly searching df_ouis for vendors that are already discovered
-    known = dict()
-
-    # Get the OUIs
-    # TODO: Optimize so df_ouis isn't recreated every time function is called
-    # TODO: This could be added to the database once at first run-time. A
-    #       query could be run after that just to make sure the table exists
-    #       and is populated.
-    #
-    df_ouis = update_ouis(nm_path)
-
-    # Search df_ouis for the vendor, add it to 'vendors', and return it
-    for mac in addresses:
-        vendor = known.get(mac)
-        if not vendor:
-            if mac in unknown:
-                vendor = 'unknown'
-            else:
-                vendor_row = df_ouis.loc[df_ouis['base'] == mac]
-                if len(vendor_row) > 0:
-                    vendor = vendor_row['vendor'].values[0]
-                else:
-                    vendor = 'unknown'
-                    unknown.append(mac)
-        vendors.append(vendor)
-    return vendors
 
 
 def f5_build_pool_table(username,
@@ -327,7 +238,7 @@ def f5_get_arp_table(username,
     df_arp = pd.DataFrame(data=df_data, columns=cols)
 
     # Find the vendrs and add them to the dataframe
-    vendors = find_mac_vendor(macs, nm_path)
+    vendors = hp.find_mac_vendors(macs, nm_path)
     df_arp['vendor'] = vendors
 
     return df_arp
@@ -1527,7 +1438,7 @@ def ios_get_cam_table(username,
                         interface = line.split()[-1]
                         vlan = line.split()[0]
                         try:
-                            vendor = find_mac_vendor(mac, nm_path)
+                            vendor = hp.find_mac_vendors(mac, nm_path)
                         except Exception:
                             vendor = 'unknown'
                         df_data.append([device, interface, mac, vlan, vendor])
@@ -1926,7 +1837,7 @@ def nxos_get_arp_table(username,
     df_arp = pd.DataFrame(data=df_data, columns=cols)
 
     # Find the vendrs and add them to the dataframe
-    vendors = find_mac_vendor(macs, nm_path)
+    vendors = hp.find_mac_vendors(macs, nm_path)
     df_arp['vendor'] = vendors
 
     return df_arp
@@ -2015,7 +1926,7 @@ def nxos_get_fexes_table(username,
     df_arp = pd.DataFrame(data=df_data, columns=cols)
 
     # Find the vendrs and add them to the dataframe
-    vendors = find_mac_vendor(macs, nm_path)
+    vendors = hp.find_mac_vendors(macs, nm_path)
     df_arp['vendor'] = vendors
 
     return df_arp
@@ -2183,7 +2094,7 @@ def nxos_get_cam_table(username,
 
     # Get the OUIs and add them to df_cam
     addresses = df_cam['mac'].to_list()
-    vendors = find_mac_vendor(addresses, nm_path)
+    vendors = hp.find_mac_vendors(addresses, nm_path)
     df_cam['vendor'] = vendors
 
     # Return df_cam
@@ -3070,91 +2981,6 @@ def nxos_get_vrfs(username,
     df_vrfs = pd.DataFrame(data=df_data, columns=cols)
 
     return df_vrfs
-
-
-def panos_get_arp_table(username,
-                        password,
-                        host_group,
-                        nm_path,
-                        play_path,
-                        private_data_dir,
-                        interface=None,
-                        reverse_dns=False):
-    '''
-    Gets the ARP table from a Palo Alto firewall.
-
-    Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        nm_path (str):          The path to the Net-Manage repository
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): The path to the Ansible private data directory
-        interface (str):        The interface (defaults to all interfaces)
-        reverse_dns (bool):     Whether to run a reverse DNS lookup. Defaults
-                                to False because the test can take several
-                                minutes on large ARP tables.
-
-    Returns:
-        df_arp (DataFrame):     The ARP table
-    '''
-    if interface:
-        cmd = f'show arp {interface}'
-    else:
-        cmd = 'show arp all'
-    extravars = {'user': username,
-                 'password': password,
-                 'host_group': host_group,
-                 'command': cmd}
-
-    playbook = f'{play_path}/palo_alto_get_arp_table.yml'
-    runner = ansible_runner.run(private_data_dir=private_data_dir,
-                                playbook=playbook,
-                                extravars=extravars,
-                                suppress_env_files=True)
-
-    for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
-            device = event_data['remote_addr']
-            output = event_data['res']['stdout']
-
-            output = json.loads(output)
-            output = output['response']['result']['entries']['entry']
-
-            arp_table = list()
-            for item in output:
-                address = item['ip']
-                age = item['ttl']
-                mac = item['mac']
-                inf = item['interface']
-                # Lookup the OUI vendor
-                try:
-                    vendor = find_mac_vendor(mac, nm_path)
-                except Exception as e:
-                    print(str(e))
-                    vendor = 'unknown'
-                row = [device, address, age, mac, inf, vendor]
-                # Perform a reverse DNS lookup if requested
-                if reverse_dns:
-                    try:
-                        rdns = socket.getnameinfo((address, 0), 0)[0]
-                    except Exception:
-                        rdns = 'unknown'
-                    row.append(rdns)
-                arp_table.append(row)
-
-    cols = ['Device',
-            'Address',
-            'Age',
-            'MAC Address',
-            'Interface',
-            'Vendor']
-    if reverse_dns:
-        cols.append('Reverse DNS')
-
-    df_arp = pd.DataFrame(data=arp_table, columns=cols)
-    return df_arp
 
 
 def panos_get_interface_ips(username,

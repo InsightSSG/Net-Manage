@@ -6,7 +6,7 @@
   tasks:
     - name: get arp table on remote devices
       paloaltonetworks.panos.panos_op:
-        cmd: <show><arp><entry name='all'/></arp></show>
+        cmd: "{{ command }}"
         cmd_is_xml: True  # Required when 'all' is in the command. See:
                           # https://github.com/PaloAltoNetworks/pan-os-python/issues/122
         provider:
