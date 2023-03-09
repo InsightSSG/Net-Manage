@@ -421,6 +421,66 @@ def f5_create_authentication_token(device,
     return token
 
 
+def find_mac_vendors(macs, nm_path):
+    """Finds the vendor OUI for a list of MAC addresses.
+
+    Parameters
+    ----------
+    macs : list
+        A list containing the MAC addresses for which to find the OUIs.
+    nm_path : str
+        The path to the Net-Manage repository.
+
+    Notes
+    ----------
+    There is a Python library to do this, but it is quite slow.
+
+    It might seem inefficient to parse the OUIs from a text file on an
+    as-needed basis. However, testing found that the operation only takes
+    about 250ms, and the size of the resulting dataframe is only
+    approximately 500KB.
+
+    Returns
+    ----------
+    df : DataFrame
+        A Pandas DataFrame containing two columns. The first is the MAC
+        address, and the second is the corresponding vendor.
+
+    Examples:
+    ----------
+    >>> import os
+    >>> macs = ['00:50:56:bd:52:79', 'c4:34:6b:b9:99:32']
+    >>> home_dir = os.path.expanduser('~')
+    >>> nm_path = f'{home_dir}/source/repos/InsightSSG/Net-Manage'
+    >>> df = find_mac_vendors(macs, nm_path)
+    >>> print(df.to_dict())
+    {'mac': {0: '00:50:56:bd:52:79', 1: 'c4:34:6b:b9:99:32'},
+    'vendor': {0: 'VMware, Inc.', 1: 'Hewlett Packard'}}
+    """
+    # Convert MAC addresses to base 16 by removing special characters.
+    addresses = [''.join(filter(str.isalnum, _)).upper() for _ in macs]
+
+    # Create a list to store vendors
+    vendors = list()
+
+    df_ouis = update_ouis(nm_path)
+
+    # Search df_ouis for the vendor and add it to 'vendors'.
+    for address in addresses:
+        vendor = df_ouis.loc[df_ouis['base'] == address[:6]]['vendor']
+        if len(vendor) >= 1:
+            vendors.append(vendor.squeeze())
+        else:
+            vendors.append('unknown')
+
+    # Create the dataframe.
+    df = pd.DataFrame()
+    df['mac'] = macs
+    df['vendor'] = vendors
+
+    return df
+
+
 def get_creds(prompt=str()):
     '''
     Gets the username and password to use for authentication.
@@ -1180,7 +1240,7 @@ def download_ouis(path):
 
 
 def update_ouis(nm_path):
-    """Checks the date of 'ouis.txt' .
+    """Saves base MAC addresses and their vendor OUI to a dataframe.
 
     The data is pulled from https://standards-oui.ieee.org/ and saved to a
     text file named 'ouis.txt'. If 'ouis.txt' does not exist or is more

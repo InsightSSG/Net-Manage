@@ -1,14 +1,13 @@
-- name: Palo Alto Get ARP Table
+- name: Palo Alto Get Logical Interfaces
   hosts: "{{ host_group }}"
   connection: local
   gather_facts: no
 
   tasks:
-    - name: get arp table on remote devices
+    - name: get logical interfaces on remote devices
       paloaltonetworks.panos.panos_op:
-        cmd: "{{ command }}"
-        cmd_is_xml: True  # Required when 'all' is in the command. See:
-                          # https://github.com/PaloAltoNetworks/pan-os-python/issues/122
+        cmd: show interface logical
+        cmd_is_xml: False
         provider:
           username: "{{ user }}"
           ip_address: "{{ ansible_host }}"
