@@ -1,8 +1,6 @@
 name: Flake8 Lint
 
 on: [push]
-  branches:
-    - "*"
 
 jobs:
   build:
