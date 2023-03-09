@@ -12,6 +12,7 @@ from collectors import collectors as cl
 from collectors import infoblox_nios_collectors as nc
 from collectors import meraki_collectors as mc
 from collectors import netbox_collectors as nbc
+from collectors import palo_alto_collectors as pac
 from helpers import helpers as hp
 # from tabulate import tabulate
 
@@ -428,6 +429,27 @@ def collect(collector,
 
     if collector == 'netbox_get_ipam_prefixes':
         result = nbc.netbox_get_ipam_prefixes(nb_path, nb_token)
+
+    if collector == 'panos_arp_table':
+        result = pac.get_arp_table(username,
+                                   password,
+                                   hostgroup,
+                                   nm_path,
+                                   private_data_dir)
+
+    if collector == 'panos_logical_interfaces':
+        result = pac.get_logical_interfaces(username,
+                                            password,
+                                            hostgroup,
+                                            nm_path,
+                                            private_data_dir)
+
+    if collector == 'panos_physical_interfaces':
+        result = pac.get_physical_interfaces(username,
+                                             password,
+                                             hostgroup,
+                                             nm_path,
+                                             private_data_dir)
 
     if collector == 'port_channel_data':
         if ansible_os == 'cisco.nxos.nxos':
