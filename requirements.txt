@@ -1,35 +1,19 @@
-# Install with Conda Forge
+# I recommend installing within a conda environment by using miniconda.
+# See https://docs.conda.io/en/main/miniconda.html
 
-ansible # conda install conda-forge::ansible
-# ansible-pylibssh
-ansible-runner>=2.2.1 # conda install conda-forge::ansible-runner
-# dtale
-# git+https://github.com/wangoloj/python3-nmap.git
-
-# Install with Conda
-
-flake8  # Linter used for CI/CD
-# jinja2>=3.0.3
+ansible
+ansible-runner>=2.2.1
+flake8
 jupyterlab
 ipywidgets
-# jupyterlab_widgets
 nest-asyncio
-# openpyxl
-# pan-os-python
-pan-python  # For Palo Alto firewalls and Panorama
+pan-python
 pandas
 pandevice  
-# python3-nmap
-simplejson  # Requirement for python3-nmap
-pip # Install this within the Conda environment. Do not skip this step. If it
-    # says it is already installed, you can verify it is running within the
-    # conda environment by typing 'pip --version'. You should see output like
-    # this:
-    # 'pip 22.3.1 from /home/>user>/miniconda3/envs/Net-Manage-Portable/lib/python3.10/site-packages/pip (python 3.10)'
-
-# Install with pip *after* installing pip within the conda environment
-infoblox-client  # pip install infoblox-client
-meraki  # pip install meraki
-pynetbox  # pip install pynetbox
-python3-nmap  # pip install python3-nmap
-xmltodict  # pip install xmltodict
+simplejson
+pip
+infoblox-client
+meraki
+pynetbox
+python3-nmap
+xmltodict
