@@ -2,6 +2,10 @@
 
 import os
 import sys
+
+# Change to the Net-Manage repository so imports will work
+nm_path = os.environ.get('NM_PATH')
+os.chdir(f'{nm_path}/test')
 sys.path.append('..')
 from collectors import palo_alto_collectors  # noqa
 
@@ -36,6 +40,31 @@ def test_run_adhoc_command(username,
                                                       cmd_is_xml)
     for key in response:
         assert isinstance(response[key]['event'], str)
+
+
+def test_get_all_interfaces(username,
+                            password,
+                            host_group,
+                            nm_path,
+                            private_data_dir):
+    # Test getting all logical interfaces.
+    df_all = palo_alto_collectors.get_all_interfaces(username,
+                                                     password,
+                                                     host_group,
+                                                     nm_path,
+                                                     private_data_dir)
+    expected = ['device',
+                'name',
+                'zone',
+                'fwd',
+                'vsys',
+                'dyn-addr',
+                'addr6',
+                'tag',
+                'ip',
+                'id',
+                'addr']
+    assert df_all.columns.to_list() == expected
 
 
 def test_get_arp_table(username,
@@ -128,11 +157,18 @@ def main():
     nm_path = os.environ.get('NM_PATH')
     private_data_dir = os.environ.get('PRIVATE_DATA_DIR')
 
+    # Execute tests
     test_run_adhoc_command(username,
                            password,
                            host_group,
                            nm_path,
                            private_data_dir)
+
+    test_get_all_interfaces(username,
+                            password,
+                            host_group,
+                            nm_path,
+                            private_data_dir)
 
     test_get_arp_table(username,
                        password,
