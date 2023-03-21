@@ -100,6 +100,93 @@ def run_adhoc_command(username,
     return result
 
 
+def get_all_interfaces(username,
+                       password,
+                       host_group,
+                       nm_path,
+                       private_data_dir):
+    """Gets all interfaces on Palo Altos.
+
+    Parameters
+    ----------
+    username : str
+        The user's username.
+    password : str
+        The user's password.
+    host_group : str
+        The name of the Ansible inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    private_data_dir : str
+        The path to the Ansible private data directory
+
+    Returns
+    ----------
+    df : Pandas Dataframe
+        A dataframe containing the logical interfaces.
+
+    Examples
+    ----------
+    >>> df = get_all_interfaces(username,
+                                password,
+                                host_group,
+                                nm_path,
+                                play_path,
+                                private_data_dir)
+    >>> df.columns.to_list()
+    ['device',
+    'name',
+    'zone',
+    'fwd',
+    'vsys',
+    'dyn-addr',
+    'addr6',
+    'tag',
+    'ip',
+    'id',
+    'addr']
+    """
+    cmd = 'show interface all'
+    cmd_is_xml = False
+
+    response = run_adhoc_command(username,
+                                 password,
+                                 host_group,
+                                 nm_path,
+                                 private_data_dir,
+                                 cmd,
+                                 cmd_is_xml)
+
+    # Create a dictionary to store the formatted cmd output for each device.
+    result = dict()
+
+    # Parse 'response', adding the cmd output for each device to 'result'.
+    for device, event in response.items():
+        output = json.loads(event['event_data']['res']['stdout'])
+        if output['response']['result']['ifnet'].get('entry'):
+            output = output['response']['result']['ifnet']['entry']
+            result[device] = output
+        else:
+            result[device] = dict()
+
+    # Use the data in 'result' to populate 'df_data', which will be used to
+    # create the dataframe.
+    df_data = dict()
+    df_data['device'] = list()
+    for device in result:
+        for item in result[device]:
+            df_data['device'].append(device)
+            for key, value in item.items():
+                if not df_data.get(key):
+                    df_data[key] = list()
+                df_data[key].append(value)
+
+    # Create the dataframe.
+    df = pd.DataFrame.from_dict(df_data)
+
+    return df
+
+
 def get_arp_table(username,
                   password,
                   host_group,
