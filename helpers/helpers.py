@@ -369,6 +369,7 @@ def define_collectors(hostgroup):
                   'meraki_get_switch_port_usages': ['meraki'],
                   'netbox_get_ipam_prefixes': ['netbox'],
                   'panos_arp_table': ['paloaltonetworks.panos'],
+                  'panos_all_interfaces': ['paloaltonetworks.panos'],
                   'panos_logical_interfaces': ['paloaltonetworks.panos'],
                   'panos_physical_interfaces': ['paloaltonetworks.panos'],
                   'port_channel_data': ['cisco.nxos.nxos'],
