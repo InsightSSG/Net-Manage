@@ -437,6 +437,13 @@ def collect(collector,
                                    nm_path,
                                    private_data_dir)
 
+    if collector == 'panos_all_interfaces':
+        result = pac.get_all_interfaces(username,
+                                        password,
+                                        hostgroup,
+                                        nm_path,
+                                        private_data_dir)
+
     if collector == 'panos_logical_interfaces':
         result = pac.get_logical_interfaces(username,
                                             password,

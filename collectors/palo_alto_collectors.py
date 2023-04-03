@@ -182,7 +182,7 @@ def get_all_interfaces(username,
                 df_data[key].append(value)
 
     # Create the dataframe.
-    df = pd.DataFrame.from_dict(df_data)
+    df = pd.DataFrame.from_dict(df_data).astype(str)
 
     return df
 
@@ -362,7 +362,7 @@ def get_logical_interfaces(username,
                 df_data[key].append(value)
 
     # Create the dataframe.
-    df = pd.DataFrame.from_dict(df_data)
+    df = pd.DataFrame.from_dict(df_data).astype(str)
 
     return df
 
