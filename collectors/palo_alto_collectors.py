@@ -262,13 +262,14 @@ def get_arp_table(username,
         output = json.loads(response[device]['event_data']['res']['stdout'])
         # An 'error' key indicates the interface does not exist.
         if not output['response']['result'].get('error'):
-            arp_table = output['response']['result']['entries']['entry']
-            for item in arp_table:
-                df_data['device'].append(device)
-                for key, value in item.items():
-                    if not df_data.get(key):
-                        df_data[key] = list()
-                    df_data[key].append(value)
+            if output['response']['result'].get('entries'):
+                arp_table = output['response']['result']['entries']['entry']
+                for item in arp_table:
+                    df_data['device'].append(device)
+                    for key, value in item.items():
+                        if not df_data.get(key):
+                            df_data[key] = list()
+                        df_data[key].append(value)
 
     # Get the vendors for the MAC addresses
     df_vendors = hp.find_mac_vendors(df_data['mac'], nm_path)
