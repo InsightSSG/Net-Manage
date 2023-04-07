@@ -4,10 +4,12 @@
 Define F5 collectors
 '''
 
+import ansible_runner
 import ast
+import pandas as pd
 
 
-def tmsh_list_to_dict(in_data):
+def convert_tmsh_output_to_dict(in_data):
     """Converts F5 'tmsh list' output to a Python dictionary.
 
     Parameters
@@ -72,7 +74,7 @@ def tmsh_list_to_dict(in_data):
 ...     vendor-partnum OPT-0010
 ...     vendor-revision 00
 ... }'''
->>> output = tmsh_list_to_dict(in_data)
+>>> output = convert_tmsh_output_to_dict(in_data)
 >>> assert type(output) == dict()
 
     """
@@ -155,3 +157,106 @@ def tmsh_list_to_dict(in_data):
     out = ast.literal_eval(out)
 
     return out
+
+
+def f5_get_self_ips(username,
+                    password,
+                    host_group,
+                    play_path,
+                    private_data_dir,
+                    validate_certs=True):
+    """Get the self IPs on F5 LTMs.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to the device.
+    host_group : str
+        The Ansible inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    validate_certs : bool, optional:
+        Whether to validate SSL certificates.
+
+    Returns
+    ----------
+    df : DataFrame
+        A Pandas Dataframe containing the self IPs.
+    """
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'command': 'list net self'}
+
+    if not validate_certs:
+        extravars['validate_certs'] = 'no'
+
+    playbook = f'{play_path}/f5_run_adhoc_command.yml'
+
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Create a dictionary to store each self IP.
+    data = dict()
+
+    # Create a dictionary to store the data for `df`
+    df_data = dict()
+
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+            device = event_data['remote_addr']
+            data[device] = list()
+            output = event_data['res']['stdout_lines'][0]
+
+            # Parse the output and add it to `data``
+            counter = 0
+            for line in output:
+                if line[:8] == 'net self':
+                    block = list()
+                    pos = counter
+                    while output[pos][0] != '}':
+                        block.append(output[pos])
+                        pos += 1
+                    block.append('}')
+
+                    # Convert the block to a dictionary then flatten it.
+                    # pprint(block)
+                    block = '\n'.join(block)
+                    block = convert_tmsh_output_to_dict(block)
+
+                    for key, value in block.items():
+                        self_name = key.split()[-1]
+                        value['name'] = self_name
+
+                    # Add the device name to `value`, then add `block` to
+                    # `data`.
+                    value['device'] = device
+                    data[device].append(value)
+
+                    # Add each key in `block` to `df_data`.
+                    for key in value:
+                        df_data[key] = list()
+
+                counter += 1
+
+    # Iterate over `data`, adding the values to `df_data`.
+    for key, value in data.items():
+        for item in value:
+            for k in df_data:
+                df_data[k].append(item.get(k))
+
+    # Create `df`.
+    df = pd.DataFrame.from_dict(df_data).astype(str)
+
+    # Make `device` the first column, then return `df`.
+    col_1 = df.pop('device')
+    df.insert(0, 'device', col_1)
+
+    return df

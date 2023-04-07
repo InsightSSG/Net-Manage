@@ -9,7 +9,7 @@
         commands:
           - "{{ command }}"
         provider:
-          user: "{{ user }}"
+          user: "{{ username }}"
           server: "{{ ansible_host }}"
           password: "{{ password }}"
           server_port: "{{ ansible_port | default('443') }}"
