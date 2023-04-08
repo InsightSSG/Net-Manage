@@ -9,6 +9,7 @@ import datetime as dt
 import os
 import readline
 from collectors import collectors as cl
+from collectors import f5_collectors as f5c
 from collectors import infoblox_nios_collectors as nc
 from collectors import meraki_collectors as mc
 from collectors import netbox_collectors as nbc
@@ -111,6 +112,112 @@ def collect(collector,
     #               method='replace')
 
     # Run collectors the user requested
+
+    if ansible_os == 'bigip':
+        if collector == 'arp_table':
+            result = f5c.get_arp_table(username,
+                                       password,
+                                       hostgroup,
+                                       nm_path,
+                                       play_path,
+                                       private_data_dir,
+                                       validate_certs=validate_certs)
+
+        if collector == 'interface_description':
+            result = f5c.\
+                get_interface_descriptions(username,
+                                           password,
+                                           hostgroup,
+                                           nm_path,
+                                           play_path,
+                                           private_data_dir,
+                                           reverse_dns=False,
+                                           validate_certs=validate_certs)
+
+        if collector == 'interface_summary':
+            result = f5c.get_interface_status(username,
+                                              password,
+                                              hostgroup,
+                                              play_path,
+                                              private_data_dir,
+                                              validate_certs=validate_certs)
+
+        if collector == 'node_availability':
+            result = f5c.get_node_availability(username,
+                                               password,
+                                               hostgroup,
+                                               play_path,
+                                               private_data_dir,
+                                               validate_certs=validate_certs)
+
+        if collector == 'pool_availability':
+            result = f5c.get_pool_availability(username,
+                                               password,
+                                               hostgroup,
+                                               play_path,
+                                               private_data_dir,
+                                               validate_certs=validate_certs)
+
+        if collector == 'pool_summary':
+            result = f5c.get_pool_data(username,
+                                       password,
+                                       hostgroup,
+                                       play_path,
+                                       private_data_dir,
+                                       validate_certs=validate_certs)
+
+        if collector == 'pool_member_availability':
+            result = f5c.\
+                get_pool_member_availability(username,
+                                             password,
+                                             hostgroup,
+                                             play_path,
+                                             private_data_dir,
+                                             validate_certs=validate_certs)
+
+        if collector == 'self_ips':
+            result = f5c.get_self_ips(username,
+                                      password,
+                                      hostgroup,
+                                      play_path,
+                                      private_data_dir,
+                                      validate_certs=validate_certs)
+
+        if collector == 'vip_availability':
+            result = f5c.get_vip_availability(username,
+                                              password,
+                                              hostgroup,
+                                              play_path,
+                                              private_data_dir,
+                                              validate_certs=validate_certs)
+
+        if collector == 'vip_destinations':
+            result = f5c.get_vip_destinations(db_path)
+
+        # if collector == 'vip_summary':
+        #     result = f5c.get_vip_data(username,
+        #                               password,
+        #                               hostgroup,
+        #                               play_path,
+        #                               private_data_dir,
+        #                               validate_certs=validate_certs)
+
+        if collector == 'vlans':
+            result = f5c.get_vlans(username,
+                                   password,
+                                   hostgroup,
+                                   play_path,
+                                   private_data_dir,
+                                   validate_certs=validate_certs)
+
+        if collector == 'vlan_database':
+            result = f5c.f5_get_vlan_db(username,
+                                        password,
+                                        hostgroup,
+                                        play_path,
+                                        private_data_dir,
+                                        validate_certs=validate_certs)
+
     if collector == 'cam_table':
         if ansible_os == 'cisco.ios.ios':
             result = cl.ios_get_cam_table(username,
@@ -137,15 +244,6 @@ def collect(collector,
                                            play_path,
                                            private_data_dir)
 
-        if ansible_os == 'bigip':
-            result = cl.f5_get_arp_table(username,
-                                         password,
-                                         hostgroup,
-                                         nm_path,
-                                         play_path,
-                                         private_data_dir,
-                                         validate_certs=False)
-
         if ansible_os == 'paloaltonetworks.panos':
             result = cl.panos_get_arp_table(username,
                                             password,
@@ -163,95 +261,6 @@ def collect(collector,
                                                play_path,
                                                private_data_dir)
 
-    # if collector == 'build_summary_view':
-    #     if ansible_os == 'bigip':
-    #         result = cl.f5_get_pool_data(username,
-    #                                      password,
-    #                                      hostgroup,
-    #                                      play_path,
-    #                                      private_data_dir,
-    #                                      validate_certs=False)
-
-    #         result = cl.f5_get_vip_data(username,
-    #                                     password,
-    #                                     hostgroup,
-    #                                     play_path,
-    #                                     private_data_dir,
-    #                                     validate_certs=False)
-
-    #         add_to_db(collector, result, timestamp, db_path)
-
-        # if ansible_os == 'bigip':
-        #     result = cl.f5_get_pool_data(username,
-        #                                  password,
-        #                                  hostgroup,
-        #                                  play_path,
-        #                                  private_data_dir,
-        #                                  validate_certs=False)
-
-    if collector == 'f5_node_availability':
-        if ansible_os == 'bigip':
-            result = cl.f5_get_node_availability(username,
-                                                 password,
-                                                 hostgroup,
-                                                 play_path,
-                                                 private_data_dir,
-                                                 validate_certs=False)
-
-    if collector == 'f5_pool_availability':
-        if ansible_os == 'bigip':
-            result = cl.f5_get_pool_availability(username,
-                                                 password,
-                                                 hostgroup,
-                                                 play_path,
-                                                 private_data_dir,
-                                                 validate_certs=False)
-
-    if collector == 'f5_pool_summary':
-        if ansible_os == 'bigip':
-            result = cl.f5_get_pool_data(username,
-                                         password,
-                                         hostgroup,
-                                         play_path,
-                                         private_data_dir,
-                                         validate_certs=False)
-
-    if collector == 'f5_pool_member_availability':
-        if ansible_os == 'bigip':
-            result = cl.f5_get_pool_member_availability(username,
-                                                        password,
-                                                        hostgroup,
-                                                        play_path,
-                                                        private_data_dir,
-                                                        validate_certs=False)
-
-    if collector == 'f5_vip_availability':
-        if ansible_os == 'bigip':
-            result = cl.f5_get_vip_availability(username,
-                                                password,
-                                                hostgroup,
-                                                play_path,
-                                                private_data_dir,
-                                                validate_certs=False)
-
-    if collector == 'f5_vip_summary':
-        if ansible_os == 'bigip':
-            result = cl.f5_get_vip_data(username,
-                                        password,
-                                        hostgroup,
-                                        play_path,
-                                        private_data_dir,
-                                        validate_certs=False)
-
-    if collector == 'f5_vip_destinations':
-        if ansible_os == 'bigip':
-            result = cl.f5_get_vip_destinations(username,
-                                                password,
-                                                hostgroup,
-                                                play_path,
-                                                private_data_dir,
-                                                validate_certs=False)
-
     if collector == 'interface_description':
         if ansible_os == 'cisco.ios.ios':
             result = cl.ios_get_interface_descriptions(username,
@@ -266,16 +275,6 @@ def collect(collector,
                                                         hostgroup,
                                                         play_path,
                                                         private_data_dir)
-
-        if ansible_os == 'bigip':
-            result = cl.f5_get_interface_descriptions(username,
-                                                      password,
-                                                      hostgroup,
-                                                      nm_path,
-                                                      play_path,
-                                                      private_data_dir,
-                                                      reverse_dns=False,
-                                                      validate_certs=False)
 
     if collector == 'infoblox_get_network_containers':
         result = nc.get_network_containers(infoblox_host,
@@ -355,14 +354,6 @@ def collect(collector,
     if collector == 'interface_summary':
         if ansible_os == 'cisco.nxos.nxos':
             result = cl.nxos_get_interface_summary(db_path)
-
-        if ansible_os == 'bigip':
-            result = cl.f5_get_interface_status(username,
-                                                password,
-                                                hostgroup,
-                                                play_path,
-                                                private_data_dir,
-                                                validate_certs=False)
 
     if collector == 'find_uplink_by_ip':
         if ansible_os == 'cisco.ios.ios':
@@ -481,14 +472,6 @@ def collect(collector,
                                          hostgroup,
                                          play_path,
                                          private_data_dir)
-
-        if ansible_os == 'bigip':
-            result = cl.f5_get_vlan_db(username,
-                                       password,
-                                       hostgroup,
-                                       play_path,
-                                       private_data_dir,
-                                       validate_certs=False)
 
     if collector == 'vrfs':
         if ansible_os == 'cisco.nxos.nxos':

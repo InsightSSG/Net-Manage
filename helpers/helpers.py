@@ -336,13 +336,15 @@ def define_collectors(hostgroup):
                                 'cisco.nxos.nxos'],
                   'bgp_neighbors': ['cisco.nxos.nxos'],
                   'cam_table': ['cisco.ios.ios', 'cisco.nxos.nxos'],
-                  'f5_node_availability': ['bigip'],
-                  'f5_pool_availability': ['bigip'],
-                  'f5_pool_member_availability': ['bigip'],
-                  'f5_pool_summary': ['bigip'],
-                  'f5_vip_availability': ['bigip'],
-                  'f5_vip_destinations': ['bigip'],
-                  'f5_vip_summary': ['bigip'],
+                  'node_availability': ['bigip'],
+                  'pool_availability': ['bigip'],
+                  'pool_member_availability': ['bigip'],
+                  'pool_summary': ['bigip'],
+                  'self_ips': ['bigip'],
+                  'vip_availability': ['bigip'],
+                  'vip_destinations': ['bigip'],
+                  #  'vip_summary': ['bigip'],
+                  'vlans': ['bigip'],
                   'infoblox_get_networks': ['infoblox_nios'],
                   'infoblox_get_network_containers': ['infoblox_nios'],
                   'infoblox_get_networks_parent_containers': ['infoblox_nios'],
@@ -814,11 +816,11 @@ def set_dependencies(selected):
             del s[pos]
         s.insert(0, 'cam_table')
 
-    if 'f5_get_vip_destinations' in s:
-        if 'f5_get_vip_availability' in s:
-            pos = s.index('f5_get_vip_availability')
+    if 'vip_destinations' in s:
+        if 'vip_availability' in s:
+            pos = s.index('vip_availability')
             del s[pos]
-        s.insert(0, 'f5_vip_availability')
+        s.insert(0, 'vip_availability')
 
     if 'infoblox_get_networks_parent_containers' in s:
         if 'infoblox_get_networks' in s:
