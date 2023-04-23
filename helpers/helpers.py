@@ -467,6 +467,7 @@ def find_mac_vendors(macs, nm_path):
     # Create a list to store vendors
     vendors = list()
 
+    # Check if the list of OUIs exists and/or needs to be updated.
     df_ouis = update_ouis(nm_path)
 
     # Search df_ouis for the vendor and add it to 'vendors'.
@@ -1244,7 +1245,7 @@ def download_ouis(path):
 
 
 def update_ouis(nm_path):
-    """Saves base MAC addresses and their vendor OUI to a dataframe.
+    """Download or update vendor OUIs and save them to a file.
 
     The data is pulled from https://standards-oui.ieee.org/ and saved to a
     text file named 'ouis.txt'. If 'ouis.txt' does not exist or is more
