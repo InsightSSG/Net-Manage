@@ -184,6 +184,69 @@ def ios_find_uplink_by_ip(username,
     return df_combined
 
 
+def ios_get_arp_table(username,
+                      password,
+                      host_group,
+                      nm_path,
+                      play_path,
+                      private_data_dir):
+    '''
+    Gets the IOS ARP table and adds the vendor OUI.
+
+    Args:
+        username (str):         The username to login to devices
+        password (str):         The password to login to devices
+        host_group (str):       The inventory host group
+        nm_path (str):          The path to the Net-Manage repository
+        play_path (str):        The path to the playbooks directory
+        private_data_dir (str): The path to the Ansible private data directory
+        interface (str):        The interface (defaults to all interfaces)
+
+    Returns:
+        df_arp (DataFrame):     The ARP table and vendor OUI
+    '''
+    cmd = 'show ip arp'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute the pre-checks
+    playbook = f'{play_path}/cisco_ios_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse the output and add it to 'data'
+    df_data = list()
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout'][0].split('\n')
+            columns = list(filter(None, output[0].split('  ')))
+            columns.insert(0, 'device')
+            columns = [_.strip() for _ in columns]
+
+            for line in output[1:]:
+                row = [device] + line.split()
+                df_data.append(row)
+
+    # Create the DataFrame
+    df_arp = pd.DataFrame(data=df_data, columns=columns)
+
+    # Get the vendor OUIs
+    df_vendors = hp.find_mac_vendors(df_arp['Hardware Addr'], nm_path)
+
+    # Add the vendor OUIs to df_cam as a column, and return the dataframe.
+    df_arp['vendor'] = df_vendors['vendor']
+
+    return df_arp
+
+
 def ios_get_cam_table(username,
                       password,
                       host_group,
@@ -247,69 +310,6 @@ def ios_get_cam_table(username,
 
     # Add the vendor OUIs to df_cam as a column, and return the dataframe.
     df_cam['vendor'] = df_vendors['vendor']
-
-    return df_cam
-
-    # Get the ARP table, map the IPs to the CAM table, and add them to 'df_cam'
-    # TODO: Iterate through VRFs on devices that do not support 'vrf all'
-    cmd = 'show ip arp'
-    extravars = {'username': username,
-                 'password': password,
-                 'host_group': host_group,
-                 'commands': cmd}
-
-    # Execute 'show interface description' and parse the results
-    playbook = f'{play_path}/cisco_ios_run_commands.yml'
-    runner = ansible_runner.run(private_data_dir=private_data_dir,
-                                playbook=playbook,
-                                extravars=extravars,
-                                suppress_env_files=True)
-
-    # Create a dict to store the ARP table
-    ip_dict = dict()
-
-    # Create a list to store the IP address for each MAC address. If there is
-    # not an entry in the ARP table then an empty string will be added
-    addresses = list()
-
-    # Parse the output
-    for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
-            device = event_data['remote_addr']
-
-            output = event_data['res']['stdout'][0].split('\n')
-            output = list(filter(None, output))
-            for line in output[1:]:
-                mac = line.split()[3]
-                ip = line.split()[1]
-                ip_dict[mac] = ip
-
-            for idx, row in df_cam.iterrows():
-                mac = row['mac']
-                if ip_dict.get(mac):
-                    addresses.append(ip_dict.get(mac))
-                else:
-                    addresses.append(str())
-
-    # Add the addresses list to 'df_cam' as a column
-    df_cam['ip'] = addresses
-
-    # Set the desired order of columns
-    cols = ['device',
-            'interface',
-            # 'description',
-            'mac',
-            # 'ip',
-            'vlan',
-            'vendor']
-    df_cam = df_cam[cols]
-
-    # Sort by interface
-    df_cam = df_cam.sort_values('interface')
-
-    # Reset (re-order) the index
-    df_cam.reset_index(drop=True, inplace=True)
 
     return df_cam
 
