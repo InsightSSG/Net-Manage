@@ -10,6 +10,34 @@ sys.path.append('..')
 from collectors import collectors  # noqa
 
 
+def test_get_arp_table(username,
+                       password,
+                       host_group,
+                       nm_path,
+                       play_path,
+                       private_data_dir,
+                       reverse_dns=False):
+    """Test the 'nxos_get_arp_table' collector.
+    """
+    df_arp = collectors.nxos_get_arp_table(username,
+                                           password,
+                                           host_group,
+                                           nm_path,
+                                           play_path,
+                                           private_data_dir,
+                                           interface=None)
+
+    expected = ['device',
+                'ip_address',
+                'age',
+                'mac_address',
+                'interface',
+                'vendor']
+    assert df_arp.columns.to_list() == expected
+
+    assert len(df_arp) >= 1
+
+
 def test_get_cam_table(username,
                        password,
                        host_group,
@@ -63,6 +91,14 @@ def main():
     private_data_dir = os.environ.get('PRIVATE_DATA_DIR')
 
     # Execute tests
+    test_get_arp_table(username,
+                       password,
+                       host_group_all,
+                       nm_path,
+                       play_path,
+                       private_data_dir,
+                       reverse_dns=False)
+
     test_get_cam_table(username,
                        password,
                        host_group_all,

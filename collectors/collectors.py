@@ -640,8 +640,8 @@ def nxos_get_arp_table(username,
     df_arp = pd.DataFrame(data=df_data, columns=cols)
 
     # Find the vendrs and add them to the dataframe
-    vendors = hp.find_mac_vendors(macs, nm_path)
-    df_arp['vendor'] = vendors
+    df_vendors = hp.find_mac_vendors(macs, nm_path)
+    df_arp['vendor'] = df_vendors['vendor']
 
     return df_arp
 
