@@ -25,7 +25,7 @@ def test_get_arp_table(username,
                                            nm_path,
                                            play_path,
                                            private_data_dir,
-                                           interface=None)
+                                           reverse_dns=False)
 
     expected = ['device',
                 'ip_address',
