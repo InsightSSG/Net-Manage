@@ -49,6 +49,8 @@ def test_get_interface_descriptions(username,
                                                         interface=None)
     print(df_desc)
     expected = ['device', 'interface', 'description']
+    print(expected)
+    print(df_desc.columns.to_list())
     assert df_desc.columns.to_list == expected
 
     assert len(df_desc) >= 1
