@@ -17,8 +17,7 @@ def test_get_cam_table(username,
                        play_path,
                        private_data_dir,
                        interface=None):
-    """
-    Test the 'ios_get_cam_table' collector.
+    """Test the 'ios_get_cam_table' collector.
     """
     df_cam = collectors.ios_get_cam_table(username,
                                           password,
@@ -27,11 +26,32 @@ def test_get_cam_table(username,
                                           play_path,
                                           private_data_dir,
                                           interface=None)
-    print(df_cam)
-    expected = ['device', 'interface', 'mac', 'vlan', 'vendor']
 
+    expected = ['device', 'interface', 'mac', 'vlan', 'vendor']
     assert df_cam.columns.to_list() == expected
+
     assert len(df_cam) >= 1
+
+
+def test_get_interface_descriptions(username,
+                                    password,
+                                    host_group,
+                                    play_path,
+                                    private_data_dir,
+                                    interface=None):
+    """Test the 'ios_get_interface_descriptions' collector.
+    """
+    df_desc = collectors.ios_get_interface_descriptions(username,
+                                                        password,
+                                                        host_group,
+                                                        play_path,
+                                                        private_data_dir,
+                                                        interface=None)
+    print(df_desc)
+    expected = ['device', 'interface', 'description']
+    assert df_desc.columns.to_list == expected
+
+    assert len(df_desc) >= 1
 
 
 # def test_get_all_interfaces(username,
