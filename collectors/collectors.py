@@ -897,8 +897,8 @@ def nxos_get_cam_table(username,
 
     # Get the OUIs and add them to df_cam
     addresses = df_cam['mac'].to_list()
-    vendors = hp.find_mac_vendors(addresses, nm_path)
-    df_cam['vendor'] = vendors
+    df_vendors = hp.find_mac_vendors(addresses, nm_path)
+    df_cam['vendor'] = df_vendors['vendor']
 
     # Return df_cam
     return df_cam
