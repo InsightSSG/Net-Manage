@@ -58,17 +58,18 @@ def main():
     username = os.environ.get('USERNAME')
     password = os.environ.get('PASSWORD')
     host_group_all = os.environ.get('NXOS_HOST_GROUP_ALL')
+    nm_path = os.environ.get('NM_PATH')
     play_path = os.environ.get('PLAY_PATH')
     private_data_dir = os.environ.get('PRIVATE_DATA_DIR')
 
     # Execute tests
-    # test_get_cam_table(username,
-    #                    password,
-    #                    host_group_l2,
-    #                    nm_path,
-    #                    play_path,
-    #                    private_data_dir,
-    #                    interface=None)
+    test_get_cam_table(username,
+                       password,
+                       host_group_all,
+                       nm_path,
+                       play_path,
+                       private_data_dir,
+                       interface=None)
 
     test_get_interface_descriptions(username,
                                     password,
