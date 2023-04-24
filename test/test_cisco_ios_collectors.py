@@ -28,6 +28,8 @@ def test_get_cam_table(username,
                                           interface=None)
 
     expected = ['device', 'Vlan', 'Mac Address', 'Type', 'Ports', 'vendor']
+    print(df_cam)
+    print(df_cam.columns.to_list())
     assert df_cam.columns.to_list() == expected
 
     assert len(df_cam) >= 1
