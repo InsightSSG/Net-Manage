@@ -31,6 +31,7 @@ def test_get_cam_table(username,
     expected = ['device', 'interface', 'mac', 'vlan', 'vendor']
 
     assert df_cam.columns.to_list() == expected
+    assert len(df_cam) >= 1
 
 
 # def test_get_all_interfaces(username,
