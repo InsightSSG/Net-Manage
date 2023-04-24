@@ -27,6 +27,7 @@ def test_get_cam_table(username,
                                           play_path,
                                           private_data_dir,
                                           interface=None)
+    print(df_cam)
     expected = ['device', 'interface', 'mac', 'vlan', 'vendor']
 
     assert df_cam.columns.to_list() == expected
