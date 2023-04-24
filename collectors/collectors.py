@@ -828,9 +828,9 @@ def nxos_get_bgp_neighbors(username,
 def nxos_get_cam_table(username,
                        password,
                        host_group,
+                       nm_path,
                        play_path,
                        private_data_dir,
-                       nm_path,
                        interface=None):
     '''
     Gets the CAM table for NXOS devices and adds the vendor OUI.
@@ -839,10 +839,10 @@ def nxos_get_cam_table(username,
         username (str):         The username to login to devices
         password (str):         The password to login to devices
         host_group (str):       The inventory host group
+        nm_path (str):          The path to the Net-Manage repository
         play_path (str):        The path to the playbooks directory
         private_data_dir (str): The path to the Ansible private data directory
         interface (str):        The interface (defaults to all interfaces)
-        nm_path (str):          The path to the Net-Manage repository
 
     Returns:
         df_cam (DataFrame):     The CAM table and vendor OUI
