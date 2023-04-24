@@ -33,9 +33,6 @@ def test_get_arp_table(username,
                 'Type',
                 'Interface',
                 'vendor']
-    print(expected)
-    print(df_arp.columns.to_list())
-    print(df_arp)
     assert df_arp.columns.to_list() == expected
 
     assert len(df_arp) >= 1
