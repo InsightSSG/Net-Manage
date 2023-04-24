@@ -209,7 +209,7 @@ def ios_get_cam_table(username,
     if interface:
         cmd = f'show mac address-table interface {interface}'
     else:
-        cmd = 'show mac address-table'
+        cmd = 'show mac address-table | begin Vlan'
     extravars = {'username': username,
                  'password': password,
                  'host_group': host_group,
@@ -231,29 +231,22 @@ def ios_get_cam_table(username,
             device = event_data['remote_addr']
 
             output = event_data['res']['stdout'][0].split('\n')
-            output = list(filter(None, output))
-            pattern = '[a-zA-Z0-9]{4}\\.[a-zA-Z0-9]{4}\\.[a-zA-Z0-9]{4}'
-            for line in output:
-                for item in line.split():
-                    valid = re.match(pattern, item)
-                    if valid and line.split()[-1] != 'CPU':
-                        mac = line.split()[1]
-                        interface = line.split()[-1]
-                        vlan = line.split()[0]
-                        try:
-                            vendor = hp.find_mac_vendors(mac, nm_path)
-                        except Exception:
-                            vendor = 'unknown'
-                        df_data.append([device, interface, mac, vlan, vendor])
+            columns = list(filter(None, output[0].split('  ')))
 
-    # Define the dataframe columns
-    cols = ['device',
-            'interface',
-            'mac',
-            'vlan',
-            'vendor']
+            for line in output[2:-1]:
+                row = [device] + line.split()
+                df_data.append(row)
 
-    df_cam = pd.DataFrame(data=df_data, columns=cols)
+    # Create the DataFrame
+    df_cam = pd.DataFrame(data=df_data, columns=columns)
+
+    # Get the vendor OUIs
+    df_vendors = hp.find_mac_vendors(df_cam['Mac Address'], nm_path)
+
+    # Add the vendor OUIs to df_cam as a column, and return the dataframe.
+    df_cam['vendor'] = df_vendors['vendor']
+
+    return df_cam
 
     # Get the ARP table, map the IPs to the CAM table, and add them to 'df_cam'
     # TODO: Iterate through VRFs on devices that do not support 'vrf all'
