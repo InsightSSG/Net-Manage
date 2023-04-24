@@ -233,6 +233,7 @@ def ios_get_cam_table(username,
             output = event_data['res']['stdout'][0].split('\n')
             columns = list(filter(None, output[0].split('  ')))
             columns.insert(0, 'device')
+            columns = [_.strip() for _ in columns]
 
             for line in output[2:-1]:
                 row = [device] + line.split()
