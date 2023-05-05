@@ -735,14 +735,15 @@ def main():
         for group in hostgroups:
             ansible_os = df_vars.loc[[group]]['ansible_network_os'].values[0]
 
-            result = collect(ansible_os,
-                             collector,
-                             username,
-                             password,
-                             group,
-                             play_path,
-                             private_data_dir,
+            result = collect(collector,
                              nm_path,
+                             private_data_dir,
+                             ts,
+                             ansible_os=ansible_os,
+                             username=username,
+                             password=password,
+                             hostgroup=group,
+                             play_path=play_path,
                              db_path=db)
             # Set the timestamp as the index
             new_idx = list()
