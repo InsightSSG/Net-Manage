@@ -33,8 +33,11 @@ def ansible_create_collectors_df(hostgroups, collectors):
     '''
     df_data = list()
     for c in collectors:
-        df_data.append([c, ','.join(hostgroups)])
-        df_collectors = pd.DataFrame(data=df_data, columns=['collector',
+        for hostgroup in hostgroups:
+            if c not in define_collectors(hostgroup):
+                continue
+            df_data.append([c, hostgroup])
+            df_collectors = pd.DataFrame(data=df_data, columns=['collector',
                                                             'hostgroups'])
     df_collectors = df_collectors.set_index('collector')
 
