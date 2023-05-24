@@ -101,8 +101,8 @@ def nxos_toggle_feature(feature_name: str,
 
     Returns
     -------
-    runner.events: generator
-        The ansible-runner events.
+    summary : dict
+        A dictionary containing the task results for each host.
     """
     extravars = {'username': username,
                  'password': password,
@@ -117,4 +117,15 @@ def nxos_toggle_feature(feature_name: str,
                                 extravars=extravars,
                                 suppress_env_files=True)
 
-    return runner.events
+    summary = dict()
+    for host_event in runner.events:
+        if host_event['event'] == 'runner_on_ok':
+            host = host_event['event_data']['host']
+            task = host_event['event_data']['task']
+            result = host_event['event_data']['res']
+            if not summary.get(host):
+                summary[host] = dict()
+            summary[host][task] = dict()
+            summary[host][task]['result'] = result
+
+    return summary
