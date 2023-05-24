@@ -6,12 +6,12 @@ from typing import List
 
 
 def nxos_create_vrf(device_ip: str,
-                        username: str,
-                        password: str,
-                        vrf_name: str,
-                        vrf_rd: str,
-                        vrf_rt: str,
-                        interfaces: List[str]) -> str:
+                    username: str,
+                    password: str,
+                    vrf_name: str,
+                    vrf_rd: str,
+                    vrf_rt: str,
+                    interfaces: List[str]) -> str:
     """
     Creates a VRF on a Cisco Nexus device and assigns interfaces to it.
 
@@ -71,11 +71,11 @@ def nxos_create_vrf(device_ip: str,
     return output
 
 
-def nxos_toggle_feature(state: bool,
-                        feature_name: str,
+def nxos_toggle_feature(feature_name: str,
                         host_group: str,
                         play_path: str,
                         private_data_dir: str,
+                        state: bool,
                         username: str,
                         password: str) -> str:
     """
@@ -83,23 +83,26 @@ def nxos_toggle_feature(state: bool,
 
     Parameters
     ----------
-    on : bool
-    A boolean indicating whether the feature should be enabled (True) or
-    disabled (False).
     feature : str
-    The name of the feature to enable or disable.
-    switch_ip : str
-    The IP address of the Cisco Nexus switch.
+        The name of the feature to enable or disable.
+    state : bool
+        A boolean indicating whether the feature should be enabled (True) or
+        disabled (False).
+    host_group : str
+        The host group for which to modify the feature.
+    play_path : str
+        The path to netManage playbooks.
+    private_data_dir : str
+        The path to the Ansible private data directory.
     username : str
-    The username for the switch login.
+        The username for the switch login.
     password : str
-    The password for the switch login.
+        The password for the switch login.
 
     Returns
     -------
-    str
-    The output message from the Cisco Nexus switch.
-
+    runner.events: generator
+        The ansible-runner events.
     """
     extravars = {'username': username,
                  'password': password,
