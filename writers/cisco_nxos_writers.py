@@ -134,6 +134,61 @@ def nxos_create_vrf(vrf_name: str,
     return summary
 
 
+def nxos_delete_vlan(vlan_id: str,
+                     host_group: str,
+                     play_path: str,
+                     private_data_dir: str,
+                     username: str,
+                     password: str) -> str:
+    """
+    This function is used to enable or disable a feature on a Cisco Nexus.
+
+    Parameters
+    ----------
+    vlan_id : str
+        The VLAN ID.
+    host_group : str
+        The host group for which to modify the feature.
+    play_path : str
+        The path to netManage playbooks.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    username : str
+        The username for the switch login.
+    password : str
+        The password for the switch login.
+
+    Returns
+    -------
+    summary : dict
+        A dictionary containing the task results for each host.
+    """
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'vlan_id': vlan_id}
+
+    playbook = f'{play_path}/rw_cisco_nxos_delete_vlan.yml'
+
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    summary = dict()
+    for host_event in runner.events:
+        if host_event['event'] == 'runner_on_ok':
+            host = host_event['event_data']['host']
+            task = host_event['event_data']['task']
+            result = host_event['event_data']['res']
+            if not summary.get(host):
+                summary[host] = dict()
+            summary[host][task] = dict()
+            summary[host][task]['result'] = result
+
+    return summary
+
+
 def nxos_delete_vrf(vrf_name: str,
                     host_group: str,
                     play_path: str,
