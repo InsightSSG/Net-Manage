@@ -1,8 +1,11 @@
+#!/usr/bin/env python3
+
+import ansible_runner
 from netmiko import ConnectHandler
 from typing import List
 
 
-def create_vrf_on_nexus(device_ip: str,
+def nxos_create_vrf(device_ip: str,
                         username: str,
                         password: str,
                         vrf_name: str,
@@ -66,3 +69,49 @@ def create_vrf_on_nexus(device_ip: str,
     net_connect.disconnect()
 
     return output
+
+
+def nxos_toggle_feature(state: bool,
+                        feature_name: str,
+                        host_group: str,
+                        play_path: str,
+                        private_data_dir: str,
+                        username: str,
+                        password: str) -> str:
+    """
+    This function is used to enable or disable a feature on a Cisco Nexus.
+
+    Parameters
+    ----------
+    on : bool
+    A boolean indicating whether the feature should be enabled (True) or
+    disabled (False).
+    feature : str
+    The name of the feature to enable or disable.
+    switch_ip : str
+    The IP address of the Cisco Nexus switch.
+    username : str
+    The username for the switch login.
+    password : str
+    The password for the switch login.
+
+    Returns
+    -------
+    str
+    The output message from the Cisco Nexus switch.
+
+    """
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'feature_name': feature_name,
+                 'state': state}
+
+    playbook = f'{play_path}/rw_cisco_nxos_toggle_feature.yml'
+
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    return runner.events
