@@ -1,0 +1,20 @@
+- name: Cisco NXOS Delete VLAN Playbook
+  gather_facts: no
+  hosts: "{{ host_group }}"
+
+  tasks:          
+    - name: Delete VLAN ID "{{ vlan_id }}"
+      cisco.nxos.nxos_vlans:
+        config:
+        - vlan_id: "{{ vlan_id }}"
+        state: deleted
+      vars:
+        ansible_command_timeout: "{{ ansible_timeout | default('30') }}"
+        ansible_connection: ansible.netcommon.network_cli
+
+    - name: Save Running Config
+      nxos_config:
+        save_when: modified
+      vars:
+        ansible_command_timeout: "{{ ansible_timeout | default('30') }}"
+        ansible_connection: ansible.netcommon.network_cli
