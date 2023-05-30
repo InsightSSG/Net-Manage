@@ -1098,7 +1098,7 @@ def nxos_get_interface_status(username,
     Returns:
         df_inf_status (DataFrame): The interface statuses
     '''
-    cmd = 'show interface status'
+    cmd = 'show interface status | grep -v "\\-\\-\\-"'
     extravars = {'username': username,
                  'password': password,
                  'host_group': host_group,
@@ -1121,17 +1121,21 @@ def nxos_get_interface_status(username,
             device = event_data['remote_addr']
 
             output = event_data['res']['stdout'][0].split('\n')
+            output = list(filter(None, output))
 
             # Get the positions of the header columns (except Port and Name)
-            header = output[1]
+            header = output[0]
             pos_status = header.index('Status')
             pos_vlan = header.index('Vlan')
             pos_duplex = header.index('Duplex')
             pos_speed = header.index('Speed')
             pos_type = header.index('Type')
 
+            # Remove lines that repeat the header
+            output = [_ for _ in output if 'Port' not in _ and 'type' not in _]
+
             # Parse the output and add it to 'df_data'
-            for line in output[3:]:
+            for line in output[1:]:
                 inf = line.split()[0]
                 status = line[pos_status:pos_vlan]
                 vlan = line[pos_vlan:pos_duplex]

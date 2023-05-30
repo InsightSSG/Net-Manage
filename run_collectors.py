@@ -231,9 +231,9 @@ def collect(collector,
             result = cl.nxos_get_cam_table(username,
                                            password,
                                            hostgroup,
+                                           nm_path,
                                            play_path,
-                                           private_data_dir,
-                                           nm_path)
+                                           private_data_dir)
 
     if collector == 'arp_table':
         if ansible_os == 'cisco.nxos.nxos':
