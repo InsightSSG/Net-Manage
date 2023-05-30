@@ -236,6 +236,14 @@ def collect(collector,
                                            private_data_dir)
 
     if collector == 'arp_table':
+        if ansible_os == 'cisco.ios.ios':
+            result = cl.ios_get_arp_table(username,
+                                          password,
+                                          hostgroup,
+                                          nm_path,
+                                          play_path,
+                                          private_data_dir)
+
         if ansible_os == 'cisco.nxos.nxos':
             result = cl.nxos_get_arp_table(username,
                                            password,

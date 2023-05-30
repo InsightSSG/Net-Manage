@@ -218,6 +218,18 @@ def ios_get_arp_table(username,
                                 extravars=extravars,
                                 suppress_env_files=True)
 
+    # Create the column headers. I do not like to hard code these, but they
+    # should be modified from Cisco's format before being stored in a
+    # database. I suppose it is not strictly necessary to do so, but
+    # "Age (min)" and "Hardware Addr" do not make for good column headers.
+    columns = ['device',
+               'protocol',
+               'address',
+               'age',
+               'mac',
+               'inf_type',
+               'interface']
+
     # Parse the output and add it to 'data'
     df_data = list()
     for event in runner.events:
@@ -227,9 +239,6 @@ def ios_get_arp_table(username,
             device = event_data['remote_addr']
 
             output = event_data['res']['stdout'][0].split('\n')
-            columns = list(filter(None, output[0].split('  ')))
-            columns.insert(0, 'device')
-            columns = [_.strip() for _ in columns]
 
             for line in output[1:]:
                 row = [device] + line.split()
@@ -239,7 +248,7 @@ def ios_get_arp_table(username,
     df_arp = pd.DataFrame(data=df_data, columns=columns)
 
     # Get the vendor OUIs
-    df_vendors = hp.find_mac_vendors(df_arp['Hardware Addr'], nm_path)
+    df_vendors = hp.find_mac_vendors(df_arp['mac'], nm_path)
 
     # Add the vendor OUIs to df_cam as a column, and return the dataframe.
     df_arp['vendor'] = df_vendors['vendor']
