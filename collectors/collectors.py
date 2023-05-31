@@ -294,6 +294,16 @@ def ios_get_cam_table(username,
                                 extravars=extravars,
                                 suppress_env_files=True)
 
+    # Create the column headers. I do not like to hard code these, but they
+    # should be modified from Cisco's format before being stored in a
+    # database. I suppose it is not strictly necessary to do so, but
+    # "Mac Address" and "Type" do not make good column headers.
+    columns = ['device',
+               'vlan',
+               'mac',
+               'inf_type',
+               'ports']
+
     # Parse the output and add it to 'data'
     df_data = list()
     for event in runner.events:
@@ -303,9 +313,9 @@ def ios_get_cam_table(username,
             device = event_data['remote_addr']
 
             output = event_data['res']['stdout'][0].split('\n')
-            columns = list(filter(None, output[0].split('  ')))
-            columns.insert(0, 'device')
-            columns = [_.strip() for _ in columns]
+            # columns = list(filter(None, output[0].split('  ')))
+            # columns.insert(0, 'device')
+            # columns = [_.strip() for _ in columns]
 
             for line in output[2:-1]:
                 row = [device] + line.split()
@@ -315,7 +325,7 @@ def ios_get_cam_table(username,
     df_cam = pd.DataFrame(data=df_data, columns=columns)
 
     # Get the vendor OUIs
-    df_vendors = hp.find_mac_vendors(df_cam['Mac Address'], nm_path)
+    df_vendors = hp.find_mac_vendors(df_cam['mac'], nm_path)
 
     # Add the vendor OUIs to df_cam as a column, and return the dataframe.
     df_cam['vendor'] = df_vendors['vendor']
