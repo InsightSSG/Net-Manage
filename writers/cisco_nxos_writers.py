@@ -83,7 +83,7 @@ def nxos_create_vrf(vrf_name: str,
                     username: str,
                     password: str) -> str:
     """
-    This function is used to enable or disable a feature on a Cisco Nexus.
+    Create a VRF on a Cisco NXOS device.
 
     Parameters
     ----------
