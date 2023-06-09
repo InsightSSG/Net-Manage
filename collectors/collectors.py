@@ -512,6 +512,74 @@ def ios_get_interface_ips(username,
     return df_ip
 
 
+def ios_get_vlan_db(username: str,
+                    password: str,
+                    host_group: str,
+                    play_path: str,
+                    private_data_dir: str) -> pd.DataFrame:
+    '''
+    """
+    Gets the VLAN database for Cisco IOS devices.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame containing the VLAN database.
+    """
+    '''
+    # Get the interface descriptions and add them to df_cam
+    cmd = 'show vlan brief | exclude ----'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute 'show interface description' and parse the results
+    playbook = f'{play_path}/cisco_ios_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+    # Create a dictionary to store the rows for the dataframe
+    df_data = list()
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout'][0].split('\n')
+
+            # Create the column headers
+            cols = ['device'] + output[0].split()[:3]
+            cols = [_.lower() for _ in cols]
+
+            # Removed wrapped interfaces
+            output = [_ for _ in output[1:] if _[0] != ' ']
+
+            # Add the VLANs to 'df_data'
+            for line in output:
+                row = [device] + line.split()[:3]
+                df_data.append(row)
+
+    # Create the dataframe and return it
+    df = pd.DataFrame(data=df_data, columns=cols)
+    return df
+
+
 def nxos_diff_running_config(username,
                              password,
                              host_group,

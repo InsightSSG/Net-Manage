@@ -474,6 +474,13 @@ def collect(collector,
                                            private_data_dir)
 
     if collector == 'vlans':
+        if ansible_os == 'cisco.ios.ios':
+            result = cl.ios_get_vlan_db(username,
+                                        password,
+                                        hostgroup,
+                                        play_path,
+                                        private_data_dir)
+
         if ansible_os == 'cisco.nxos.nxos':
             result = cl.nxos_get_vlan_db(username,
                                          password,
