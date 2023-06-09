@@ -1178,7 +1178,7 @@ def get_vip_destinations(db_path):
                    from VIP_AVAILABILITY
                    ''')
 
-    query = 'select * from VIP_AVAILABILITY'
+    query = 'select * from BIGIP_VIP_AVAILABILITY'
 
     result = pd.read_sql(query, con)
 

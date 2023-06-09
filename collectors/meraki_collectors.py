@@ -173,7 +173,7 @@ def meraki_get_network_device_statuses(db_path, networks):
 
     for network in networks:
         query = f'''SELECT *
-        FROM meraki_get_org_device_statuses
+        FROM meraki_org_device_statuses
         WHERE networkId = "{network}"
         ORDER BY timestamp desc
         LIMIT 1
@@ -184,7 +184,7 @@ def meraki_get_network_device_statuses(db_path, networks):
     con.close()
 
     # Delete the 'table_id' column, since it was pulled from the
-    # 'meraki_get_org_device_statuses' table and will need to be recreated
+    # 'meraki_org_device_statuses' table and will need to be recreated
     del df_statuses['table_id']
 
     return df_statuses
@@ -323,7 +323,7 @@ def meraki_get_org_device_statuses(api_key,
     # If the user did not specify any organization IDs, then get them by
     # querying the database
     if not orgs:
-        table = 'meraki_get_organizations'
+        table = 'meraki_organizations'
         orgs = hp.meraki_parse_organizations(db_path, orgs, table)
 
     # Create a list to store raw results from the API (the results are
@@ -457,7 +457,7 @@ def meraki_get_switch_lldp_neighbors(db_path):
                'portId as local_port',
                'lldp']
     query = f'''SELECT {','.join(headers)}
-    FROM MERAKI_GET_SWITCH_PORT_STATUSES
+    FROM MERAKI_SWITCH_PORT_STATUSES
     WHERE lldp != 'None'
     '''
     con = sl.connect(db_path)
@@ -546,7 +546,7 @@ def meraki_get_switch_port_statuses(api_key, db_path, networks):
     # Query the database to get all switches in the network(s)
     statement = f'''networkId = "{'" or networkId = "'.join(networks)}"'''
     query = f'''SELECT distinct orgId, networkId, name, serial
-    FROM MERAKI_GET_ORG_DEVICES
+    FROM MERAKI_ORG_DEVICES
     WHERE ({statement}) and productType = 'switch'
     '''
 
@@ -621,7 +621,7 @@ def meraki_get_switch_port_usages(api_key, db_path, networks, timestamp):
     # Query the database to get all switches in the network(s)
     statement = f'''networkId = "{'" or networkId = "'.join(networks)}"'''
     query = f'''SELECT distinct orgId, networkId, name, serial, portId
-    FROM MERAKI_GET_SWITCH_PORT_STATUSES
+    FROM MERAKI_SWITCH_PORT_STATUSES
     WHERE {statement} and timestamp = "{timestamp}"
     '''
 

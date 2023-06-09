@@ -473,7 +473,14 @@ def collect(collector,
                                            play_path,
                                            private_data_dir)
 
-    if collector == 'vlan_database':
+    if collector == 'vlans':
+        if ansible_os == 'cisco.ios.ios':
+            result = cl.ios_get_vlan_db(username,
+                                        password,
+                                        hostgroup,
+                                        play_path,
+                                        private_data_dir)
+
         if ansible_os == 'cisco.nxos.nxos':
             result = cl.nxos_get_vlan_db(username,
                                          password,
@@ -489,13 +496,23 @@ def collect(collector,
                                       play_path,
                                       private_data_dir)
 
+    # Set the table name
+    table_name = f'{ansible_os.split(".")[-1]}_{collector}'
+
     # Write the result to the database
-    add_to_db(collector, result, timestamp, db_path, method, idx_cols)
+    add_to_db(collector,
+              table_name,
+              result,
+              timestamp,
+              db_path,
+              method,
+              idx_cols)
 
     return result
 
 
 def add_to_db(collector,
+              table_name,
               result,
               timestamp,
               db_path,
@@ -540,7 +557,7 @@ def add_to_db(collector,
 
     # Get the table schema. This also checks if the table exists, because the
     # length of 'schema' will be 0 if it hasn't been created yet.
-    schema = hp.sql_get_table_schema(db_path, collector)
+    schema = hp.sql_get_table_schema(db_path, table_name)
 
     # If the table doesn't exist, create it. (Pandas will automatically create
     # the table, but doing it manually allows us to create an auto-incrementing
@@ -549,7 +566,7 @@ def add_to_db(collector,
     columns = [f'"{c}"' for c in columns]
     if len(schema) == 0 and len(result) > 0:
         fields = ',\n'.join(columns)
-        cur.execute(f'''CREATE TABLE {collector.upper()} (
+        cur.execute(f'''CREATE TABLE {table_name.upper()} (
                     table_id INTEGER PRIMARY KEY AUTOINCREMENT,
                     timestamp,
                     {fields}
@@ -569,21 +586,21 @@ def add_to_db(collector,
     if len(schema) >= 1:
         for col in result.columns.to_list():
             if col not in schema['name'].to_list():
-                cur.execute(f'ALTER TABLE {collector} ADD COLUMN "{col}" text')
+                cur.execute(f'ALTER TABLE {table_name} ADD COLUMN "{col}"')
 
     # from tabulate import tabulate
     # print(tabulate(result, headers='keys', tablefmt='psql'))
 
     # Add the dataframe to the database
-    table = collector.upper()
+    table = table_name.upper()
     result.to_sql(table, con, if_exists=method)
 
     # Create the SQL table index, if applicable
     if idx_cols:
-        idx_name = f'idx_{collector.lower()}'
+        idx_name = f'idx_{table_name.lower()}'
         try:
             cur.execute(f'''CREATE INDEX {idx_name}
-                            ON {collector.upper()} ({','.join(idx_cols)})
+                            ON {table_name.upper()} ({','.join(idx_cols)})
                         ''')
         except Exception as e:
             print(f'Caught Exception: {str(e)}')
