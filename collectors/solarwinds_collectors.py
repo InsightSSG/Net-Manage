@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import pandas as pd
 from orionsdk import SwisClient
 
 
@@ -91,7 +92,7 @@ def get_npm_group_members(server: str,
 
 def get_npm_group_names(server: str,
                         username: str,
-                        password: str) -> list[str]:
+                        password: str) -> pd.DataFrame:
     """
     Retrieves a list of the names of all the Orion NPM groups.
 
@@ -101,7 +102,8 @@ def get_npm_group_names(server: str,
     password (str): The password used to authenticate with the Orion API.
 
     Returns:
-    list: A list of all the group names available in the Orion NPM database.
+    pd.DataFrame:
+        A DataFrame of all the group names available in the Orion NPM database.
 
     Raises:
     Exception: If there is an issue connecting to the Orion NPM API.
@@ -120,4 +122,6 @@ def get_npm_group_names(server: str,
 
     group_names = [result["Name"] for result in results["results"]]
 
-    return group_names
+    df = pd.DataFrame(data=group_names, columns=['group_name'])
+
+    return df

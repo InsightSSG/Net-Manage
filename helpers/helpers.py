@@ -338,7 +338,7 @@ def define_collectors(hostgroup):
                   'cam_table': ['cisco.ios.ios', 'cisco.nxos.nxos'],
                   #   'npm_group_id': ['solarwinds.npm'],
                   #   'npm_group_members': ['solarwinds.npm'],
-                  'npm_group_names': ['solarwinds.npm'],
+                  'npm_group_names': ['solarwinds'],
                   'node_availability': ['bigip'],
                   'pool_availability': ['bigip'],
                   'pool_member_availability': ['bigip'],
@@ -1018,9 +1018,9 @@ def set_vars():
     nm_path = input(f'Enter path to Net-Manage repository [{default_nm_path}]')
     private_data_dir = input('Enter the path to the private data directory:')
 
-    npm_server = input('Enter the URL of the Solarwinds NPM server')
-    npm_username = input('Enter the username for Solarwinds NPM')
-    npm_password = getpass('Enter the password for Solarwinds NPM')
+    npm_server = input('Enter the URL of the Solarwinds NPM server:')
+    npm_username = input('Enter the username for Solarwinds NPM:')
+    npm_password = getpass('Enter the password for Solarwinds NPM:')
 
     default_out_path = f'{private_data_dir}/output'
     out_path = input(f'Enter the path to store results: [{default_out_path}]')
