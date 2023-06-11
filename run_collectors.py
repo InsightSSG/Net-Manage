@@ -435,6 +435,12 @@ def collect(collector,
     if collector == 'netbox_get_ipam_prefixes':
         result = nbc.netbox_get_ipam_prefixes(nb_path, nb_token)
 
+    if collector == 'npm_group_members':
+        result = swc.get_npm_group_members(npm_server,
+                                           npm_username,
+                                           npm_password,
+                                           npm_group_name)
+
     if collector == 'npm_group_names':
         result = swc.get_npm_group_names(npm_server,
                                          npm_username,
