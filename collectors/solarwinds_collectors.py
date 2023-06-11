@@ -4,6 +4,122 @@ import pandas as pd
 from orionsdk import SwisClient
 
 
+def get_npm_node_ip(server: str,
+                    username: str,
+                    password: str,
+                    node_name: str) -> str:
+    """
+    Retrieve the management IP address for a single node in Solarwinds NPM.
+
+    Parameters
+    ----------
+    server : str
+    The URL of the Solarwinds NPM server to connect to.
+    username : str
+    The username to authenticate with the Solarwinds NPM server.
+    password : str
+    The password to authenticate with the Solarwinds NPM server.
+    node_name : str
+    The name of the node to retrieve the management IP address for.
+
+    Returns
+    -------
+    str
+    The management IP address for the specified node.
+
+    Notes
+    -----
+    Uses the orionsdk library to connect to the Solarwinds NPM API and retrieve
+    the management IP address for a single node.
+
+    Examples
+    --------
+    >>> node_ip = get_node_ip('your_swis_server',
+    'your_username',
+    'your_password',
+    'node1')
+    >>> node_ip
+    '10.10.10.1'
+    """
+    swis = SwisClient(server, username, password)
+
+    query = """
+    SELECT IPAddress
+    FROM Orion.Nodes
+    WHERE Caption = @node_name
+    """
+
+    params = {'node_name': node_name}
+    results = swis.query(query, **params)
+
+    return results['results'][0]['IPAddress']
+
+
+def get_npm_node_ips(server: str, username: str, password: str) -> dict:
+    """
+    Retrieve the management IP addresses for all nodes in Solarwinds NPM.
+
+    Parameters
+    ----------
+    server : str
+        The URL of the Solarwinds NPM server to connect to.
+    username : str
+        The username to authenticate with the Solarwinds NPM server.
+    password : str
+        The password to authenticate with the Solarwinds NPM server.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A dataframe where each row represents a device in Solarwinds NPM, and
+        and the columns are 'device_name' and 'device_ip'.
+
+    Notes
+    -----
+    Uses the orionsdk library to connect to the Solarwinds NPM API and retrieve
+    the management IP addresses for all nodes. The result is converted to a
+    pandas DataFrame with 'device_name' as the index and 'device_ip' as a
+    column.
+
+    Examples
+    --------
+    >>> node_ips = get_node_ips('your_swis_server',
+    'your_username',
+    'your_password')
+    >>> node_ips.head()
+    device_name device_ip
+    0 node1 10.10.10.1
+    1 node2 10.10.10.2
+    2 node3 10.10.10.3
+    ...
+    """
+    swis = SwisClient(server, username, password)
+
+    query = "SELECT Caption, IPAddress FROM Orion.Nodes"
+
+    # Execute the query and get the results
+    results = swis.query(query)
+
+    # Store the results in a dictionary with the node name as the key
+    node_ips = {}
+    for result in results['results']:
+        node_name = result['Caption']
+        ip_address = result['IPAddress']
+        node_ips[node_name] = ip_address
+
+    df = pd.DataFrame.from_dict(node_ips,
+                                orient='index',
+                                columns=['device_ip'])
+
+    df.index.name = 'device_name'
+    df.reset_index(inplace=True)
+
+    # Add a new column for the device name
+    df.reset_index(drop=True, inplace=True)
+
+    return df
+
+
 def get_npm_group_id(server: str,
                      username: str,
                      password: str,
