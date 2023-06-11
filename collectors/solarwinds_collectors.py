@@ -4,10 +4,10 @@ import pandas as pd
 from orionsdk import SwisClient
 
 
-def get_node_ip(server: str,
-                username: str,
-                password: str,
-                node_name: str) -> str:
+def get_npm_node_ip(server: str,
+                    username: str,
+                    password: str,
+                    node_name: str) -> str:
     """
     Retrieve the management IP address for a single node in Solarwinds NPM.
 
@@ -55,7 +55,7 @@ def get_node_ip(server: str,
     return results['results'][0]['IPAddress']
 
 
-def get_node_ips(server: str, username: str, password: str) -> dict:
+def get_npm_node_ips(server: str, username: str, password: str) -> dict:
     """
     Retrieve the management IP addresses for all nodes in Solarwinds NPM.
 
