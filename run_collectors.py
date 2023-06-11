@@ -14,6 +14,7 @@ from collectors import infoblox_nios_collectors as nc
 from collectors import meraki_collectors as mc
 from collectors import netbox_collectors as nbc
 from collectors import palo_alto_collectors as pac
+from collectors import solarwinds_collectors as swc
 from helpers import helpers as hp
 # from tabulate import tabulate
 
@@ -38,6 +39,11 @@ def collect(collector,
             nb_token=str(),
             networks=list(),
             play_path=str(),
+            npm_group_id=str(),
+            npm_group_name=str(),
+            npm_password=str(),
+            npm_username=str(),
+            npm_server=str(),
             ansible_timeout='300',
             db_path=str(),
             validate_certs=True,
@@ -428,6 +434,11 @@ def collect(collector,
 
     if collector == 'netbox_get_ipam_prefixes':
         result = nbc.netbox_get_ipam_prefixes(nb_path, nb_token)
+
+    if collector == 'npm_group_names':
+        result = swc.get_npm_group_names(npm_server,
+                                         npm_username,
+                                         npm_password)
 
     if collector == 'panos_arp_table':
         result = pac.get_arp_table(username,

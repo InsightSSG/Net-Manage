@@ -336,6 +336,9 @@ def define_collectors(hostgroup):
                                 'cisco.nxos.nxos',
                                 'paloaltonetworks.panos'],
                   'cam_table': ['cisco.ios.ios', 'cisco.nxos.nxos'],
+                  #   'npm_group_id': ['solarwinds.npm'],
+                  #   'npm_group_members': ['solarwinds.npm'],
+                  'npm_group_names': ['solarwinds'],
                   'node_availability': ['bigip'],
                   'pool_availability': ['bigip'],
                   'pool_member_availability': ['bigip'],
@@ -1015,6 +1018,10 @@ def set_vars():
     nm_path = input(f'Enter path to Net-Manage repository [{default_nm_path}]')
     private_data_dir = input('Enter the path to the private data directory:')
 
+    npm_server = input('Enter the URL of the Solarwinds NPM server:')
+    npm_username = input('Enter the username for Solarwinds NPM:')
+    npm_password = getpass('Enter the password for Solarwinds NPM:')
+
     default_out_path = f'{private_data_dir}/output'
     out_path = input(f'Enter the path to store results: [{default_out_path}]')
 
@@ -1027,6 +1034,13 @@ def set_vars():
     if not out_path:
         out_path = default_out_path
 
+    if not npm_server:
+        npm_server = str()
+    if not npm_username:
+        npm_username = str()
+    if not npm_password:
+        npm_password = str()
+
     db = os.path.expanduser(db)
     nm_path = os.path.expanduser(nm_path)
     out_path = os.path.expanduser(out_path)
@@ -1038,8 +1052,8 @@ def set_vars():
     #       supports that, but I am not sure how common it is)
     inventories = [f'{private_data_dir}/inventory/hosts']
 
-    return api_key, db, db_path, inventories, nm_path, \
-        out_path, private_data_dir
+    return api_key, db, db_path, inventories, npm_server, npm_username, \
+        npm_password, nm_path, out_path, private_data_dir
 
 
 def get_tests_file():
