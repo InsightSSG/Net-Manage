@@ -507,7 +507,10 @@ def get_interface_status(username,
             # trunk. The output of both commands is in the same event.
             output = event_data['res']['stdout_lines']
             net_inf = output[0]
-            net_trunk = output[1]
+            try:
+                net_trunk = output[1]
+            except:
+                net_trunk = []
 
             # Parse the interface statuses and add it to 'df_data'.
             for line in net_inf:
