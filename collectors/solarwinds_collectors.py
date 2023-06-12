@@ -286,6 +286,73 @@ def get_npm_node_ips(server: str, username: str, password: str) -> dict:
     return df
 
 
+def get_npm_node_machine_types(server: str,
+                               username: str,
+                               password: str) -> dict:
+    """
+    Retrieve the MachineType and Caption for all nodes in Solarwinds NPM.
+
+    Parameters
+    ----------
+    server : str
+    The URL of the Solarwinds NPM server to connect to.
+    username : str
+    The username to authenticate with the Solarwinds NPM server.
+    password : str
+    The password to authenticate with the Solarwinds NPM server.
+
+    Returns
+    -------
+    pandas.DataFrame
+    A dataframe where each row represents a device in Solarwinds NPM, and
+    the columns are 'device_name' and 'machine_type'.
+
+    Notes
+    -----
+    Uses the orionsdk library to connect to the Solarwinds NPM API and retrieve
+    the machine_type and caption for all nodes. The result is converted to a
+    pandas DataFrame with 'device_name' as the index and 'machine_type' as a
+    column.
+
+    Examples
+    --------
+    >>> node_info = get_npm_node_info('your_swis_server',
+    'your_username',
+    'your_password')
+    >>> node_ips.head()
+    device_name machine_type
+    0 node1 Meraki MX84
+    1 node2 Cisco ASR 1001-X Router
+    2 node3 Panorama Server
+    ...
+    """
+    swis = SwisClient(server, username, password)
+
+    query = "SELECT Caption, MachineType FROM Orion.Nodes"
+
+    # Execute the query and get the results
+    results = swis.query(query)
+
+    # Store the results in a dictionary with the node name as the key
+    node_info = {}
+    for result in results['results']:
+        node_name = result['Caption']
+        machine_type = result['MachineType']
+        node_info[node_name] = machine_type
+
+    df = pd.DataFrame.from_dict(node_info,
+                                orient='index',
+                                columns=['machine_type'])
+
+    df.index.name = 'device_name'
+    df.reset_index(inplace=True)
+
+    # Add a new column for the device name
+    df.reset_index(drop=True, inplace=True)
+
+    return df
+
+
 def get_npm_node_vendor(server: str,
                         username: str,
                         password: str,
