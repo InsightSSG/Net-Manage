@@ -339,6 +339,7 @@ def define_collectors(hostgroup):
                   'ncm_serial_numbers': ['solarwinds'],
                   'npm_group_members': ['solarwinds'],
                   'npm_group_names': ['solarwinds'],
+                  'npm_node_ids': ['solarwinds'],
                   'npm_node_ips': ['solarwinds'],
                   'npm_node_machine_types': ['solarwinds'],
                   'npm_node_os_versions': ['solarwinds'],

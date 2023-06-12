@@ -249,6 +249,73 @@ def get_npm_group_names(server: str,
     return df
 
 
+def get_npm_node_ids(server: str,
+                     username: str,
+                     password: str) -> pd.DataFrame:
+    """
+    Retrieve the NodeIDs for all nodes in Solarwinds NPM.
+
+    Parameters
+    ----------
+    server : str
+        The URL of the Solarwinds NPM server to connect to.
+    username : str
+        The username to authenticate with the Solarwinds NPM server.
+    password : str
+        The password to authenticate with the Solarwinds NPM server.
+
+    Returns
+    -------
+    pd.DataFrame
+        A dataframe where each row represents a device in Solarwinds NPM, and
+        and the columns are 'device_name' and 'node_id'.
+
+    Notes
+    -----
+    Uses the orionsdk library to connect to the Solarwinds NPM API and retrieve
+    the NodeIDs for all nodes. The result is converted to a
+    pandas DataFrame with 'device_name' as the index and 'node_id' as a
+    column.
+
+    Examples
+    --------
+    >>> node_ids = get_npm_node_ids('your_swis_server',
+    'your_username',
+    'your_password')
+    >>> node_ids.head()
+    device_name node_id
+    0 node1 123
+    1 node2 234
+    2 node3 345
+    ...
+    """
+    swis = SwisClient(server, username, password)
+
+    query = "SELECT Caption, NodeID FROM Orion.Nodes"
+
+    # Execute the query and get the results
+    results = swis.query(query)
+
+    # Store the results in a dictionary with the node name as the key
+    node_ids = {}
+    for result in results['results']:
+        node_name = result['Caption']
+        node_id = result['NodeID']
+        node_ids[node_name] = node_id
+
+    df = pd.DataFrame.from_dict(node_ids,
+                                orient='index',
+                                columns=['node_id'])
+
+    df.index.name = 'device_name'
+    df.reset_index(inplace=True)
+
+    # Add a new column for the device name
+    df.reset_index(drop=True, inplace=True)
+
+    return df
+
+
 def get_npm_node_ip(server: str,
                     username: str,
                     password: str,

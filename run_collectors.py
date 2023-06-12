@@ -453,6 +453,9 @@ def collect(collector,
                                          npm_username,
                                          npm_password)
 
+    if collector == 'npm_node_ids':
+        result = swc.get_npm_node_ids(npm_server, npm_username, npm_password)
+
     if collector == 'npm_node_ips':
         result = swc.get_npm_node_ips(npm_server, npm_username, npm_password)
 
