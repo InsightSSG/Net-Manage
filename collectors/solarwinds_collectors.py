@@ -334,3 +334,67 @@ def get_npm_node_vendor(server: str,
     params = {'node_name': node_name}
     results = swis.query(query, **params)
     return results['results'][0]['Vendor']
+
+
+def get_npm_node_vendors(server: str, username: str, password: str) -> dict:
+    """
+    Retrieve the vendor for all nodes in Solarwinds NPM.
+
+    Parameters
+    ----------
+    server : str
+        The URL of the Solarwinds NPM server to connect to.
+    username : str
+        The username to authenticate with the Solarwinds NPM server.
+    password : str
+        The password to authenticate with the Solarwinds NPM server.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A dataframe where each row represents a device in Solarwinds NPM, and
+        the columns are 'device_name' and 'vendor'.
+
+    Notes
+    -----
+    Uses the orionsdk library to connect to the Solarwinds NPM API and retrieve
+    the vendor for all nodes. The result is converted to a pandas DataFrame
+    with 'device_name' as the index and 'device_ip' as a column.
+
+    Examples
+    --------
+    >>> vendors = get_node_vendors('your_swis_server',
+    'your_username',
+    'your_password')
+    >>> node_ips.head()
+    device_name vendor
+    0 node1 cisco
+    1 node2 meraki
+    2 node3 juniper
+    ...
+    """
+    swis = SwisClient(server, username, password)
+
+    query = "SELECT Caption, Vendor FROM Orion.Nodes"
+
+    # Execute the query and get the results
+    results = swis.query(query)
+
+    # Store the results in a dictionary with the node name as the key
+    node_vendors = {}
+    for result in results['results']:
+        node_name = result['Caption']
+        vendor = result['Vendor']
+        node_vendors[node_name] = vendor
+
+    df = pd.DataFrame.from_dict(node_vendors,
+                                orient='index',
+                                columns=['vendor'])
+
+    df.index.name = 'device_name'
+    df.reset_index(inplace=True)
+
+    # Add a new column for the device name
+    df.reset_index(drop=True, inplace=True)
+
+    return df

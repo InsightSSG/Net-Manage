@@ -449,6 +449,11 @@ def collect(collector,
     if collector == 'npm_node_ips':
         result = swc.get_npm_node_ips(npm_server, npm_username, npm_password)
 
+    if collector == 'npm_node_vendors':
+        result = swc.get_npm_node_vendors(npm_server,
+                                          npm_username,
+                                          npm_password)
+
     if collector == 'panos_arp_table':
         result = pac.get_arp_table(username,
                                    password,
