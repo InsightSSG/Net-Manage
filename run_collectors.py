@@ -407,12 +407,14 @@ def collect(collector,
     if collector == 'meraki_get_org_devices':
         result = mc.meraki_get_org_devices(api_key, db_path, orgs=orgs)
 
-    if collector == 'meraki_get_org_device_statuses':
-        tp = total_pages
-        result, idx_cols = mc.meraki_get_org_device_statuses(api_key,
-                                                             db_path,
-                                                             orgs=orgs,
-                                                             total_pages=tp)
+    if collector == 'get_org_device_statuses':
+        if ansible_os == 'meraki':
+            tp = total_pages
+            result, idx_cols = mc.meraki_get_org_device_statuses(api_key,
+                                                                 db_path,
+                                                                 orgs=orgs,
+                                                                 total_pages=tp
+                                                                 )
 
     if collector == 'meraki_get_org_networks':
         result = mc.meraki_get_org_networks(api_key,
@@ -434,6 +436,11 @@ def collect(collector,
 
     if collector == 'netbox_get_ipam_prefixes':
         result = nbc.netbox_get_ipam_prefixes(nb_path, nb_token)
+
+    if collector == 'ncm_serial_numbers':
+        result = swc.get_ncm_serial_numbers(npm_server,
+                                            npm_username,
+                                            npm_password)
 
     if collector == 'npm_group_members':
         result = swc.get_npm_group_members(npm_server,
