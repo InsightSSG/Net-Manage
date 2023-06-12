@@ -353,6 +353,75 @@ def get_npm_node_machine_types(server: str,
     return df
 
 
+def get_npm_node_os_versions(server: str,
+                             username: str,
+                             password: str) -> dict:
+    """
+    Retrieve the details of all nodes in Solarwinds NPM.
+
+    Parameters
+    ----------
+    server : str
+    The URL of the Solarwinds NPM server to connect to.
+    username : str
+    The username to authenticate with the Solarwinds NPM server.
+    password : str
+    The password to authenticate with the Solarwinds NPM server.
+
+    Returns
+    -------
+    pandas.DataFrame
+    A dataframe where each row represents a device in Solarwinds NPM, and
+    the columns are 'Caption', 'IOSImage', and 'IOSVersion'.
+
+    Notes
+    -----
+    Uses the orionsdk library to connect to the Solarwinds NPM API and retrieve
+    the required details for all nodes. The result is converted to a pandas
+    DataFrame with 'Caption' as the index and 'IOSImage' and 'IOSVersion' as
+    columns.
+
+    Examples
+    --------
+    >>> node_info = get_npm_node_os_versions('your_swis_server',
+    'your_username',
+    'your_password')
+    >>> node_info.head()
+    Caption IOSImage IOSVersion
+    0 router1.local c1900-universalk9-mz.SPA.157-3.M.bin 157.3
+    1 router2.local c1900-universalk9-mz.SPA.155-3.M5b.bin 155.3
+    2 switch1.local
+    3 switch2.local
+    ...
+    """
+    swis = SwisClient(server, username, password)
+
+    query = """
+            SELECT Caption, IOSImage, IOSVersion
+            FROM Orion.Nodes
+            """
+
+    # Execute the query and get the results
+    results = swis.query(query)
+
+    # Store the results in a dictionary with the node name as the key
+    node_info = {}
+    for result in results['results']:
+        node_name = result['Caption']
+        ios_image = result['IOSImage']
+        ios_version = result['IOSVersion']
+        node_info[node_name] = [ios_image, ios_version]
+
+    df = pd.DataFrame.from_dict(node_info,
+                                orient='index',
+                                columns=['IOSImage', 'IOSVersion'])
+
+    df.index.name = 'Caption'
+    df.reset_index(inplace=True)
+
+    return df
+
+
 def get_npm_node_vendor(server: str,
                         username: str,
                         password: str,

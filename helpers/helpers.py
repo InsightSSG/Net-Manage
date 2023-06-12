@@ -340,6 +340,7 @@ def define_collectors(hostgroup):
                   'npm_group_names': ['solarwinds'],
                   'npm_node_ips': ['solarwinds'],
                   'npm_node_machine_types': ['solarwinds'],
+                  'npm_node_os_versions': ['solarwinds'],
                   'npm_node_vendors': ['solarwinds'],
                   'node_availability': ['bigip'],
                   'pool_availability': ['bigip'],

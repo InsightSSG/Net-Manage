@@ -453,6 +453,12 @@ def collect(collector,
         result = swc.get_npm_node_machine_types(npm_server,
                                                 npm_username,
                                                 npm_password)
+
+    if collector == 'npm_node_os_versions':
+        result = swc.get_npm_node_os_versions(npm_server,
+                                              npm_username,
+                                              npm_password)
+
     if collector == 'npm_node_vendors':
         result = swc.get_npm_node_vendors(npm_server,
                                           npm_username,
