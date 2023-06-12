@@ -509,7 +509,7 @@ def get_interface_status(username,
             net_inf = output[0]
             try:
                 net_trunk = output[1]
-            except:
+            except IndexError:
                 net_trunk = []
 
             # Parse the interface statuses and add it to 'df_data'.
