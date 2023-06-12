@@ -4,6 +4,85 @@ import pandas as pd
 from orionsdk import SwisClient
 
 
+def get_ncm_serial_numbers(server: str,
+                           username: str,
+                           password: str) -> pd.DataFrame:
+    """
+    Get a DataFrame containing the serial numbers of all physical entities in
+    NCM.
+
+    Parameters
+    ----------
+    server : str
+        The IP address or hostname of the Orion server.
+    username : str
+        The username to use for authentication.
+    password : str
+        The password to use for authentication.
+
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame with the following columns:
+        - EntityID (int): The NCM Entity ID.
+        - EntityName (str): The name of the physical entity.
+        - Serial (str): The serial number of the physical entity.
+        - Manufacturer (str): The manufacturer of the physical entity.
+        - Model (str): The model of the physical entity.
+        - NodeID (int): The ID of the node the physical entity is associated
+           with.
+        - ContainedIn (int): The ID of the container the physical entity is
+           contained within.
+    """
+    swis = SwisClient(server, username, password)
+
+    query = """
+            SELECT EntityID,
+                   EntityName,
+                   Serial,
+                   Manufacturer,
+                   Model,
+                   NodeID,
+                   ContainedIn
+            FROM NCM.EntityPhysical
+            """
+
+    # Execute the query and get the results
+    results = swis.query(query)
+
+    # Store the results in a dictionary with the node name as the key
+    node_info = {}
+    for result in results['results']:
+        entity_id = result['EntityID']
+        entity_name = result['EntityName']
+        serial = result['Serial']
+        manufacturer = result['Manufacturer']
+        model = result['Model']
+        node_id = result['NodeID']
+        contained_in = result['ContainedIn']
+        node_info[entity_id] = [entity_id,
+                                entity_name,
+                                serial,
+                                manufacturer,
+                                model,
+                                node_id,
+                                contained_in]
+
+    df = pd.DataFrame.from_dict(node_info,
+                                orient='index',
+                                columns=['EntityID',
+                                         'EntityName',
+                                         'Serial',
+                                         'Manufacturer',
+                                         'Model',
+                                         'NodeID',
+                                         'ContainedIn'])
+    # df.index.name = 'EntityName'
+    df.reset_index(inplace=True, drop=True)
+
+    return df
+
+
 def get_npm_group_id(server: str,
                      username: str,
                      password: str,
