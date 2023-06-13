@@ -83,6 +83,69 @@ def get_ncm_serial_numbers(server: str,
     return df
 
 
+def get_npm_containers(server: str,
+                       username: str,
+                       password: str) -> pd.DataFrame:
+    """
+    Retrieves all columns from Orion.Container (Orion NPM groups).
+
+    Args:
+    server (str):
+        The hostname or IP address of the Orion database server.
+    username (str):
+        The username used to authenticate with the Orion API.
+    password (str):
+        The password used to authenticate with the Orion API.
+
+    Returns:
+    df (pd.DataFrame):
+        A DataFrame containing the Orion.Container data.
+
+    Example usage:
+    >>> server = "your.server.com"
+    >>> username = "your_username"
+    >>> password = "your_password"
+    >>> df = get_npm_containers(server, username, password)
+    >>> print(df)
+    """
+    swis = SwisClient(server, username, password)
+
+    schema = ['ContainerID',
+              'Name',
+              'Owner',
+              'Frequency',
+              'StatusCalculator',
+              'RollupType',
+              'IsDeleted',
+              'PollingEnabled',
+              'LastChanged',
+              'UnManageFrom',
+              'UnManageUntil',
+              'DetailsUrl',
+              'Status',
+              'StatusDescription',
+              'StatusLED',
+              'UnManaged',
+              'Image',
+              'AncestorDisplayNames',
+              'AncestorDetailsUrls',
+              'StatusIconHint',
+              'DisplayName',
+              'Description',
+              'InstanceType',
+              'Uri',
+              'InstanceSiteId']
+    schema = ','.join(schema)
+
+    results = swis.query(
+        f"SELECT {schema} FROM Orion.Container"
+    )
+
+    df = pd.DataFrame(results['results'])
+
+    return df
+
+
 def get_npm_group_id(server: str,
                      username: str,
                      password: str,
@@ -407,7 +470,7 @@ def get_npm_node_ips(server: str, username: str, password: str) -> dict:
     """
     swis = SwisClient(server, username, password)
 
-    query = "SELECT Caption, IPAddress FROM Orion.Nodes"
+    query = "SELECT Caption, NodeID, IPAddress FROM Orion.Nodes"
 
     # Execute the query and get the results
     results = swis.query(query)
@@ -416,12 +479,13 @@ def get_npm_node_ips(server: str, username: str, password: str) -> dict:
     node_ips = {}
     for result in results['results']:
         node_name = result['Caption']
+        node_id = result['NodeID']
         ip_address = result['IPAddress']
-        node_ips[node_name] = ip_address
+        node_ips[node_name] = [node_id, ip_address]
 
     df = pd.DataFrame.from_dict(node_ips,
                                 orient='index',
-                                columns=['device_ip'])
+                                columns=['node_id', 'device_ip'])
 
     df.index.name = 'device_name'
     df.reset_index(inplace=True)
@@ -474,7 +538,7 @@ def get_npm_node_machine_types(server: str,
     """
     swis = SwisClient(server, username, password)
 
-    query = "SELECT Caption, MachineType FROM Orion.Nodes"
+    query = "SELECT Caption, NodeID, MachineType FROM Orion.Nodes"
 
     # Execute the query and get the results
     results = swis.query(query)
@@ -483,12 +547,13 @@ def get_npm_node_machine_types(server: str,
     node_info = {}
     for result in results['results']:
         node_name = result['Caption']
+        node_id = result['NodeID']
         machine_type = result['MachineType']
-        node_info[node_name] = machine_type
+        node_info[node_name] = [node_id, machine_type]
 
     df = pd.DataFrame.from_dict(node_info,
                                 orient='index',
-                                columns=['machine_type'])
+                                columns=['node_id', 'machine_type'])
 
     df.index.name = 'device_name'
     df.reset_index(inplace=True)
@@ -503,7 +568,7 @@ def get_npm_node_os_versions(server: str,
                              username: str,
                              password: str) -> dict:
     """
-    Retrieve the details of all nodes in Solarwinds NPM.
+    Retrieve the OS versions of all nodes in Solarwinds NPM.
 
     Parameters
     ----------
@@ -525,7 +590,8 @@ def get_npm_node_os_versions(server: str,
     Uses the orionsdk library to connect to the Solarwinds NPM API and retrieve
     the required details for all nodes. The result is converted to a pandas
     DataFrame with 'Caption' as the index and 'IOSImage' and 'IOSVersion' as
-    columns.
+    columns. Even though Solarwinds uses 'IOSImage' and 'IOSVersion', it pulls
+    the OS Version for any device that supports that SysDescription OID.
 
     Examples
     --------
@@ -543,7 +609,7 @@ def get_npm_node_os_versions(server: str,
     swis = SwisClient(server, username, password)
 
     query = """
-            SELECT Caption, IOSImage, IOSVersion
+            SELECT Caption, NodeID, IOSImage, IOSVersion
             FROM Orion.Nodes
             """
 
@@ -554,13 +620,14 @@ def get_npm_node_os_versions(server: str,
     node_info = {}
     for result in results['results']:
         node_name = result['Caption']
+        node_id = result['NodeID']
         ios_image = result['IOSImage']
         ios_version = result['IOSVersion']
-        node_info[node_name] = [ios_image, ios_version]
+        node_info[node_name] = [node_id, ios_image, ios_version]
 
     df = pd.DataFrame.from_dict(node_info,
                                 orient='index',
-                                columns=['IOSImage', 'IOSVersion'])
+                                columns=['NodeID', 'IOSImage', 'IOSVersion'])
 
     df.index.name = 'Caption'
     df.reset_index(inplace=True)
@@ -657,7 +724,7 @@ def get_npm_node_vendors(server: str, username: str, password: str) -> dict:
     """
     swis = SwisClient(server, username, password)
 
-    query = "SELECT Caption, Vendor FROM Orion.Nodes"
+    query = "SELECT Caption, NodeID, Vendor FROM Orion.Nodes"
 
     # Execute the query and get the results
     results = swis.query(query)
@@ -666,14 +733,15 @@ def get_npm_node_vendors(server: str, username: str, password: str) -> dict:
     node_vendors = {}
     for result in results['results']:
         node_name = result['Caption']
+        node_id = result['NodeID']
         vendor = result['Vendor']
-        node_vendors[node_name] = vendor
+        node_vendors[node_name] = [node_id, vendor]
 
     df = pd.DataFrame.from_dict(node_vendors,
                                 orient='index',
-                                columns=['vendor'])
+                                columns=['NodeID', 'Vendor'])
 
-    df.index.name = 'device_name'
+    df.index.name = 'Caption'
     df.reset_index(inplace=True)
 
     # Add a new column for the device name
