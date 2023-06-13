@@ -442,6 +442,9 @@ def collect(collector,
                                             npm_username,
                                             npm_password)
 
+    if collector == 'npm_containers':
+        result = swc.get_npm_containers(npm_server, npm_username, npm_password)
+
     if collector == 'npm_group_members':
         result = swc.get_npm_group_members(npm_server,
                                            npm_username,

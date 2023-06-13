@@ -141,7 +141,7 @@ def get_npm_containers(server: str,
         f"SELECT {schema} FROM Orion.Container"
     )
 
-    df = pd.DataFrame(results['results'])
+    df = pd.DataFrame(results['results']).astype(str)
 
     return df
 
