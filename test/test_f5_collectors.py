@@ -255,7 +255,7 @@ def test_get_vip_summary(username,
                          private_data_dir,
                          validate_certs=False,
                          db_path,
-                         timestamp,):
+                         timestamp):
     """Test the 'f5_get_vip_summary' collector.
     """
     df_pools = collectors.build_pool_table(username,
