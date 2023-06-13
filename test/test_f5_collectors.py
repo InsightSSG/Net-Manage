@@ -128,8 +128,14 @@ def test_get_node_availability(username,
                                           private_data_dir,
                                           validate_certs=False)
 
-    expected = ['device', 'partition', 'node', 'addr', 'cur-sessions', 'monitor-rule', 'monitor-status', 'name', 'serverside.bits-in', 'serverside.bits-out', 'serverside.cur-conns', 'serverside.max-conns',
-                'serverside.pkts-in', 'serverside.pkts-out', 'serverside.tot-conns', 'session-status', 'status.availability-state', 'status.enabled-state', 'status.status-reason', 'tot-requests']
+    expected = ['device', 'partition', 'node', 'addr',
+                'cur-sessions', 'monitor-rule', 'monitor-status',
+                'name', 'serverside.bits-in', 'serverside.bits-out',
+                'serverside.cur-conns', 'serverside.max-conns',
+                'serverside.pkts-in', 'serverside.pkts-out',
+                'serverside.tot-conns', 'session-status',
+                'status.availability-state', 'status.enabled-state',
+                'status.status-reason', 'tot-requests']
 
     assert df.columns.to_list() == expected
 
@@ -247,7 +253,9 @@ def test_get_vip_summary(username,
                          host_group,
                          play_path,
                          private_data_dir,
-                         validate_certs=False):
+                         validate_certs=False,
+                         db_path,
+                         timestamp,):
     """Test the 'f5_get_vip_summary' collector.
     """
     df_pools = collectors.build_pool_table(username,
