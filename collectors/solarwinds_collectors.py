@@ -83,6 +83,69 @@ def get_ncm_serial_numbers(server: str,
     return df
 
 
+def get_npm_containers(server: str,
+                       username: str,
+                       password: str) -> pd.DataFrame:
+    """
+    Retrieves all columns from Orion.Container (Orion NPM groups).
+
+    Args:
+    server (str):
+        The hostname or IP address of the Orion database server.
+    username (str):
+        The username used to authenticate with the Orion API.
+    password (str):
+        The password used to authenticate with the Orion API.
+
+    Returns:
+    df (pd.DataFrame):
+        A DataFrame containing the Orion.Container data.
+
+    Example usage:
+    >>> server = "your.server.com"
+    >>> username = "your_username"
+    >>> password = "your_password"
+    >>> df = get_npm_containers(server, username, password)
+    >>> print(df)
+    """
+    swis = SwisClient(server, username, password)
+
+    schema = ['ContainerID',
+              'Name',
+              'Owner',
+              'Frequency',
+              'StatusCalculator',
+              'RollupType',
+              'IsDeleted',
+              'PollingEnabled',
+              'LastChanged',
+              'UnManageFrom',
+              'UnManageUntil',
+              'DetailsUrl',
+              'Status',
+              'StatusDescription',
+              'StatusLED',
+              'UnManaged',
+              'Image',
+              'AncestorDisplayNames',
+              'AncestorDetailsUrls',
+              'StatusIconHint',
+              'DisplayName',
+              'Description',
+              'InstanceType',
+              'Uri',
+              'InstanceSiteId']
+    schema = ','.join(schema)
+
+    results = swis.query(
+        f"SELECT {schema} FROM Orion.Container"
+    )
+
+    df = pd.DataFrame(results['results'])
+
+    return df
+
+
 def get_npm_group_id(server: str,
                      username: str,
                      password: str,
