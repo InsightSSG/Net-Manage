@@ -1081,7 +1081,7 @@ def get_vip_availability(username,
                  'host_group': host_group}
 
     if not validate_certs:
-        extravars['validate_certs'] = 'no'
+        extravars['validate_certs'] = "no"
 
     # Execute the pre-checks
     playbook = f'{play_path}/f5_get_vip_availability_and_destination.yml'

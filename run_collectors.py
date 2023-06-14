@@ -477,6 +477,9 @@ def collect(collector,
                                           npm_username,
                                           npm_password)
 
+    if collector == 'npm_nodes':
+        result = swc.get_npm_nodes(npm_server, npm_username, npm_password)
+
     if collector == 'panos_arp_table':
         result = pac.get_arp_table(username,
                                    password,
