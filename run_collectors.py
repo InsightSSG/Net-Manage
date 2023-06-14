@@ -227,7 +227,7 @@ def collect(collector,
 
     if collector == 'cam_table':
         if ansible_os == 'cisco.ios.ios':
-            result = cl.ios_get_cam_table(username,
+            result = cic.ios_get_cam_table(username,
                                           password,
                                           hostgroup,
                                           nm_path,
@@ -244,7 +244,7 @@ def collect(collector,
 
     if collector == 'arp_table':
         if ansible_os == 'cisco.ios.ios':
-            result = cl.ios_get_arp_table(username,
+            result = cic.ios_get_arp_table(username,
                                           password,
                                           hostgroup,
                                           nm_path,
@@ -278,7 +278,7 @@ def collect(collector,
 
     if collector == 'interface_description':
         if ansible_os == 'cisco.ios.ios':
-            result = cl.ios_get_interface_descriptions(username,
+            result = cic.ios_get_interface_descriptions(username,
                                                        password,
                                                        hostgroup,
                                                        play_path,
@@ -338,7 +338,7 @@ def collect(collector,
                                               private_data_dir)
 
         if ansible_os == 'cisco.ios.ios':
-            result = cl.ios_get_interface_ips(username,
+            result = cic.ios_get_interface_ips(username,
                                               password,
                                               hostgroup,
                                               play_path,
@@ -372,7 +372,7 @@ def collect(collector,
 
     if collector == 'find_uplink_by_ip':
         if ansible_os == 'cisco.ios.ios':
-            result = cl.ios_find_uplink_by_ip(username,
+            result = cic.ios_find_uplink_by_ip(username,
                                               password,
                                               hostgroup,
                                               play_path,
@@ -527,7 +527,7 @@ def collect(collector,
 
     if collector == 'vlans':
         if ansible_os == 'cisco.ios.ios':
-            result = cl.ios_get_vlan_db(username,
+            result = cic.ios_get_vlan_db(username,
                                         password,
                                         hostgroup,
                                         play_path,
