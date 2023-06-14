@@ -8,6 +8,7 @@ import argparse
 import datetime as dt
 import os
 import readline
+from collectors import cisco_ios_collectors as cic
 from collectors import collectors as cl
 from collectors import f5_collectors as f5c
 from collectors import infoblox_nios_collectors as nc
@@ -540,6 +541,14 @@ def collect(collector,
                                          private_data_dir)
 
     if collector == 'vrfs':
+        if ansible_os == 'cisco.ios.ios':
+            result = cic.get_vrfs(username,
+                                  password,
+                                  hostgroup,
+                                  nm_path,
+                                  play_path,
+                                  private_data_dir)
+
         if ansible_os == 'cisco.nxos.nxos':
             result = cl.nxos_get_vrfs(username,
                                       password,
