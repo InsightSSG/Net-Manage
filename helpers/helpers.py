@@ -388,7 +388,7 @@ def define_collectors(hostgroup):
                   'physical_interfaces': ['paloaltonetworks.panos'],
                   'port_channel_data': ['cisco.nxos.nxos'],
                   'vpc_state': ['cisco.nxos.nxos'],
-                  'vrfs': ['cisco.nxos.nxos']}
+                  'vrfs': ['cisco.ios.ios', 'cisco.nxos.nxos']}
 
     available = list()
     for key, value in collectors.items():
