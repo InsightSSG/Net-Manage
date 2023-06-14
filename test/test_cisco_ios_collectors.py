@@ -2,7 +2,6 @@
 
 import os
 import sys
-import pandas as pd
 
 
 # Change to the Net-Manage repository so imports will work
@@ -88,7 +87,7 @@ def test_get_vrfs(username: str,
                   password: str,
                   host_group: str,
                   play_path: str,
-                  private_data_dir: str) -> pd.DataFrame:
+                  private_data_dir: str):
     """Test the 'get_vrfs' collector.
     """
     df = collectors.get_vrfs(username,
