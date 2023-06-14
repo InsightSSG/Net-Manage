@@ -17,6 +17,7 @@ import time
 import yaml
 from datetime import datetime as dt
 from getpass import getpass
+from tabulate import tabulate
 
 
 def ansible_create_collectors_df(hostgroups, collectors):
@@ -345,6 +346,7 @@ def define_collectors(hostgroup):
                   'npm_node_machine_types': ['solarwinds'],
                   'npm_node_os_versions': ['solarwinds'],
                   'npm_node_vendors': ['solarwinds'],
+                  'npm_nodes': ['solarwinds'],
                   'node_availability': ['bigip'],
                   'pool_availability': ['bigip'],
                   'pool_member_availability': ['bigip'],
@@ -1262,6 +1264,27 @@ def download_ouis(path):
         for chunk in response.iter_content(chunk_size=1024):
             if chunk:
                 txt.write(chunk)
+
+
+def tabulate_df_head(df):
+    """
+    Print the first 5 rows of a DataFrame as a table.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+    The DataFrame to print.
+
+    Returns
+    -------
+    None
+    This function does not return anything, it simply prints the table.
+
+    """
+
+    table_data = df.head().to_dict('records')
+
+    print(tabulate(table_data, headers='keys', tablefmt='psql'))
 
 
 def update_ouis(nm_path):
