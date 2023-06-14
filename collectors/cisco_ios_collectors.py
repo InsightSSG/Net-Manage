@@ -3,6 +3,8 @@
 import ansible_runner
 import pandas as pd
 
+from helpers import helpers as hp
+
 
 def get_vrfs(username: str,
              password: str,
@@ -77,4 +79,493 @@ def get_vrfs(username: str,
                        "default_rd",
                        "default_vpn_id"])
 
+    return df
+
+
+def ios_find_uplink_by_ip(username,
+                          password,
+                          host_group,
+                          play_path,
+                          private_data_dir,
+                          subnets=list()):
+    '''
+    Searches the hostgroup for a list of subnets (use /32 to esarch for a
+    single IP). Once it finds them, it uses CDP and LLDP (if applicable) to try
+    to find the uplink.
+
+    If a list of IP addresses is not provided, it will attempt to find the
+    uplinks for all IP addresses on the devices.
+
+    This is a simple function that was writting for a single use case. It has
+    some limitations:
+
+    1. There is not an option to specify the VRF (although it will still return
+       the uplinks for every IP that meets the parameters)
+    2. If CDP and LLDP are disabled or the table is not populated, it does not
+       try alternative methods like interface descriptions and CAM tables. I
+       can add those if there is enough interest in this function.
+
+    TODOs:
+    - Add alternative methods if CDP and LLDP do not work:
+      - Interface descriptions
+      - Reverse DNS (in the case of P2P IPs)
+      - CAM table
+    - Add option to specify the VRF (low priority)
+
+    Args:
+        username (str):         The username to login to devices
+        password (str):         The password to login to devices
+        host_group (str):       The inventory host group
+        play_path (str):        The path to the playbooks directory
+        private_data_dir (str): The path to the Ansible private data directory
+        addresses (list):       (Optional) A list of one or more subnets to
+                                search for. Use CIDR notation. Use /32 to
+                                search for individual IPs. If no list is
+                                provided then the function will try to find the
+                                uplinks for all IP addresses on the devices.
+
+    Returns:
+        df_combined (DF):       A DataFrame containing IP > remote port mapping
+    '''
+
+    # Get the IP addresses on the devices in the host group
+    df_ip = ios_get_interface_ips(username,
+                                  password,
+                                  host_group,
+                                  play_path,
+                                  private_data_dir)
+
+    # Get the CDP neighbors for the device
+    df_cdp = ios_get_cdp_neighbors(username,
+                                   password,
+                                   host_group,
+                                   play_path,
+                                   private_data_dir)
+
+    # Remove the sub-interfaces from df_ip
+    local_infs = df_ip['Interface'].to_list()
+    local_infs = [inf.split('.')[0] for inf in local_infs]
+    df_ip['Interface'] = local_infs
+
+    # Attempt to find the neighbors for the interfaces that have IPs
+    df_data = list()
+
+    for idx, row in df_ip.iterrows():
+        device = row['Device']
+        inf = row['Interface']
+        neighbor_row = df_cdp.loc[(df_cdp['Device'] == device) &
+                                  (df_cdp['Local Inf'] == inf)]
+        remote_device = list(neighbor_row['Neighbor'].values)
+        if remote_device:
+            remote_device = remote_device[0]
+            remote_inf = list(neighbor_row['Remote Inf'].values)[0]
+        else:
+            remote_device = 'unknown'
+            remote_inf = 'unknown'
+        mgmt_ip = row['IP']
+        df_data.append([device, mgmt_ip, inf, remote_device, remote_inf])
+    # Create a DataFrame and return it
+    cols = ['Device',
+            'IP',
+            'Local Interface',
+            'Remote Device',
+            'Remote Interface']
+    df_combined = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_combined
+
+
+def ios_get_arp_table(username,
+                      password,
+                      host_group,
+                      nm_path,
+                      play_path,
+                      private_data_dir):
+    '''
+    Gets the IOS ARP table and adds the vendor OUI.
+
+    Args:
+        username (str):         The username to login to devices
+        password (str):         The password to login to devices
+        host_group (str):       The inventory host group
+        nm_path (str):          The path to the Net-Manage repository
+        play_path (str):        The path to the playbooks directory
+        private_data_dir (str): The path to the Ansible private data directory
+        interface (str):        The interface (defaults to all interfaces)
+
+    Returns:
+        df_arp (DataFrame):     The ARP table and vendor OUI
+    '''
+    cmd = 'show ip arp'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute the pre-checks
+    playbook = f'{play_path}/cisco_ios_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Create the column headers. I do not like to hard code these, but they
+    # should be modified from Cisco's format before being stored in a
+    # database. I suppose it is not strictly necessary to do so, but
+    # "Age (min)" and "Hardware Addr" do not make for good column headers.
+    columns = ['device',
+               'protocol',
+               'address',
+               'age',
+               'mac',
+               'inf_type',
+               'interface']
+
+    # Parse the output and add it to 'data'
+    df_data = list()
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout'][0].split('\n')
+
+            for line in output[1:]:
+                row = [device] + line.split()
+                df_data.append(row)
+
+    # Create the DataFrame
+    df_arp = pd.DataFrame(data=df_data, columns=columns)
+
+    # Get the vendor OUIs
+    df_vendors = hp.find_mac_vendors(df_arp['mac'], nm_path)
+
+    # Add the vendor OUIs to df_cam as a column, and return the dataframe.
+    df_arp['vendor'] = df_vendors['vendor']
+
+    return df_arp
+
+
+def ios_get_cam_table(username,
+                      password,
+                      host_group,
+                      nm_path,
+                      play_path,
+                      private_data_dir,
+                      interface=None):
+    '''
+    Gets the IOS CAM table and adds the vendor OUI.
+
+    Args:
+        username (str):         The username to login to devices
+        password (str):         The password to login to devices
+        host_group (str):       The inventory host group
+        nm_path (str):          The path to the Net-Manage repository
+        play_path (str):        The path to the playbooks directory
+        private_data_dir (str): The path to the Ansible private data directory
+        interface (str):        The interface (defaults to all interfaces)
+
+    Returns:
+        df_cam (DataFrame):     The CAM table and vendor OUI
+    '''
+    if interface:
+        cmd = f'show mac address-table interface {interface}'
+    else:
+        cmd = 'show mac address-table | begin Vlan'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute the pre-checks
+    playbook = f'{play_path}/cisco_ios_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Create the column headers. I do not like to hard code these, but they
+    # should be modified from Cisco's format before being stored in a
+    # database. I suppose it is not strictly necessary to do so, but
+    # "Mac Address" and "Type" do not make good column headers.
+    columns = ['device',
+               'vlan',
+               'mac',
+               'inf_type',
+               'ports']
+
+    # Parse the output and add it to 'data'
+    df_data = list()
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout'][0].split('\n')
+            # columns = list(filter(None, output[0].split('  ')))
+            # columns.insert(0, 'device')
+            # columns = [_.strip() for _ in columns]
+
+            for line in output[2:-1]:
+                row = [device] + line.split()
+                df_data.append(row)
+
+    # Create the DataFrame
+    df_cam = pd.DataFrame(data=df_data, columns=columns)
+
+    # Get the vendor OUIs
+    df_vendors = hp.find_mac_vendors(df_cam['mac'], nm_path)
+
+    # Add the vendor OUIs to df_cam as a column, and return the dataframe.
+    df_cam['vendor'] = df_vendors['vendor']
+
+    return df_cam
+
+
+def ios_get_cdp_neighbors(username,
+                          password,
+                          host_group,
+                          play_path,
+                          private_data_dir,
+                          interface=str()):
+    '''
+    Gets the CDP neighbors for a Cisco IOS device.
+
+    Args:
+        username (str):         The username to login to devices
+        password (str):         The password to login to devices
+        host_group (str):       The inventory host group
+        play_path (str):        The path to the playbooks directory
+        private_data_dir (str): The path to the Ansible private data directory
+        interface (str):        The interface to get the neighbor entry for. If
+                                not specified, it will get all neighbors.
+
+    Returns:
+        df_cdp (DataFrame):     A DataFrame containing the CDP neighbors
+    '''
+    cmd = 'show cdp neighbor detail | include Device ID|Interface'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute the command
+    playbook = f'{play_path}/cisco_ios_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse the results
+    cdp_data = list()
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout'][0].split('\n')
+            pos = 1  # Used to account for multiple connections to same device
+            for line in output:
+                if 'Device ID' in line:
+                    remote_device = line.split('(')[0].split()[2].split('.')[0]
+                    local_inf = output[pos].split()[1].strip(',')
+                    remote_inf = output[pos].split()[-1]
+                    row = [device, local_inf, remote_device, remote_inf]
+                    cdp_data.append(row)
+                pos += 1
+    # Create a dataframe from cdp_data and return the results
+    cols = ['Device', 'Local Inf', 'Neighbor', 'Remote Inf']
+    df_cdp = pd.DataFrame(data=cdp_data, columns=cols)
+    return df_cdp
+
+
+def ios_get_interface_descriptions(username,
+                                   password,
+                                   host_group,
+                                   play_path,
+                                   private_data_dir,
+                                   interface=None):
+    '''
+    Gets IOS interface descriptions.
+
+    Args:
+        username (str):         The username to login to devices
+        password (str):         The password to login to devices
+        host_group (str):       The inventory host group
+        play_path (str):        The path to the playbooks directory
+        private_data_dir (str): The path to the Ansible private data directory
+        interface (str):        The interface (defaults to all interfaces)
+
+    Returns:
+        df_desc (DataFrame):    The interface descriptions
+    '''
+    # Get the interface descriptions and add them to df_cam
+    cmd = 'show interface description'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute 'show interface description' and parse the results
+    playbook = f'{play_path}/cisco_ios_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+    # Create a list to store the rows for the dataframe
+    df_data = list()
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout'][0].split('\n')
+            # Get the position of the 'Description' column (we cannot split by
+            # spaces because some interface descriptions have spaces in them).
+            pos = output[0].index('Description')
+            for line in output[1:]:
+                inf = line.split()[0]
+                desc = line[pos:]
+                df_data.append([device, inf, desc])
+
+    # Create the dataframe and return it
+    cols = ['device', 'interface', 'description']
+    df_desc = pd.DataFrame(data=df_data, columns=cols)
+    return df_desc
+
+
+def ios_get_interface_ips(username,
+                          password,
+                          host_group,
+                          play_path,
+                          private_data_dir):
+    '''
+    Gets the IP addresses assigned to interfaces.
+
+    Args:
+        username (str):         The username to login to devices
+        password (str):         The password to login to devices
+        host_group (str):       The inventory host group
+        play_path (str):        The path to the playbooks directory
+        private_data_dir (str): The path to the Ansible private data directory
+
+    Returns:
+        df_ip (df):             A DataFrame containing the interfaces and IPs
+    '''
+    cmd = ['show ip interface',
+           '|',
+           'include line protocol|Internet address is|VPN Routing']
+    cmd = ' '.join(cmd)
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute the command
+    playbook = f'{play_path}/cisco_ios_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse the results
+    df_data = list()
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout'][0].split('\n')
+            output.reverse()  # Reverse the output to make it easier to iterate
+            counter = 0
+            for line in output:
+                if 'Internet address' in line:
+                    pos = counter
+                    if 'VPN Routing/Forwarding' in output[pos-1]:
+                        vrf = output[pos-1].split()[-1].strip('"')
+                    else:
+                        vrf = 'None'
+                    ip = line.split()[-1]
+                    inf = output[pos+1].split()[0]
+                    row = [device, inf, ip, vrf]
+                    df_data.append(row)
+                counter += 1
+
+    # Create a dataframe from df_data and return it
+    df_data.reverse()
+    cols = ['device', 'interface', 'ip', 'vrf']
+    df_ip = pd.DataFrame(data=df_data, columns=cols)
+    return df_ip
+
+
+def ios_get_vlan_db(username: str,
+                    password: str,
+                    host_group: str,
+                    play_path: str,
+                    private_data_dir: str) -> pd.DataFrame:
+    '''
+    """
+    Gets the VLAN database for Cisco IOS devices.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame containing the VLAN database.
+    """
+    '''
+    # Get the interface descriptions and add them to df_cam
+    cmd = 'show vlan brief | exclude ----'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute 'show interface description' and parse the results
+    playbook = f'{play_path}/cisco_ios_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+    # Create a dictionary to store the rows for the dataframe
+    df_data = list()
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout'][0].split('\n')
+
+            # Create the column headers
+            cols = ['device'] + output[0].split()[:3]
+            cols = [_.lower() for _ in cols]
+
+            # Removed wrapped interfaces
+            output = [_ for _ in output[1:] if _[0] != ' ']
+
+            # Add the VLANs to 'df_data'
+            for line in output:
+                row = [device] + line.split()[:3]
+                df_data.append(row)
+
+    # Create the dataframe and return it
+    df = pd.DataFrame(data=df_data, columns=cols)
     return df
