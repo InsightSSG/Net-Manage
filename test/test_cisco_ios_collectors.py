@@ -3,11 +3,12 @@
 import os
 import sys
 
+
 # Change to the Net-Manage repository so imports will work
 nm_path = os.environ.get('NM_PATH')
 os.chdir(f'{nm_path}/test')
 sys.path.append('..')
-from collectors import collectors  # noqa
+from collectors import cisco_ios_collectors as collectors  # noqa
 
 
 def test_get_arp_table(username,
@@ -26,12 +27,12 @@ def test_get_arp_table(username,
                                           private_data_dir)
 
     expected = ['device',
-                'Protocol',
-                'Address',
-                'Age (min)',
-                'Hardware Addr',
-                'Type',
-                'Interface',
+                'protocol',
+                'address',
+                'age',
+                'mac',
+                'inf_type',
+                'interface',
                 'vendor']
     assert df_arp.columns.to_list() == expected
 
@@ -55,7 +56,7 @@ def test_get_cam_table(username,
                                           private_data_dir,
                                           interface=None)
 
-    expected = ['device', 'Vlan', 'Mac Address', 'Type', 'Ports', 'vendor']
+    expected = ['device', 'vlan', 'mac', 'inf_type', 'ports', 'vendor']
     assert df_cam.columns.to_list() == expected
 
     assert len(df_cam) >= 1
@@ -80,6 +81,26 @@ def test_get_interface_descriptions(username,
     assert df_desc.columns.to_list() == expected
 
     assert len(df_desc) >= 1
+
+
+def test_get_vrfs(username: str,
+                  password: str,
+                  host_group: str,
+                  play_path: str,
+                  private_data_dir: str):
+    """Test the 'get_vrfs' collector.
+    """
+    df = collectors.get_vrfs(username,
+                             password,
+                             host_group,
+                             play_path,
+                             private_data_dir)
+
+    expected = ['device', 'name', 'vrf_id', 'default_rd', 'default_vpn_id']
+
+    assert df.columns.to_list() == expected
+
+    assert len(df) >= 1
 
 
 def main():
@@ -114,6 +135,12 @@ def main():
                                     play_path,
                                     private_data_dir,
                                     interface=None)
+
+    test_get_vrfs(username,
+                  password,
+                  host_group_all,
+                  play_path,
+                  private_data_dir)
 
 
 if __name__ == '__main__':
