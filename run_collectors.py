@@ -545,7 +545,6 @@ def collect(collector,
             result = cic.get_vrfs(username,
                                   password,
                                   hostgroup,
-                                  nm_path,
                                   play_path,
                                   private_data_dir)
 

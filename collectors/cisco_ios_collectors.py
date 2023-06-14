@@ -4,27 +4,32 @@ import ansible_runner
 import pandas as pd
 
 
-def get_vrfs(username,
-             password,
-             host_group,
-             nm_path,
-             play_path,
-             private_data_dir):
-    '''
-    Gets the IOS ARP table and adds the vendor OUI.
+def get_vrfs(username: str,
+             password: str,
+             host_group: str,
+             play_path: str,
+             private_data_dir: str) -> pd.DataFrame:
+    """Retrieve VRF information and return it as a DataFrame.
 
-    Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        nm_path (str):          The path to the Net-Manage repository
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): The path to the Ansible private data directory
-        interface (str):        The interface (defaults to all interfaces)
+    Parameters
+    ----------
+    username : str
+        The username to use for authentication.
+    password : str
+        The password to use for authentication.
+    host_group : str
+        The host group to query for VRF information.
+    play_path : str
+        The path to playbooks in Ansible.
+    private_data_dir : str
+        The path to private data directories in Ansible.
 
-    Returns:
-        df (DataFrame):         The ARP table and vendor OUI
-    '''
+    Returns
+    -------
+    pandas.DataFrame
+        A DataFrame containing VRF information, with columns ["device", "name",
+        "vrf_id", "default_rd", "default_vpn_id"].
+    """
     cmd = 'show vrf detail | include VRF Id'
     extravars = {'username': username,
                  'password': password,
