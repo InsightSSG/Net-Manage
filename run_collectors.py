@@ -228,11 +228,11 @@ def collect(collector,
     if collector == 'cam_table':
         if ansible_os == 'cisco.ios.ios':
             result = cic.ios_get_cam_table(username,
-                                          password,
-                                          hostgroup,
-                                          nm_path,
-                                          play_path,
-                                          private_data_dir)
+                                           password,
+                                           hostgroup,
+                                           nm_path,
+                                           play_path,
+                                           private_data_dir)
 
         if ansible_os == 'cisco.nxos.nxos':
             result = cl.nxos_get_cam_table(username,
@@ -245,11 +245,11 @@ def collect(collector,
     if collector == 'arp_table':
         if ansible_os == 'cisco.ios.ios':
             result = cic.ios_get_arp_table(username,
-                                          password,
-                                          hostgroup,
-                                          nm_path,
-                                          play_path,
-                                          private_data_dir)
+                                           password,
+                                           hostgroup,
+                                           nm_path,
+                                           play_path,
+                                           private_data_dir)
 
         if ansible_os == 'cisco.nxos.nxos':
             result = cl.nxos_get_arp_table(username,
@@ -279,10 +279,10 @@ def collect(collector,
     if collector == 'interface_description':
         if ansible_os == 'cisco.ios.ios':
             result = cic.ios_get_interface_descriptions(username,
-                                                       password,
-                                                       hostgroup,
-                                                       play_path,
-                                                       private_data_dir)
+                                                        password,
+                                                        hostgroup,
+                                                        play_path,
+                                                        private_data_dir)
 
         if ansible_os == 'cisco.nxos.nxos':
             result = cl.nxos_get_interface_descriptions(username,
@@ -339,10 +339,10 @@ def collect(collector,
 
         if ansible_os == 'cisco.ios.ios':
             result = cic.ios_get_interface_ips(username,
-                                              password,
-                                              hostgroup,
-                                              play_path,
-                                              private_data_dir)
+                                               password,
+                                               hostgroup,
+                                               play_path,
+                                               private_data_dir)
 
         if ansible_os == 'cisco.nxos.nxos':
             result = cl.nxos_get_interface_ips(username,
@@ -373,10 +373,10 @@ def collect(collector,
     if collector == 'find_uplink_by_ip':
         if ansible_os == 'cisco.ios.ios':
             result = cic.ios_find_uplink_by_ip(username,
-                                              password,
-                                              hostgroup,
-                                              play_path,
-                                              private_data_dir)
+                                               password,
+                                               hostgroup,
+                                               play_path,
+                                               private_data_dir)
 
     if collector == 'inventory_nxos':
         result = cl.nxos_get_inventory(username,
@@ -528,10 +528,10 @@ def collect(collector,
     if collector == 'vlans':
         if ansible_os == 'cisco.ios.ios':
             result = cic.ios_get_vlan_db(username,
-                                        password,
-                                        hostgroup,
-                                        play_path,
-                                        private_data_dir)
+                                         password,
+                                         hostgroup,
+                                         play_path,
+                                         private_data_dir)
 
         if ansible_os == 'cisco.nxos.nxos':
             result = cl.nxos_get_vlan_db(username,
