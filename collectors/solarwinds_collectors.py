@@ -748,3 +748,140 @@ def get_npm_node_vendors(server: str, username: str, password: str) -> dict:
     df.reset_index(drop=True, inplace=True)
 
     return df
+
+
+def get_npm_nodes(server: str,
+                  username: str,
+                  password: str) -> pd.DataFrame:
+    """
+    Retrieves all columns from Orion.Nodes.
+
+    Args:
+    server (str):
+        The hostname or IP address of the Orion database server.
+    username (str):
+        The username used to authenticate with the Orion API.
+    password (str):
+        The password used to authenticate with the Orion API.
+
+    Returns:
+    df (pd.DataFrame):
+        A DataFrame containing the Orion.Nodes data.
+
+    Example usage:
+    >>> server = "your.server.com"
+    >>> username = "your_username"
+    >>> password = "your_password"
+    >>> df = get_npm_nodes(server, username, password)
+    >>> print(df)
+    """
+    swis = SwisClient(server, username, password)
+
+    schema = ['NodeID',
+              'ObjectSubType',
+              'IPAddress',
+              'IPAddressType',
+              'DynamicIP',
+              'Caption',
+              'NodeDescription',
+              'Description',
+              'DNS',
+              'SysName',
+              'Vendor',
+              'SysObjectID',
+              'Location',
+              'Contact',
+              'VendorIcon',
+              'Icon',
+              'CustomStatus',
+              'IOSImage',
+              'IOSVersion',
+              'GroupStatus',
+              'StatusIcon',
+              'LastBoot',
+              'SystemUpTime',
+              'ResponseTime',
+              'PercentLoss',
+              'AvgResponseTime',
+              'MinResponseTime',
+              'MaxResponseTime',
+              'CPUCount',
+              'CPULoad',
+              'MemoryUsed',
+              'LoadAverage1',
+              'LoadAverage5',
+              'LoadAverage15',
+              'MemoryAvailable',
+              'PercentMemoryUsed',
+              'PercentMemoryAvailable',
+              'LastSync',
+              'LastSystemUpTimePollUtc',
+              'MachineType',
+              'IsServer',
+              'Severity',
+              'UiSeverity',
+              'ChildStatus',
+              'Allow64BitCounters',
+              'AgentPort',
+              'TotalMemory',
+              'CMTS',
+              'CustomPollerLastStatisticsPoll',
+              'CustomPollerLastStatisticsPollSuccess',
+              'SNMPVersion',
+              'PollInterval',
+              'EngineID',
+              'RediscoveryInterval',
+              'NextPoll',
+              'NextRediscovery',
+              'StatCollection',
+              'External',
+              'Community',
+              'RWCommunity',
+              'IP',
+              'IP_Address',
+              'IPAddressGUID',
+              'NodeName',
+              'BlockUntil',
+              'BufferNoMemThisHour',
+              'BufferNoMemToday',
+              'BufferSmMissThisHour',
+              'BufferSmMissToday',
+              'BufferMdMissThisHour',
+              'BufferMdMissToday',
+              'BufferBgMissThisHour',
+              'BufferBgMissToday',
+              'BufferLgMissThisHour',
+              'BufferLgMissToday',
+              'BufferHgMissThisHour',
+              'BufferHgMissToday',
+              'OrionIdPrefix',
+              'OrionIdColumn',
+              'SkippedPollingCycles',
+              'MinutesSinceLastSync',
+              'EntityType',
+              'DisplayName',
+              'Category',
+              'IsOrionServer',
+              'Status',
+              'StatusDescription',
+              'StatusLED',
+              'UnManaged',
+              'UnManageFrom',
+              'UnManageUntil',
+              'DetailsUrl',
+              'Image',
+              'AncestorDisplayNames',
+              'AncestorDetailsUrls',
+              'StatusIconHint',
+              'InstanceType',
+              'Uri',
+              'InstanceSiteId']
+    schema = ','.join(schema)
+
+    results = swis.query(
+        f"SELECT {schema} FROM Orion.Nodes"
+    )
+
+    df = pd.DataFrame(results['results']).astype(str)
+
+    return df
