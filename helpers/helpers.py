@@ -337,6 +337,7 @@ def define_collectors(hostgroup):
                                 'cisco.nxos.nxos',
                                 'paloaltonetworks.panos'],
                   'cam_table': ['cisco.ios.ios', 'cisco.nxos.nxos'],
+                  'config': ['cisco.ios.ios'],
                   'ncm_serial_numbers': ['solarwinds'],
                   'npm_containers': ['solarwinds'],
                   'npm_group_members': ['solarwinds'],

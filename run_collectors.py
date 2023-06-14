@@ -242,6 +242,14 @@ def collect(collector,
                                            play_path,
                                            private_data_dir)
 
+    if collector == 'config':
+        if ansible_os == 'cisco.ios.ios':
+            result = cic.get_config(username,
+                                    password,
+                                    hostgroup,
+                                    play_path,
+                                    private_data_dir)
+
     if collector == 'arp_table':
         if ansible_os == 'cisco.ios.ios':
             result = cl.ios_get_arp_table(username,
