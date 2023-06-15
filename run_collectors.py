@@ -268,12 +268,11 @@ def collect(collector,
                                            private_data_dir)
 
         if ansible_os == 'paloaltonetworks.panos':
-            result = cl.panos_get_arp_table(username,
-                                            password,
-                                            hostgroup,
-                                            nm_path,
-                                            play_path,
-                                            private_data_dir)
+            result = pac.get_arp_table(username,
+                                       password,
+                                       hostgroup,
+                                       nm_path,
+                                       private_data_dir)
 
     if collector == 'bgp_neighbors':
         if ansible_os == 'cisco.nxos.nxos':
@@ -489,33 +488,29 @@ def collect(collector,
     if collector == 'npm_nodes':
         result = swc.get_npm_nodes(npm_server, npm_username, npm_password)
 
-    if collector == 'panos_arp_table':
-        result = pac.get_arp_table(username,
-                                   password,
-                                   hostgroup,
-                                   nm_path,
-                                   private_data_dir)
-
-    if collector == 'panos_all_interfaces':
-        result = pac.get_all_interfaces(username,
-                                        password,
-                                        hostgroup,
-                                        nm_path,
-                                        private_data_dir)
-
-    if collector == 'panos_logical_interfaces':
-        result = pac.get_logical_interfaces(username,
+    if collector == 'all_interfaces':
+        if ansible_os == 'paloaltonetworks.panos':
+            result = pac.get_all_interfaces(username,
                                             password,
                                             hostgroup,
                                             nm_path,
                                             private_data_dir)
 
-    if collector == 'panos_physical_interfaces':
-        result = pac.get_physical_interfaces(username,
-                                             password,
-                                             hostgroup,
-                                             nm_path,
-                                             private_data_dir)
+    if collector == 'logical_interfaces':
+        if ansible_os == 'paloaltonetworks.panos':
+            result = pac.get_logical_interfaces(username,
+                                                password,
+                                                hostgroup,
+                                                nm_path,
+                                                private_data_dir)
+
+    if collector == 'physical_interfaces':
+        if ansible_os == 'paloaltonetworks.panos':
+            result = pac.get_physical_interfaces(username,
+                                                 password,
+                                                 hostgroup,
+                                                 nm_path,
+                                                 private_data_dir)
 
     if collector == 'port_channel_data':
         if ansible_os == 'cisco.nxos.nxos':
