@@ -268,12 +268,11 @@ def collect(collector,
                                            private_data_dir)
 
         if ansible_os == 'paloaltonetworks.panos':
-            result = cl.panos_get_arp_table(username,
-                                            password,
-                                            hostgroup,
-                                            nm_path,
-                                            play_path,
-                                            private_data_dir)
+            result = pac.get_arp_table(username,
+                                       password,
+                                       hostgroup,
+                                       nm_path,
+                                       private_data_dir)
 
     if collector == 'bgp_neighbors':
         if ansible_os == 'cisco.nxos.nxos':
@@ -360,11 +359,11 @@ def collect(collector,
                                                private_data_dir)
 
         if ansible_os == 'paloaltonetworks.panos':
-            result = cl.panos_get_interface_ips(username,
-                                                password,
-                                                hostgroup,
-                                                play_path,
-                                                private_data_dir)
+            result = pac.get_interface_ips(username,
+                                           password,
+                                           hostgroup,
+                                           nm_path,
+                                           private_data_dir)
 
     if collector == 'interface_status':
         if ansible_os == 'cisco.nxos.nxos':
@@ -489,33 +488,29 @@ def collect(collector,
     if collector == 'npm_nodes':
         result = swc.get_npm_nodes(npm_server, npm_username, npm_password)
 
-    if collector == 'panos_arp_table':
-        result = pac.get_arp_table(username,
-                                   password,
-                                   hostgroup,
-                                   nm_path,
-                                   private_data_dir)
-
-    if collector == 'panos_all_interfaces':
-        result = pac.get_all_interfaces(username,
-                                        password,
-                                        hostgroup,
-                                        nm_path,
-                                        private_data_dir)
-
-    if collector == 'panos_logical_interfaces':
-        result = pac.get_logical_interfaces(username,
+    if collector == 'all_interfaces':
+        if ansible_os == 'paloaltonetworks.panos':
+            result = pac.get_all_interfaces(username,
                                             password,
                                             hostgroup,
                                             nm_path,
                                             private_data_dir)
 
-    if collector == 'panos_physical_interfaces':
-        result = pac.get_physical_interfaces(username,
-                                             password,
-                                             hostgroup,
-                                             nm_path,
-                                             private_data_dir)
+    if collector == 'logical_interfaces':
+        if ansible_os == 'paloaltonetworks.panos':
+            result = pac.get_logical_interfaces(username,
+                                                password,
+                                                hostgroup,
+                                                nm_path,
+                                                private_data_dir)
+
+    if collector == 'physical_interfaces':
+        if ansible_os == 'paloaltonetworks.panos':
+            result = pac.get_physical_interfaces(username,
+                                                 password,
+                                                 hostgroup,
+                                                 nm_path,
+                                                 private_data_dir)
 
     if collector == 'port_channel_data':
         if ansible_os == 'cisco.nxos.nxos':
@@ -783,78 +778,3 @@ def arg_parser(args):
 
     return collectors, db, hostgroups, nm_path, out_dir, username, password,\
         private_data_dir
-
-
-def main():
-    args = create_parser()
-    # Parse the command line arguments and set other variables
-    collectors, db, hostgroups, nm_path, out_dir, username, password,\
-        private_data_dir = arg_parser(args)
-    play_path = f'{nm_path}/playbooks'
-
-    # Ensure that any pre-requisite collectors are set
-    collectors = hp.set_dependencies(collectors)
-
-    df_collectors = hp.ansible_create_collectors_df(hostgroups,
-                                                    collectors)
-
-    df_vars = hp.ansible_create_vars_df(hostgroups, private_data_dir)
-
-    # print('COLLECTORS:')
-    # print(tabulate(df_collectors,
-    #                headers='keys',
-    #                tablefmt='psql'))
-
-    # print('COLLECTOR VARIABLES')
-    # print(tabulate(df_vars,
-    #                headers='keys',
-    #                tablefmt='psql'))
-
-    # Set the timestamp. This is for database queries. Setting it a single time
-    # at the start of the script will allow all collectors to have the same
-    # timestamp.
-    ts = dt.datetime.now()
-    ts = ts.strftime('%Y-%m-%d_%H%M')
-
-    # Execute collectors and store the output in a SQLite database.
-    # Collectors are executed by column. If column_1 is 'interface_status' and
-    # column_2 is 'interface_description', the interface statuses for all
-    # hostgroups will be gathered, then the interface descriptions for all
-    # hostgroups, and so on.
-    for idx, row in df_collectors.iterrows():
-        collector = idx
-        hostgroups = row['hostgroups'].split(',')
-        for group in hostgroups:
-            ansible_os = df_vars.loc[[group]]['ansible_network_os'].values[0]
-
-            result = collect(ansible_os,
-                             collector,
-                             username,
-                             password,
-                             group,
-                             play_path,
-                             private_data_dir,
-                             nm_path,
-                             db_path=db)
-            # Set the timestamp as the index
-            new_idx = list()
-            for i in range(0, len(result)):
-                new_idx.append(ts)
-
-            # Display the output to the console
-            result['timestamp'] = new_idx
-            result = result.set_index('timestamp')
-            # print(tabulate(result, headers='keys', tablefmt='psql'))
-
-            # Add the output to the database
-            con = hp.connect_to_db(db)
-
-            # Add the dataframe to the database
-            table = collector.upper()
-            result.to_sql(table, con, if_exists='append')
-            con.commit()
-            con.close()
-
-
-if __name__ == '__main__':
-    main()

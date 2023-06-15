@@ -281,6 +281,69 @@ def get_arp_table(username,
     return df
 
 
+def get_interface_ips(username: str,
+                      password: str,
+                      host_group: str,
+                      nm_path: str,
+                      private_data_dir: str) -> pd.DataFrame:
+    """Gets IP addresses on Palo Alto firewall interfaces.
+
+    Parameters
+    ----------
+    username : str
+        The user's username.
+    password : str
+        The user's password.
+    host_group : str
+        The name of the Ansible inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+
+    Returns
+    ----------
+    df : Pandas Dataframe
+        A dataframe containing the IP addresses.
+
+    Examples
+    ----------
+    >>> df = get_ip_addresses(username,
+                              password,
+                              db_path,
+                              host_group,
+                              nm_path,
+                              play_path,
+                              private_data_dir,
+                              timestamp)
+    >>> df.columns.to_list()
+    ['device',
+    'name',
+    'zone',
+    'fwd',
+    'vsys',
+    'dyn-addr',
+    'addr6',
+    'tag',
+    'ip',
+    'id',
+    'addr']
+    """
+    # TODO: Optimize this function by setting 'get_all_interfaces' as a
+    #       dependency. That way the same command does not need to be
+    #       run twice (potentially) for two different collectors.
+    df = get_all_interfaces(username,
+                            password,
+                            host_group,
+                            nm_path,
+                            private_data_dir)
+
+    # Filter out interfaces that do not have an IP address.
+    df = df[df['ip'] != 'N/A']
+
+    return df
+
+
 def get_logical_interfaces(username,
                            password,
                            host_group,
