@@ -8,6 +8,7 @@ import argparse
 import datetime as dt
 import os
 import readline
+from collectors import cisco_asa_collectors as cac
 from collectors import cisco_ios_collectors as cic
 from collectors import collectors as cl
 from collectors import f5_collectors as f5c
@@ -338,11 +339,11 @@ def collect(collector,
 
     if collector == 'interface_ip_addresses':
         if ansible_os == 'cisco.asa.asa':
-            result = cl.asa_get_interface_ips(username,
-                                              password,
-                                              hostgroup,
-                                              play_path,
-                                              private_data_dir)
+            result = cac.get_interface_ips(username,
+                                           password,
+                                           hostgroup,
+                                           play_path,
+                                           private_data_dir)
 
         if ansible_os == 'cisco.ios.ios':
             result = cic.ios_get_interface_ips(username,
