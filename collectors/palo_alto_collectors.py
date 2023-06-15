@@ -341,6 +341,13 @@ def get_interface_ips(username: str,
     # Filter out interfaces that do not have an IP address.
     df = df[df['ip'] != 'N/A']
 
+    # Add the subnets, network IPs, and broadcast IPs.
+    addresses = df['ip'].to_list()
+    result = hp.generate_subnet_details(addresses)
+    df['subnet'] = result['subnet']
+    df['network_ip'] = result['network_ip']
+    df['broadcast_ip'] = result['broadcast_ip']
+
     return df
 
 

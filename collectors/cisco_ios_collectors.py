@@ -605,7 +605,7 @@ def ios_get_interface_ips(username,
         private_data_dir (str): The path to the Ansible private data directory
 
     Returns:
-        df_ip (df):             A DataFrame containing the interfaces and IPs
+        df (df):                A DataFrame containing the interfaces and IPs
     '''
     cmd = ['show ip interface',
            '|',
@@ -650,8 +650,16 @@ def ios_get_interface_ips(username,
     # Create a dataframe from df_data and return it
     df_data.reverse()
     cols = ['device', 'interface', 'ip', 'vrf']
-    df_ip = pd.DataFrame(data=df_data, columns=cols)
-    return df_ip
+    df = pd.DataFrame(data=df_data, columns=cols)
+
+    # Add the subnets, network IPs, and broadcast IPs.
+    addresses = df['ip'].to_list()
+    result = hp.generate_subnet_details(addresses)
+    df['subnet'] = result['subnet']
+    df['network_ip'] = result['network_ip']
+    df['broadcast_ip'] = result['broadcast_ip']
+
+    return df
 
 
 def ios_get_vlan_db(username: str,
