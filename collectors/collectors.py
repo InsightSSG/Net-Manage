@@ -6,7 +6,6 @@ A library of functions for collecting data from network devices.
 
 import ansible_runner
 import ipaddress
-import json
 import pandas as pd
 import re
 import sqlite3 as sl
@@ -1367,63 +1366,6 @@ def nxos_get_vrfs(username,
     df_vrfs = pd.DataFrame(data=df_data, columns=cols)
 
     return df_vrfs
-
-
-def panos_get_interface_ips(username,
-                            password,
-                            host_group,
-                            play_path,
-                            private_data_dir):
-    '''
-    Gets the interface IP addresses from a Palo Alto firewall.
-
-    Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): The path to the Ansible private data directory
-
-    Returns:
-        df_ip (DataFrame):      The interface IP addresses
-    '''
-    extravars = {'user': username,
-                 'password': password,
-                 'host_group': host_group}
-
-    playbook = f'{play_path}/palo_alto_get_interface_ip_addresses.yml'
-    runner = ansible_runner.run(private_data_dir=private_data_dir,
-                                playbook=playbook,
-                                extravars=extravars,
-                                suppress_env_files=True)
-
-    df_data = list()
-
-    for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
-            device = event_data['remote_addr']
-            output = event_data['res']['stdout']
-
-            output = json.loads(output)
-            output = output['response']['result']['ifnet']['entry']
-
-            for item in output:
-                inf = item.get('name')
-                ip = item.get('ip')
-                vsys = item.get('vsys')
-                zone = item.get('zone')
-                row = [device, inf, ip, vsys, zone]
-                df_data.append(row)
-
-    cols = ['device',
-            'interface',
-            'ip',
-            'vsys',
-            'zone']
-
-    df_ip = pd.DataFrame(data=df_data, columns=cols)
-    return df_ip
 
 
 def panos_get_security_rules(username,
