@@ -391,6 +391,13 @@ def get_self_ips(username,
     col_1 = df.pop('device')
     df.insert(0, 'device', col_1)
 
+    # Add the subnets, network IPs, and broadcast IPs.
+    addresses = df['address'].to_list()
+    result = hp.generate_subnet_details(addresses)
+    df['subnet'] = result['subnet']
+    df['network_ip'] = result['network_ip']
+    df['broadcast_ip'] = result['broadcast_ip']
+
     return df
 
 
