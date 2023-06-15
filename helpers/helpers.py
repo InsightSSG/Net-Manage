@@ -190,18 +190,18 @@ def define_supported_validation_tables():
     '''
     supported_tables = dict()
 
-    supported_tables['MERAKI_GET_ORG_DEVICE_STATUSES'] = dict()
-    supported_tables['MERAKI_GET_ORG_DEVICE_STATUSES']['status'] = 'online'
+    supported_tables['MERAKI_ORG_DEVICE_STATUSES'] = dict()
+    supported_tables['MERAKI_ORG_DEVICE_STATUSES']['status'] = 'online'
 
-    supported_tables['F5_POOL_AVAILABILITY'] = dict()
-    supported_tables['F5_POOL_AVAILABILITY']['availability'] = 'available'
+    supported_tables['BIGIP_POOL_AVAILABILITY'] = dict()
+    supported_tables['BIGIP_POOL_AVAILABILITY']['availability'] = 'available'
 
-    supported_tables['F5_POOL_MEMBER_AVAILABILITY'] = dict()
-    supported_tables['F5_POOL_MEMBER_AVAILABILITY']['pool_member_state'] = \
+    supported_tables['BIGIP_POOL_MEMBER_AVAILABILITY'] = dict()
+    supported_tables['BIGIP_POOL_MEMBER_AVAILABILITY']['pool_member_state'] = \
         'available'
 
-    supported_tables['F5_VIP_AVAILABILITY'] = dict()
-    supported_tables['F5_VIP_AVAILABILITY']['availability'] = 'available'
+    supported_tables['BIGIP_VIP_AVAILABILITY'] = dict()
+    supported_tables['BIGIP_VIP_AVAILABILITY']['availability'] = 'available'
 
     return supported_tables
 
@@ -883,44 +883,44 @@ def set_dependencies(selected):
             del s[pos]
         pos = s.insert(0, 'infoblox_get_network_containers')
 
-    if 'meraki_get_device_statuses' in s:
-        if 'meraki_get_organizations' in s:
-            pos = s.index('meraki_get_organizations')
+    if 'device_statuses' in s:
+        if 'organizations' in s:
+            pos = s.index('organizations')
             del s[pos]
-        s.insert(0, 'meraki_get_organizations')
+        s.insert(0, 'organizations')
 
-    if 'meraki_get_network_device_statuses' in s:
-        if 'meraki_get_org_device_statuses' in s:
-            pos = s.index('meraki_get_org_device_statuses')
+    if 'network_device_statuses' in s:
+        if 'org_device_statuses' in s:
+            pos = s.index('org_device_statuses')
             del s[pos]
-        s.insert(0, 'meraki_get_org_device_statuses')
+        s.insert(0, 'org_device_statuses')
 
-    if 'meraki_get_network_devices' in s:
-        if 'meraki_get_organizations' in s:
-            pos = s.index('meraki_get_organizations')
+    if 'network_devices' in s:
+        if 'organizations' in s:
+            pos = s.index('organizations')
             del s[pos]
-        s.insert(0, 'meraki_get_organizations')
+        s.insert(0, 'organizations')
 
-    if 'meraki_get_org_devices' in s:
-        if 'meraki_get_organizations' in s:
-            pos = s.index('meraki_get_organizations')
+    if 'org_devices' in s:
+        if 'organizations' in s:
+            pos = s.index('organizations')
             del s[pos]
-        s.insert(0, 'meraki_get_organizations')
+        s.insert(0, 'organizations')
 
-    if 'meraki_get_org_device_statuses' in s:
-        if 'meraki_get_org_networks' in s:
-            pos = s.index('meraki_get_org_networks')
+    if 'org_device_statuses' in s:
+        if 'org_networks' in s:
+            pos = s.index('org_networks')
             del s[pos]
-        s.insert(0, 'meraki_get_org_networks')
+        s.insert(0, 'org_networks')
 
-    if 'meraki_get_org_networks' in s:
-        if 'meraki_get_organizations' in s:
-            pos = s.index('meraki_get_organizations')
+    if 'org_networks' in s:
+        if 'organizations' in s:
+            pos = s.index('organizations')
             del s[pos]
-        s.insert(0, 'meraki_get_organizations')
+        s.insert(0, 'organizations')
 
-    if 'meraki_get_switch_lldp_neighbors' in s:
-        dependencies = ['meraki_get_switch_port_statuses']
+    if 'switch_lldp_neighbors' in s:
+        dependencies = ['switch_port_statuses']
         for d in dependencies:
             if d in s:
                 pos = s.index(d)
@@ -928,26 +928,26 @@ def set_dependencies(selected):
         for d in dependencies:
             s.insert(0, d)
 
-    if 'meraki_get_switch_port_usages' in s:
-        if 'meraki_get_switch_port_statuses' in s:
-            pos = s.index('meraki_get_switch_port_statuses')
+    if 'switch_port_usages' in s:
+        if 'switch_port_statuses' in s:
+            pos = s.index('switch_port_statuses')
             del s[pos]
-        s.insert(0, 'meraki_get_switch_port_statuses')
+        s.insert(0, 'switch_port_statuses')
 
-    if 'meraki_get_switch_port_statuses' in s:
-        if 'meraki_get_org_devices' in s:
-            pos = s.index('meraki_get_org_devices')
+    if 'switch_port_statuses' in s:
+        if 'org_devices' in s:
+            pos = s.index('org_devices')
             del s[pos]
-        s.insert(0, 'meraki_get_org_devices')
-        if 'meraki_get_organizations' in s:
+        s.insert(0, 'org_devices')
+        if 'organizations' in s:
             del s[pos]
-        s.insert(0, 'meraki_get_organizations')
+        s.insert(0, 'organizations')
 
-    if 'meraki_get_vpn_statuses' in s:
-        if 'meraki_get_organizations' in s:
-            pos = s.index('meraki_get_organizations')
+    if 'vpn_statuses' in s:
+        if 'organizations' in s:
+            pos = s.index('organizations')
             del s[pos]
-        s.insert(0, 'meraki_get_organizations')
+        s.insert(0, 'organizations')
 
     # Remove duplicate collectors from 's'
     non_dups = list()
@@ -1181,7 +1181,7 @@ def meraki_check_api_enablement(db_path, org):
     '''
     enabled = False
 
-    query = ['SELECT timestamp, api from MERAKI_GET_ORGANIZATIONS',
+    query = ['SELECT timestamp, api from MERAKI_ORGANIZATIONS',
              f'WHERE org_id = "{org}"',
              'ORDER BY timestamp DESC',
              'limit 1']
@@ -1210,7 +1210,7 @@ def meraki_map_network_to_organization(db_path, network):
         org_id (str):   The organization ID
     '''
     query = f'''SELECT distinct timestamp, organizationId
-                FROM MERAKI_GET_ORG_NETWORKS
+                FROM MERAKI_ORG_NETWORKS
                 WHERE id = "{network}"
                 ORDER BY timestamp desc
                 LIMIT 1

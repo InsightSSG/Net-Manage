@@ -393,30 +393,35 @@ def collect(collector,
                                        play_path,
                                        private_data_dir)
 
-    if collector == 'meraki_get_network_clients':
-        result = mc.meraki_get_network_clients(api_key,
-                                               networks,
-                                               macs=macs,
-                                               per_page=per_page,
-                                               timespan=timespan,
-                                               total_pages=total_pages)
+    if collector == 'network_clients':
+        if ansible_os == 'meraki':
+            result = mc.meraki_get_network_clients(api_key,
+                                                   networks,
+                                                   macs=macs,
+                                                   per_page=per_page,
+                                                   timespan=timespan,
+                                                   total_pages=total_pages)
 
-    if collector == 'meraki_get_network_devices':
-        result = mc.meraki_get_network_devices(api_key,
-                                               db_path,
-                                               networks=networks,
-                                               orgs=orgs)
+    if collector == 'network_devices':
+        if ansible_os == 'meraki':
+            result = mc.meraki_get_network_devices(api_key,
+                                                   db_path,
+                                                   networks=networks,
+                                                   orgs=orgs)
 
-    if collector == 'meraki_get_network_device_statuses':
-        result = mc.meraki_get_network_device_statuses(db_path, networks)
+    if collector == 'network_device_statuses':
+        if ansible_os == 'meraki':
+            result = mc.meraki_get_network_device_statuses(db_path, networks)
 
-    if collector == 'meraki_get_organizations':
-        result = mc.meraki_get_organizations(api_key)
+    if collector == 'organizations':
+        if ansible_os == 'meraki':
+            result = mc.meraki_get_organizations(api_key)
 
-    if collector == 'meraki_get_org_devices':
-        result = mc.meraki_get_org_devices(api_key, db_path, orgs=orgs)
+    if collector == 'org_devices':
+        if ansible_os == 'meraki':
+            result = mc.meraki_get_org_devices(api_key, db_path, orgs=orgs)
 
-    if collector == 'get_org_device_statuses':
+    if collector == 'org_device_statuses':
         if ansible_os == 'meraki':
             tp = total_pages
             result, idx_cols = mc.meraki_get_org_device_statuses(api_key,
@@ -425,23 +430,29 @@ def collect(collector,
                                                                  total_pages=tp
                                                                  )
 
-    if collector == 'meraki_get_org_networks':
-        result = mc.meraki_get_org_networks(api_key,
-                                            db_path,
-                                            orgs=orgs,
-                                            use_db=True)
+    if collector == 'org_networks':
+        if ansible_os == 'meraki':
+            result = mc.meraki_get_org_networks(api_key,
+                                                db_path,
+                                                orgs=orgs,
+                                                use_db=True)
 
-    if collector == 'meraki_get_switch_lldp_neighbors':
-        result = mc.meraki_get_switch_lldp_neighbors(db_path)
+    if collector == 'switch_lldp_neighbors':
+        if ansible_os == 'meraki':
+            result = mc.meraki_get_switch_lldp_neighbors(db_path)
 
-    if collector == 'meraki_get_switch_port_statuses':
-        result = mc.meraki_get_switch_port_statuses(api_key, db_path, networks)
+    if collector == 'switch_port_statuses':
+        if ansible_os == 'meraki':
+            result = mc.meraki_get_switch_port_statuses(api_key,
+                                                        db_path,
+                                                        networks)
 
-    if collector == 'meraki_get_switch_port_usages':
-        result = mc.meraki_get_switch_port_usages(api_key,
-                                                  db_path,
-                                                  networks,
-                                                  timestamp)
+    if collector == 'switch_port_usages':
+        if ansible_os == 'meraki':
+            result = mc.meraki_get_switch_port_usages(api_key,
+                                                      db_path,
+                                                      networks,
+                                                      timestamp)
 
     if collector == 'netbox_get_ipam_prefixes':
         result = nbc.netbox_get_ipam_prefixes(nb_path, nb_token)

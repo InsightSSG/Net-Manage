@@ -116,7 +116,8 @@ def meraki_get_network_devices(api_key, db_path, networks=list(), orgs=list()):
     data = list()
 
     if not networks:
-        df_networks = meraki_get_org_networks(api_key, db_path, orgs=orgs)
+        df_networks = meraki_get_org_networks(api_key, db_path)  # , orgs=orgs)
+        print(df_networks)
         networks = df_networks['network_id'].to_list()
 
     for net in networks:
@@ -246,7 +247,7 @@ def meraki_get_org_devices(api_key, db_path, orgs=list()):
         df_devices (DataFrame): The device statuses for the organizations
     '''
     # Get the organizations (collected by 'meraki_get_orgs') from the database
-    table = 'meraki_get_organizations'
+    table = 'meraki_organizations'
     organizations = hp.meraki_parse_organizations(db_path, orgs, table)
 
     # Initialize Meraki dashboard
@@ -393,7 +394,7 @@ def meraki_get_org_networks(api_key,
     if use_db:
         # Get the organizations (collected by 'meraki_get_orgs') from the
         # database
-        table = 'meraki_get_organizations'
+        table = 'meraki_organizations'
         organizations = hp.meraki_parse_organizations(db_path, orgs, table)
     else:
         organizations = orgs
