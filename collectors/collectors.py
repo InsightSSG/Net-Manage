@@ -628,7 +628,7 @@ def nxos_get_interface_ips(username,
         private_data_dir (str): The path to the Ansible private data directory
 
     Returns:
-        df_ip (df):             A DataFrame containing the interfaces and IPs
+        df (df):                A DataFrame containing the interfaces and IPs
     '''
     grep = 'Interface status:\\|IP address:\\|IP Interface Status for VRF'
     cmd = f'show ip interface vrf all | grep "{grep}"'
@@ -672,8 +672,16 @@ def nxos_get_interface_ips(username,
 
     # Create a dataframe from df_data and return it
     cols = ['device', 'interface', 'ip', 'vrf']
-    df_ip = pd.DataFrame(data=df_data, columns=cols)
-    return df_ip
+    df = pd.DataFrame(data=df_data, columns=cols)
+
+    # Add the subnets, network IPs, and broadcast IPs.
+    addresses = df['ip'].to_list()
+    result = hp.generate_subnet_details(addresses)
+    df['subnet'] = result['subnet']
+    df['network_ip'] = result['network_ip']
+    df['broadcast_ip'] = result['broadcast_ip']
+
+    return df
 
 
 def nxos_get_interface_status(username,

@@ -6,6 +6,7 @@ A library of generic helper functions for dynamic runbooks.
 
 import ansible_runner
 import glob
+import ipaddress
 import numpy as np
 import os
 import pandas as pd
@@ -18,6 +19,7 @@ import yaml
 from datetime import datetime as dt
 from getpass import getpass
 from tabulate import tabulate
+from typing import Dict, List
 
 
 def ansible_create_collectors_df(hostgroups, collectors):
@@ -497,6 +499,41 @@ def find_mac_vendors(macs, nm_path):
     df['vendor'] = vendors
 
     return df
+
+
+def generate_subnet_details(addresses: List[str]) -> Dict[str, List[str]]:
+    """
+    Generates the subnet, network, and broadcast IPs for a list of IPs.
+
+    Parameters
+    ----------
+    addresses : list of str
+        List of IP addresses in the format {ip}/{subnet_mask_length}
+
+    Returns
+    -------
+    Dictionary with three keys:
+    - subnet : list of str
+    List of subnet in CIDR notation for each IP address in the input list
+    - network_ip : list of str
+    List of network IP for each IP address in the input list
+    - broadcast_ip : list of str
+    List of broadcast IP for each IP address in the input list
+    """
+    subnet = list()
+    network_ip = list()
+    broadcast_ip = list()
+
+    for ip in addresses:
+        ip_obj = ipaddress.ip_interface(ip)
+        subnet.append(str(ip_obj.network))
+        network_ip.append(str(ip_obj.network.network_address))
+        brd = str(ipaddress.IPv4Address(int(ip_obj.network.broadcast_address)))
+        broadcast_ip.append(brd)
+
+    return {'subnet': subnet,
+            'network_ip': network_ip,
+            'broadcast_ip': broadcast_ip}
 
 
 def get_creds(prompt=str()):
@@ -1329,19 +1366,19 @@ def update_ouis(nm_path):
 
     # Check if 'ouis.txt' needs to be downloaded.
     download = False
-    if f'{nm_path}/ouis.txt' not in files:
+    if f'{nm_path}ouis.txt' not in files:
         download = True
     else:
-        delta = (dt.now().date() - files[f'{nm_path}/ouis.txt'].date()).days
+        delta = (dt.now().date() - files[f'{nm_path}ouis.txt'].date()).days
         if delta > 7:
             download = True
 
     # Download 'ouis.txt', if applicable.
     if download:
-        download_ouis(f'{nm_path}/ouis.txt')
+        download_ouis(f'{nm_path}ouis.txt')
 
     # Read 'ouis.txt' and extract the base16 and vendor combinations.
-    with open(f'{nm_path}/ouis.txt', 'r') as txt:
+    with open(f'{nm_path}ouis.txt', 'r') as txt:
         data = txt.read()
     pattern = '.*base 16.*'
     data = re.findall(pattern, data)
