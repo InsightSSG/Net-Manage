@@ -20,3 +20,4 @@ meraki
 pynetbox
 python3-nmap
 xmltodict
+tabulate
