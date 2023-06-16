@@ -21,6 +21,95 @@ def get_network_appliance_vlans(ansible_os: str,
                                 timestamp: str,
                                 networks: list = list(),
                                 orgs: list = list()) -> pd.DataFrame:
+    """
+    Get the appliance VLANs for a list of networks or organizations.
+
+    Args:
+    ----
+    api_key (str):
+        A valid Meraki Dashboard API key.
+    collector (str):
+        A name for the Meraki data collector.
+    db_path (str):
+        The path to the SQLite database file.
+    timestamp (str):
+        The timestamp for the data collected in YYYY-MM-DD_HHMM format.
+    networks (list, optional):
+        A list of Meraki network IDs. Defaults to list().
+    orgs (list, optional):
+        A list of Meraki organization IDs. Defaults to list().
+
+    Returns:
+    ----
+    pd.DataFrame:
+        A pandas DataFrame that contains the appliance VLANs.
+
+    Examples:
+    ----
+    Example 1:
+    ```
+    # Get VLANs for all appliances in one or more networks.
+    import pandas as pd
+    from meraki_helpers import get_network_appliance_vlans
+
+    api_key = '<your_api_key_here>'
+    collector = 'network_appliance_vlans'
+    db_path = '/path/to/database.db'
+    networks = ['N_123456789012345678', 'N_234567890123456789']
+    timestamp = '2022-01-01_0000'
+
+    df = get_network_appliance_vlans(api_key,
+                                     collector,
+                                     db_path,
+                                     timestamp,
+                                     networks=networks)
+    print(df)
+    ```
+
+    Example 2:
+    ```
+    # Get VLANs for all appliances in one or more organizations.
+    import pandas as pd
+    from meraki_helpers import get_network_appliance_vlans
+
+    api_key = '<your_api_key_here>'
+    collector = 'network_appliance_vlans'
+    db_path = '/path/to/database.db'
+    orgs = ['O_123456789012345678']
+    timestamp = '2022-01-01_0000'
+
+    df = get_network_appliance_vlans(api_key,
+                                     collector,
+                                     db_path,
+                                     timestamp
+                                     orgs=orgs)
+    print(df)
+    ```
+
+    Example 3:
+    ```
+    # Get VLANs for all appliances in one or more networks (when 'networks'
+    # and 'organizations' are both passed to the function, only 'networks'
+    # will be used).
+    import pandas as pd
+    from meraki_helpers import get_network_appliance_vlans
+
+    api_key = '<your_api_key_here>'
+    collector = 'network_appliance_vlans'
+    db_path = '/path/to/database.db'
+    networks = ['N_123456789012345678', 'N_234567890123456789']
+    orgs = ['O_123456789012345678']
+    timestamp = '2022-01-01_0000'
+
+    df = get_network_appliance_vlans(api_key,
+                                     collector,
+                                     db_path,
+                                     timestamp,
+                                     networks=networks,
+                                     orgs=orgs)
+    print(df)
+    """
+
     # If 'networks' and 'orgs' are empty, then gracefully exit the function.
     if not networks and not orgs:
         return pd.DataFrame()
@@ -56,8 +145,20 @@ def get_network_appliance_vlans(ansible_os: str,
     # priority.
     dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
 
-    s_len = 50
+    # The only way to get appliance VLANs is to iterate over a list of
+    # networks. There is not a way to gather them for an organization. I found
+    # that it takes about 1 minute per 100 networks. The Meraki API
+    # automatically throttles requests (it uses a bucket token system), so
+    # there isn't a way to speed it up.
+    #
+    # Therefore, we process the networks in batches of 's_len'. This has two
+    # advantages:
+    # 1. Conserves memory. This is done by adding each batch to the database
+    #    then recreating the DataFrame.
+    # 2. Display progress to the end user.
+    s_len = 50  # Set the size of each slice (batch).
     slices = list()
+    # Create a list of slices.
     while networks:
         slices.append(networks[:s_len])
         if len(networks) >= s_len:
@@ -65,10 +166,13 @@ def get_network_appliance_vlans(ansible_os: str,
         else:
             networks = list()
 
+    # Iterate over the slices, adding each slice to the database and displaying
+    # progress to the end user.
     counter = 1
     total = len(slices)
     for slice in slices:
         _ = len(slice)
+        # Display progress to the end user.
         print(f'Processing {_} networks (batch {counter} of {total})...')
 
         for network in slice:
