@@ -11,7 +11,6 @@ import readline
 from collectors import cisco_asa_collectors as cac
 from collectors import cisco_ios_collectors as cic
 from collectors import cisco_nxos_collectors as cnc
-from collectors import collectors as cl
 from collectors import f5_collectors as f5c
 from collectors import infoblox_nios_collectors as nc
 from collectors import meraki_collectors as mc
