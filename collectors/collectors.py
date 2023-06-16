@@ -5,8 +5,7 @@ A library of functions for collecting data from network devices.
 '''
 
 import ansible_runner
-
-from helpers import helpers as hp
+import pandas as pd
 
 
 def panos_get_security_rules(username,
