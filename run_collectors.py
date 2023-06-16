@@ -651,8 +651,11 @@ def add_to_db(collector,
     # If the table doesn't exist, create it. (Pandas will automatically create
     # the table, but doing it manually allows us to create an auto-incrementing
     # ID column))
-    columns = result.columns.to_list()
-    columns = [f'"{c}"' for c in columns]
+    column_list = result.columns.to_list()
+    if 'table_id' in column_list:
+        column_list.remove('table_id')
+        del result['table_id']
+    columns = [f'"{c}"' for c in column_list]
     if len(schema) == 0 and len(result) > 0:
         fields = ',\n'.join(columns)
         cur.execute(f'''CREATE TABLE {table_name.upper()} (
@@ -673,7 +676,7 @@ def add_to_db(collector,
     # This scenario is very common, and it's not always possible to
     # future-proof collectors to account for it,
     if len(schema) >= 1:
-        for col in result.columns.to_list():
+        for col in column_list:
             if col not in schema['name'].to_list():
                 cur.execute(f'ALTER TABLE {table_name} ADD COLUMN "{col}"')
 
