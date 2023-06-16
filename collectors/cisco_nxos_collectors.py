@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import ansible_runner
+import ipaddress
 import pandas as pd
 import re
 import sqlite3 as sl
