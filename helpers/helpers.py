@@ -341,6 +341,7 @@ def define_collectors(hostgroup):
                   'cam_table': ['cisco.ios.ios', 'cisco.nxos.nxos'],
                   'config': ['cisco.ios.ios'],
                   'ncm_serial_numbers': ['solarwinds'],
+                  'network_appliance_vlans': ['meraki'],
                   'npm_containers': ['solarwinds'],
                   'npm_group_members': ['solarwinds'],
                   'npm_group_names': ['solarwinds'],
@@ -888,6 +889,12 @@ def set_dependencies(selected):
             pos = s.index('organizations')
             del s[pos]
         s.insert(0, 'organizations')
+
+    if 'network_appliance_vlans' in s:
+        if 'org_networks' in s:
+            pos = s.index('org_networks')
+            del s[pos]
+        s.insert(0, 'org_networks')
 
     if 'network_device_statuses' in s:
         if 'org_device_statuses' in s:

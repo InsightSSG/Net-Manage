@@ -7,9 +7,88 @@ Define Meraki collectors.
 import json
 import meraki
 import pandas as pd
+import run_collectors as rc
 import sqlite3 as sl
 
 from helpers import helpers as hp
+from meraki.exceptions import APIError
+
+
+def get_network_appliance_vlans(ansible_os: str,
+                                api_key: str,
+                                collector: str,
+                                db_path: str,
+                                timestamp: str,
+                                networks: list = list(),
+                                orgs: list = list()) -> pd.DataFrame:
+    # If 'networks' and 'orgs' are empty, then gracefully exit the function.
+    if not networks and not orgs:
+        return pd.DataFrame()
+
+    # If 'networks' is empty and 'orgs' is not, get all applicable networks in
+    # the orgs.
+    if orgs and not networks:
+        joined_orgs = [f'"{_}"' for _ in orgs]
+        joined_orgs = ', '.join(joined_orgs)
+
+        con = sl.connect(db_path)
+
+        # Get the last timestamp in the MERAKI_ORG_NETWORKS table.
+        query = '''SELECT distinct timestamp
+        FROM meraki_org_networks
+        ORDER BY timestamp desc
+        LIMIT 1
+        '''
+        result = pd.read_sql(query, con)
+        ts = result['timestamp'].to_list().pop()
+
+        # Get the unique network IDs for the most recent timestamp.
+        query = f'''SELECT distinct id
+        FROM meraki_org_networks
+        WHERE productTypes like "%appliance%"
+            AND timestamp = "{ts}"
+            AND organizationId IN ({joined_orgs})'''
+        result = pd.read_sql(query, con)
+        networks = result['id'].to_list()
+
+    # Get the appliance vlans for each network. Note: if 'orgs' and 'networks'
+    # are both non-empty, then 'orgs' is ignored. The list of networks takes
+    # priority.
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
+
+    s_len = 50
+    slices = list()
+    while networks:
+        slices.append(networks[:s_len])
+        if len(networks) >= s_len:
+            networks = networks[s_len:]
+        else:
+            networks = list()
+
+    counter = 1
+    total = len(slices)
+    for slice in slices:
+        _ = len(slice)
+        print(f'Processing {_} networks (batch {counter} of {total})...')
+
+        for network in slice:
+            df = pd.DataFrame()
+            try:
+                result = dashboard.appliance.getNetworkApplianceVlans(network)
+                # Create the DataFrame and add it to the database.
+                df = pd.DataFrame(result).astype(str)
+                rc.add_to_db(collector,
+                             f'{ansible_os.split(".")[-1]}_{collector}',
+                             df,
+                             timestamp,
+                             db_path,
+                             'append',
+                             list())
+            except APIError:
+                pass
+        counter += 1
+
+    return df
 
 
 def meraki_get_network_clients(api_key,

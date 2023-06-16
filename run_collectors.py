@@ -7,6 +7,7 @@ Define collectors and map them to the correct function in colletors.py.
 import argparse
 import datetime as dt
 import os
+import pandas as pd
 import readline
 from collectors import cisco_asa_collectors as cac
 from collectors import cisco_ios_collectors as cic
@@ -98,8 +99,13 @@ def collect(collector,
                                 default value is used in this function.
 
     '''
+    # Create an empty DataFrame for when collectors return no resolts.
+    result = pd.DataFrame()
+
+    # Set the number of pages to return (for Meraki collectors).
     if total_pages == -1:
         total_pages = 'all'
+
     # Call 'silent' (invisible to user) functions to populate custom database
     # tables. For example, on F5s a view will be created that shows the pools,
     # associated VIPs (if applicable) and pool members (if applicable). This
@@ -393,6 +399,16 @@ def collect(collector,
                                        play_path,
                                        private_data_dir)
 
+    if collector == 'network_appliance_vlans':
+        if ansible_os == 'meraki':
+            mc.get_network_appliance_vlans(ansible_os,
+                                           api_key,
+                                           collector,
+                                           db_path,
+                                           timestamp,
+                                           networks=networks,
+                                           orgs=orgs)
+
     if collector == 'network_clients':
         if ansible_os == 'meraki':
             result = mc.meraki_get_network_clients(api_key,
@@ -570,17 +586,16 @@ def collect(collector,
                                       play_path,
                                       private_data_dir)
 
-    # Set the table name
-    table_name = f'{ansible_os.split(".")[-1]}_{collector}'
-
     # Write the result to the database
-    add_to_db(collector,
-              table_name,
-              result,
-              timestamp,
-              db_path,
-              method,
-              idx_cols)
+    if len(result.columns.to_list()) > 0:
+        table_name = f'{ansible_os.split(".")[-1]}_{collector}'
+        add_to_db(collector,
+                  table_name,
+                  result,
+                  timestamp,
+                  db_path,
+                  method,
+                  idx_cols)
 
     return result
 
