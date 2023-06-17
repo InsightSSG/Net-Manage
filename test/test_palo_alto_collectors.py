@@ -153,7 +153,7 @@ def test_get_physical_interfaces(username,
 def main():
     username = os.environ.get('USERNAME')
     password = os.environ.get('PASSWORD')
-    host_group = os.environ.get('HOST_GROUP')
+    host_group = os.environ.get('PALO_ALTO_HOST_GROUP')
     nm_path = os.environ.get('NM_PATH')
     private_data_dir = os.environ.get('PRIVATE_DATA_DIR')
 

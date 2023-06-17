@@ -8,7 +8,8 @@ import pandas as pd
 import pynetbox
 
 
-def create_netbox_handler(nb_path, token):
+def create_netbox_handler(nb_path: str,
+                          token: str) -> pynetbox.core.api.Api:
     """Creates the handler for connecting to Netbox using pynetbox.
 
     Parameters
@@ -34,7 +35,8 @@ def create_netbox_handler(nb_path, token):
     return nb
 
 
-def netbox_get_ipam_prefixes(nb_path, token):
+def netbox_get_ipam_prefixes(nb_path: str,
+                             token: str) -> pd.DataFrame:
     """Gets all prefixes from a Netbox instance.
 
     Parameters
@@ -77,41 +79,10 @@ def netbox_get_ipam_prefixes(nb_path, token):
     # Query the Netbox API for all IPAM prefixes
     result = nb.ipam.prefixes.all()
 
-    # A dictionary to store each prefix.
-    data = dict()
-
-    # Iterate over 'result'. Convert the dictionary for each prefix into a
-    # flattened dictionary, then add it to 'data'. The key for each flattened
-    # dictionary will be its prefix id, prefixed by '_'.
+    # Iterate over the prefixes, adding each one as a row for 'df'.
+    df = pd.DataFrame()
     for _ in result:
         _ = dict(_)
-        flat_dict = dict()
-        for key, value in _.items():
-            if isinstance(value, dict):
-                for k, v in value.items():
-                    new_key = f'{key}_{k}'
-                    flat_dict[new_key] = v
-            else:
-                flat_dict[key] = value
-        # Rename 'id' to '_id', so it will not conflict with Python and
-        # database reserved words.
-        data[_['id']] = flat_dict
-
-    # Iterate over the prefixes in 'data', to collect all of the possible
-    # dictionary keys. These will be used to create the dataframe columns.
-    columns = list()
-    for prefix in data:
-        for key in data[prefix]:
-            if key not in columns:
-                columns.append(key)
-
-    # Create the DataFrame
-    df = pd.DataFrame(data=list(), columns=columns)
-    for prefix in data:
-        row = list()
-        for col in columns:
-            row.append(data[prefix].get(col))
-        df.loc[len(df.index)] = row
-    df = df.astype('str')
-
+        df = pd.concat([df, pd.DataFrame.from_dict(_, orient='index').T]).\
+            reset_index(drop=True)
     return df

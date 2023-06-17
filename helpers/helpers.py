@@ -502,7 +502,11 @@ def find_mac_vendors(macs, nm_path):
     return df
 
 
-def generate_subnet_details(addresses: List[str]) -> Dict[str, List[str]]:
+def generate_subnet_details(addresses: List[str],
+                            return_keys: List[str] = ['subnet',
+                                                      'network_ip',
+                                                      'broadcast_ip']) \
+        -> Dict[str, List[str]]:
     """
     Generates the subnet, network, and broadcast IPs for a list of IPs.
 
@@ -510,6 +514,12 @@ def generate_subnet_details(addresses: List[str]) -> Dict[str, List[str]]:
     ----------
     addresses : list of str
         List of IP addresses in the format {ip}/{subnet_mask_length}
+    return_keys : list of str, optional
+        List of keys to return. Used for when a table has column names that
+        conflict with the default return_keys of 'subnet', 'network_ip', and
+        'broadcast_ip'. NOTE: The keys should be ordered so that element[0]
+        is for the 'subnet' column, element[1] for 'network_ip', and element[2]
+        for 'broadcast_ip'.
 
     Returns
     -------
@@ -532,9 +542,9 @@ def generate_subnet_details(addresses: List[str]) -> Dict[str, List[str]]:
         brd = str(ipaddress.IPv4Address(int(ip_obj.network.broadcast_address)))
         broadcast_ip.append(brd)
 
-    return {'subnet': subnet,
-            'network_ip': network_ip,
-            'broadcast_ip': broadcast_ip}
+    return {return_keys[0]: subnet,
+            return_keys[1]: network_ip,
+            return_keys[2]: broadcast_ip}
 
 
 def get_creds(prompt=str()):

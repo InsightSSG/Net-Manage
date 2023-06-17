@@ -181,6 +181,14 @@ def get_network_appliance_vlans(ansible_os: str,
                 result = dashboard.appliance.getNetworkApplianceVlans(network)
                 # Create the DataFrame and add it to the database.
                 df = pd.DataFrame(result).astype(str)
+                # Add the subnets, network IPs, and broadcast IPs.
+                addresses = df['subnet'].to_list()
+                del df['subnet']
+                result = hp.generate_subnet_details(addresses)
+                df['subnet'] = result['subnet']
+                df['network_ip'] = result['network_ip']
+                df['broadcast_ip'] = result['broadcast_ip']
+                # Add the DataFrame to the database.
                 rc.add_to_db(collector,
                              f'{ansible_os.split(".")[-1]}_{collector}',
                              df,

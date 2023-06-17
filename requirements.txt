@@ -8,11 +8,10 @@ flake8
 jupyterlab
 ipywidgets
 nest-asyncio
-netmiko
 orionsdk
 pan-python
 pandas
-pandevice  
+pan-os-python
 simplejson
 pip
 infoblox-client
