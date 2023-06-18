@@ -11,7 +11,7 @@ import pandas as pd
 import readline
 from collectors import cisco_asa_collectors as cac
 from collectors import cisco_ios_collectors as cic
-from collectors import collectors as cl
+from collectors import cisco_nxos_collectors as cnc
 from collectors import f5_collectors as f5c
 from collectors import infoblox_nios_collectors as nc
 from collectors import meraki_collectors as mc
@@ -242,12 +242,12 @@ def collect(collector,
                                            private_data_dir)
 
         if ansible_os == 'cisco.nxos.nxos':
-            result = cl.nxos_get_cam_table(username,
-                                           password,
-                                           hostgroup,
-                                           nm_path,
-                                           play_path,
-                                           private_data_dir)
+            result = cnc.nxos_get_cam_table(username,
+                                            password,
+                                            hostgroup,
+                                            nm_path,
+                                            play_path,
+                                            private_data_dir)
 
     if collector == 'config':
         if ansible_os == 'cisco.ios.ios':
@@ -267,12 +267,12 @@ def collect(collector,
                                            private_data_dir)
 
         if ansible_os == 'cisco.nxos.nxos':
-            result = cl.nxos_get_arp_table(username,
-                                           password,
-                                           hostgroup,
-                                           nm_path,
-                                           play_path,
-                                           private_data_dir)
+            result = cnc.nxos_get_arp_table(username,
+                                            password,
+                                            hostgroup,
+                                            nm_path,
+                                            play_path,
+                                            private_data_dir)
 
         if ansible_os == 'paloaltonetworks.panos':
             result = pac.get_arp_table(username,
@@ -283,12 +283,12 @@ def collect(collector,
 
     if collector == 'bgp_neighbors':
         if ansible_os == 'cisco.nxos.nxos':
-            result = cl.nxos_get_bgp_neighbors(username,
-                                               password,
-                                               hostgroup,
-                                               nm_path,
-                                               play_path,
-                                               private_data_dir)
+            result = cnc.nxos_get_bgp_neighbors(username,
+                                                password,
+                                                hostgroup,
+                                                nm_path,
+                                                play_path,
+                                                private_data_dir)
 
     if collector == 'interface_description':
         if ansible_os == 'cisco.ios.ios':
@@ -299,11 +299,11 @@ def collect(collector,
                                                         private_data_dir)
 
         if ansible_os == 'cisco.nxos.nxos':
-            result = cl.nxos_get_interface_descriptions(username,
-                                                        password,
-                                                        hostgroup,
-                                                        play_path,
-                                                        private_data_dir)
+            result = cnc.nxos_get_interface_descriptions(username,
+                                                         password,
+                                                         hostgroup,
+                                                         play_path,
+                                                         private_data_dir)
 
     if collector == 'infoblox_get_network_containers':
         result = nc.get_network_containers(infoblox_host,
@@ -359,11 +359,11 @@ def collect(collector,
                                                private_data_dir)
 
         if ansible_os == 'cisco.nxos.nxos':
-            result = cl.nxos_get_interface_ips(username,
-                                               password,
-                                               hostgroup,
-                                               play_path,
-                                               private_data_dir)
+            result = cnc.nxos_get_interface_ips(username,
+                                                password,
+                                                hostgroup,
+                                                play_path,
+                                                private_data_dir)
 
         if ansible_os == 'paloaltonetworks.panos':
             result = pac.get_interface_ips(username,
@@ -374,15 +374,15 @@ def collect(collector,
 
     if collector == 'interface_status':
         if ansible_os == 'cisco.nxos.nxos':
-            result = cl.nxos_get_interface_status(username,
-                                                  password,
-                                                  hostgroup,
-                                                  play_path,
-                                                  private_data_dir)
+            result = cnc.nxos_get_interface_status(username,
+                                                   password,
+                                                   hostgroup,
+                                                   play_path,
+                                                   private_data_dir)
 
     if collector == 'interface_summary':
         if ansible_os == 'cisco.nxos.nxos':
-            result = cl.nxos_get_interface_summary(db_path)
+            result = cnc.nxos_get_interface_summary(db_path)
 
     if collector == 'find_uplink_by_ip':
         if ansible_os == 'cisco.ios.ios':
@@ -393,11 +393,11 @@ def collect(collector,
                                                private_data_dir)
 
     if collector == 'inventory_nxos':
-        result = cl.nxos_get_inventory(username,
-                                       password,
-                                       hostgroup,
-                                       play_path,
-                                       private_data_dir)
+        result = cnc.nxos_get_inventory(username,
+                                        password,
+                                        hostgroup,
+                                        play_path,
+                                        private_data_dir)
 
     if collector == 'network_appliance_vlans':
         if ansible_os == 'meraki':
@@ -542,19 +542,19 @@ def collect(collector,
 
     if collector == 'port_channel_data':
         if ansible_os == 'cisco.nxos.nxos':
-            result = cl.nxos_get_port_channel_data(username,
-                                                   password,
-                                                   hostgroup,
-                                                   play_path,
-                                                   private_data_dir)
+            result = cnc.nxos_get_port_channel_data(username,
+                                                    password,
+                                                    hostgroup,
+                                                    play_path,
+                                                    private_data_dir)
 
     if collector == 'vpc_state':
         if ansible_os == 'cisco.nxos.nxos':
-            result = cl.nxos_get_vpc_state(username,
-                                           password,
-                                           hostgroup,
-                                           play_path,
-                                           private_data_dir)
+            result = cnc.nxos_get_vpc_state(username,
+                                            password,
+                                            hostgroup,
+                                            play_path,
+                                            private_data_dir)
 
     if collector == 'vlans':
         if ansible_os == 'cisco.ios.ios':
@@ -565,11 +565,11 @@ def collect(collector,
                                          private_data_dir)
 
         if ansible_os == 'cisco.nxos.nxos':
-            result = cl.nxos_get_vlan_db(username,
-                                         password,
-                                         hostgroup,
-                                         play_path,
-                                         private_data_dir)
+            result = cnc.nxos_get_vlan_db(username,
+                                          password,
+                                          hostgroup,
+                                          play_path,
+                                          private_data_dir)
 
     if collector == 'vrfs':
         if ansible_os == 'cisco.ios.ios':
@@ -580,11 +580,11 @@ def collect(collector,
                                   private_data_dir)
 
         if ansible_os == 'cisco.nxos.nxos':
-            result = cl.nxos_get_vrfs(username,
-                                      password,
-                                      hostgroup,
-                                      play_path,
-                                      private_data_dir)
+            result = cnc.nxos_get_vrfs(username,
+                                       password,
+                                       hostgroup,
+                                       play_path,
+                                       private_data_dir)
 
     # Write the result to the database
     if len(result.columns.to_list()) > 0:
