@@ -148,13 +148,15 @@ def netbox_get_vrf_details(nb_path: str,
     # Create the DataFrame and re-order the columns so that 'id', 'name',
     # 'description', and 'tenant' are first.
     df = pd.DataFrame.from_dict(df_data)
-    id_col = df.pop('id')
-    name_col = df.pop('name')
-    description_col = df.pop('description')
-    tenant_col = df.pop('tenant')
-    df.insert(0, 'tenant', tenant_col)
-    df.insert(0, 'description', description_col)
-    df.insert(0, 'name', name_col)
-    df.insert(0, 'id', id_col)
+
+    to_move = ['id', 'name', 'description', 'tenant']
+    to_move.reverse()
+    for col_name in to_move:
+        try:
+            col = df.pop(col_name)
+            df.insert(0, col_name, col)
+        except KeyError:
+            print(f'[{vrf}]: VRF does not exist.')
+            break
 
     return df
