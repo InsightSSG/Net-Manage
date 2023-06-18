@@ -6,6 +6,7 @@
 
 import pandas as pd
 import pynetbox
+from typing import Optional
 
 
 def create_netbox_handler(nb_path: str,
@@ -85,4 +86,75 @@ def netbox_get_ipam_prefixes(nb_path: str,
         _ = dict(_)
         df = pd.concat([df, pd.DataFrame.from_dict(_, orient='index').T]).\
             reset_index(drop=True)
+    return df
+
+
+def netbox_get_vrf_details(nb_path: str,
+                           token: str,
+                           vrf: Optional[str] = None) -> pd.DataFrame:
+    """Gets details of one or more VRFs in Netbox.
+
+    Parameters
+    ----------
+    nb_path : str
+        The path to the Netbox instance. Can be either an IP or a URL.
+        Must be preceded by 'http://' or 'https://'.
+    token : str
+        The API token to use for authentication.
+    vrf: Optional[str], Default None
+        The name of the VRF for wihch to retrieve details. If one is not
+        provided, then details for all VRFs will be returned.
+
+
+    Returns
+    ----------
+    df : pandas.core.frame.DataFrame
+        A Pandas dataframe containing the VRF details.
+
+    See Also
+    ----------
+    create_netbox_handler : A function to create 'nb'
+
+    Examples
+    ----------
+    >>> df = netbox_get_vrf_details(nb_path, token)
+    print(type(df))
+    >>> <class 'pandas.core.frame.DataFrame'>
+    """
+    # Create the netbox handler
+    nb = create_netbox_handler(nb_path, token)
+
+    # Query the Netbox API for the VRF details and add them to 'df_data'.
+    df_data = dict()
+    if vrf:
+        result = nb.ipam.vrfs.get(name=vrf)
+        for attribute_name in dir(result):
+            attribute_value = getattr(result, attribute_name)
+            if attribute_name[:1] != '_':
+                if not df_data.get(attribute_name):
+                    df_data[attribute_name] = list()
+                df_data[attribute_name].append(attribute_value)
+    else:
+        result = nb.ipam.vrfs.all()
+        for item in result:
+            # result = nb.ipam.vrfs.get(name=vrf)
+            for attribute_name in dir(item):
+                attribute_value = getattr(item, attribute_name)
+                if attribute_name[:1] != '_':
+                    if not df_data.get(attribute_name):
+                        df_data[attribute_name] = list()
+                    df_data[attribute_name].append(attribute_value)
+
+    # Create the DataFrame and re-order the columns so that 'id', 'name',
+    # 'description', and 'tenant' are first.
+    df = pd.DataFrame.from_dict(df_data)
+    id_col = df.pop('id')
+    name_col = df.pop('name')
+    description_col = df.pop('description')
+    tenant_col = df.pop('tenant')
+    df.insert(0, 'tenant', tenant_col)
+    df.insert(0, 'description', description_col)
+    df.insert(0, 'name', name_col)
+    df.insert(0, 'id', id_col)
+
     return df
