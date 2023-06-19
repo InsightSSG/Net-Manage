@@ -2,6 +2,7 @@
 
 import pynetbox
 from typing import Optional
+from collectors import netbox_collectors as nbc
 
 
 def add_netbox_prefix(token: str,
@@ -28,6 +29,8 @@ def add_netbox_prefix(token: str,
         The slug of the Site where the prefix belongs.
     tenant: Optional[str], Default None
         The slug of the Tenant in which the prefix is located.
+    vrf: Optional[str], Default None
+        The name of the VRF.
 
     Returns
     -------
@@ -49,6 +52,11 @@ def add_netbox_prefix(token: str,
     - https://demo.netbox.dev/static/docs/configuration/dynamic-settings/
     """
     nb = pynetbox.api(url, token=token)
+
+    # If a VRF was provided, then get its ID.
+    result = nbc.netbox_get_vrf_details(url, token, vrf)
+    vrf = str(result.iloc[0]['id'])
+
     data = {
         'prefix': prefix,
         'site': site,
