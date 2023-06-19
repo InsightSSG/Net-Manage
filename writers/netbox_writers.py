@@ -54,8 +54,9 @@ def add_netbox_prefix(token: str,
     nb = pynetbox.api(url, token=token)
 
     # If a VRF was provided, then get its ID.
-    result = nbc.netbox_get_vrf_details(url, token, vrf)
-    vrf = str(result.iloc[0]['id'])
+    if vrf:
+        result = nbc.netbox_get_vrf_details(url, token, vrf)
+        vrf = str(result.iloc[0]['id'])
 
     data = {
         'prefix': prefix,
