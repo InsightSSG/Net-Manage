@@ -957,6 +957,7 @@ def set_dependencies(selected):
             del s[pos]
         s.insert(0, 'org_devices')
         if 'organizations' in s:
+            pos = s.index('organizations')
             del s[pos]
         s.insert(0, 'organizations')
 
