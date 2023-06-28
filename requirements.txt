@@ -4,6 +4,7 @@
 ansible
 ansible-pylibssh
 ansible-runner>=2.2.1
+dnacentersdk
 flake8
 jupyterlab
 ipywidgets
