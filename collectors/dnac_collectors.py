@@ -52,9 +52,10 @@ def create_api_object(base_url: str,
 def get_devices_modules(base_url: str,
                         username: str,
                         password: str,
+                        platform_ids: list = [],
                         verify: bool = True) -> pd.DataFrame:
     """
-    Gets the module details for all devices in DNAC.
+    Gets the module details for devices in DNAC.
 
     Args:
     ----
@@ -64,6 +65,9 @@ def get_devices_modules(base_url: str,
         The username used to authenticate to the DNAC appliance.
     password (str):
         The password user to authenticate to the DNAC appliance.
+    platform_ids (list, optional):
+        A list of platform_ids. If not specified then all devices will be
+        returned.
     verify (bool, optional):
         Whether to verify SSL certificates. Defaults to True.
 
@@ -71,9 +75,22 @@ def get_devices_modules(base_url: str,
     ----
     df (pd.DataFrame):
         A dataframe containing the details for the device modules.
+
+    Notes:
+    ----
+    If the 'platform_ids' arg is not passed to the function, then the modules
+    for all devices in the DNAC inventory will be returned.
+
+    Even if 'platform_ids' is not empty, this function gets all of the devices,
+    then filters them based on the elements in 'platform_ids'. This might cause
+    performance issues with very large inventories. If so, we can modify the
+    function to only query devices with the listed elements in 'platform_ids'.
     """
-    # Get the devices from DNAC.
+    # If 'devices' is empty then get all devices from DNAC.
     df_devices = get_devices(base_url, username, password, verify=verify)
+
+    if platform_ids:
+        df_devices = df_devices[df_devices['platformId'].isin(platform_ids)]
 
     # Create two lists. 'data' holds the modules for each device. 'df_data'
     # will contain the formatted data that is used to create the DataFrame.
@@ -125,6 +142,7 @@ def get_devices_modules(base_url: str,
 def get_devices(base_url: str,
                 username: str,
                 password: str,
+                platform_ids: list = [],
                 verify: bool = True) -> pd.DataFrame:
     """
     Get the list of devices from Cisco DNAC.
@@ -137,6 +155,9 @@ def get_devices(base_url: str,
         The username used to authenticate to the DNAC appliance.
     password (str):
         The password user to authenticate to the DNAC appliance.
+    platform_ids (list, optional):
+        A list of platform_ids. If not specified then all devices will be
+        returned.
     verify (bool, optional):
         Whether to verify SSL certificates. Defaults to True.
 
@@ -146,7 +167,7 @@ def get_devices(base_url: str,
         A dataframe containing the device list.
     """
     dnac = create_api_object(base_url, username, password, verify=verify)
-    devices = dnac.devices.get_device_list()
+    devices = dnac.devices.get_device_list(platform_id=platform_ids)
 
     # Create a dictionary called 'df_data', and add all of the keys from
     # 'devices' to it. The value of each key will be a list.
