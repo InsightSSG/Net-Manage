@@ -21,3 +21,4 @@ pynetbox
 python3-nmap
 xmltodict
 tabulate
+urllib3>=1.26.13,<=1.26.155
