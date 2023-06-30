@@ -104,12 +104,14 @@ def get_devices_modules(base_url: str,
     dnac = create_api_object(base_url, username, password, verify=verify)
     for idx, row in df_devices.iterrows():
         hostname = row['hostname']
+        platform_id = row['platformId']
         _id = row['id']
         response = dnac.devices.get_modules(_id)['response']
 
         for module in response:
             # Store the module along with the associated hostname and deviceId
             # in 'data'.
+            module['platformId'] = platform_id
             module['hostname'] = hostname
             module['deviceId'] = _id
             data.append(module)
@@ -128,13 +130,13 @@ def get_devices_modules(base_url: str,
     # Create the DataFrame, then move the 'hostname' and 'deviceId' columns to
     # the beginning of the DataFrame.
     df = pd.DataFrame.from_dict(df_data)
-    to_move = ['hostname', 'deviceId']
-    columns = df.columns.to_list()
-    for column in to_move:
-        columns.remove(column)
-
-    new_column_order = to_move + columns
-    df = df[new_column_order]
+    if len(df) > 0:
+        to_move = ['platformId', 'hostname', 'deviceId']
+        columns = df.columns.to_list()
+        for column in to_move:
+            columns.remove(column)
+        new_column_order = to_move + columns
+        df = df[new_column_order]
 
     return df
 
