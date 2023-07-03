@@ -340,6 +340,8 @@ def define_collectors(hostgroup):
                                 'paloaltonetworks.panos'],
                   'cam_table': ['cisco.ios.ios', 'cisco.nxos.nxos'],
                   'config': ['cisco.ios.ios'],
+                  'devices_inventory': ['cisco.dnac'],
+                  'devices_modules': ['cisco.dnac'],
                   'ncm_serial_numbers': ['solarwinds'],
                   'network_appliance_vlans': ['meraki'],
                   'npm_containers': ['solarwinds'],
@@ -854,6 +856,12 @@ def set_dependencies(selected):
         selected (list): The updated list of selected collectors
     '''
     s = selected
+    if 'devices_modules' in s:
+        if 'devices_inventory' in s:
+            pos = s.index('devices_inventory')
+            del s[pos]
+        s.insert(0, 'devices_inventory')
+
     if 'interface_summary' in s:
         pos = s.index('interface_summary')
         if 'cam_table' not in s:

@@ -12,6 +12,7 @@ import readline
 from collectors import cisco_asa_collectors as cac
 from collectors import cisco_ios_collectors as cic
 from collectors import cisco_nxos_collectors as cnc
+from collectors import dnac_collectors as dnc
 from collectors import f5_collectors as f5c
 from collectors import infoblox_nios_collectors as nc
 from collectors import meraki_collectors as mc
@@ -30,9 +31,14 @@ def collect(collector,
             private_data_dir,
             timestamp,
             ansible_os=str(),
+            api_key=str(),
+            dnac_url=str(),
+            dnac_username=str(),
+            dnac_password=str(),
+            dnac_platform_ids=list(),
+            dnac_verify_certs=True,
             username=str(),
             password=str(),
-            api_key=str(),
             hostgroup=str(),
             infoblox_host=str(),
             infoblox_user=str(),
@@ -87,6 +93,23 @@ def collect(collector,
                                 table. Note that this is NOT related to the
                                 dataframe index; it is only applicable to SQL
 
+        # Default arguments for certain Cisco DNAC API calls.
+        dnac_url (str, optional):
+            The URL for connecting to Cisco DNAC.
+        dnac_username (str, optional)
+            The username for Cisco DNAC.
+        dnac_password (str, optional)
+            The password for Cisco DNAC
+        dnac_platform_ids (list, optional)
+            An optional list of platform IDs. Used for certain inventory
+            collectors. If it is not specified, then all devices will be
+            returned. Note that some collectors are designed to return all
+            devices. In those cases, 'dnac_platform_ids' is ignored. Defaults
+            to an empty list.
+        dnac_verify_certs (bool, optional)
+            Whether to validate certs when authenticating to Cisco DNAC.
+            Defaults to True.
+
         # Default parameters for certain Meraki API calls
         macs (list):            A list of one or more partial or complete MAC
                                 addresses. This is used for certain collectors,
@@ -105,27 +128,6 @@ def collect(collector,
     # Set the number of pages to return (for Meraki collectors).
     if total_pages == -1:
         total_pages = 'all'
-
-    # Call 'silent' (invisible to user) functions to populate custom database
-    # tables. For example, on F5s a view will be created that shows the pools,
-    # associated VIPs (if applicable) and pool members (if applicable). This
-    # shaves a significant amount of time off of troubleshooting.
-    # if ansible_os == 'bigip':
-    #     c_table = cl.f5_build_pool_table(username,
-    #                                      password,
-    #                                      hostgroup,
-    #                                      play_path,
-    #                                      private_data_dir,
-    #                                      db_path,
-    #                                      timestamp,
-    #                                      validate_certs=False)
-    #     add_to_db('f5_vip_summary',
-    #               c_table,
-    #               timestamp,
-    #               db_path,
-    #               method='replace')
-
-    # Run collectors the user requested
 
     if ansible_os == 'bigip':
         if collector == 'arp_table':
@@ -208,14 +210,6 @@ def collect(collector,
         if collector == 'vip_destinations':
             result = f5c.get_vip_destinations(db_path)
 
-        # if collector == 'vip_summary':
-        #     result = f5c.get_vip_data(username,
-        #                               password,
-        #                               hostgroup,
-        #                               play_path,
-        #                               private_data_dir,
-        #                               validate_certs=validate_certs)
-
         if collector == 'vlans':
             result = f5c.get_vlans(username,
                                    password,
@@ -231,6 +225,22 @@ def collect(collector,
                                         play_path,
                                         private_data_dir,
                                         validate_certs=validate_certs)
+
+    if collector == 'devices_inventory':
+        if ansible_os == 'cisco.dnac':
+            result = dnc.devices_inventory(dnac_url,
+                                           dnac_username,
+                                           dnac_password,
+                                           platform_ids=dnac_platform_ids,
+                                           verify=dnac_verify_certs)
+
+    if collector == 'devices_modules':
+        if ansible_os == 'cisco.dnac':
+            result = dnc.devices_modules(dnac_url,
+                                         dnac_username,
+                                         dnac_password,
+                                         platform_ids=dnac_platform_ids,
+                                         verify=dnac_verify_certs)
 
     if collector == 'cam_table':
         if ansible_os == 'cisco.ios.ios':
