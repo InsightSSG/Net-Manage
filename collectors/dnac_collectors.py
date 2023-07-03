@@ -85,8 +85,10 @@ def devices_inventory(base_url: str,
         A dataframe containing the device list.
     """
     dnac = create_api_object(base_url, username, password, verify=verify)
-    devices = dnac.devices.get_device_list(platform_id=platform_ids)
-
+    if platform_ids:
+        devices = dnac.devices.get_device_list(platform_id=platform_ids)
+    else:
+        devices = dnac.devices.get_device_list()
     # Create a dictionary called 'df_data', and add all of the keys from
     # 'devices' to it. The value of each key will be a list.
     df_data = dict()
@@ -141,7 +143,7 @@ def devices_modules(base_url: str,
     performance issues with very large inventories. If so, we can modify the
     function to only query devices with the listed elements in 'platform_ids'.
     """
-    # If 'devices' is empty then get all devices from DNAC.
+    # If 'platform_ids' is empty then get all devices from DNAC.
     df_devices = devices_inventory(base_url, username, password, verify=verify)
 
     if platform_ids:
@@ -162,7 +164,6 @@ def devices_modules(base_url: str,
         platform_id = row['platformId']
         _id = row['id']
         response = dnac.devices.get_modules(_id)['response']
-
         for module in response:
             # Store the module along with the associated hostname and deviceId
             # in 'data'.
