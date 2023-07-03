@@ -7,7 +7,6 @@ modules by default, but it can be filtered by a list of platform_ids--e.g.,
 '''
 
 import argparse
-import ast
 import os
 import pandas as pd
 import sys
@@ -132,11 +131,11 @@ def main(args):
     from collectors import dnac_collectors as dnc
 
     # Get the list of device modules.
-    df = dnc.get_devices_modules(args_dict['url'],
-                                 args_dict['username'],
-                                 password,
-                                 args_dict['platform_ids'],
-                                 verify=args_dict['verify'])
+    df = dnc.devices_modules(args_dict['url'],
+                             args_dict['username'],
+                             password,
+                             args_dict['platform_ids'],
+                             verify=args_dict['verify'])
 
     # Export the DataFrame to a CSV file.
     from helpers import report_helpers

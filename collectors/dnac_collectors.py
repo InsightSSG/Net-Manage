@@ -6,6 +6,7 @@ Define Cisco DNAC collectors.
 
 import dnacentersdk
 import pandas as pd
+import sys
 
 
 def create_api_object(base_url: str,
@@ -42,18 +43,72 @@ def create_api_object(base_url: str,
     >>> print(type(dnac))
     <class 'dnacentersdk.api.DNACenterAPI'>
     """
-    dnac = dnacentersdk.api.DNACenterAPI(base_url=base_url,
-                                         username=username,
-                                         password=password,
-                                         verify=verify)
-    return dnac
+    try:
+        dnac = dnacentersdk.api.DNACenterAPI(base_url=base_url,
+                                             username=username,
+                                             password=password,
+                                             verify=verify)
+        return dnac
+    except dnacentersdk.exceptions.ApiError as e:
+        print(str(e))
+        sys.exit()
+    except Exception as e:
+        print(str(e))
+        sys.exit()
 
 
-def get_devices_modules(base_url: str,
-                        username: str,
-                        password: str,
-                        platform_ids: list = [],
-                        verify: bool = True) -> pd.DataFrame:
+def devices_inventory(base_url: str,
+                      username: str,
+                      password: str,
+                      platform_ids: list = [],
+                      verify: bool = True) -> pd.DataFrame:
+    """
+    Get the list of devices from Cisco DNAC.
+
+    Args:
+    ----
+    base_url (str):
+        The URL for the DNAC appliance.
+    username (str):
+        The username used to authenticate to the DNAC appliance.
+    password (str):
+        The password user to authenticate to the DNAC appliance.
+    platform_ids (list, optional):
+        A list of platform_ids. If not specified then all devices will be
+        returned.
+    verify (bool, optional):
+        Whether to verify SSL certificates. Defaults to True.
+
+    Returns:
+    ----
+    df (pd.DataFrame):
+        A dataframe containing the device list.
+    """
+    dnac = create_api_object(base_url, username, password, verify=verify)
+    devices = dnac.devices.get_device_list(platform_id=platform_ids)
+
+    # Create a dictionary called 'df_data', and add all of the keys from
+    # 'devices' to it. The value of each key will be a list.
+    df_data = dict()
+    for item in devices['response']:
+        for key in item:
+            df_data[key] = list()
+
+    # Populate 'df_data' with the values from 'devices'.
+    for item in devices['response']:
+        for key, value in item.items():
+            df_data[key].append(value)
+
+    # Create the DataFrame and return it.
+    df = pd.DataFrame.from_dict(df_data)
+    return df
+
+
+def devices_modules(base_url: str,
+                    username: str,
+                    password: str,
+                    platform_ids: list = [],
+                    verify: bool = True) -> pd.DataFrame:
     """
     Gets the module details for devices in DNAC.
 
@@ -87,7 +142,7 @@ def get_devices_modules(base_url: str,
     function to only query devices with the listed elements in 'platform_ids'.
     """
     # If 'devices' is empty then get all devices from DNAC.
-    df_devices = get_devices(base_url, username, password, verify=verify)
+    df_devices = devices_inventory(base_url, username, password, verify=verify)
 
     if platform_ids:
         df_devices = df_devices[df_devices['platformId'].isin(platform_ids)]
@@ -138,51 +193,4 @@ def get_devices_modules(base_url: str,
         new_column_order = to_move + columns
         df = df[new_column_order]
 
-    return df
-
-
-def get_devices(base_url: str,
-                username: str,
-                password: str,
-                platform_ids: list = [],
-                verify: bool = True) -> pd.DataFrame:
-    """
-    Get the list of devices from Cisco DNAC.
-
-    Args:
-    ----
-    base_url (str):
-        The URL for the DNAC appliance.
-    username (str):
-        The username used to authenticate to the DNAC appliance.
-    password (str):
-        The password user to authenticate to the DNAC appliance.
-    platform_ids (list, optional):
-        A list of platform_ids. If not specified then all devices will be
-        returned.
-    verify (bool, optional):
-        Whether to verify SSL certificates. Defaults to True.
-
-    Returns:
-    ----
-    df (pd.DataFrame):
-        A dataframe containing the device list.
-    """
-    dnac = create_api_object(base_url, username, password, verify=verify)
-    devices = dnac.devices.get_device_list(platform_id=platform_ids)
-
-    # Create a dictionary called 'df_data', and add all of the keys from
-    # 'devices' to it. The value of each key will be a list.
-    df_data = dict()
-    for item in devices['response']:
-        for key in item:
-            df_data[key] = list()
-
-    # Populate 'df_data' with the values from 'devices'.
-    for item in devices['response']:
-        for key, value in item.items():
-            df_data[key].append(value)
-
-    # Create the DataFrame and return it.
-    df = pd.DataFrame.from_dict(df_data)
     return df
