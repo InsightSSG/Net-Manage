@@ -53,7 +53,8 @@ def collect(ansible_os: str,
     database_path = os.path.expanduser(os.environ['database_path'])
     netmanage_path = os.path.expanduser(
         os.environ['netmanage_path'].strip('/'))
-    private_data_dir = os.environ['private_data_directory']
+    private_data_dir = os.path.expanduser(
+        os.environ['private_data_directory'])
     validate_certs = ast.literal_eval(os.environ['validate_certs'])
     database_method = os.environ['database_method']
 
@@ -449,7 +450,7 @@ def collect(ansible_os: str,
                 database_full_path,
                 orgs=meraki_organizations,
                 total_pages=meraki_tp
-                )
+            )
 
     if collector == 'org_networks':
         if ansible_os == 'meraki':
