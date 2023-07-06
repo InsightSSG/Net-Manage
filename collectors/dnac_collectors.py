@@ -89,6 +89,7 @@ def devices_inventory(base_url: str,
         devices = dnac.devices.get_device_list(platform_id=platform_ids)
     else:
         devices = dnac.devices.get_device_list()
+
     # Create a dictionary called 'df_data', and add all of the keys from
     # 'devices' to it. The value of each key will be a list.
     df_data = dict()

@@ -13,6 +13,7 @@ orionsdk
 pan-python
 pandas
 pan-os-python
+install "python-dotenv[cli]"
 simplejson
 pip
 infoblox-client
