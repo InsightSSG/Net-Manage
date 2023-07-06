@@ -5,6 +5,7 @@ Define collectors and map them to the correct function in colletors.py.
 '''
 
 import argparse
+import ast
 import datetime as dt
 import os
 import pandas as pd
@@ -12,169 +13,162 @@ import readline
 from collectors import cisco_asa_collectors as cac
 from collectors import cisco_ios_collectors as cic
 from collectors import cisco_nxos_collectors as cnc
+from collectors import dnac_collectors as dnc
 from collectors import f5_collectors as f5c
 from collectors import infoblox_nios_collectors as nc
 from collectors import meraki_collectors as mc
 from collectors import netbox_collectors as nbc
 from collectors import palo_alto_collectors as pac
 from collectors import solarwinds_collectors as swc
+from dotenv import load_dotenv
 from helpers import helpers as hp
-# from tabulate import tabulate
 
-# Protect creds by not writing history to .python_history
+# Load environment variables.
+load_dotenv()
+
+# Protect creds by not writing history to .python_history.
 readline.write_history_file = lambda *args: None
 
 
-def collect(collector,
-            nm_path,
-            private_data_dir,
-            timestamp,
-            ansible_os=str(),
-            username=str(),
-            password=str(),
-            api_key=str(),
-            hostgroup=str(),
-            infoblox_host=str(),
-            infoblox_user=str(),
-            infoblox_pass=str(),
-            infoblox_paging=True,
-            nb_path=str(),
-            nb_token=str(),
-            networks=list(),
-            play_path=str(),
-            npm_group_id=str(),
-            npm_group_name=str(),
-            npm_password=str(),
-            npm_username=str(),
-            npm_server=str(),
-            ansible_timeout='300',
-            db_path=str(),
-            validate_certs=True,
-            orgs=list(),
-            total_pages='all',
-            idx_cols=list(),
-            method=str(),
-            macs=list(),
-            per_page=1000,
-            timespan=86400):
+def collect(ansible_os: str,
+            collector: str,
+            hostgroup: str,
+            timestamp: str) -> pd.DataFrame:
     '''
     This function calls the test that the user requested.
 
     Args:
-        os (str):               The ansible_network_os variable
-        collector (str):        The name of the test that the user requested
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        infoblox_host (str):    The host's IP address or FQDN
-        infoblox_user (str):    The user's username
-        infoblox_pass (str):    The user's password
-        infoblox_paging (bool): Whether to perform paging. Defaults to True
-        nb_path (str):          The path to the Netbox instance. Can be either
-                                an IP or a URL. Must be preceded by 'http://'
-                                or 'https://'.
-        nb_token (str):         The API token to use for authentication.
-        networks (list):        A list of Meraki networks to query
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): The path to the Ansible private data directory
-        nm_path (str):          The path to the Net-Manage repository
-        interface (str):        The interface (defaults to all interfaces)
-        validate_certs (bool):  Whether to validate SSL certs
-        org (str):              The organization ID for Meraki collectors
-        total_pages (str):      The number of pages to query. Used for some
-                                Meraki collectors.
-        idx_cols (list):        The list of columns to use for indexing the SQL
-                                table. Note that this is NOT related to the
-                                dataframe index; it is only applicable to SQL
-
-        # Default parameters for certain Meraki API calls
-        macs (list):            A list of one or more partial or complete MAC
-                                addresses. This is used for certain collectors,
-                                like 'meraki_get_network_clients'
-        per_page (int):         The number of results per page. Meraki defaults
-                                to 10. This function uses 1000. If performance
-                                is depreciated, choose a lower value.
-        timespan (int):         The lookback time in seconds. Meraki's default
-                                timespan is 1 day (86400 seconds), so the same
-                                default value is used in this function.
-
+    ----
+    ansible_os (str)
+        The Ansible OS of the hostgroup.
+    collector (str)
+        The name of the collector that the user requested.
+    hostgroup (str)
+        The name of the Ansible hostgroup.
+    timestamp (str)
+        The timestamp is YYYY-MM-DD_hhmm format.
     '''
-    # Create an empty DataFrame for when collectors return no resolts.
+    # Read global variables
+    database_name = os.environ['database_name']
+    database_path = os.path.expanduser(os.environ['database_path'])
+    netmanage_path = os.path.expanduser(
+        os.environ['netmanage_path'].strip('/'))
+    private_data_dir = os.environ['private_data_directory']
+    validate_certs = ast.literal_eval(os.environ['validate_certs'])
+    database_method = os.environ['database_method']
+
+    # Read Cisco ASA variables
+    asa_devices_username = os.environ['asa_devices_username']
+    asa_devices_password = os.environ['asa_devices_password']
+
+    # Read Cisco DNAC variables
+    dnac_url = os.environ['dnac_url']
+    dnac_username = os.environ['dnac_username']
+    dnac_password = os.environ['dnac_password']
+    dnac_platform_ids = list(
+        filter(None, os.environ['dnac_platform_ids'].split(',')))
+
+    # Read Cisco IOS variables
+    ios_devices_username = os.environ['ios_devices_username']
+    ios_devices_password = os.environ['ios_devices_password']
+
+    # Read Cisco NXOS variables
+    nxos_devices_username = os.environ['nxos_devices_username']
+    nxos_devices_password = os.environ['nxos_devices_password']
+
+    # Read F5 LTM variables
+    f5_ltm_username = os.environ['f5_ltm_username']
+    f5_ltm_password = os.environ['f5_ltm_username']
+
+    # Read Infoblox variables
+    infoblox_url = os.environ['infoblox_url']
+    infoblox_username = os.environ['infoblox_username']
+    infoblox_password = os.environ['infoblox_password']
+    infoblox_paging = os.environ['infoblox_paging']
+
+    # Read Meraki variables
+    meraki_api_key = os.environ['meraki_api_key']
+    meraki_networks = os.environ['meraki_networks']
+    meraki_organizations = os.environ['meraki_organizations']
+    meraki_macs = os.environ['meraki_macs']
+    meraki_lookback = os.environ['meraki_lookback_timespan']
+    meraki_per_page = os.environ['meraki_per_page']
+    try:
+        meraki_tp = int(os.environ['meraki_total_pages'])
+    except ValueError:
+        meraki_tp = -1
+
+    # Read Netbox variables
+    netbox_url = os.environ['netbox_url']
+    netbox_api_key = os.environ['netbox_api_key']
+
+    # Read Palo Alto variables
+    palo_alto_username = os.environ['palo_alto_username']
+    palo_alto_password = os.environ['palo_alto_password']
+
+    # Read Solarwinds NPM variables
+    npm_server = os.environ['solarwinds_npm_server']
+    npm_username = os.environ['solarwinds_npm_username']
+    npm_password = os.environ['solarwinds_npm_password']
+    npm_group_name = os.environ['solarwinds_npm_group_name']
+
+    # Define additional variables
+    database_full_path = database_path + database_name
+    idx_cols = list()
+    play_path = netmanage_path + '/playbooks'
+
+    # Create an empty DataFrame for when collectors return no results.
     result = pd.DataFrame()
 
-    # Set the number of pages to return (for Meraki collectors).
-    if total_pages == -1:
-        total_pages = 'all'
-
-    # Call 'silent' (invisible to user) functions to populate custom database
-    # tables. For example, on F5s a view will be created that shows the pools,
-    # associated VIPs (if applicable) and pool members (if applicable). This
-    # shaves a significant amount of time off of troubleshooting.
-    # if ansible_os == 'bigip':
-    #     c_table = cl.f5_build_pool_table(username,
-    #                                      password,
-    #                                      hostgroup,
-    #                                      play_path,
-    #                                      private_data_dir,
-    #                                      db_path,
-    #                                      timestamp,
-    #                                      validate_certs=False)
-    #     add_to_db('f5_vip_summary',
-    #               c_table,
-    #               timestamp,
-    #               db_path,
-    #               method='replace')
-
-    # Run collectors the user requested
-
+    # Call collector and return results.
     if ansible_os == 'bigip':
         if collector == 'arp_table':
-            result = f5c.get_arp_table(username,
-                                       password,
+            result = f5c.get_arp_table(f5_ltm_username,
+                                       f5_ltm_password,
                                        hostgroup,
-                                       nm_path,
+                                       netmanage_path,
                                        play_path,
                                        private_data_dir,
                                        validate_certs=validate_certs)
 
         if collector == 'interface_description':
             result = f5c.\
-                get_interface_descriptions(username,
-                                           password,
+                get_interface_descriptions(f5_ltm_username,
+                                           f5_ltm_password,
                                            hostgroup,
-                                           nm_path,
+                                           netmanage_path,
                                            play_path,
                                            private_data_dir,
                                            reverse_dns=False,
                                            validate_certs=validate_certs)
 
         if collector == 'interface_summary':
-            result = f5c.get_interface_status(username,
-                                              password,
+            result = f5c.get_interface_status(f5_ltm_username,
+                                              f5_ltm_password,
                                               hostgroup,
                                               play_path,
                                               private_data_dir,
                                               validate_certs=validate_certs)
 
         if collector == 'node_availability':
-            result = f5c.get_node_availability(username,
-                                               password,
+            result = f5c.get_node_availability(f5_ltm_username,
+                                               f5_ltm_password,
                                                hostgroup,
                                                play_path,
                                                private_data_dir,
                                                validate_certs=validate_certs)
 
         if collector == 'pool_availability':
-            result = f5c.get_pool_availability(username,
-                                               password,
+            result = f5c.get_pool_availability(f5_ltm_username,
+                                               f5_ltm_password,
                                                hostgroup,
                                                play_path,
                                                private_data_dir,
                                                validate_certs=validate_certs)
 
         if collector == 'pool_summary':
-            result = f5c.get_pool_data(username,
-                                       password,
+            result = f5c.get_pool_data(f5_ltm_username,
+                                       f5_ltm_password,
                                        hostgroup,
                                        play_path,
                                        private_data_dir,
@@ -182,219 +176,227 @@ def collect(collector,
 
         if collector == 'pool_member_availability':
             result = f5c.\
-                get_pool_member_availability(username,
-                                             password,
+                get_pool_member_availability(f5_ltm_username,
+                                             f5_ltm_password,
                                              hostgroup,
                                              play_path,
                                              private_data_dir,
                                              validate_certs=validate_certs)
 
         if collector == 'self_ips':
-            result = f5c.get_self_ips(username,
-                                      password,
+            result = f5c.get_self_ips(f5_ltm_username,
+                                      f5_ltm_password,
                                       hostgroup,
                                       play_path,
                                       private_data_dir,
                                       validate_certs=validate_certs)
 
         if collector == 'vip_availability':
-            result = f5c.get_vip_availability(username,
-                                              password,
+            result = f5c.get_vip_availability(f5_ltm_username,
+                                              f5_ltm_password,
                                               hostgroup,
                                               play_path,
                                               private_data_dir,
                                               validate_certs=validate_certs)
 
         if collector == 'vip_destinations':
-            result = f5c.get_vip_destinations(db_path)
-
-        # if collector == 'vip_summary':
-        #     result = f5c.get_vip_data(username,
-        #                               password,
-        #                               hostgroup,
-        #                               play_path,
-        #                               private_data_dir,
-        #                               validate_certs=validate_certs)
+            result = f5c.get_vip_destinations(database_full_path)
 
         if collector == 'vlans':
-            result = f5c.get_vlans(username,
-                                   password,
+            result = f5c.get_vlans(f5_ltm_username,
+                                   f5_ltm_password,
                                    hostgroup,
                                    play_path,
                                    private_data_dir,
                                    validate_certs=validate_certs)
 
         if collector == 'vlan_database':
-            result = f5c.f5_get_vlan_db(username,
-                                        password,
+            result = f5c.f5_get_vlan_db(f5_ltm_username,
+                                        f5_ltm_password,
                                         hostgroup,
                                         play_path,
                                         private_data_dir,
                                         validate_certs=validate_certs)
 
+    if collector == 'devices_inventory':
+        if ansible_os == 'cisco.dnac':
+            result = dnc.devices_inventory(dnac_url,
+                                           dnac_username,
+                                           dnac_password,
+                                           platform_ids=dnac_platform_ids,
+                                           verify=validate_certs)
+
+    if collector == 'devices_modules':
+        if ansible_os == 'cisco.dnac':
+            result = dnc.devices_modules(dnac_url,
+                                         dnac_username,
+                                         dnac_password,
+                                         platform_ids=dnac_platform_ids,
+                                         verify=validate_certs)
+
     if collector == 'cam_table':
         if ansible_os == 'cisco.ios.ios':
-            result = cic.ios_get_cam_table(username,
-                                           password,
+            result = cic.ios_get_cam_table(ios_devices_username,
+                                           ios_devices_password,
                                            hostgroup,
-                                           nm_path,
+                                           netmanage_path,
                                            play_path,
                                            private_data_dir)
 
         if ansible_os == 'cisco.nxos.nxos':
-            result = cnc.nxos_get_cam_table(username,
-                                            password,
+            result = cnc.nxos_get_cam_table(nxos_devices_username,
+                                            nxos_devices_password,
                                             hostgroup,
-                                            nm_path,
+                                            netmanage_path,
                                             play_path,
                                             private_data_dir)
 
     if collector == 'config':
         if ansible_os == 'cisco.ios.ios':
-            result = cic.get_config(username,
-                                    password,
+            result = cic.get_config(ios_devices_username,
+                                    ios_devices_password,
                                     hostgroup,
                                     play_path,
                                     private_data_dir)
 
     if collector == 'arp_table':
         if ansible_os == 'cisco.ios.ios':
-            result = cic.ios_get_arp_table(username,
-                                           password,
+            result = cic.ios_get_arp_table(ios_devices_username,
+                                           ios_devices_password,
                                            hostgroup,
-                                           nm_path,
+                                           netmanage_path,
                                            play_path,
                                            private_data_dir)
 
         if ansible_os == 'cisco.nxos.nxos':
-            result = cnc.nxos_get_arp_table(username,
-                                            password,
+            result = cnc.nxos_get_arp_table(nxos_devices_username,
+                                            nxos_devices_password,
                                             hostgroup,
-                                            nm_path,
+                                            netmanage_path,
                                             play_path,
                                             private_data_dir)
 
         if ansible_os == 'paloaltonetworks.panos':
-            result = pac.get_arp_table(username,
-                                       password,
+            result = pac.get_arp_table(palo_alto_username,
+                                       palo_alto_password,
                                        hostgroup,
-                                       nm_path,
+                                       netmanage_path,
                                        private_data_dir)
 
     if collector == 'bgp_neighbors':
         if ansible_os == 'cisco.nxos.nxos':
-            result = cnc.nxos_get_bgp_neighbors(username,
-                                                password,
+            result = cnc.nxos_get_bgp_neighbors(nxos_devices_username,
+                                                nxos_devices_password,
                                                 hostgroup,
-                                                nm_path,
+                                                netmanage_path,
                                                 play_path,
                                                 private_data_dir)
 
     if collector == 'interface_description':
         if ansible_os == 'cisco.ios.ios':
-            result = cic.ios_get_interface_descriptions(username,
-                                                        password,
+            result = cic.ios_get_interface_descriptions(ios_devices_username,
+                                                        ios_devices_password,
                                                         hostgroup,
                                                         play_path,
                                                         private_data_dir)
 
         if ansible_os == 'cisco.nxos.nxos':
-            result = cnc.nxos_get_interface_descriptions(username,
-                                                         password,
+            result = cnc.nxos_get_interface_descriptions(nxos_devices_username,
+                                                         nxos_devices_password,
                                                          hostgroup,
                                                          play_path,
                                                          private_data_dir)
 
     if collector == 'infoblox_get_network_containers':
-        result = nc.get_network_containers(infoblox_host,
-                                           infoblox_user,
-                                           infoblox_pass,
+        result = nc.get_network_containers(infoblox_url,
+                                           infoblox_username,
+                                           infoblox_password,
                                            infoblox_paging,
                                            validate_certs=validate_certs)
 
     if collector == 'infoblox_get_networks':
-        result = nc.get_networks(infoblox_host,
-                                 infoblox_user,
-                                 infoblox_pass,
+        result = nc.get_networks(infoblox_url,
+                                 infoblox_username,
+                                 infoblox_password,
                                  infoblox_paging,
                                  validate_certs=validate_certs)
 
     if collector == 'infoblox_get_network_containers':
-        result = nc.get_network_containers(infoblox_host,
-                                           infoblox_user,
-                                           infoblox_pass,
+        result = nc.get_network_containers(infoblox_url,
+                                           infoblox_username,
+                                           infoblox_password,
                                            infoblox_paging,
                                            validate_certs=validate_certs)
 
     if collector == 'infoblox_get_networks_parent_containers':
-        result = nc.get_networks_parent_containers(db_path)
+        result = nc.get_networks_parent_containers(database_full_path)
 
     if collector == 'infoblox_get_vlan_ranges':
-        result = nc.get_vlan_ranges(infoblox_host,
-                                    infoblox_user,
-                                    infoblox_pass,
+        result = nc.get_vlan_ranges(infoblox_url,
+                                    infoblox_username,
+                                    infoblox_password,
                                     infoblox_paging,
                                     validate_certs=validate_certs)
 
     if collector == 'infoblox_get_vlans':
-        result = nc.get_vlans(infoblox_host,
-                              infoblox_user,
-                              infoblox_pass,
+        result = nc.get_vlans(infoblox_url,
+                              infoblox_username,
+                              infoblox_password,
                               infoblox_paging,
                               validate_certs=validate_certs)
 
     if collector == 'interface_ip_addresses':
         if ansible_os == 'cisco.asa.asa':
-            result = cac.get_interface_ips(username,
-                                           password,
+            result = cac.get_interface_ips(asa_devices_username,
+                                           asa_devices_password,
                                            hostgroup,
                                            play_path,
                                            private_data_dir)
 
         if ansible_os == 'cisco.ios.ios':
-            result = cic.ios_get_interface_ips(username,
-                                               password,
+            result = cic.ios_get_interface_ips(ios_devices_username,
+                                               ios_devices_password,
                                                hostgroup,
                                                play_path,
                                                private_data_dir)
 
         if ansible_os == 'cisco.nxos.nxos':
-            result = cnc.nxos_get_interface_ips(username,
-                                                password,
+            result = cnc.nxos_get_interface_ips(nxos_devices_username,
+                                                nxos_devices_password,
                                                 hostgroup,
                                                 play_path,
                                                 private_data_dir)
 
         if ansible_os == 'paloaltonetworks.panos':
-            result = pac.get_interface_ips(username,
-                                           password,
+            result = pac.get_interface_ips(palo_alto_username,
+                                           palo_alto_password,
                                            hostgroup,
-                                           nm_path,
+                                           netmanage_path,
                                            private_data_dir)
 
     if collector == 'interface_status':
         if ansible_os == 'cisco.nxos.nxos':
-            result = cnc.nxos_get_interface_status(username,
-                                                   password,
+            result = cnc.nxos_get_interface_status(nxos_devices_username,
+                                                   nxos_devices_password,
                                                    hostgroup,
                                                    play_path,
                                                    private_data_dir)
 
     if collector == 'interface_summary':
         if ansible_os == 'cisco.nxos.nxos':
-            result = cnc.nxos_get_interface_summary(db_path)
+            result = cnc.nxos_get_interface_summary(database_full_path)
 
     if collector == 'find_uplink_by_ip':
         if ansible_os == 'cisco.ios.ios':
-            result = cic.ios_find_uplink_by_ip(username,
-                                               password,
+            result = cic.ios_find_uplink_by_ip(ios_devices_username,
+                                               ios_devices_password,
                                                hostgroup,
                                                play_path,
                                                private_data_dir)
 
     if collector == 'inventory_nxos':
-        result = cnc.nxos_get_inventory(username,
-                                        password,
+        result = cnc.nxos_get_inventory(nxos_devices_username,
+                                        nxos_devices_password,
                                         hostgroup,
                                         play_path,
                                         private_data_dir)
@@ -402,76 +404,79 @@ def collect(collector,
     if collector == 'network_appliance_vlans':
         if ansible_os == 'meraki':
             mc.get_network_appliance_vlans(ansible_os,
-                                           api_key,
+                                           meraki_api_key,
                                            collector,
-                                           db_path,
+                                           database_full_path,
                                            timestamp,
-                                           networks=networks,
-                                           orgs=orgs)
+                                           networks=meraki_networks,
+                                           orgs=meraki_organizations)
 
     if collector == 'network_clients':
         if ansible_os == 'meraki':
-            result = mc.meraki_get_network_clients(api_key,
-                                                   networks,
-                                                   macs=macs,
-                                                   per_page=per_page,
-                                                   timespan=timespan,
-                                                   total_pages=total_pages)
+            result = mc.meraki_get_network_clients(meraki_api_key,
+                                                   meraki_networks,
+                                                   macs=meraki_macs,
+                                                   per_page=meraki_per_page,
+                                                   timespan=meraki_lookback,
+                                                   total_pages=meraki_tp)
 
     if collector == 'network_devices':
         if ansible_os == 'meraki':
-            result = mc.meraki_get_network_devices(api_key,
-                                                   db_path,
-                                                   networks=networks,
-                                                   orgs=orgs)
+            result = mc.meraki_get_network_devices(meraki_api_key,
+                                                   database_full_path,
+                                                   networks=meraki_networks,
+                                                   orgs=meraki_organizations)
 
     if collector == 'network_device_statuses':
         if ansible_os == 'meraki':
-            result = mc.meraki_get_network_device_statuses(db_path, networks)
+            result = mc.meraki_get_network_device_statuses(
+                database_full_path, meraki_networks)
 
     if collector == 'organizations':
         if ansible_os == 'meraki':
-            result = mc.meraki_get_organizations(api_key)
+            result = mc.meraki_get_organizations(meraki_api_key)
 
     if collector == 'org_devices':
         if ansible_os == 'meraki':
-            result = mc.meraki_get_org_devices(api_key, db_path, orgs=orgs)
+            result = mc.meraki_get_org_devices(meraki_api_key,
+                                               database_full_path,
+                                               orgs=meraki_organizations)
 
     if collector == 'org_device_statuses':
         if ansible_os == 'meraki':
-            tp = total_pages
-            result, idx_cols = mc.meraki_get_org_device_statuses(api_key,
-                                                                 db_path,
-                                                                 orgs=orgs,
-                                                                 total_pages=tp
-                                                                 )
+            result, idx_cols = mc.meraki_get_org_device_statuses(
+                meraki_api_key,
+                database_full_path,
+                orgs=meraki_organizations,
+                total_pages=meraki_tp
+                )
 
     if collector == 'org_networks':
         if ansible_os == 'meraki':
-            result = mc.meraki_get_org_networks(api_key,
-                                                db_path,
-                                                orgs=orgs,
+            result = mc.meraki_get_org_networks(meraki_api_key,
+                                                database_full_path,
+                                                orgs=meraki_organizations,
                                                 use_db=True)
 
     if collector == 'switch_lldp_neighbors':
         if ansible_os == 'meraki':
-            result = mc.meraki_get_switch_lldp_neighbors(db_path)
+            result = mc.meraki_get_switch_lldp_neighbors(database_full_path)
 
     if collector == 'switch_port_statuses':
         if ansible_os == 'meraki':
-            result = mc.meraki_get_switch_port_statuses(api_key,
-                                                        db_path,
-                                                        networks)
+            result = mc.meraki_get_switch_port_statuses(meraki_api_key,
+                                                        database_full_path,
+                                                        meraki_networks)
 
     if collector == 'switch_port_usages':
         if ansible_os == 'meraki':
-            result = mc.meraki_get_switch_port_usages(api_key,
-                                                      db_path,
-                                                      networks,
+            result = mc.meraki_get_switch_port_usages(meraki_api_key,
+                                                      database_full_path,
+                                                      meraki_networks,
                                                       timestamp)
 
     if collector == 'netbox_get_ipam_prefixes':
-        result = nbc.netbox_get_ipam_prefixes(nb_path, nb_token)
+        result = nbc.netbox_get_ipam_prefixes(netbox_url, netbox_api_key)
 
     if collector == 'ncm_serial_numbers':
         result = swc.get_ncm_serial_numbers(npm_server,
@@ -518,70 +523,70 @@ def collect(collector,
 
     if collector == 'all_interfaces':
         if ansible_os == 'paloaltonetworks.panos':
-            result = pac.get_all_interfaces(username,
-                                            password,
+            result = pac.get_all_interfaces(palo_alto_username,
+                                            palo_alto_password,
                                             hostgroup,
-                                            nm_path,
+                                            netmanage_path,
                                             private_data_dir)
 
     if collector == 'logical_interfaces':
         if ansible_os == 'paloaltonetworks.panos':
-            result = pac.get_logical_interfaces(username,
-                                                password,
+            result = pac.get_logical_interfaces(palo_alto_username,
+                                                palo_alto_password,
                                                 hostgroup,
-                                                nm_path,
+                                                netmanage_path,
                                                 private_data_dir)
 
     if collector == 'physical_interfaces':
         if ansible_os == 'paloaltonetworks.panos':
-            result = pac.get_physical_interfaces(username,
-                                                 password,
+            result = pac.get_physical_interfaces(palo_alto_username,
+                                                 palo_alto_password,
                                                  hostgroup,
-                                                 nm_path,
+                                                 netmanage_path,
                                                  private_data_dir)
 
     if collector == 'port_channel_data':
         if ansible_os == 'cisco.nxos.nxos':
-            result = cnc.nxos_get_port_channel_data(username,
-                                                    password,
+            result = cnc.nxos_get_port_channel_data(nxos_devices_username,
+                                                    nxos_devices_password,
                                                     hostgroup,
                                                     play_path,
                                                     private_data_dir)
 
     if collector == 'vpc_state':
         if ansible_os == 'cisco.nxos.nxos':
-            result = cnc.nxos_get_vpc_state(username,
-                                            password,
+            result = cnc.nxos_get_vpc_state(nxos_devices_username,
+                                            nxos_devices_password,
                                             hostgroup,
                                             play_path,
                                             private_data_dir)
 
     if collector == 'vlans':
         if ansible_os == 'cisco.ios.ios':
-            result = cic.ios_get_vlan_db(username,
-                                         password,
+            result = cic.ios_get_vlan_db(ios_devices_username,
+                                         ios_devices_password,
                                          hostgroup,
                                          play_path,
                                          private_data_dir)
 
         if ansible_os == 'cisco.nxos.nxos':
-            result = cnc.nxos_get_vlan_db(username,
-                                          password,
+            result = cnc.nxos_get_vlan_db(nxos_devices_username,
+                                          nxos_devices_password,
                                           hostgroup,
                                           play_path,
                                           private_data_dir)
 
     if collector == 'vrfs':
         if ansible_os == 'cisco.ios.ios':
-            result = cic.get_vrfs(username,
-                                  password,
+            result = cic.get_vrfs(ios_devices_username,
+                                  ios_devices_password,
                                   hostgroup,
                                   play_path,
                                   private_data_dir)
 
         if ansible_os == 'cisco.nxos.nxos':
-            result = cnc.nxos_get_vrfs(username,
-                                       password,
+            result = cnc.nxos_get_vrfs(nxos_devices_username,
+                                       nxos_devices_password,
                                        hostgroup,
                                        play_path,
                                        private_data_dir)
@@ -589,12 +594,13 @@ def collect(collector,
     # Write the result to the database
     if len(result.columns.to_list()) > 0:
         table_name = f'{ansible_os.split(".")[-1]}_{collector}'
+        database_full_path = database_path + database_name
         add_to_db(collector,
                   table_name,
                   result,
                   timestamp,
-                  db_path,
-                  method,
+                  database_full_path,
+                  database_method,
                   idx_cols)
 
     return result
@@ -604,7 +610,7 @@ def add_to_db(collector,
               table_name,
               result,
               timestamp,
-              db_path,
+              database_path,
               method='append',
               idx_cols=list()):
     '''
@@ -614,7 +620,7 @@ def add_to_db(collector,
         collector (str):    The name of the collector
         result (DataFrame): The output of a collector
         timestamp (str):    The timestamp
-        db_path (str):      The path to the database
+        database_path (str):      The path to the database
         method (str):       What to do if the database already exists. Options
                             are 'append', 'fail', 'replace'. Defaults to
                             'append'.
@@ -636,17 +642,17 @@ def add_to_db(collector,
     result = result.set_index('timestamp')
 
     # Check if the output directory exists. If it does not, then create it.
-    exists = hp.check_dir_existence('/'.join(db_path.split('/')[:-1]))
+    exists = hp.check_dir_existence('/'.join(database_path.split('/')[:-1]))
     if not exists:
-        hp.create_dir('/'.join(db_path.split('/')[:-1]))
+        hp.create_dir('/'.join(database_path.split('/')[:-1]))
 
     # Connect to the database
-    con = hp.connect_to_db(db_path)
+    con = hp.connect_to_db(database_path)
     cur = con.cursor()
 
     # Get the table schema. This also checks if the table exists, because the
     # length of 'schema' will be 0 if it hasn't been created yet.
-    schema = hp.sql_get_table_schema(db_path, table_name)
+    schema = hp.sql_get_table_schema(database_path, table_name)
 
     # If the table doesn't exist, create it. (Pandas will automatically create
     # the table, but doing it manually allows us to create an auto-incrementing
@@ -753,7 +759,7 @@ def create_parser():
                         default=str(),
                         action='store'
                         )
-    parser.add_argument('-n', '--nm_path',
+    parser.add_argument('-n', '--netmanage_path',
                         help='The path to the Net-Manage repository',
                         required=True,
                         action='store'
@@ -786,8 +792,8 @@ def arg_parser(args):
     # Set the hostgroups
     hostgroups = [h.strip() for h in args.hostgroups.split(',')]
 
-    # Set the nm_path, out_dir and private_data_dir
-    nm_path = os.path.expanduser(args.nm_path)
+    # Set the netmanage_path, out_dir and private_data_dir
+    netmanage_path = os.path.expanduser(args.netmanage_path)
     out_dir = os.path.expanduser(args.out_dir)
     private_data_dir = os.path.expanduser(args.private_data_dir)
 
@@ -806,5 +812,5 @@ def arg_parser(args):
     # Set the database path
     db = f'{out_dir}/{args.database}'
 
-    return collectors, db, hostgroups, nm_path, out_dir, username, password,\
-        private_data_dir
+    return collectors, db, hostgroups, netmanage_path, out_dir, username,\
+        password, private_data_dir

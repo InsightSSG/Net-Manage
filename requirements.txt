@@ -4,6 +4,7 @@
 ansible
 ansible-pylibssh
 ansible-runner>=2.2.1
+dnacentersdk
 flake8
 jupyterlab
 ipywidgets
@@ -12,6 +13,7 @@ orionsdk
 pan-python
 pandas
 pan-os-python
+install "python-dotenv[cli]"
 simplejson
 pip
 infoblox-client
@@ -20,3 +22,4 @@ pynetbox
 python3-nmap
 xmltodict
 tabulate
+urllib3>=1.26.13,<=1.26.155
