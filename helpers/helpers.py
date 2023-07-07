@@ -143,11 +143,9 @@ def check_dir_existence(dir_path):
     Returns:
         exists (bool):  A boolean to indicate whether the directory exists
     '''
-    try:
-        os.listdir(dir_path)
+    exists = False
+    if os.path.exists(dir_path):
         exists = True
-    except Exception:
-        exists = False
     return exists
 
 

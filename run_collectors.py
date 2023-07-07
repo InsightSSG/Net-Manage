@@ -113,8 +113,13 @@ def collect(ansible_os: str,
     npm_password = os.environ['solarwinds_npm_password']
     npm_group_name = os.environ['solarwinds_npm_group_name']
 
+    # Create the output folder if it does not already exist.
+    exists = hp.check_dir_existence(database_path)
+    if not exists:
+        hp.create_dir(database_path)
+
     # Define additional variables
-    database_full_path = database_path + database_name
+    database_full_path = f'{database_path}/{database_name}'
     idx_cols = list()
     play_path = netmanage_path + '/playbooks'
 
@@ -595,7 +600,6 @@ def collect(ansible_os: str,
     # Write the result to the database
     if len(result.columns.to_list()) > 0:
         table_name = f'{ansible_os.split(".")[-1]}_{collector}'
-        database_full_path = database_path + database_name
         add_to_db(collector,
                   table_name,
                   result,
