@@ -89,8 +89,10 @@ def collect(ansible_os: str,
 
     # Read Meraki variables
     meraki_api_key = os.environ['meraki_api_key']
-    meraki_networks = os.environ['meraki_networks']
-    meraki_organizations = os.environ['meraki_organizations']
+    meraki_networks = list(filter(
+        None, os.environ['meraki_networks'].split(',')))
+    meraki_organizations = list(filter(
+        None, os.environ['meraki_organizations'].split(',')))
     meraki_macs = os.environ['meraki_macs']
     meraki_lookback = os.environ['meraki_lookback_timespan']
     meraki_per_page = os.environ['meraki_per_page']
