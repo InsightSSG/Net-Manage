@@ -89,6 +89,63 @@ def netbox_get_ipam_prefixes(nb_path: str,
     return df
 
 
+def netbox_get_tenant_attributes(nb_path: str,
+                                 token: str,
+                                 tenant: Optional[str] = None) -> pd.DataFrame:
+    """
+    Gets the attributes for one or more tenants.
+
+    Parameters
+    ----------
+    nb_path : str
+        The path to the Netbox instance. Can be either an IP or a URL.
+        Must be preceded by 'http://' or 'https://'.
+    token : str
+        The API token to use for authentication.
+    tenant: Optional[str], Default None
+        The name of the tenant for wihch to retrieve attributes. If one is not
+        provided, then attributes for all tenants will be returned.
+
+    Returns
+    ----------
+    df : pandas.core.frame.DataFrame
+        A Pandas dataframe containing the VRF details.
+
+    See Also
+    ----------
+    create_netbox_handler : A function to create 'nb'
+
+    Examples
+    ----------
+    >>> df = netbox_get_tenant_attributes(nb_path, token)
+    print(type(df))
+    >>> <class 'pandas.core.frame.DataFrame'>
+    """
+    # Create the netbox handler.
+    nb = create_netbox_handler(nb_path, token)
+
+    # Query the Netbox API for all tenants.
+    tenants = nb.tenancy.tenants.all()
+    tenants_list = list(tenants)
+
+    df_data = list()
+
+    # Get the attributes for the tenant(s), add them to 'df_data', then create
+    # and return a DataFrame.
+    if tenants_list and tenant:
+        for item in tenants_list:
+            if item['name'] == tenant:
+                tenant_attributes = vars(item)
+                df_data.append(tenant_attributes)
+    elif tenants_list:
+        for _tenant in tenants_list:
+            df_data.append(vars(_tenant))
+
+    df = pd.DataFrame(df_data)
+
+    return df
+
+
 def netbox_get_vrf_details(nb_path: str,
                            token: str,
                            vrf: Optional[str] = None) -> pd.DataFrame:
@@ -104,7 +161,6 @@ def netbox_get_vrf_details(nb_path: str,
     vrf: Optional[str], Default None
         The name of the VRF for wihch to retrieve details. If one is not
         provided, then details for all VRFs will be returned.
-
 
     Returns
     ----------
