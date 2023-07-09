@@ -1,8 +1,85 @@
 #!/usr/bin/env python3
 
 import pynetbox
-from typing import Optional, Dict, Any
+from typing import Dict, List, Optional, Any
 from collectors import netbox_collectors as nbc
+
+
+def add_device_type(netbox_url: str,
+                    netbox_token: str,
+                    manufacturer_name: str,
+                    model: str,
+                    slug: str,
+                    u_height: int,
+                    is_full_depth: bool = False,
+                    part_number: str = str(),
+                    subdevice_role: str = str(),
+                    airflow: str = str(),
+                    description: str = str(),
+                    weight: float = float(),
+                    weight_unit: str = str(),
+                    comments: str = str(),
+                    tags: List[str] = list()) \
+                        -> pynetbox.models.dcim.DeviceTypes:
+    """
+    Add a device type to NetBox.
+
+    Parameters
+    ----------
+    netbox_url : str
+        The URL of the NetBox instance.
+    netbox_token : str
+        The authentication token for the NetBox API.
+    manufacturer_name : str
+        The name of the manufacturer of the device type.
+    model : str
+        The model name of the device type.
+    slug : str
+        The slug (unique identifier) for the device type.
+    u_height : int
+        The height of the device type in rack units (U).
+    is_full_depth : bool, optional
+        Indicates whether the device consumes both front and rear rack faces.
+    part_number : str, optional
+        The part number of the device type.
+    subdevice_role : str, optional
+        The subdevice role of the device type.
+    airflow : str, optional
+        The airflow direction of the device type.
+    description : str, optional
+        The description of the device type.
+    weight : float, optional
+        The weight of the device type.
+    weight_unit : str, optional
+        The unit for the device weight.
+    comments : str, optional
+        Additional comments or notes.
+    tags : List[str], optional
+        Tags associated with the device type.
+
+    Returns
+    -------
+    device_type : pynetbox.models.dcim.DeviceTypes
+        The created DeviceType object in NetBox.
+    """
+    nb = pynetbox.api(netbox_url, netbox_token)
+    manufacturer = nb.dcim.manufacturers.get(name=manufacturer_name)
+    device_type = nb.dcim.device_types.create(
+        manufacturer=manufacturer.id,
+        model=model,
+        slug=slug,
+        part_number=part_number,
+        u_height=u_height,
+        is_full_depth=is_full_depth,
+        subdevice_role=subdevice_role,
+        airflow=airflow,
+        description=description,
+        weight=weight,
+        weight_unit=weight_unit,
+        comments=comments,
+        tags=tags
+    )
+    return device_type
 
 
 def add_prefix(token: str,
@@ -76,12 +153,13 @@ def add_site(token: str,
              name: str,
              slug: str,
              status: str,
-             timezone: str,
-             tenant: Optional[str] = None,
-             physical_address: Optional[str] = None,
-             shipping_address: Optional[str] = None,
              latitude: Optional[float] = None,
              longitude: Optional[float] = None,
+             physical_address: Optional[str] = None,
+             shipping_address: Optional[str] = None,
+             tenant_id: Optional[str] = None,
+             tenant_name: Optional[str] = None,
+             timezone: Optional[str] = None,
              meraki_organization_id: Optional[int] = None,
              meraki_network_id: Optional[str] = None,
              meraki_product_types: Optional[str] = None,
@@ -90,7 +168,7 @@ def add_site(token: str,
              meraki_configTemplateId: Optional[str] = None,
              meraki_isBoundToConfigTemplate: Optional[bool] = None,
              meraki_notes: Optional[str] = None,
-             site_url: Optional[str] = None,
+             meraki_site_url: Optional[str] = None,
              ) -> Dict[str, Any]:
     """
     Create a new site in Netbox with custom Meraki fields.
@@ -106,19 +184,23 @@ def add_site(token: str,
     slug (str):
         The slug for the site.
     status (str):
-        The status of the site.
-    timezone (str):
-        The time zone for the site.
-    tenant (str, optional):
-        The name of the tenant. Defaults to None.
-    physical_address (str, optional):
-        The physical address for the site. Defaults to None.
-    shipping_address (str, optional):
-        The shipping address for the site. Defaults to None.
+        The status of the site. Valid statuses are 'planned', 'staging',
+        'active', 'decommissioning', 'retired'.
     latitude (float, optional):
         The latitude of the site. Defaults to None.
     longitude (float, optional):
         The longitude of the site. Defaults to None.
+    physical_address (str, optional):
+        The physical address for the site. Defaults to None.
+    shipping_address (str, optional):
+        The shipping address for the site. Defaults to None.
+    tenant_id (str, optional):
+        The numeric ID of the tenant. Defaults to None.
+    tenant_name (str, optional):
+        The name of the tenant. Defaults to None.
+    timezone (str, optional):
+        The time zone for the site. Valid options are found here:
+        https://en.wikipedia.org/wiki/List_of_tz_database_time_zones.
     meraki_organization_id (int, optional):
         The Meraki organization ID associated with the site. Defaults to None.
     meraki_network_id (str, optional):
@@ -137,7 +219,7 @@ def add_site(token: str,
     meraki_notes (str, optional):
         Any notes related to the Meraki configuration for the site. Defaults
         to None.
-    site_url (str, optional):
+    meraki_site_url (str, optional):
         The URL associated with the site. Defaults to None.
 
     Returns:
@@ -146,13 +228,17 @@ def add_site(token: str,
     """
     # Initialize pynetbox API and site payload
     api = pynetbox.api(url=url, token=token)
-    site = {"name": name, "slug": slug,
-            "status": status, "time_zone": timezone}
+    site = {"name": name,
+            "slug": slug,
+            "status": status}
 
     # Check which optional fields are passed and add them to the site payload
     # as appropriate.
-    if tenant:
-        site["tenant"] = tenant
+    if tenant_id:
+        site["tenant"] = tenant_id
+    if tenant_name:
+        tenant_df = nbc.netbox_get_tenant_attributes(url, token, tenant_name)
+        site["tenant"] = str(tenant_df.iloc[0]["id"])
     if physical_address:
         site["physical_address"] = physical_address
     if shipping_address:
@@ -161,6 +247,8 @@ def add_site(token: str,
         site["latitude"] = latitude
     if longitude:
         site["longitude"] = longitude
+    if timezone:
+        site["time_zone"] = timezone
 
     # Check which Meraki fields are passed and add them to the site payload as
     # appropriate.
@@ -183,8 +271,8 @@ def add_site(token: str,
             meraki_isBoundToConfigTemplate
     if meraki_notes:
         site["custom_fields__meraki_notes"] = meraki_notes
-    if site_url:
-        site["custom_fields__url"] = site_url
+    if meraki_site_url:
+        site["custom_fields__url"] = meraki_site_url
 
     # Send the API request to add the site and return the response
     return api.dcim.sites.create(site)
