@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 
 import pynetbox
-from typing import Optional
+from typing import Optional, Dict, Any
 from collectors import netbox_collectors as nbc
 
 
-def add_netbox_prefix(token: str,
-                      url: str,
-                      prefix: str,
-                      description: str,
-                      site: Optional[str] = None,
-                      tenant: Optional[str] = None,
-                      vrf: Optional[str] = None):
+def add_prefix(token: str,
+               url: str,
+               prefix: str,
+               description: str,
+               site: Optional[str] = None,
+               tenant: Optional[str] = None,
+               vrf: Optional[str] = None):
     """
     Add a new prefix to Netbox IPAM.
 
@@ -69,6 +69,125 @@ def add_netbox_prefix(token: str,
         nb.ipam.prefixes.create(data)
     except pynetbox.RequestError as e:
         print(f'[{prefix}]: {str(e)}')
+
+
+def add_site(token: str,
+             url: str,
+             name: str,
+             slug: str,
+             status: str,
+             timezone: str,
+             tenant: Optional[str] = None,
+             physical_address: Optional[str] = None,
+             shipping_address: Optional[str] = None,
+             latitude: Optional[float] = None,
+             longitude: Optional[float] = None,
+             meraki_organization_id: Optional[int] = None,
+             meraki_network_id: Optional[str] = None,
+             meraki_product_types: Optional[str] = None,
+             meraki_tags: Optional[str] = None,
+             meraki_enrollement_string: Optional[str] = None,
+             meraki_configTemplateId: Optional[str] = None,
+             meraki_isBoundToConfigTemplate: Optional[bool] = None,
+             meraki_notes: Optional[str] = None,
+             site_url: Optional[str] = None,
+             ) -> Dict[str, Any]:
+    """
+    Create a new site in Netbox with custom Meraki fields.
+
+    Parameters
+    ----------
+    token : str
+        API token for authentication.
+    url : str
+        Url of Netbox instance.
+    name (str):
+        The name of the site.
+    slug (str):
+        The slug for the site.
+    status (str):
+        The status of the site.
+    timezone (str):
+        The time zone for the site.
+    tenant (str, optional):
+        The name of the tenant. Defaults to None.
+    physical_address (str, optional):
+        The physical address for the site. Defaults to None.
+    shipping_address (str, optional):
+        The shipping address for the site. Defaults to None.
+    latitude (float, optional):
+        The latitude of the site. Defaults to None.
+    longitude (float, optional):
+        The longitude of the site. Defaults to None.
+    meraki_organization_id (int, optional):
+        The Meraki organization ID associated with the site. Defaults to None.
+    meraki_network_id (str, optional):
+        The Meraki network ID associated with the site. Defaults to None.
+    meraki_product_types (str, optional):
+        The Meraki product types for the site. Defaults to None.
+    meraki_tags (str, optional):
+        The Meraki tags for the site. Defaults to None.
+    meraki_enrollement_string (str, optional):
+        The Meraki enrollment string for the site. Defaults to None.
+    meraki_configTemplateId (str, optional):
+        The Meraki config template ID for the site. Defaults to None.
+    meraki_isBoundToConfigTemplate (bool, optional):
+        Whether the site is bound to a Meraki config template. Defaults to
+        None.
+    meraki_notes (str, optional):
+        Any notes related to the Meraki configuration for the site. Defaults
+        to None.
+    site_url (str, optional):
+        The URL associated with the site. Defaults to None.
+
+    Returns:
+    ----------
+    dict: The response from the Netbox API when adding the site.
+    """
+    # Initialize pynetbox API and site payload
+    api = pynetbox.api(url=url, token=token)
+    site = {"name": name, "slug": slug,
+            "status": status, "time_zone": timezone}
+
+    # Check which optional fields are passed and add them to the site payload
+    # as appropriate.
+    if tenant:
+        site["tenant"] = tenant
+    if physical_address:
+        site["physical_address"] = physical_address
+    if shipping_address:
+        site["shipping_address"] = shipping_address
+    if latitude:
+        site["latitude"] = latitude
+    if longitude:
+        site["longitude"] = longitude
+
+    # Check which Meraki fields are passed and add them to the site payload as
+    # appropriate.
+    if meraki_organization_id:
+        site["custom_fields__meraki_organization_id"] = meraki_organization_id
+    if meraki_network_id:
+        site["custom_fields__meraki_network_id"] = meraki_network_id
+    if meraki_product_types:
+        site["custom_fields__meraki_product_types"] = meraki_product_types
+    if meraki_tags:
+        site["custom_fields__meraki_tags"] = meraki_tags
+    if meraki_enrollement_string:
+        site["custom_fields__meraki_enrollment_string"] = \
+            meraki_enrollement_string
+    if meraki_configTemplateId:
+        site["custom_fields__meraki_configTemplateId"] = \
+            meraki_configTemplateId
+    if meraki_isBoundToConfigTemplate is not None:
+        site["custom_fields__meraki_isBoundToConfigTemplate"] = \
+            meraki_isBoundToConfigTemplate
+    if meraki_notes:
+        site["custom_fields__meraki_notes"] = meraki_notes
+    if site_url:
+        site["custom_fields__url"] = site_url
+
+    # Send the API request to add the site and return the response
+    return api.dcim.sites.create(site)
 
 
 def add_netbox_vrf(token: str,

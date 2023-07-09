@@ -5,6 +5,7 @@ A library of generic helper functions for dynamic runbooks.
 '''
 
 import ansible_runner
+import ast
 import glob
 import ipaddress
 import numpy as np
@@ -143,11 +144,9 @@ def check_dir_existence(dir_path):
     Returns:
         exists (bool):  A boolean to indicate whether the directory exists
     '''
-    try:
-        os.listdir(dir_path)
+    exists = False
+    if os.path.exists(dir_path):
         exists = True
-    except Exception:
-        exists = False
     return exists
 
 
@@ -616,6 +615,30 @@ def connect_to_db(db):
     return con
 
 
+def create_sqlite_regexp_function(conn):
+    '''
+    Creates a SQLite3 function that allows REGEXP queries. See these two URLs
+    for more details. See these two URLs for more details:
+    - 'https://tinyurl.com/mwxz2dn8'
+    - 'https://tinyurl.com/ye285mnj'
+
+    Parameters
+    ----------
+    conn : sqlite3.Connection
+        An object for connecting to the sqlite3 database.
+
+    Returns
+    ----------
+    None
+    '''
+    # This function is credited to Stack Overflow user 'unutbu':
+    # - https://tinyurl.com/ye285mnj
+    def regexp(expr, item):
+        reg = re.compile(expr)
+        return reg.search(item) is not None
+    conn.create_function('REGEXP', 2, regexp)
+
+
 def get_dir_timestamps(path):
     """Gets the timestamp for all files and folders in a directory.
 
@@ -1067,6 +1090,24 @@ def get_net_manage_path():
     return nm_path
 
 
+def set_db_timestamp():
+    '''
+    Sets a timestamp in the form the database expects.
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    timestamp : str
+        A timestamp in the YYYY-MM-DD_hhmm format.
+    '''
+    timestamp = dt.now()
+    timestamp = timestamp.strftime('%Y-%m-%d_%H%M')
+    return timestamp
+
+
 def set_vars():
     '''
     Prompts the user for the required variables for running collectors and
@@ -1204,24 +1245,28 @@ def meraki_check_api_enablement(db_path, org):
     Args:
         db_path (str):  The path to the database to store results
         org (str):      The organization to check API access for.
+
+    Returns:
+        enabled (bool): A boolean indicating whether API access is enabled for
+                        the user's API key.
     '''
-    enabled = False
+    # enabled = False
 
     query = ['SELECT timestamp, api from MERAKI_ORGANIZATIONS',
-             f'WHERE org_id = "{org}"',
+             f'WHERE id = "{org}"',
              'ORDER BY timestamp DESC',
              'limit 1']
     query = ' '.join(query)
 
     con = sl.connect(db_path)
     result = pd.read_sql(query, con)
-
     con.close()
+    return ast.literal_eval(result.iloc[0]['api'])['enabled']
 
-    if result['api'].to_list()[0] == 'True':
-        enabled = True
+    # if result['api'].to_list()[0] == 'True':
+    #     enabled = True
 
-    return enabled
+    # return enabled
 
 
 def meraki_map_network_to_organization(db_path, network):
@@ -1269,12 +1314,12 @@ def meraki_parse_organizations(db_path, orgs=list(), table=str()):
     organizations = list()
     if orgs:
         for org in orgs:
-            df_orgs = pd.read_sql(f'select distinct org_id from {table} \
-                where org_id = "{org}"', con)
-            organizations.append(df_orgs['org_id'].to_list().pop())
+            df_orgs = pd.read_sql(f'select distinct id from {table} \
+                where id = "{org}"', con)
+            organizations.append(df_orgs['id'].to_list().pop())
     else:
-        df_orgs = pd.read_sql(f'select distinct org_id from {table}', con)
-        for org in df_orgs['org_id'].to_list():
+        df_orgs = pd.read_sql(f'select distinct id from {table}', con)
+        for org in df_orgs['id'].to_list():
             organizations.append(org)
     con.close()
 

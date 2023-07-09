@@ -53,7 +53,8 @@ def collect(ansible_os: str,
     database_path = os.path.expanduser(os.environ['database_path'])
     netmanage_path = os.path.expanduser(
         os.environ['netmanage_path'].strip('/'))
-    private_data_dir = os.environ['private_data_directory']
+    private_data_dir = os.path.expanduser(
+        os.environ['private_data_directory'])
     validate_certs = ast.literal_eval(os.environ['validate_certs'])
     database_method = os.environ['database_method']
 
@@ -88,8 +89,10 @@ def collect(ansible_os: str,
 
     # Read Meraki variables
     meraki_api_key = os.environ['meraki_api_key']
-    meraki_networks = os.environ['meraki_networks']
-    meraki_organizations = os.environ['meraki_organizations']
+    meraki_networks = list(filter(
+        None, os.environ['meraki_networks'].split(',')))
+    meraki_organizations = list(filter(
+        None, os.environ['meraki_organizations'].split(',')))
     meraki_macs = os.environ['meraki_macs']
     meraki_lookback = os.environ['meraki_lookback_timespan']
     meraki_per_page = os.environ['meraki_per_page']
@@ -112,8 +115,13 @@ def collect(ansible_os: str,
     npm_password = os.environ['solarwinds_npm_password']
     npm_group_name = os.environ['solarwinds_npm_group_name']
 
+    # Create the output folder if it does not already exist.
+    exists = hp.check_dir_existence(database_path)
+    if not exists:
+        hp.create_dir(database_path)
+
     # Define additional variables
-    database_full_path = database_path + database_name
+    database_full_path = f'{database_path}/{database_name}'
     idx_cols = list()
     play_path = netmanage_path + '/playbooks'
 
@@ -449,7 +457,7 @@ def collect(ansible_os: str,
                 database_full_path,
                 orgs=meraki_organizations,
                 total_pages=meraki_tp
-                )
+            )
 
     if collector == 'org_networks':
         if ansible_os == 'meraki':
@@ -594,20 +602,17 @@ def collect(ansible_os: str,
     # Write the result to the database
     if len(result.columns.to_list()) > 0:
         table_name = f'{ansible_os.split(".")[-1]}_{collector}'
-        database_full_path = database_path + database_name
-        add_to_db(collector,
-                  table_name,
+        add_to_db(table_name,
                   result,
                   timestamp,
                   database_full_path,
-                  database_method,
-                  idx_cols)
+                  method=database_method,
+                  idx_cols=idx_cols)
 
     return result
 
 
-def add_to_db(collector,
-              table_name,
+def add_to_db(table_name,
               result,
               timestamp,
               database_path,
@@ -617,7 +622,6 @@ def add_to_db(collector,
     Adds the output of a collector to the database
 
     Args:
-        collector (str):    The name of the collector
         result (DataFrame): The output of a collector
         timestamp (str):    The timestamp
         database_path (str):      The path to the database

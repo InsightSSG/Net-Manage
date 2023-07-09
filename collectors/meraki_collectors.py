@@ -19,8 +19,10 @@ def get_network_appliance_vlans(ansible_os: str,
                                 collector: str,
                                 db_path: str,
                                 timestamp: str,
+                                db_method: str = 'append',
                                 networks: list = list(),
-                                orgs: list = list()) -> pd.DataFrame:
+                                orgs: list = list(),
+                                replace_table: bool = False) -> pd.DataFrame:
     """
     Get the appliance VLANs for a list of networks or organizations.
 
@@ -34,10 +36,15 @@ def get_network_appliance_vlans(ansible_os: str,
         The path to the SQLite database file.
     timestamp (str):
         The timestamp for the data collected in YYYY-MM-DD_HHMM format.
+    db_method (str, optional):
+        The behavior to take when the database table already exists. Valid
+        options are 'fail', 'append', and 'replace'. Defaults to 'append'.
     networks (list, optional):
         A list of Meraki network IDs. Defaults to list().
     orgs (list, optional):
         A list of Meraki organization IDs. Defaults to list().
+    replace_table : bool, optional
+        Whether to replace the 'meraki_network_appliance_vlans' table.
 
     Returns:
     ----
@@ -189,13 +196,15 @@ def get_network_appliance_vlans(ansible_os: str,
                 df['network_ip'] = result['network_ip']
                 df['broadcast_ip'] = result['broadcast_ip']
                 # Add the DataFrame to the database.
-                rc.add_to_db(collector,
-                             f'{ansible_os.split(".")[-1]}_{collector}',
+                if counter == 1 and replace_table:
+                    database_method = 'replace'
+                else:
+                    database_method = db_method
+                rc.add_to_db(f'{ansible_os.split(".")[-1]}_{collector}',
                              df,
                              timestamp,
                              db_path,
-                             'append',
-                             list())
+                             method=database_method)
             except APIError:
                 pass
         counter += 1
@@ -399,26 +408,28 @@ def meraki_get_organizations(api_key):
     # Get the organizations the user has access to and add them to a dataframe
     orgs = dashboard.organizations.getOrganizations()
 
-    df_data = list()
+    df_orgs = pd.DataFrame(orgs).astype(str)
 
-    for item in orgs:
-        df_data.append([item['id'],
-                        item['name'],
-                        item['url'],
-                        item['api']['enabled'],
-                        item['licensing']['model'],
-                        item['cloud']['region']['name'],
-                        '|'.join(item['management']['details'])]
-                       )
-    cols = ['org_id',
-            'name',
-            'url',
-            'api',
-            'licensing_model',
-            'cloud_region',
-            'management_details']
+    # df_data = list()
 
-    df_orgs = pd.DataFrame(data=df_data, columns=cols).astype(str)
+    # for item in orgs:
+    #     df_data.append([item['id'],
+    #                     item['name'],
+    #                     item['url'],
+    #                     item['api']['enabled'],
+    #                     item['licensing']['model'],
+    #                     item['cloud']['region']['name'],
+    #                     '|'.join(item['management']['details'])]
+    #                    )
+    # cols = ['org_id',
+    #         'name',
+    #         'url',
+    #         'api',
+    #         'licensing_model',
+    #         'cloud_region',
+    #         'management_details']
+
+    # df_orgs = pd.DataFrame(data=df_data, columns=cols).astype(str)
 
     return df_orgs
 
@@ -449,7 +460,6 @@ def meraki_get_org_devices(api_key, db_path, orgs=list()):
     # used to create the dataframe. This method accounts for orgs that have
     # different device types, since not all device types contain the same keys.
     data = list()
-
     for org in organizations:
         # Check if API access is enabled for the org
         enabled = hp.meraki_check_api_enablement(db_path, org)
