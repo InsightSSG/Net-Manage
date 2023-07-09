@@ -602,19 +602,17 @@ def collect(ansible_os: str,
     # Write the result to the database
     if len(result.columns.to_list()) > 0:
         table_name = f'{ansible_os.split(".")[-1]}_{collector}'
-        add_to_db(collector,
-                  table_name,
+        add_to_db(table_name,
                   result,
                   timestamp,
                   database_full_path,
-                  database_method,
-                  idx_cols)
+                  method=database_method,
+                  idx_cols=idx_cols)
 
     return result
 
 
-def add_to_db(collector,
-              table_name,
+def add_to_db(table_name,
               result,
               timestamp,
               database_path,
@@ -624,7 +622,6 @@ def add_to_db(collector,
     Adds the output of a collector to the database
 
     Args:
-        collector (str):    The name of the collector
         result (DataFrame): The output of a collector
         timestamp (str):    The timestamp
         database_path (str):      The path to the database
