@@ -5,6 +5,58 @@ from typing import Dict, List, Optional, Any
 from collectors import netbox_collectors as nbc
 
 
+def add_device_role(netbox_url: str,
+                    netbox_token: str,
+                    name: str,
+                    slug: str,
+                    color: str = 'c0c0c0',  # Light Grey
+                    description: str = str(),
+                    vm_role: bool = False) -> None:
+    """
+    Create a device role in NetBox.
+
+    Parameters
+    ----------
+    netbox_url : str
+        The URL of the NetBox instance.
+    netbox_token : str
+        The authentication token for the NetBox API.
+    name : str
+        The name of the device role.
+    slug : str
+        The slug (unique identifier) for the device role.
+    color : str
+        The hexadecimal code associated with the device role. List of valid
+        codes (valid for version 3.4.5) can be found here:
+        https://tinyurl.com/netboxcolorcodes
+    description : str, optional
+        The description of the device role.
+    vm_role : bool, optional
+        Indicates whether the device role is for a virtual machine.
+
+    Returns
+    -------
+    None
+        This function does not return any value.
+
+    Raises
+    ------
+    Exception
+        If any error occurs while creating or updating the device role.
+    """
+    # Create an instance of the API using the provided URL and token
+    nb = pynetbox.api(url=netbox_url, token=netbox_token)
+    # Create or update the device role
+    try:
+        nb.dcim.device_roles.create(name=name,
+                                    slug=slug,
+                                    color=color,
+                                    description=description,
+                                    vm_role=vm_role)
+    except Exception as e:
+        print(f"Error while creating device role: {str(e)}")
+
+
 def add_device_type(netbox_url: str,
                     netbox_token: str,
                     manufacturer_name: str,
