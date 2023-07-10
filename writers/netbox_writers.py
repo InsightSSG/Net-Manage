@@ -5,6 +5,166 @@ from typing import Dict, List, Optional, Any
 from collectors import netbox_collectors as nbc
 
 
+from pynetbox import api
+
+
+def add_device_to_netbox(netbox_url: str,
+                         netbox_token: str,
+                         name: str,
+                         device_role: str,
+                         manufacturer: str,
+                         device_type: str,
+                         status: str,
+                         site: str,
+                         tenant_id: str = str(),
+                         tenant_name: str = str(),
+                         serial: str = str(),
+                         asset_tag: str = str(),
+                         location: str = str(),
+                         rack: str = str(),
+                         position: int = int(),
+                         face: str = str(),
+                         parent: str = str(),
+                         device_bay: str = str(),
+                         airflow: str = str(),
+                         virtual_chassis: str = str(),
+                         vc_position: int = int(),
+                         vc_priority: int = int(),
+                         cluster: str = str(),
+                         description: str = str(),
+                         config_template: str = str(),
+                         comments: str = str(),
+                         tags: str = str(),
+                         cf_meraki_network_id: str = str(),
+                         cf_meraki_product_type: str = str(),
+                         cf_meraki_firmware: str = str(),
+                         cf_meraki_notes: str = str()) -> None:
+    """
+    Add a new device to NetBox.
+
+    Parameters
+    ----------
+    netbox_url : str
+        The URL of the NetBox instance.
+    netbox_token : str
+        The authentication token for the NetBox API.
+    name : str
+        The name of the device.
+    device_role : str
+        The assigned role of the device.
+    manufacturer : str
+        The manufacturer of the device type.
+    device_type : str
+        The model of the device type.
+    status : str
+        The operational status of the device.
+    site : str
+        The assigned site of the device.
+    tenant_id (str, optional):
+        The numeric ID of the tenant. Defaults to None.
+    tenant_name (str, optional):
+        The name of the tenant. Defaults to None.
+    serial : str, optional
+        The chassis serial number assigned by the manufacturer.
+    asset_tag : str, optional
+        A unique tag used to identify the device.
+    location : str, optional
+        The assigned location of the device.
+    rack : str, optional
+        The assigned rack of the device.
+    position : int, optional
+        The lowest-numbered unit occupied by the device.
+    face : str, optional
+        The mounted rack face.
+    parent : str, optional
+        The parent device for child devices.
+    device_bay : str, optional
+        The device bay in which this device is installed for child devices.
+    airflow : str, optional
+        The airflow direction.
+    virtual_chassis : str, optional
+        The virtual chassis to which the device belongs.
+    vc_position : int, optional
+        The virtual chassis position.
+    vc_priority : int, optional
+        The virtual chassis master election priority.
+    cluster : str, optional
+        The virtualization cluster.
+    description : str, optional
+        The description of the device.
+    config_template : str, optional
+        The configuration template for the device.
+    comments : str, optional
+        Additional comments.
+    tags : str, optional
+        Tag slugs separated by commas, enclosed in double quotes
+        (e.g., "tag1,tag2,tag3").
+    cf_meraki_network_id : str, optional
+        The NetworkID for the device (only applicable to Merakis).
+    cf_meraki_product_type : str, optional
+        The device product type (only applicable to Merakis).
+    cf_meraki_firmware : str, optional
+        The device firmware (only applicable to Merakis).
+    cf_meraki_notes : str, optional
+        The device notes (only applicable to Merakis).
+
+    Returns
+    -------
+    None
+        This function does not return any value.
+
+    Raises
+    ------
+    Exception
+        If any error occurs while adding the device to NetBox.
+    """
+    # Create an instance of the API using the provided URL and token
+    nb = api(url=netbox_url, token=netbox_token)
+
+    # If the user provided a tenant name instead of a tenant ID, then use the
+    # name to find the ID.
+    if tenant_name and not tenant_id:
+        tenant_df = nbc.netbox_get_tenant_attributes(netbox_url,
+                                                     netbox_token,
+                                                     tenant_name)
+        tenant_id = str(tenant_df.iloc[0]["id"])
+
+    # Add the device to NetBox
+    try:
+        nb.dcim.devices.create(
+            name=name,
+            device_role=device_role,
+            manufacturer=manufacturer,
+            device_type=device_type,
+            status=status,
+            site=site,
+            tenant=tenant_id,
+            serial=serial,
+            asset_tag=asset_tag,
+            location=location,
+            rack=rack,
+            position=position,
+            face=face,
+            parent=parent,
+            device_bay=device_bay,
+            airflow=airflow,
+            virtual_chassis=virtual_chassis,
+            vc_position=vc_position,
+            vc_priority=vc_priority,
+            cluster=cluster,
+            description=description,
+            config_context=config_template,
+            comments=comments,
+            tags=tags,
+            cf_meraki_network_id=cf_meraki_network_id,
+            cf_meraki_product_type=cf_meraki_product_type,
+            cf_meraki_firmware=cf_meraki_firmware,
+            cf_meraki_notes=cf_meraki_notes
+        )
+    except Exception as e:
+        raise Exception(f"Error occurred while adding the device: {str(e)}")
+
+
 def add_device_role(netbox_url: str,
                     netbox_token: str,
                     name: str,
@@ -132,6 +292,65 @@ def add_device_type(netbox_url: str,
         tags=tags
     )
     return device_type
+
+
+def add_vrf(token: str,
+            url: str,
+            vrf_name: str,
+            description: str,
+            rd: Optional[str] = None,
+            enforce_unique: Optional[bool] = True):
+    """
+    Add a new VRF to Netbox.
+
+    Parameters
+    ----------
+    token : str
+        API token for authentication.
+    url : str
+        Url of Netbox instance.
+    vrf_name : str
+        The name of the VRF to be added to Netbox.
+    description : str
+        A description for the VRF.
+    rd : Optional[str], Default None
+        The route distinguisher for the VRF.
+    enforce_unique : Optional[bool], Default True
+        Whether duplicate VRF names should be disallowed (True) or allowed
+        (False).
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    pynetbox.RequestError
+        If there is any problem in the request to Netbox API.
+
+    Notes
+    -------
+    A RequestError is thrown if there is a duplicate VRF name, but ONLY if
+    the option to disallow duplicate VRF names is either passed to the function
+    as 'enforce_unique=True' (the default) or has been enabled inside of Netbox
+    (it is disabled by default). The option to enforce unique VRF names can be
+    enabled globally or for certain groups of prefixes. See this URL for more
+    information:
+    - https://demo.netbox.dev/static/docs/core-functionality/ipam/
+    - https://demo.netbox.dev/static/docs/configuration/dynamic-settings/
+
+    """
+    nb = pynetbox.api(url, token=token)
+    data = {
+        'name': vrf_name,
+        'rd': rd,
+        'description': description,
+        'enforce_unique': enforce_unique
+    }
+    try:
+        nb.ipam.vrfs.create(data)
+    except pynetbox.RequestError as e:
+        print(f'[{vrf_name}]: {str(e)}')
 
 
 def add_prefix(token: str,
@@ -328,62 +547,3 @@ def add_site(token: str,
 
     # Send the API request to add the site and return the response
     return api.dcim.sites.create(site)
-
-
-def add_netbox_vrf(token: str,
-                   url: str,
-                   vrf_name: str,
-                   description: str,
-                   rd: Optional[str] = None,
-                   enforce_unique: Optional[bool] = True):
-    """
-    Add a new VRF to Netbox.
-
-    Parameters
-    ----------
-    token : str
-        API token for authentication.
-    url : str
-        Url of Netbox instance.
-    vrf_name : str
-        The name of the VRF to be added to Netbox.
-    description : str
-        A description for the VRF.
-    rd : Optional[str], Default None
-        The route distinguisher for the VRF.
-    enforce_unique : Optional[bool], Default True
-        Whether duplicate VRF names should be disallowed (True) or allowed
-        (False).
-
-    Returns
-    -------
-    None
-
-    Raises
-    ------
-    pynetbox.RequestError
-        If there is any problem in the request to Netbox API.
-
-    Notes
-    -------
-    A RequestError is thrown if there is a duplicate VRF name, but ONLY if
-    the option to disallow duplicate VRF names is either passed to the function
-    as 'enforce_unique=True' (the default) or has been enabled inside of Netbox
-    (it is disabled by default). The option to enforce unique VRF names can be
-    enabled globally or for certain groups of prefixes. See this URL for more
-    information:
-    - https://demo.netbox.dev/static/docs/core-functionality/ipam/
-    - https://demo.netbox.dev/static/docs/configuration/dynamic-settings/
-
-    """
-    nb = pynetbox.api(url, token=token)
-    data = {
-        'name': vrf_name,
-        'rd': rd,
-        'description': description,
-        'enforce_unique': enforce_unique
-    }
-    try:
-        nb.ipam.vrfs.create(data)
-    except pynetbox.RequestError as e:
-        print(f'[{vrf_name}]: {str(e)}')
