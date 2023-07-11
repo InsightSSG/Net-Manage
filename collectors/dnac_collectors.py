@@ -111,6 +111,7 @@ def devices_modules(base_url: str,
                     username: str,
                     password: str,
                     platform_ids: list = [],
+                    allow_partial_match: bool = False,
                     verify: bool = True) -> pd.DataFrame:
     """
     Gets the module details for devices in DNAC.
@@ -125,6 +126,9 @@ def devices_modules(base_url: str,
         The password user to authenticate to the DNAC appliance.
     platform_ids (list, optional):
         A list of platform_ids. If not specified then all devices will be
+        returned.
+    allow_partial_match (bool, optional):
+        If True, then partial matches inside of 'platform_ids' will be
         returned.
     verify (bool, optional):
         Whether to verify SSL certificates. Defaults to True.
@@ -147,8 +151,11 @@ def devices_modules(base_url: str,
     # If 'platform_ids' is empty then get all devices from DNAC.
     df_devices = devices_inventory(base_url, username, password, verify=verify)
 
-    if platform_ids:
+    if platform_ids and not allow_partial_match:
         df_devices = df_devices[df_devices['platformId'].isin(platform_ids)]
+    if platform_ids and allow_partial_match:
+        df_devices = df_devices[df_devices['platformId'].
+                                str.contains('|'.join(platform_ids))]
 
     # Create two lists. 'data' holds the modules for each device. 'df_data'
     # will contain the formatted data that is used to create the DataFrame.
