@@ -21,5 +21,6 @@ meraki
 pynetbox
 python3-nmap
 xmltodict
+streamlit
 tabulate
 urllib3>=1.26.13,<=1.26.155
