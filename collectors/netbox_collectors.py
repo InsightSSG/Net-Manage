@@ -137,6 +137,7 @@ def netbox_get_tenant_attributes(nb_path: str,
             if item['name'] == tenant:
                 tenant_attributes = vars(item)
                 df_data.append(tenant_attributes)
+                break
     elif tenants_list:
         for _tenant in tenants_list:
             df_data.append(vars(_tenant))
