@@ -59,6 +59,7 @@ def main():
     dnac_platform_ids = st.secrets['dnac_platform_ids']
     validate_certs = st.secrets['validate_certs']
 
+    # Allow the user to search by platform IDs
     allow_partial_match, dnac_platform_ids = get_search_params()
 
     # Get the list of device modules and add them to a DataFrame.
@@ -70,7 +71,7 @@ def main():
                                  allow_partial_match=allow_partial_match,
                                  verify=validate_certs)
 
-    # Filter by the requested columns.
+    # Filter the DataFrame by the requested columns then display it.
     columns = ['platformId',
                'hostname',
                'name',
@@ -82,10 +83,13 @@ def main():
 
     # Export the report to a CSV file.
     now = dt.datetime.now()
-    # out_dir = os.path.expanduser(st.secrets['database_path'])
     out_file = f"dnac_device_module_report_{now.strftime('%Y-%m-%d_%H%M')}"
-    # out_path = f'{out_dir}/{out_file}'
 
+    # Provide an option for the user to download the DataFrame to a CSV file.
+    # The filename is 'dnac_device_module_report_YYYY-MM-DD_hhmm', where 'YYYY'
+    # is the 4-digit year, 'MM' is the 2-digit month, 'DD' is the 2-digit day,
+    # 'hh' is the 2-digit hour in 24-hour format, and 'mm' is the 2-digit
+    # minute.
     st.download_button('save to file',
                        df.to_csv(index=False).encode('utf-8'),
                        out_file,
@@ -93,18 +97,6 @@ def main():
                        key='download-csv')
 
     st.dataframe(df)
-
-    # # Export the DataFrame to a CSV file.
-    # from helpers import report_helpers
-    # full_path = report_helpers.export_dataframe_to_csv(df,
-    #                                                    args_dict['out_path'],
-    #                                                    'dnac_device_modules')
-
-    # if args_dict['report'] == 'report1':
-    #     df = report1(df)
-
-    # if args_dict['verbose']:
-    #     print(f'Report saved to: {full_path}')
 
 
 if __name__ == '__main__':
