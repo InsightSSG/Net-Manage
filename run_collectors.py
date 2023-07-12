@@ -103,7 +103,7 @@ def collect(ansible_os: str,
 
     # Read Netbox variables
     netbox_url = os.environ['netbox_url']
-    netbox_api_key = os.environ['netbox_api_key']
+    netbox_token = os.environ['netbox_token']
 
     # Read Palo Alto variables
     palo_alto_username = os.environ['palo_alto_username']
@@ -484,7 +484,7 @@ def collect(ansible_os: str,
                                                       timestamp)
 
     if collector == 'netbox_get_ipam_prefixes':
-        result = nbc.netbox_get_ipam_prefixes(netbox_url, netbox_api_key)
+        result = nbc.netbox_get_ipam_prefixes(netbox_url, netbox_token)
 
     if collector == 'ncm_serial_numbers':
         result = swc.get_ncm_serial_numbers(npm_server,

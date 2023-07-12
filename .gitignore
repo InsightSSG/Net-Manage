@@ -140,6 +140,7 @@ natlas/output/
 output/
 natlas/.DS_Store
 natlas/modules/.DS_Store
+.streamlit/
 tenants/
 
 # Visual Studio Code
