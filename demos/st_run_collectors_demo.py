@@ -2,9 +2,9 @@ import streamlit as st
 import datetime as dt
 import os
 import sys
-nm_path = os.path.expanduser(st.secrets['netmanage_path'])  # flake8: noqa
-os.chdir(nm_path)  # flake8: noqa
-sys.path.append('.')  # flake8: noqa
+nm_path = os.path.expanduser(st.secrets['netmanage_path'])  # noqa: E402
+os.chdir(nm_path)  # noqa: E402
+sys.path.append('.')  # noqa: E402
 from run_collectors import collect
 from setup import select_hostgroups, select_collectors, create_collectors_df
 
