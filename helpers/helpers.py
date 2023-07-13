@@ -1437,19 +1437,19 @@ def update_ouis(nm_path):
 
     # Check if 'ouis.txt' needs to be downloaded.
     download = False
-    if f'{nm_path}ouis.txt' not in files:
+    if f'{nm_path}/ouis.txt' not in files:
         download = True
     else:
-        delta = (dt.now().date() - files[f'{nm_path}ouis.txt'].date()).days
+        delta = (dt.now().date() - files[f'{nm_path}/ouis.txt'].date()).days
         if delta > 7:
             download = True
 
     # Download 'ouis.txt', if applicable.
     if download:
-        download_ouis(f'{nm_path}ouis.txt')
+        download_ouis(f'{nm_path}/ouis.txt')
 
     # Read 'ouis.txt' and extract the base16 and vendor combinations.
-    with open(f'{nm_path}ouis.txt', 'r') as txt:
+    with open(f'{nm_path}/ouis.txt', 'r') as txt:
         data = txt.read()
     pattern = '.*base 16.*'
     data = re.findall(pattern, data)
