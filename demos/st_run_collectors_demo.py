@@ -2,10 +2,9 @@ import streamlit as st
 import datetime as dt
 import os
 import sys
-from dotenv import load_dotenv
-nm_path = os.path.expanduser(st.secrets['netmanage_path'])  # noqa
-os.chdir(nm_path)  # noqa
-sys.path.append('.')  # noqa
+nm_path = os.path.expanduser(st.secrets['netmanage_path'])  # nopep8
+os.chdir(nm_path)  # nopep8
+sys.path.append('.')  # nopep8
 from run_collectors import collect
 from setup import select_hostgroups, select_collectors, create_collectors_df
 
