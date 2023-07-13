@@ -72,14 +72,17 @@ def main():
                                  verify=validate_certs)
 
     # Filter the DataFrame by the requested columns then display it.
-    columns = ['platformId',
-               'hostname',
-               'name',
-               'description',
-               'partNumber',
-               'serialNumber',
-               'vendorEquipmentType']
-    df = df[columns]
+    try:
+        columns = ['platformId',
+                   'hostname',
+                   'name',
+                   'description',
+                   'partNumber',
+                   'serialNumber',
+                   'vendorEquipmentType']
+        df = df[columns]
+    except Exception:
+        st.write('No results found. Are the platform IDs correct?')
 
     # Export the report to a CSV file.
     now = dt.datetime.now()
@@ -96,7 +99,7 @@ def main():
                        'text.csv',
                        key='download-csv')
 
-    st.dataframe(df)
+    st.data_editor(df, hide_index=True)
 
 
 if __name__ == '__main__':
