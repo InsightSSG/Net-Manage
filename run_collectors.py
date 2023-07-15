@@ -79,7 +79,7 @@ def collect(ansible_os: str,
 
     # Read F5 LTM variables
     f5_ltm_username = os.environ['f5_ltm_username']
-    f5_ltm_password = os.environ['f5_ltm_username']
+    f5_ltm_password = os.environ['f5_ltm_password']
 
     # Read Infoblox variables
     infoblox_url = os.environ['infoblox_url']
