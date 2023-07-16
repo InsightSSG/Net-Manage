@@ -8,25 +8,34 @@ import ansible_runner
 import pandas as pd
 
 
-def panos_get_security_rules(username,
-                             password,
-                             host_group,
-                             play_path,
-                             private_data_dir,
-                             device_group='shared'):
+def panos_get_security_rules(username: str,
+                             password: str,
+                             host_group: str,
+                             play_path: str,
+                             private_data_dir: str,
+                             device_group: str = 'shared') -> pd.DataFrame:
     '''
-    Gets a list of all security rules from a Palo Alto firewall.
+    Get a list of all security rules from a Palo Alto firewall.
 
-    Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): The path to the Ansible private data directory
-        device_group (str):     The device group to query. Defaults to 'shared'
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    device_group : str, optional
+        The device group to query. Defaults to 'shared'.
 
-    Returns:
-        df_rules (DataFrame):   A dataframe containing the rules
+    Returns
+    -------
+    df_rules : pd.DataFrame
+        A DataFrame containing the security rules.
     '''
     extravars = {'user': username,
                  'password': password,
