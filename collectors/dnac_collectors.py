@@ -17,24 +17,24 @@ def create_api_object(base_url: str,
     """
     Create the object for making API calls to Cisco DNAC appliances.
 
-    Args:
-    ----
-    base_url (str):
+    Parameters
+    ----------
+    base_url : str
         The URL for the DNAC appliance.
-    username (str):
+    username : str
         The username used to authenticate to the DNAC appliance.
-    password (str):
+    password : str
         The password user to authenticate to the DNAC appliance.
-    verify (bool, optional):
+    verify : bool, optional
         Whether to verify SSL certificates. Defaults to True.
 
-    Returns:
-    ----
-    dnac (dnacentersdk.api.DNACenterAPI):
+    Returns
+    -------
+    dnac : dnacentersdk.api.DNACenterAPI
         The object used for API calls.
 
-    Examples:
-    ----
+    Examples
+    --------
     >>> from dnacentersdk import api
     >>> dnac = create_dnac_api_object('https://sandboxdnac.cisco.com/',
                                       username='devnetuser',
@@ -65,22 +65,22 @@ def devices_inventory(base_url: str,
     """
     Get the list of devices from Cisco DNAC.
 
-    Args:
-    ----
-    base_url (str):
+    Parameters
+    ----------
+    base_url : str
         The URL for the DNAC appliance.
-    username (str):
+    username : str
         The username used to authenticate to the DNAC appliance.
-    password (str):
+    password : str
         The password user to authenticate to the DNAC appliance.
-    platform_ids (list, optional):
+    platform_ids : list, optional
         A list of platform_ids. If not specified then all devices will be
         returned.
-    verify (bool, optional):
+    verify : bool, optional
         Whether to verify SSL certificates. Defaults to True.
 
-    Returns:
-    ----
+    Returns
+    -------
     df (pd.DataFrame):
         A dataframe containing the device list.
     """
@@ -116,30 +116,30 @@ def devices_modules(base_url: str,
     """
     Gets the module details for devices in DNAC.
 
-    Args:
-    ----
-    base_url (str):
+    Parameters
+    ----------
+    base_url : str
         The URL for the DNAC appliance.
-    username (str):
+    username : str
         The username used to authenticate to the DNAC appliance.
-    password (str):
+    password : str
         The password user to authenticate to the DNAC appliance.
     platform_ids (list, optional):
         A list of platform_ids. If not specified then all devices will be
         returned.
-    allow_partial_match (bool, optional):
+    allow_partial_match : bool, optional
         If True, then partial matches inside of 'platform_ids' will be
         returned.
-    verify (bool, optional):
+    verify : bool, optional
         Whether to verify SSL certificates. Defaults to True.
 
-    Returns:
-    ----
+    Returns
+    -------
     df (pd.DataFrame):
         A dataframe containing the details for the device modules.
 
-    Notes:
-    ----
+    Notes
+    -----
     If the 'platform_ids' arg is not passed to the function, then the modules
     for all devices in the DNAC inventory will be returned.
 
