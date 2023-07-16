@@ -11,7 +11,8 @@ from typing import Optional
 
 def create_netbox_handler(nb_path: str,
                           token: str) -> pynetbox.core.api.Api:
-    """Creates the handler for connecting to Netbox using pynetbox.
+    '''
+    Creates the handler for connecting to Netbox using pynetbox.
 
     Parameters
     ----------
@@ -22,16 +23,16 @@ def create_netbox_handler(nb_path: str,
         The API token to use for authentication.
 
     Returns
-    ----------
+    -------
     nb : pynetbox.core.api.Api
         An object used to connect to the Netbox API.
 
     Examples
-    ----------
+    --------
     >>> nb = create_netbox_handler(nb_path, token)
     >>> print(nb)
     <pynetbox.core.api.Api object at 0x7fb3576a4c1990>
-    """
+    '''
     nb = pynetbox.api(nb_path, token)
     return nb
 
@@ -49,16 +50,16 @@ def netbox_get_ipam_prefixes(nb_path: str,
         The API token to use for authentication.
 
     Returns
-    ----------
-    df : pandas.core.frame.DataFrame
+    -------
+    df : pd.DataFrame
         A Pandas dataframe containing the IPAM prefixes.
 
     See Also
-    ----------
+    --------
     create_netbox_handler : A function to create 'nb'
 
     Notes
-    ----------
+    -----
     The Netbox API returns the prefixes in the form of a nested dictionary.
     Some items in the nested dictionaries have keys that overlap with the
     top-level dictionary. Because of that, the keys in the nested
@@ -92,7 +93,7 @@ def netbox_get_ipam_prefixes(nb_path: str,
 def netbox_get_tenant_attributes(nb_path: str,
                                  token: str,
                                  tenant: Optional[str] = None) -> pd.DataFrame:
-    """
+    '''
     Gets the attributes for one or more tenants.
 
     Parameters
@@ -108,7 +109,7 @@ def netbox_get_tenant_attributes(nb_path: str,
 
     Returns
     ----------
-    df : pandas.core.frame.DataFrame
+    df : pd.DataFrame
         A Pandas dataframe containing the VRF details.
 
     See Also
@@ -120,7 +121,7 @@ def netbox_get_tenant_attributes(nb_path: str,
     >>> df = netbox_get_tenant_attributes(nb_path, token)
     print(type(df))
     >>> <class 'pandas.core.frame.DataFrame'>
-    """
+    '''
     # Create the netbox handler.
     nb = create_netbox_handler(nb_path, token)
 
@@ -150,7 +151,8 @@ def netbox_get_tenant_attributes(nb_path: str,
 def netbox_get_vrf_details(nb_path: str,
                            token: str,
                            vrf: Optional[str] = None) -> pd.DataFrame:
-    """Gets details of one or more VRFs in Netbox.
+    '''
+    Gets details of one or more VRFs in Netbox.
 
     Parameters
     ----------
@@ -165,7 +167,7 @@ def netbox_get_vrf_details(nb_path: str,
 
     Returns
     ----------
-    df : pandas.core.frame.DataFrame
+    df : pd.DataFrame
         A Pandas dataframe containing the VRF details.
 
     See Also
@@ -177,7 +179,7 @@ def netbox_get_vrf_details(nb_path: str,
     >>> df = netbox_get_vrf_details(nb_path, token)
     print(type(df))
     >>> <class 'pandas.core.frame.DataFrame'>
-    """
+    '''
     # Create the netbox handler
     nb = create_netbox_handler(nb_path, token)
 
