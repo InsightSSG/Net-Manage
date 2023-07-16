@@ -14,7 +14,7 @@ def create_api_object(base_url: str,
                       password: str,
                       verify: bool = True) -> \
                       dnacentersdk.api.DNACenterAPI:
-    """
+    '''
     Create the object for making API calls to Cisco DNAC appliances.
 
     Parameters
@@ -42,7 +42,7 @@ def create_api_object(base_url: str,
                                       verify=False)
     >>> print(type(dnac))
     <class 'dnacentersdk.api.DNACenterAPI'>
-    """
+    '''
     try:
         dnac = dnacentersdk.api.DNACenterAPI(base_url=base_url,
                                              username=username,
@@ -62,7 +62,7 @@ def devices_inventory(base_url: str,
                       password: str,
                       platform_ids: list = [],
                       verify: bool = True) -> pd.DataFrame:
-    """
+    '''
     Get the list of devices from Cisco DNAC.
 
     Parameters
@@ -83,7 +83,7 @@ def devices_inventory(base_url: str,
     -------
     df (pd.DataFrame):
         A dataframe containing the device list.
-    """
+    '''
     dnac = create_api_object(base_url, username, password, verify=verify)
     if platform_ids:
         devices = dnac.devices.get_device_list(platform_id=platform_ids)
@@ -113,7 +113,7 @@ def devices_modules(base_url: str,
                     platform_ids: list = [],
                     allow_partial_match: bool = False,
                     verify: bool = True) -> pd.DataFrame:
-    """
+    '''
     Gets the module details for devices in DNAC.
 
     Parameters
@@ -147,7 +147,7 @@ def devices_modules(base_url: str,
     then filters them based on the elements in 'platform_ids'. This might cause
     performance issues with very large inventories. If so, we can modify the
     function to only query devices with the listed elements in 'platform_ids'.
-    """
+    '''
     # If 'platform_ids' is empty then get all devices from DNAC.
     df_devices = devices_inventory(base_url, username, password, verify=verify)
 
