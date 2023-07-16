@@ -11,7 +11,7 @@ def get_interface_ips(username: str,
                       host_group: str,
                       play_path: str,
                       private_data_dir: str) -> pd.DataFrame:
-    """
+    '''
     Gets the IP addresses assigned to interfaces on Cisco ASA devices.
 
     Parameters
@@ -29,10 +29,10 @@ def get_interface_ips(username: str,
 
     Returns
     -------
-    pd.DataFrame
+    df : pd.DataFrame
         A DataFrame containing the interfaces and IPs, subnet and network
         addresses related to each IP.
-    """
+    '''
     cmd = 'show interface summary | include Interface|IP address'
     extravars = {'username': username,
                  'password': password,
