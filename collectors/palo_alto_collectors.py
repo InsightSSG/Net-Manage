@@ -4,16 +4,19 @@ import ansible_runner
 import json
 import pandas as pd
 from helpers import helpers as hp
+from typing import Dict
 
 
-def run_adhoc_command(username,
-                      password,
-                      host_group,
-                      nm_path,
-                      private_data_dir,
-                      cmd,
-                      cmd_is_xml):
-    """
+def run_adhoc_command(username: str,
+                      password: str,
+                      host_group: str,
+                      nm_path: str,
+                      private_data_dir: str,
+                      cmd: str,
+                      cmd_is_xml: bool) -> Dict[str, dict]:
+    '''
+    Runs an ad-hoc command on the specified hosts using Ansible.
+
     Parameters
     ----------
     username : str
@@ -31,8 +34,15 @@ def run_adhoc_command(username,
     cmd_is_xml : bool
         Whether the command is formatted as XML.
 
+    Returns
+    -------
+    dict
+        A dictionary containing the command output, where the keys are the
+        devices and the value is a dictionary containing all of the data
+        within the event that contains the 'runner_on_ok' value.
+
     Notes
-    ----------
+    -----
     Ansible-runner returns a generator containing each event that Ansible
     executed. In order to conserve memory, this function searches for
     events that contain the 'event' key with a value of
@@ -44,16 +54,8 @@ def run_adhoc_command(username,
     returning other events to whichever function that is calling this
     function.
 
-    Returns
-    ----------
-    result : dict
-        A dictionary containing the command output, where the keys are the
-        devices and the value is a dictionary containing all of the data
-        within the event that contains the 'runner_on_ok' value (see notes
-        above for more details).
-
     Examples
-    ----------
+    --------
     >>> cmd = '<show><system><info></info></system></show>'
     >>> cmd_is_xml = True
     >>> response = run_adhoc_command(username,
@@ -77,7 +79,7 @@ def run_adhoc_command(username,
                                      cmd_is_xml)
     >>> for key in response:
     >>>        assert isinstance(response[key]['event'], str)
-    """
+    '''
     extravars = {'user': username,
                  'password': password,
                  'host_group': host_group,
@@ -100,12 +102,13 @@ def run_adhoc_command(username,
     return result
 
 
-def get_all_interfaces(username,
-                       password,
-                       host_group,
-                       nm_path,
-                       private_data_dir):
-    """Gets all interfaces on Palo Altos.
+def get_all_interfaces(username: str,
+                       password: str,
+                       host_group: str,
+                       nm_path: str,
+                       private_data_dir: str) -> pd.DataFrame:
+    '''
+    Gets all interfaces on Palo Altos.
 
     Parameters
     ----------
@@ -121,12 +124,12 @@ def get_all_interfaces(username,
         The path to the Ansible private data directory
 
     Returns
-    ----------
-    df : Pandas Dataframe
-        A dataframe containing the logical interfaces.
+    -------
+    pd.DataFrame
+        A DataFrame containing the logical interfaces.
 
     Examples
-    ----------
+    --------
     >>> df = get_all_interfaces(username,
                                 password,
                                 host_group,
@@ -145,7 +148,7 @@ def get_all_interfaces(username,
     'ip',
     'id',
     'addr']
-    """
+    '''
     cmd = 'show interface all'
     cmd_is_xml = False
 
@@ -187,13 +190,14 @@ def get_all_interfaces(username,
     return df
 
 
-def get_arp_table(username,
-                  password,
-                  host_group,
-                  nm_path,
-                  private_data_dir,
-                  interface=str()):
-    """Parses the Palo Alto ARP table and adds vendor OUIs.
+def get_arp_table(username: str,
+                  password: str,
+                  host_group: str,
+                  nm_path: str,
+                  private_data_dir: str,
+                  interface: str = '') -> pd.DataFrame:
+    '''
+    Parses the Palo Alto ARP table and adds vendor OUIs.
 
     Parameters
     ----------
@@ -209,18 +213,18 @@ def get_arp_table(username,
         The path to the Ansible private data directory
 
     Returns
-    ----------
-    df : Pandas Dataframe
-        A dataframe containing the ARP table and vendor OUIs.
+    -------
+    pd.DataFrame
+        A DataFrame containing the ARP table and vendor OUIs.
 
     Other Parameters
-    ----------
-    interface: str
+    ----------------
+    interface : str, optional
         The interface for which to return the ARP table. The default is to
         return the ARP table for all interfaces.
 
     Examples
-    ----------
+    --------
     >>> df = get_arp_table(username,
                            password,
                            host_group,
@@ -239,7 +243,7 @@ def get_arp_table(username,
                            interface=interface)
     >>> print(df.columns.to_list())
     ['device', 'status', 'ip', 'mac', 'ttl', 'interface', 'port', 'vendor']
-    """
+    '''
     if interface:
         cmd = f"<show><arp><entry name='{interface}'/></arp></show>"
     else:
@@ -286,7 +290,7 @@ def get_interface_ips(username: str,
                       host_group: str,
                       nm_path: str,
                       private_data_dir: str) -> pd.DataFrame:
-    """Gets IP addresses on Palo Alto firewall interfaces.
+    '''Gets IP addresses on Palo Alto firewall interfaces.
 
     Parameters
     ----------
@@ -302,12 +306,12 @@ def get_interface_ips(username: str,
         The path to the Ansible private data directory.
 
     Returns
-    ----------
+    -------
     df : Pandas Dataframe
         A dataframe containing the IP addresses.
 
     Examples
-    ----------
+    --------
     >>> df = get_ip_addresses(username,
                               password,
                               db_path,
@@ -328,7 +332,7 @@ def get_interface_ips(username: str,
     'ip',
     'id',
     'addr']
-    """
+    '''
     # TODO: Optimize this function by setting 'get_all_interfaces' as a
     #       dependency. That way the same command does not need to be
     #       run twice (potentially) for two different collectors.
@@ -351,12 +355,13 @@ def get_interface_ips(username: str,
     return df
 
 
-def get_logical_interfaces(username,
-                           password,
-                           host_group,
-                           nm_path,
-                           private_data_dir):
-    """Gets the logical interfaces on Palo Altos.
+def get_logical_interfaces(username: str,
+                           password: str,
+                           host_group: str,
+                           nm_path: str,
+                           private_data_dir: str) -> pd.DataFrame:
+    '''
+    Gets the logical interfaces on Palo Altos.
 
     Parameters
     ----------
@@ -372,12 +377,12 @@ def get_logical_interfaces(username,
         The path to the Ansible private data directory
 
     Returns
-    ----------
-    df : Pandas Dataframe
-        A dataframe containing the logical interfaces.
+    -------
+    pd.DataFrame
+        A DataFrame containing the logical interfaces.
 
     Examples
-    ----------
+    --------
     >>> df = get_logical_interfaces(username,
                                     password,
                                     host_group,
@@ -396,7 +401,7 @@ def get_logical_interfaces(username,
     'ip',
     'id',
     'addr']
-    """
+    '''
     cmd = 'show interface logical'
     cmd_is_xml = False
 
@@ -438,12 +443,13 @@ def get_logical_interfaces(username,
     return df
 
 
-def get_physical_interfaces(username,
-                            password,
-                            host_group,
-                            nm_path,
-                            private_data_dir):
-    """Gets the physical interfaces on Palo Altos.
+def get_physical_interfaces(username: str,
+                            password: str,
+                            host_group: str,
+                            nm_path: str,
+                            private_data_dir: str) -> pd.DataFrame:
+    '''
+    Gets the physical interfaces on Palo Altos.
 
     Parameters
     ----------
@@ -459,12 +465,12 @@ def get_physical_interfaces(username,
         The path to the Ansible private data directory
 
     Returns
-    ----------
-    df : Pandas Dataframe
-        A dataframe containing the physical interfaces.
+    -------
+    df : pd.DataFrame
+        A DataFrame containing the physical interfaces.
 
     Examples
-    ----------
+    --------
     >>> df = get_physical_interfaces(username,
                                      password,
                                      host_group,
@@ -482,7 +488,7 @@ def get_physical_interfaces(username,
     'mode',
     'speed',
     'id']
-    """
+    '''
     cmd = 'show interface hardware'
     cmd_is_xml = False
     response = run_adhoc_command(username,
