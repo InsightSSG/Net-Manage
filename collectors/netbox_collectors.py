@@ -108,16 +108,16 @@ def netbox_get_tenant_attributes(nb_path: str,
         provided, then attributes for all tenants will be returned.
 
     Returns
-    ----------
+    -------
     df : pd.DataFrame
         A Pandas dataframe containing the VRF details.
 
     See Also
-    ----------
+    --------
     create_netbox_handler : A function to create 'nb'
 
     Examples
-    ----------
+    --------
     >>> df = netbox_get_tenant_attributes(nb_path, token)
     print(type(df))
     >>> <class 'pandas.core.frame.DataFrame'>
@@ -166,16 +166,16 @@ def netbox_get_vrf_details(nb_path: str,
         provided, then details for all VRFs will be returned.
 
     Returns
-    ----------
+    -------
     df : pd.DataFrame
         A Pandas dataframe containing the VRF details.
 
     See Also
-    ----------
+    --------
     create_netbox_handler : A function to create 'nb'
 
     Examples
-    ----------
+    --------
     >>> df = netbox_get_vrf_details(nb_path, token)
     print(type(df))
     >>> <class 'pandas.core.frame.DataFrame'>
