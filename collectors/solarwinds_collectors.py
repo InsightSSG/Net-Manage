@@ -2,12 +2,13 @@
 
 import pandas as pd
 from orionsdk import SwisClient
+from typing import Union
 
 
 def get_ncm_serial_numbers(server: str,
                            username: str,
                            password: str) -> pd.DataFrame:
-    """
+    '''
     Get a DataFrame containing the serial numbers of all physical entities in
     NCM.
 
@@ -22,7 +23,7 @@ def get_ncm_serial_numbers(server: str,
 
     Returns
     -------
-    pd.DataFrame
+    df : pd.DataFrame
         A DataFrame with the following columns:
         - EntityID (int): The NCM Entity ID.
         - EntityName (str): The name of the physical entity.
@@ -33,7 +34,7 @@ def get_ncm_serial_numbers(server: str,
            with.
         - ContainedIn (int): The ID of the container the physical entity is
            contained within.
-    """
+    '''
     swis = SwisClient(server, username, password)
 
     query = """
@@ -86,28 +87,31 @@ def get_ncm_serial_numbers(server: str,
 def get_npm_containers(server: str,
                        username: str,
                        password: str) -> pd.DataFrame:
-    """
+    '''
     Retrieves all columns from Orion.Container (Orion NPM groups).
 
-    Args:
-    server (str):
+    Parameters
+    ----------
+    server : str
         The hostname or IP address of the Orion database server.
-    username (str):
+    username : str
         The username used to authenticate with the Orion API.
-    password (str):
+    password : str
         The password used to authenticate with the Orion API.
 
-    Returns:
-    df (pd.DataFrame):
+    Returns
+    -------
+    df : pd.DataFrame
         A DataFrame containing the Orion.Container data.
 
-    Example usage:
+    Examples
+    --------
     >>> server = "your.server.com"
     >>> username = "your_username"
     >>> password = "your_password"
     >>> df = get_npm_containers(server, username, password)
     >>> print(df)
-    """
+    '''
     swis = SwisClient(server, username, password)
 
     schema = ['ContainerID',
@@ -150,35 +154,39 @@ def get_npm_group_id(server: str,
                      username: str,
                      password: str,
                      group_name: str) -> str:
-    """
+    '''
     Retrieves the Orion NPM group ID for a given group name.
 
-    Args:
-    server (str):
+    Parameters
+    ----------
+    server : str
         The hostname or IP address of the Orion database server.
-    username (str):
+    username : str
         The username used to authenticate with the Orion API.
-    password (str):
+    password : str
         The password used to authenticate with the Orion API.
-    group_name (str):
+    group_name : str
         The name of the group to retrieve the ID for.
 
-    Returns:
-    str:
+    Returns
+    -------
+    g_id : str
         The group ID of the specified group name.
 
-    Raises:
-    IndexError:
+    Raises
+    ------
+    IndexError
         If the group name is not found in the Orion NPM database.
 
-    Example usage:
+    Examples
+    --------
     >>> server = "your.server.com"
     >>> username = "your_username"
     >>> password = "your_password"
     >>> group_name = "your_group_name"
     >>> group_id = get_npm_group_id(server, username, password, group_name)
     >>> print(group_id)
-    """
+    '''
     swis = SwisClient(server, username, password)
 
     # Get the group ID for the specified group name
@@ -194,30 +202,35 @@ def get_npm_group_members(server: str,
                           username: str,
                           password: str,
                           group_name: str = 'all') -> pd.DataFrame:
-    """
+    '''
     Retrieves the names of all the devices within an Orion NPM group.
 
-    Args:
-    server (str):
+    Parameters
+    ----------
+    server : str
         The hostname or IP address of the Orion database server.
-    username (str):
+    username : str
         The username used to authenticate with the Orion API.
-    password (str):
+    password : str
         The password used to authenticate with the Orion API.
-    group_name (str, optional):
-        The name of the group whose devices should be retrieved.
+    group_name : str, optional
+        The name of the group whose devices should be retrieved. Defaults to
+        'all'.
 
-    Returns:
-    list:
-        A list of device names.
+    Returns
+    -------
+    df : pd.DataFrame
+        A DataFrame containing the device names.
 
-    Raises:
-    IndexError:
+    Raises
+    ------
+    IndexError
         If the specified group name is not found in the Orion NPM database.
-    Exception:
+    Exception
         If there is an issue connecting to the Orion NPM API.
 
-    Example usage:
+    Examples
+    --------
     >>> server = 'myserver.mycompany.com'
     >>> username = 'myusername'
     >>> password = 'mypassword'
@@ -233,7 +246,7 @@ def get_npm_group_members(server: str,
     dtypes: object(1)
     memory usage: 312.0+ bytes
     None
-    """
+    '''
     swis = SwisClient(server, username, password)
 
     results = list()
@@ -278,29 +291,37 @@ def get_npm_group_members(server: str,
 def get_npm_group_names(server: str,
                         username: str,
                         password: str) -> pd.DataFrame:
-    """
+    '''
     Retrieves a list of the names of all the Orion NPM groups.
 
-    Args:
-    server (str): The hostname or IP address of the Orion database server.
-    username (str): The username used to authenticate with the Orion API.
-    password (str): The password used to authenticate with the Orion API.
+    Parameters
+    ----------
+    server : str
+        The hostname or IP address of the Orion database server.
+    username : str
+        The username used to authenticate with the Orion API.
+    password : str
+        The password used to authenticate with the Orion API.
 
-    Returns:
-    pd.DataFrame:
+    Returns
+    -------
+    df : pd.DataFrame
         A DataFrame of all the group names available in the Orion NPM database.
 
-    Raises:
-    Exception: If there is an issue connecting to the Orion NPM API.
+    Raises
+    ------
+    Exception
+        If there is an issue connecting to the Orion NPM API.
 
-    Example usage:
+    Examples
+    --------
     >>> server = 'your.server.com'
     >>> username = 'your_username'
     >>> password = 'your_password'
     >>> group_names = get_npm_group_names(server, username, password)
     >>> print(group_names)
     ['Switches', 'Routers', 'Servers', ...]
-    """
+    '''
     swis = SwisClient(server, username, password)
 
     results = swis.query("SELECT Name FROM Orion.Container")
@@ -315,7 +336,7 @@ def get_npm_group_names(server: str,
 def get_npm_node_ids(server: str,
                      username: str,
                      password: str) -> pd.DataFrame:
-    """
+    '''
     Retrieve the NodeIDs for all nodes in Solarwinds NPM.
 
     Parameters
@@ -329,7 +350,7 @@ def get_npm_node_ids(server: str,
 
     Returns
     -------
-    pd.DataFrame
+    df : pd.DataFrame
         A dataframe where each row represents a device in Solarwinds NPM, and
         and the columns are 'device_name' and 'node_id'.
 
@@ -351,7 +372,7 @@ def get_npm_node_ids(server: str,
     1 node2 234
     2 node3 345
     ...
-    """
+    '''
     swis = SwisClient(server, username, password)
 
     query = "SELECT Caption, NodeID FROM Orion.Nodes"
@@ -383,24 +404,24 @@ def get_npm_node_ip(server: str,
                     username: str,
                     password: str,
                     node_name: str) -> str:
-    """
+    '''
     Retrieve the management IP address for a single node in Solarwinds NPM.
 
     Parameters
     ----------
     server : str
-    The URL of the Solarwinds NPM server to connect to.
+        The URL of the Solarwinds NPM server to connect to.
     username : str
-    The username to authenticate with the Solarwinds NPM server.
+        The username to authenticate with the Solarwinds NPM server.
     password : str
-    The password to authenticate with the Solarwinds NPM server.
+        The password to authenticate with the Solarwinds NPM server.
     node_name : str
-    The name of the node to retrieve the management IP address for.
+        The name of the node to retrieve the management IP address for.
 
     Returns
     -------
-    str
-    The management IP address for the specified node.
+    node_name : str
+        The management IP address for the specified node.
 
     Notes
     -----
@@ -415,7 +436,7 @@ def get_npm_node_ip(server: str,
     'node1')
     >>> node_ip
     '10.10.10.1'
-    """
+    '''
     swis = SwisClient(server, username, password)
 
     query = """
@@ -430,8 +451,10 @@ def get_npm_node_ip(server: str,
     return results['results'][0]['IPAddress']
 
 
-def get_npm_node_ips(server: str, username: str, password: str) -> dict:
-    """
+def get_npm_node_ips(server: str,
+                     username: str,
+                     password: str) -> pd.DataFrame:
+    '''
     Retrieve the management IP addresses for all nodes in Solarwinds NPM.
 
     Parameters
@@ -445,7 +468,7 @@ def get_npm_node_ips(server: str, username: str, password: str) -> dict:
 
     Returns
     -------
-    pandas.DataFrame
+    df : pd.DataFrame
         A dataframe where each row represents a device in Solarwinds NPM, and
         and the columns are 'device_name' and 'device_ip'.
 
@@ -467,7 +490,7 @@ def get_npm_node_ips(server: str, username: str, password: str) -> dict:
     1 node2 10.10.10.2
     2 node3 10.10.10.3
     ...
-    """
+    '''
     swis = SwisClient(server, username, password)
 
     query = "SELECT Caption, NodeID, IPAddress FROM Orion.Nodes"
@@ -498,24 +521,24 @@ def get_npm_node_ips(server: str, username: str, password: str) -> dict:
 
 def get_npm_node_machine_types(server: str,
                                username: str,
-                               password: str) -> dict:
-    """
+                               password: str) -> pd.DataFrame:
+    '''
     Retrieve the MachineType and Caption for all nodes in Solarwinds NPM.
 
     Parameters
     ----------
     server : str
-    The URL of the Solarwinds NPM server to connect to.
+        The URL of the Solarwinds NPM server to connect to.
     username : str
-    The username to authenticate with the Solarwinds NPM server.
+        The username to authenticate with the Solarwinds NPM server.
     password : str
-    The password to authenticate with the Solarwinds NPM server.
+        The password to authenticate with the Solarwinds NPM server.
 
     Returns
     -------
-    pandas.DataFrame
-    A dataframe where each row represents a device in Solarwinds NPM, and
-    the columns are 'device_name' and 'machine_type'.
+    df : pd.DataFrame
+        A dataframe where each row represents a device in Solarwinds NPM, and
+        the columns are 'device_name' and 'machine_type'.
 
     Notes
     -----
@@ -535,7 +558,7 @@ def get_npm_node_machine_types(server: str,
     1 node2 Cisco ASR 1001-X Router
     2 node3 Panorama Server
     ...
-    """
+    '''
     swis = SwisClient(server, username, password)
 
     query = "SELECT Caption, NodeID, MachineType FROM Orion.Nodes"
@@ -566,24 +589,24 @@ def get_npm_node_machine_types(server: str,
 
 def get_npm_node_os_versions(server: str,
                              username: str,
-                             password: str) -> dict:
-    """
+                             password: str) -> pd.DataFrame:
+    '''
     Retrieve the OS versions of all nodes in Solarwinds NPM.
 
     Parameters
     ----------
     server : str
-    The URL of the Solarwinds NPM server to connect to.
+        The URL of the Solarwinds NPM server to connect to.
     username : str
-    The username to authenticate with the Solarwinds NPM server.
+        The username to authenticate with the Solarwinds NPM server.
     password : str
-    The password to authenticate with the Solarwinds NPM server.
+        The password to authenticate with the Solarwinds NPM server.
 
     Returns
     -------
-    pandas.DataFrame
-    A dataframe where each row represents a device in Solarwinds NPM, and
-    the columns are 'Caption', 'IOSImage', and 'IOSVersion'.
+    df : pd.DataFrame
+        A dataframe where each row represents a device in Solarwinds NPM, and
+        the columns are 'Caption', 'IOSImage', and 'IOSVersion'.
 
     Notes
     -----
@@ -605,7 +628,7 @@ def get_npm_node_os_versions(server: str,
     2 switch1.local
     3 switch2.local
     ...
-    """
+    '''
     swis = SwisClient(server, username, password)
 
     query = """
@@ -638,8 +661,8 @@ def get_npm_node_os_versions(server: str,
 def get_npm_node_vendor(server: str,
                         username: str,
                         password: str,
-                        node_name: str) -> str:
-    """
+                        node_name: str) -> Union[str, None]:
+    '''
     Retrieve the vendor for a single node in Solarwinds NPM.
 
     Parameters
@@ -655,8 +678,9 @@ def get_npm_node_vendor(server: str,
 
     Returns
     -------
-    str
-        The vendor for the specified node.
+    str or None
+        The vendor for the specified node. Returns None if the node is not
+        found.
 
     Notes
     -----
@@ -666,12 +690,12 @@ def get_npm_node_vendor(server: str,
     Examples
     --------
     >>> node_vendor = get_npm_node_vendor('your_swis_server',
-    'your_username',
-    'your_password',
-    'node1')
+                                          'your_username',
+                                          'your_password',
+                                          'node1')
     >>> node_vendor
     'Cisco Systems, Inc.'
-    """
+    '''
     swis = SwisClient(server, username, password)
 
     query = """
@@ -682,11 +706,16 @@ def get_npm_node_vendor(server: str,
 
     params = {'node_name': node_name}
     results = swis.query(query, **params)
-    return results['results'][0]['Vendor']
+    if results['results']:
+        return results['results'][0]['Vendor']
+    else:
+        return None
 
 
-def get_npm_node_vendors(server: str, username: str, password: str) -> dict:
-    """
+def get_npm_node_vendors(server: str,
+                         username: str,
+                         password: str) -> pd.DataFrame:
+    '''
     Retrieve the vendor for all nodes in Solarwinds NPM.
 
     Parameters
@@ -700,7 +729,7 @@ def get_npm_node_vendors(server: str, username: str, password: str) -> dict:
 
     Returns
     -------
-    pandas.DataFrame
+    df : pd.DataFrame
         A dataframe where each row represents a device in Solarwinds NPM, and
         the columns are 'device_name' and 'vendor'.
 
@@ -721,7 +750,7 @@ def get_npm_node_vendors(server: str, username: str, password: str) -> dict:
     1 node2 meraki
     2 node3 juniper
     ...
-    """
+    '''
     swis = SwisClient(server, username, password)
 
     query = "SELECT Caption, NodeID, Vendor FROM Orion.Nodes"
@@ -753,28 +782,31 @@ def get_npm_node_vendors(server: str, username: str, password: str) -> dict:
 def get_npm_nodes(server: str,
                   username: str,
                   password: str) -> pd.DataFrame:
-    """
+    '''
     Retrieves all columns from Orion.Nodes.
 
-    Args:
-    server (str):
+    Parameters
+    ----------
+    server : str
         The hostname or IP address of the Orion database server.
-    username (str):
+    username : str
         The username used to authenticate with the Orion API.
-    password (str):
+    password : str
         The password used to authenticate with the Orion API.
 
-    Returns:
-    df (pd.DataFrame):
+    Returns
+    -------
+    df : pd.DataFrame
         A DataFrame containing the Orion.Nodes data.
 
-    Example usage:
+    Examples
+    --------
     >>> server = "your.server.com"
     >>> username = "your_username"
     >>> password = "your_password"
     >>> df = get_npm_nodes(server, username, password)
     >>> print(df)
-    """
+    '''
     swis = SwisClient(server, username, password)
 
     schema = ['NodeID',
