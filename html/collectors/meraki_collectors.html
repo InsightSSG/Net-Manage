@@ -1,0 +1,2557 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>collectors.meraki_collectors API documentation</title>
+<meta name="description" content="Define Meraki collectors." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>collectors.meraki_collectors</code></h1>
+</header>
+<section id="section-intro">
+<p>Define Meraki collectors.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">#!/usr/bin/env python3
+
+&#39;&#39;&#39;
+Define Meraki collectors.
+&#39;&#39;&#39;
+
+import json
+import meraki
+import pandas as pd
+import run_collectors as rc
+import sqlite3 as sl
+
+from helpers import helpers as hp
+from meraki.exceptions import APIError
+from typing import Union
+
+
+def get_network_appliance_vlans(ansible_os: str,
+                                api_key: str,
+                                collector: str,
+                                db_path: str,
+                                timestamp: str,
+                                db_method: str = &#39;append&#39;,
+                                networks: list = [],
+                                orgs: list = [],
+                                replace_table: bool = False) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Get the appliance VLANs for a list of networks or organizations.
+
+    Parameters
+    ----------
+    ansible_os : str
+        The Ansible OS version.
+    api_key : str
+        A valid Meraki Dashboard API key.
+    collector : str
+        A name for the Meraki data collector.
+    db_path : str
+        The path to the SQLite database file.
+    timestamp : str
+        The timestamp for the data collected in YYYY-MM-DD_HHMM format.
+    db_method : {&#39;fail&#39;, &#39;append&#39;, &#39;replace&#39;}, optional
+        The behavior to take when the database table already exists.
+        Defaults to &#39;append&#39;.
+    networks : list, optional
+        A list of Meraki network IDs. Defaults to an empty list.
+    orgs : list, optional
+        A list of Meraki organization IDs. Defaults to an empty list.
+    replace_table : bool, optional
+        Whether to replace the &#39;meraki_network_appliance_vlans&#39; table.
+
+    Returns
+    -------
+    pd.DataFrame
+        A pandas DataFrame that contains the appliance VLANs.
+
+    Examples
+    --------
+    Example 1:
+    &gt;&gt;&gt; ansible_os = &#39;&lt;ansible_os&gt;&#39;
+    &gt;&gt;&gt; api_key = &#39;&lt;your_api_key_here&gt;&#39;
+    &gt;&gt;&gt; collector = &#39;network_appliance_vlans&#39;
+    &gt;&gt;&gt; db_path = &#39;/path/to/database.db&#39;
+    &gt;&gt;&gt; networks = [&#39;N_123456789012345678&#39;, &#39;N_234567890123456789&#39;]
+    &gt;&gt;&gt; timestamp = &#39;2022-01-01_0000&#39;
+    &gt;&gt;&gt; df = get_network_appliance_vlans(api_key,
+                                         collector,
+                                         db_path,
+                                         timestamp,
+                                         networks=networks)
+    &gt;&gt;&gt; print(df)
+
+    Example 2:
+    &gt;&gt;&gt; ansible_os = &#39;&lt;ansible_os&gt;&#39;
+    &gt;&gt;&gt; api_key = &#39;&lt;your_api_key_here&gt;&#39;
+    &gt;&gt;&gt; collector = &#39;network_appliance_vlans&#39;
+    &gt;&gt;&gt; db_path = &#39;/path/to/database.db&#39;
+    &gt;&gt;&gt; orgs = [&#39;O_123456789012345678&#39;]
+    &gt;&gt;&gt; timestamp = &#39;2022-01-01_0000&#39;
+    &gt;&gt;&gt; df = get_network_appliance_vlans(api_key,
+                                         collector,
+                                         db_path,
+                                         timestamp,
+                                         orgs=orgs)
+    &gt;&gt;&gt; print(df)
+
+    Example 3:
+    &gt;&gt;&gt; ansible_os = &#39;&lt;ansible_os&gt;&#39;
+    &gt;&gt;&gt; api_key = &#39;&lt;your_api_key_here&gt;&#39;
+    &gt;&gt;&gt; collector = &#39;network_appliance_vlans&#39;
+    &gt;&gt;&gt; db_path = &#39;/path/to/database.db&#39;
+    &gt;&gt;&gt; networks = [&#39;N_123456789012345678&#39;, &#39;N_234567890123456789&#39;]
+    &gt;&gt;&gt; orgs = [&#39;O_123456789012345678&#39;]
+    &gt;&gt;&gt; timestamp = &#39;2022-01-01_0000&#39;
+    &gt;&gt;&gt; df = get_network_appliance_vlans(api_key,
+                                         collector,
+                                         db_path,
+                                         timestamp,
+                                         networks=networks,
+                                         orgs=orgs)
+    &gt;&gt;&gt; print(df)
+    &#39;&#39;&#39;
+
+    # If &#39;networks&#39; and &#39;orgs&#39; are empty, then gracefully exit the function.
+    if not networks and not orgs:
+        return pd.DataFrame()
+
+    # If &#39;networks&#39; is empty and &#39;orgs&#39; is not, get all applicable networks in
+    # the orgs.
+    if orgs and not networks:
+        joined_orgs = [f&#39;&#34;{_}&#34;&#39; for _ in orgs]
+        joined_orgs = &#39;, &#39;.join(joined_orgs)
+
+        con = sl.connect(db_path)
+
+        # Get the last timestamp in the MERAKI_ORG_NETWORKS table.
+        query = &#39;&#39;&#39;SELECT distinct timestamp
+        FROM meraki_org_networks
+        ORDER BY timestamp desc
+        LIMIT 1
+        &#39;&#39;&#39;
+        result = pd.read_sql(query, con)
+        ts = result[&#39;timestamp&#39;].to_list().pop()
+
+        # Get the unique network IDs for the most recent timestamp.
+        query = f&#39;&#39;&#39;SELECT distinct id
+        FROM meraki_org_networks
+        WHERE productTypes like &#34;%appliance%&#34;
+            AND timestamp = &#34;{ts}&#34;
+            AND organizationId IN ({joined_orgs})&#39;&#39;&#39;
+        result = pd.read_sql(query, con)
+        networks = result[&#39;id&#39;].to_list()
+
+    # Get the appliance vlans for each network. Note: if &#39;orgs&#39; and &#39;networks&#39;
+    # are both non-empty, then &#39;orgs&#39; is ignored. The list of networks takes
+    # priority.
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
+
+    # The only way to get appliance VLANs is to iterate over a list of
+    # networks. There is not a way to gather them for an organization. I found
+    # that it takes about 1 minute per 100 networks. The Meraki API
+    # automatically throttles requests (it uses a bucket token system), so
+    # there isn&#39;t a way to speed it up.
+    #
+    # Therefore, we process the networks in batches of &#39;s_len&#39;. This has two
+    # advantages:
+    # 1. Conserves memory. This is done by adding each batch to the database
+    #    then recreating the DataFrame.
+    # 2. Display progress to the end user.
+    s_len = 50  # Set the size of each slice (batch).
+    slices = list()
+    # Create a list of slices.
+    while networks:
+        slices.append(networks[:s_len])
+        if len(networks) &gt;= s_len:
+            networks = networks[s_len:]
+        else:
+            networks = list()
+
+    # Iterate over the slices, adding each slice to the database and displaying
+    # progress to the end user.
+    counter = 1
+    total = len(slices)
+    for slice in slices:
+        _ = len(slice)
+        # Display progress to the end user.
+        print(f&#39;Processing {_} networks (batch {counter} of {total})...&#39;)
+
+        for network in slice:
+            df = pd.DataFrame()
+            try:
+                result = dashboard.appliance.getNetworkApplianceVlans(network)
+                # Create the DataFrame and add it to the database.
+                df = pd.DataFrame(result).astype(str)
+                # Add the subnets, network IPs, and broadcast IPs.
+                addresses = df[&#39;subnet&#39;].to_list()
+                del df[&#39;subnet&#39;]
+                result = hp.generate_subnet_details(addresses)
+                df[&#39;subnet&#39;] = result[&#39;subnet&#39;]
+                df[&#39;network_ip&#39;] = result[&#39;network_ip&#39;]
+                df[&#39;broadcast_ip&#39;] = result[&#39;broadcast_ip&#39;]
+                # Add the DataFrame to the database.
+                if counter == 1 and replace_table:
+                    database_method = &#39;replace&#39;
+                else:
+                    database_method = db_method
+                rc.add_to_db(f&#39;{ansible_os.split(&#34;.&#34;)[-1]}_{collector}&#39;,
+                             df,
+                             timestamp,
+                             db_path,
+                             method=database_method)
+            except APIError:
+                pass
+        counter += 1
+
+    return df
+
+
+def meraki_get_network_clients(api_key: str,
+                               networks: list,
+                               macs: list = [],
+                               per_page: int = 1000,
+                               timespan: int = 86400,
+                               total_pages: Union[int, str] = &#39;all&#39;) \
+                                -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets the list of clients on a network.
+
+    Parameters
+    ----------
+    api_key : str
+        The user&#39;s API key.
+    networks : list
+        One or more network IDs.
+    macs : list, optional
+        A list of MAC addresses to filter the clients. Defaults to an empty
+        list.
+    per_page : int, optional
+        The number of clients to retrieve per page. Defaults to 1000.
+    timespan : int, optional
+        The timespan in seconds to retrieve client data for. Defaults to 86400
+        (24 hours).
+    total_pages : int or str, optional
+        The total number of pages to retrieve. If set to &#39;all&#39;, it will
+        retrieve all available pages. Defaults to &#39;all&#39;.
+
+    Returns
+    -------
+    df_clients : pd.DataFrame
+        A Pandas DataFrame containing the clients for the network(s).
+
+    Examples
+    --------
+    Example 1:
+    &gt;&gt;&gt; api_key = &#39;&lt;your_api_key_here&gt;&#39;
+    &gt;&gt;&gt; networks = [&#39;N_123456789012345678&#39;, &#39;N_234567890123456789&#39;]
+    &gt;&gt;&gt; df = meraki_get_network_clients(api_key, networks)
+    &gt;&gt;&gt; print(df)
+
+    Example 2:
+    &gt;&gt;&gt; api_key = &#39;&lt;your_api_key_here&gt;&#39;
+    &gt;&gt;&gt; networks = [&#39;N_123456789012345678&#39;, &#39;N_234567890123456789&#39;]
+    &gt;&gt;&gt; macs = [&#39;00:11:22:33:44:55&#39;, &#39;AA:BB:CC:DD:EE:FF&#39;]
+    &gt;&gt;&gt; df = meraki_get_network_clients(api_key, networks, macs=macs)
+    &gt;&gt;&gt; print(df)
+    &#39;&#39;&#39;
+    # Create a list to store the individual clients for each network.
+    data = list()
+
+    # Iterate over the network(s), gathering the clients and adding them to
+    # &#39;data&#39;
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
+    for network in networks:
+        clients = dashboard.networks.getNetworkClients(network,
+                                                       timespan=timespan,
+                                                       perPage=per_page,
+                                                       total_pages=total_pages)
+        for client in clients:
+            data.append(client)
+
+    # Create a dictionary to store the client data. It will be used to create
+    # &#39;df_clients&#39;
+    df_data = dict()
+
+    # Each client is returned as a dictionary. Iterate over the keys in the
+    # dictionary and add them to &#39;df_data&#39;. This requires iterating over all
+    # the clients twice, but it ensures that all keys are added to &#39;df_data&#39;.
+    for client in data:
+        for key in client:
+            df_data[key] = list()
+
+    # Iterate over the clients, adding the data to &#39;df_data&#39;
+    for client in data:
+        for key in df_data:
+            df_data[key].append(client.get(key))
+
+    # Create the dataframe and convert all datatypes to strings
+    df = pd.DataFrame.from_dict(df_data)
+    df = df.astype(&#39;str&#39;)
+
+    # Create &#39;df_clients&#39;. If the user has provided a list of MACs, then only
+    # add those clients to &#39;df_clients&#39;. Otherwise, add all clients.
+    if macs:
+        df_clients = pd.DataFrame()
+        for mac in macs:
+            mask = df[&#39;mac&#39;].str.contains(mac)
+            df_clients = pd.concat([df_clients, df[mask]])
+        # Drop duplicate rows. They can be created if a user esarches for
+        # partial MAC addresses that overlap (e.g., &#39;ec:f0&#39;, &#39;ec:f0:b6&#39;)
+        df_clients = df_clients.drop_duplicates()
+        df_clients = df_clients.reset_index(drop=True)
+    else:
+        df_clients = df.copy()
+
+    return df_clients
+
+
+def meraki_get_network_devices(api_key: str,
+                               db_path: str,
+                               networks: list = [],
+                               orgs: list = []) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets the devices for all orgs that the user&#39;s API key has access to.
+
+    This function uses the following logic:
+
+    1. If a user passes a list of networks, the list of orgs is ignored.
+    2. If a user passes a list of orgs but not a list of networks, the function
+       will query all networks in the list of orgs that the user&#39;s API key has
+       access to.
+    3. If a user does not pass a list of networks or a list of orgs, the
+       function will query all networks in all orgs the user&#39;s API key has
+       access to.
+
+    Parameters
+    ----------
+    api_key : str
+        The user&#39;s API key.
+    db_path : str
+        The path to the database to store results.
+    networks : list, optional
+        One or more network IDs. Defaults to an empty list.
+    orgs : list, optional
+        One or more organization IDs. If none are specified, then the devices
+        for all orgs will be returned.
+
+    Returns
+    -------
+    df_devices : pd.DataFrame
+        The device statuses for the network(s).
+
+    Examples
+    --------
+    Example 1:
+    &gt;&gt;&gt; api_key = &#39;&lt;your_api_key_here&gt;&#39;
+    &gt;&gt;&gt; db_path = &#39;/path/to/database.db&#39;
+    &gt;&gt;&gt; networks = [&#39;N_123456789012345678&#39;, &#39;N_234567890123456789&#39;]
+    &gt;&gt;&gt; df = meraki_get_network_devices(api_key, db_path, networks=networks)
+    &gt;&gt;&gt; print(df)
+
+    Example 2:
+    &gt;&gt;&gt; api_key = &#39;&lt;your_api_key_here&gt;&#39;
+    &gt;&gt;&gt; db_path = &#39;/path/to/database.db&#39;
+    &gt;&gt;&gt; orgs = [&#39;O_123456789012345678&#39;]
+    &gt;&gt;&gt; df = meraki_get_network_devices(api_key, db_path, orgs=orgs)
+    &gt;&gt;&gt; print(df)
+
+    Example 3:
+    &gt;&gt;&gt; api_key = &#39;&lt;your_api_key_here&gt;&#39;
+    &gt;&gt;&gt; db_path = &#39;/path/to/database.db&#39;
+    &gt;&gt;&gt; df = meraki_get_network_devices(api_key, db_path)
+    &gt;&gt;&gt; print(df)
+    &#39;&#39;&#39;
+    # Initialize Meraki dashboard
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
+    app = dashboard.networks
+
+    # This list will contain all of the devices for each network. It will be
+    # used to create the dataframe. This method accounts for networks that have
+    # different device types, since not all device types contain the same keys.
+    data = list()
+
+    if not networks:
+        df_networks = meraki_get_org_networks(api_key, db_path)  # , orgs=orgs)
+        print(df_networks)
+        networks = df_networks[&#39;network_id&#39;].to_list()
+
+    for net in networks:
+        # There is no easy way to check if the user&#39;s API key has access to
+        # each network, so this is wrapped in a try/except block.
+        try:
+            devices = app.getNetworkDevices(net)
+            for item in devices:
+                data.append(item)
+        except Exception as e:
+            print(str(e))
+
+    df_data = dict()
+
+    # Get all of the keys from devices in &#39;data&#39;, and add them as a key to
+    # &#39;df_data&#39;. The value of the key in &#39;df_data&#39; will be a list.
+    for item in data:
+        for key in item:
+            if not df_data.get(key):
+                df_data[key] = list()
+
+    # Iterate over the devices, adding the data for each device to
+    # &#39;df_data&#39;
+    for item in data:
+        for key in df_data:
+            df_data[key].append(item.get(key))
+
+    # Create and return the dataframe
+    df_devices = pd.DataFrame.from_dict(df_data)
+
+    # Convert all data to a string. This is because Pandas incorrectly detects
+    # the data type for latitude / longitude, which causes the table insertion
+    # to fail.
+    df_devices = df_devices.astype(str)
+
+    return df_devices
+
+
+def meraki_get_network_device_statuses(db_path: str,
+                                       networks: list) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets the statuses of all devices in a network.
+
+    This function leverages the &#39;meraki_get_org_device_statuses&#39; function as
+    there is no specific API endpoint available for retrieving device statuses
+    at the network level.
+
+    Parameters
+    ----------
+    db_path : str
+        The path to the database to store the results.
+    networks : list
+        One or more network IDs.
+
+    Returns
+    -------
+    df_statuses : pd.DataFrame
+        A DataFrame containing the device statuses.
+
+    Examples
+    --------
+    &gt;&gt;&gt; db_path = &#39;/path/to/database.db&#39;
+    &gt;&gt;&gt; networks = [&#39;N_123456789012345678&#39;, &#39;N_234567890123456789&#39;]
+    &gt;&gt;&gt; df = meraki_get_network_device_statuses(db_path, networks)
+    &gt;&gt;&gt; print(df)
+    &#39;&#39;&#39;
+    df_statuses = pd.DataFrame()
+
+    con = sl.connect(db_path)
+
+    for network in networks:
+        query = f&#39;&#39;&#39;SELECT *
+        FROM meraki_org_device_statuses
+        WHERE networkId = &#34;{network}&#34;
+        ORDER BY timestamp desc
+        LIMIT 1
+        &#39;&#39;&#39;
+        result = pd.read_sql(query, con)
+        df_statuses = pd.concat([df_statuses, result])
+
+    con.close()
+
+    # Delete the &#39;table_id&#39; column, since it was pulled from the
+    # &#39;meraki_org_device_statuses&#39; table and will need to be recreated
+    del df_statuses[&#39;table_id&#39;]
+
+    return df_statuses
+
+
+def meraki_get_organizations(api_key: str) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets a list of organizations and their associated parameters that the
+    user&#39;s API key has access to.
+
+    Parameters
+    ----------
+    api_key : str
+        The user&#39;s API key.
+
+    Returns
+    -------
+    df_orgs : pd.DataFrame
+        A DataFrame containing a list of organizations the user&#39;s API key
+        has access to.
+
+    Examples
+    --------
+    &gt;&gt;&gt; api_key = &#39;&lt;your_api_key_here&gt;&#39;
+    &gt;&gt;&gt; df = meraki_get_organizations(api_key)
+    &gt;&gt;&gt; print(df)
+    &#39;&#39;&#39;
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
+
+    # Get the organizations the user has access to and add them to a dataframe
+    orgs = dashboard.organizations.getOrganizations()
+
+    df_orgs = pd.DataFrame(orgs).astype(str)
+
+    # df_data = list()
+
+    # for item in orgs:
+    #     df_data.append([item[&#39;id&#39;],
+    #                     item[&#39;name&#39;],
+    #                     item[&#39;url&#39;],
+    #                     item[&#39;api&#39;][&#39;enabled&#39;],
+    #                     item[&#39;licensing&#39;][&#39;model&#39;],
+    #                     item[&#39;cloud&#39;][&#39;region&#39;][&#39;name&#39;],
+    #                     &#39;|&#39;.join(item[&#39;management&#39;][&#39;details&#39;])]
+    #                    )
+    # cols = [&#39;org_id&#39;,
+    #         &#39;name&#39;,
+    #         &#39;url&#39;,
+    #         &#39;api&#39;,
+    #         &#39;licensing_model&#39;,
+    #         &#39;cloud_region&#39;,
+    #         &#39;management_details&#39;]
+
+    # df_orgs = pd.DataFrame(data=df_data, columns=cols).astype(str)
+
+    return df_orgs
+
+
+def meraki_get_org_devices(api_key: str,
+                           db_path: str,
+                           orgs: list = []) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets the devices for all orgs that the user&#39;s API key has access to.
+
+    Parameters
+    ----------
+    api_key : str
+        The user&#39;s API key.
+    db_path : str
+        The path to the database to store results.
+    orgs : list, optional
+        One or more organization IDs. If none are specified, then the devices
+        for all orgs will be returned. Defaults to an empty list.
+
+    Returns
+    -------
+    df_devices : pd.DataFrame
+        The device statuses for the organizations.
+
+    Examples
+    --------
+    &gt;&gt;&gt; api_key = &#39;&lt;your_api_key_here&gt;&#39;
+    &gt;&gt;&gt; db_path = &#39;/path/to/database.db&#39;
+    &gt;&gt;&gt; orgs = [&#39;org_id_1&#39;, &#39;org_id_2&#39;]
+    &gt;&gt;&gt; df = meraki_get_org_devices(api_key, db_path, orgs)
+    &gt;&gt;&gt; print(df)
+    &#39;&#39;&#39;
+    # Get the organizations (collected by &#39;meraki_get_orgs&#39;) from the database
+    table = &#39;meraki_organizations&#39;
+    organizations = hp.meraki_parse_organizations(db_path, orgs, table)
+
+    # Initialize Meraki dashboard
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
+    app = dashboard.organizations
+
+    # This list will contain all of the devices for each org. It will then be
+    # used to create the dataframe. This method accounts for orgs that have
+    # different device types, since not all device types contain the same keys.
+    data = list()
+    for org in organizations:
+        # Check if API access is enabled for the org
+        enabled = hp.meraki_check_api_enablement(db_path, org)
+        if enabled:
+            devices = app.getOrganizationDevices(org, total_pages=&#34;all&#34;)
+            for item in devices:
+                item[&#39;orgId&#39;] = org
+                data.append(item)
+
+    df_data = dict()
+    df_data[&#39;orgId&#39;] = list()
+
+    # Get all of the keys from devices in &#39;data&#39;, and add them as a key to
+    # &#39;df_data&#39;. The value of the key in &#39;df_data&#39; will be a list.
+    for item in data:
+        for key in item:
+            if not df_data.get(key) and key != &#39;orgId&#39;:
+                df_data[key] = list()
+
+    # Iterate over the devices, adding the data for each device to &#39;df_data&#39;
+    for item in data:
+        for key in df_data:
+            df_data[key].append(item.get(key))
+
+    # Create and return the dataframe
+    df_devices = pd.DataFrame.from_dict(df_data)
+
+    # Convert all data to a string. This is because Pandas incorrectly detects
+    # the data type for latitude / longitude, which causes the table insertion
+    # to fail.
+    df_devices = df_devices.astype(str)
+
+    return df_devices
+
+
+def meraki_get_org_device_statuses(api_key: str,
+                                   db_path: str,
+                                   orgs: list = [],
+                                   total_pages=&#39;all&#39;) -&gt; tuple:
+    &#39;&#39;&#39;
+    Gets the device statuses for all organizations the user&#39;s API key has
+    access to.
+
+    Parameters
+    ----------
+    api_key : str
+        The user&#39;s API key.
+    db_path : str
+        The path to the database to store results.
+    orgs : list, optional
+        One or more organization IDs. If none are specified, then the device
+        statuses for all orgs will be returned. Defaults to an empty list.
+    total_pages : int or str, optional
+        The number of pages to retrieve. Defaults to &#39;all&#39;. Note that a value
+        besides &#39;all&#39; must be an integer.
+
+    Returns
+    -------
+    tuple
+        A tuple containing:
+        - df_statuses : pd.DataFrame
+            The device statuses for the organizations.
+        - idx_cols : list
+            The column names to use for creating the SQL table index.
+
+    Examples
+    --------
+    &gt;&gt;&gt; api_key = &#39;&lt;your_api_key_here&gt;&#39;
+    &gt;&gt;&gt; db_path = &#39;/path/to/database.db&#39;
+    &gt;&gt;&gt; orgs = [&#39;org_id_1&#39;, &#39;org_id_2&#39;]
+    &gt;&gt;&gt; total_pages = 5
+    &gt;&gt;&gt; df, idx_cols = meraki_get_org_device_statuses(api_key,
+                                                      db_path,
+                                                      orgs,
+                                                      total_pages)
+    &gt;&gt;&gt; print(df)
+    &gt;&gt;&gt; print(idx_cols)
+    &#39;&#39;&#39;
+    # Initialize Meraki dashboard
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
+    app = dashboard.organizations
+
+    # If the user did not specify any organization IDs, then get them by
+    # querying the database
+    if not orgs:
+        table = &#39;meraki_organizations&#39;
+        orgs = hp.meraki_parse_organizations(db_path, orgs, table)
+
+    # Create a list to store raw results from the API (the results are
+    # returned as a list of dictionaries--one dictionary per device)
+    data = list()
+
+    # Query the API for the device statuses and add them to &#39;data&#39;)
+    tp = total_pages
+    for org in orgs:
+        # Check if API access is enabled for the org
+        enabled = hp.meraki_check_api_enablement(db_path, org)
+        if enabled:
+            statuses = app.getOrganizationDevicesStatuses(org, total_pages=tp)
+            for item in statuses:
+                item[&#39;orgId&#39;] = org  # Add the orgId to each device status
+                data.append(item)
+
+    # Create the dictionary &#39;df_data&#39; from the device statuses in &#39;data&#39;.
+    # This method adds all possible keys from the devices to &#39;df_data&#39; before
+    # adding the device statuses to &#39;df_data&#39;. If a device status does not
+    # contain a particular key then it will be added as None
+    df_data = dict()
+    for item in data:
+        for key in item:
+            if not df_data.get(key):
+                df_data[key] = list()
+
+    # Populate &#39;df_data&#39;
+    for item in data:
+        for key in df_data:
+            df_data[key].append(item.get(key))
+
+    # Create the dataframe and return it
+    df_statuses = pd.DataFrame.from_dict(df_data)
+
+    # Set all datatypes to string. Otherwise it will fail when adding the
+    # dataframe to the database
+    df_statuses = df_statuses.astype(str)
+
+    # Set the columns to use for the SQL database table index
+    idx_cols = [&#39;timestamp&#39;, &#39;mac&#39;, &#39;table_id&#39;]
+
+    return df_statuses, idx_cols
+
+
+def meraki_get_org_networks(api_key: str,
+                            db_path: str = &#39;&#39;,
+                            orgs: list = [],
+                            use_db: bool = False) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets the networks for one or more organizations.
+
+    Parameters
+    ----------
+    api_key : str
+        The user&#39;s API key.
+    db_path : str, optional
+        The path to the database to store results. Defaults to an empty string.
+    orgs : list, optional
+        A list of organization IDs to query. Note that the function assumes
+        that the orgs are accessible with the user&#39;s API key. It will not do a
+        separate check unless &#39;use_db&#39; is set to True. Defaults to an empty
+        list.
+    use_db : bool, optional
+        Whether to use a database. Results will be stored in memory if this is
+        set to False. Defaults to False.
+
+    Returns
+    -------
+    pd.DataFrame
+        The networks in one or more organizations.
+
+    Examples
+    --------
+    &gt;&gt;&gt; api_key = &#39;&lt;your_api_key_here&gt;&#39;
+    &gt;&gt;&gt; db_path = &#39;/path/to/database.db&#39;
+    &gt;&gt;&gt; orgs = [&#39;org_id_1&#39;, &#39;org_id_2&#39;]
+    &gt;&gt;&gt; use_db = True
+    &gt;&gt;&gt; df = meraki_get_org_networks(api_key, db_path, orgs, use_db)
+    &gt;&gt;&gt; print(df)
+    &#39;&#39;&#39;
+    if use_db:
+        # Get the organizations (collected by &#39;meraki_get_orgs&#39;) from the
+        # database
+        table = &#39;meraki_organizations&#39;
+        organizations = hp.meraki_parse_organizations(db_path, orgs, table)
+    else:
+        organizations = orgs
+
+    # Initialize Meraki dashboard
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
+    app = dashboard.organizations
+
+    # Create a list to store the results for all orgs. This is necessary to
+    # ensure that the DataFrame contains columns for all networks (not all
+    # networks return the same keys)
+    data = list()
+
+    df_data = dict()
+    for org in organizations:
+        if use_db:
+            # Check if API access is enabled for the org
+            enabled = hp.meraki_check_api_enablement(db_path, org)
+        else:
+            enabled = False
+        if enabled or not use_db:
+            networks = app.getOrganizationNetworks(org, total_pages=&#34;all&#34;)
+            for item in networks:
+                data.append(item)
+
+    # Iterate over &#39;data&#39;, creating the keys for the DataFrame
+    for item in data:
+        for key in item:
+            if not df_data.get(key):
+                df_data[key] = list()
+
+    # Iterate over &#39;data&#39;, adding the networks to &#39;df_data&#39;
+    for item in data:
+        for key in df_data:
+            df_data[key].append(item.get(key))
+
+    df_networks = pd.DataFrame.from_dict(df_data).astype(str)
+
+    return df_networks
+
+
+def meraki_get_switch_lldp_neighbors(db_path: str) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Uses the data returned from the &#39;meraki_get_switch_port_statuses&#39; collector
+    to create a dataframe containing switch LLDP neighbors.
+
+    Parameters
+    ----------
+    db_path : str
+        The path to the database containing the
+        &#39;meraki_get_switch_port_statuses&#39; collector output.
+
+    Returns
+    -------
+    pd.DataFrame
+        A dataframe containing the LLDP neighbors for the switch(es).
+
+    Examples
+    --------
+    &gt;&gt;&gt; db_path = &#39;/path/to/database.db&#39;
+    &gt;&gt;&gt; df_lldp = meraki_get_switch_lldp_neighbors(db_path)
+    &gt;&gt;&gt; print(df_lldp)
+    &#39;&#39;&#39;
+    # Query the database to get the LLDP neighbors
+    headers = [&#39;orgId&#39;,
+               &#39;networkId&#39;,
+               &#39;name&#39;,
+               &#39;serial&#39;,
+               &#39;portId as local_port&#39;,
+               &#39;lldp&#39;]
+    query = f&#39;&#39;&#39;SELECT {&#39;,&#39;.join(headers)}
+    FROM MERAKI_SWITCH_PORT_STATUSES
+    WHERE lldp != &#39;None&#39;
+    &#39;&#39;&#39;
+    con = sl.connect(db_path)
+    result = pd.read_sql(query, con)
+
+    # Rename &#39;portId as local_port&#39; to &#39;local_port&#39; and update &#39;headers&#39;
+    result.rename(columns={&#39;portId as local&#39;: &#39;local_port&#39;}, inplace=True)
+    headers = result.columns.to_list()
+
+    # Add result[&#39;lldp&#39;] to a list and convert each item into a dictionary. The
+    # dictionaries will be used to create the column headers.
+    lldp_col = result[&#39;lldp&#39;].to_list()
+    lldp_col = [json.loads(_.replace(&#34;&#39;&#34;, &#39;&#34;&#39;)) for _ in lldp_col]
+
+    # keys = headers
+    keys = list()
+    for item in lldp_col:
+        for key in item:
+            if key not in keys:
+                keys.append(key)
+
+    # Create a list to store the data that will be used to create the
+    # dataframe. This method ensures that keys that the Meraki API did not
+    # return (because they were empty) are added to &#39;df_lldp&#39;
+    df_data = list()
+
+    for idx, row in result.iterrows():
+        _row = [row[&#39;orgId&#39;],
+                row[&#39;networkId&#39;],
+                row[&#39;name&#39;],
+                row[&#39;serial&#39;],
+                row[&#39;local_port&#39;]]
+        lldp = json.loads(row[&#39;lldp&#39;].replace(&#34;&#39;&#34;, &#39;&#34;&#39;))
+        for key in keys:
+            _row.append(lldp.get(key))
+        df_data.append(_row)
+
+    headers.reverse()
+    for item in headers:
+        if item != &#39;lldp&#39;:
+            keys.insert(0, item)
+
+    # Create the dataframe
+    df_lldp = pd.DataFrame(data=df_data, columns=keys)
+
+    df_lldp.rename(columns={&#39;portId&#39;: &#39;remote_port&#39;}, inplace=True)
+
+    # Re-order columns. Only certain columns are selected. This ensures that
+    # the code will continue to function if Meraki adds additional keys in the
+    # future.
+    col_order = [&#39;orgId&#39;,
+                 &#39;networkId&#39;,
+                 &#39;name&#39;,
+                 &#39;serial&#39;,
+                 &#39;local_port&#39;,
+                 &#39;remote_port&#39;,
+                 &#39;systemName&#39;,
+                 &#39;chassisId&#39;,
+                 &#39;systemDescription&#39;,
+                 &#39;managementAddress&#39;]
+
+    # Reverse the list so the last item becomes the first column, the next to
+    # last item becomes the second column, and so on.
+    col_order.reverse()
+    # Re-order the columns
+    for c in col_order:
+        df_lldp.insert(0, c, df_lldp.pop(c))
+
+    return df_lldp
+
+
+def meraki_get_switch_port_statuses(api_key: str,
+                                    db_path: str,
+                                    networks: list) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets the port statuses and associated data (including errors and warnings)
+    for all Meraki switches in the specified network(s).
+
+    Parameters
+    ----------
+    api_key : str
+        The user&#39;s API key.
+    db_path : str
+        The path to the database to store results.
+    networks : list
+        The networks in which to gather switch port statuses.
+
+    Returns
+    -------
+    pd.DataFrame
+        The port statuses.
+
+    Examples
+    --------
+    &gt;&gt;&gt; api_key = &#39;&lt;your_api_key_here&gt;&#39;
+    &gt;&gt;&gt; db_path = &#39;/path/to/database.db&#39;
+    &gt;&gt;&gt; networks = [&#39;N_123456789012345678&#39;, &#39;N_234567890123456789&#39;]
+    &gt;&gt;&gt; df_ports = meraki_get_switch_port_statuses(api_key, db_path, networks)
+    &gt;&gt;&gt; print(df_ports)
+    &#39;&#39;&#39;
+    # Query the database to get all switches in the network(s)
+    statement = f&#39;&#39;&#39;networkId = &#34;{&#39;&#34; or networkId = &#34;&#39;.join(networks)}&#34;&#39;&#39;&#39;
+    query = f&#39;&#39;&#39;SELECT distinct orgId, networkId, name, serial
+    FROM MERAKI_ORG_DEVICES
+    WHERE ({statement}) and productType = &#39;switch&#39;
+    &#39;&#39;&#39;
+
+    con = sl.connect(db_path)
+    df_ports = pd.read_sql(query, con)
+
+    # Initialize the dashboard
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
+    app = dashboard.switch
+
+    # Get the port statuses for the switches in df_ports
+    data = dict()
+    for idx, row in df_ports.iterrows():
+        orgId = row[&#39;orgId&#39;]
+        networkId = row[&#39;networkId&#39;]
+        name = row[&#39;name&#39;]
+        serial = row[&#39;serial&#39;]
+
+        data[serial] = dict()
+
+        ports = app.getDeviceSwitchPortsStatuses(serial)
+        for port in ports:
+            port_id = port[&#39;portId&#39;]
+            data[serial][port_id] = dict()
+            data[serial][port_id][&#39;orgId&#39;] = orgId
+            data[serial][port_id][&#39;networkId&#39;] = networkId
+            data[serial][port_id][&#39;name&#39;] = name
+            data[serial][port_id][&#39;serial&#39;] = serial
+            for key, value in port.items():
+                data[serial][port_id][key] = value
+
+    # Create a dictionary based on the contents of &#39;data&#39;. This method ensures
+    # that all arrays are of equal length when we create the dataframe.
+    df_data = dict()
+    df_data[&#39;orgId&#39;] = list()
+    df_data[&#39;networkId&#39;] = list()
+    df_data[&#39;name&#39;] = list()
+    df_data[&#39;serial&#39;] = list()
+    for item in data:
+        device = data[item]
+        for port in device:
+            for key in device[port]:
+                if not df_data.get(key):
+                    df_data[key] = list()
+
+    for item in data:
+        device = data[item]
+        for port in device:
+            for key in df_data:
+                df_data[key].append(device[port].get(key))
+
+    df_ports = pd.DataFrame.from_dict(df_data)
+    df_ports = df_ports.astype(str)
+
+    return df_ports
+
+
+def meraki_get_switch_port_usages(api_key: str,
+                                  db_path: str,
+                                  networks: list,
+                                  timestamp: str) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets switch port usage in total rate per second.
+
+    Parameters
+    ----------
+    api_key : str
+        The user&#39;s API key.
+    db_path : str
+        The path to the database to store results.
+    networks : list
+        The networks in which to gather switch port statuses.
+    timestamp : str
+        The timestamp passed to run_collectors.
+
+    Returns
+    -------
+    pd.DataFrame
+        The port usages.
+
+    Examples
+    --------
+    &gt;&gt;&gt; api_key = &#39;&lt;your_api_key_here&gt;&#39;
+    &gt;&gt;&gt; db_path = &#39;/path/to/database.db&#39;
+    &gt;&gt;&gt; networks = [&#39;N_123456789012345678&#39;, &#39;N_234567890123456789&#39;]
+    &gt;&gt;&gt; timestamp = &#39;2022-01-01_0000&#39;
+    &gt;&gt;&gt; df_usage = meraki_get_switch_port_usages(api_key,
+                                                 db_path,
+                                                 networks,
+                                                 timestamp)
+    &gt;&gt;&gt; print(df_usage)
+    &#39;&#39;&#39;
+    # Query the database to get all switches in the network(s)
+    statement = f&#39;&#39;&#39;networkId = &#34;{&#39;&#34; or networkId = &#34;&#39;.join(networks)}&#34;&#39;&#39;&#39;
+    query = f&#39;&#39;&#39;SELECT distinct orgId, networkId, name, serial, portId
+    FROM MERAKI_SWITCH_PORT_STATUSES
+    WHERE {statement} and timestamp = &#34;{timestamp}&#34;
+    &#39;&#39;&#39;
+
+    con = sl.connect(db_path)
+    df_devices = pd.read_sql(query, con)
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
+    app = dashboard.switch
+
+    # Extract the unique serials
+    serials = [*set(df_devices[&#39;serial&#39;].to_list())]
+
+    # Convert the dataframe to a list. The keys will be the column names, and
+    # the values will be a list containing the column data
+    df_data = df_devices.to_dict(&#39;list&#39;)
+    # Create empty lists for rate per second data that will be collected
+    df_data[&#39;ratePerSec&#39;] = list()
+    df_data[&#39;sentRatePerSec&#39;] = list()
+    df_data[&#39;recvRatePerSec&#39;] = list()
+
+    # Get the port usage for each device in the network(s), and add it to
+    # df_data
+    for serial in serials:
+        for item in app.getDeviceSwitchPortsStatusesPackets(serial):
+            ratePerSec = item[&#39;packets&#39;][0][&#39;ratePerSec&#39;][&#39;total&#39;]
+            sentRatePerSec = item[&#39;packets&#39;][0][&#39;ratePerSec&#39;][&#39;sent&#39;]
+            recvRatePerSec = item[&#39;packets&#39;][0][&#39;ratePerSec&#39;][&#39;recv&#39;]
+            df_data[&#39;ratePerSec&#39;].append(ratePerSec)
+            df_data[&#39;sentRatePerSec&#39;].append(sentRatePerSec)
+            df_data[&#39;recvRatePerSec&#39;].append(recvRatePerSec)
+
+    # Create and return df_usage
+    df_usage = pd.DataFrame.from_dict(df_data)
+
+    return df_usage</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="collectors.meraki_collectors.get_network_appliance_vlans"><code class="name flex">
+<span>def <span class="ident">get_network_appliance_vlans</span></span>(<span>ansible_os: str, api_key: str, collector: str, db_path: str, timestamp: str, db_method: str = 'append', networks: list = [], orgs: list = [], replace_table: bool = False) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get the appliance VLANs for a list of networks or organizations.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>ansible_os</code></strong> :&ensp;<code>str</code></dt>
+<dd>The Ansible OS version.</dd>
+<dt><strong><code>api_key</code></strong> :&ensp;<code>str</code></dt>
+<dd>A valid Meraki Dashboard API key.</dd>
+<dt><strong><code>collector</code></strong> :&ensp;<code>str</code></dt>
+<dd>A name for the Meraki data collector.</dd>
+<dt><strong><code>db_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the SQLite database file.</dd>
+<dt><strong><code>timestamp</code></strong> :&ensp;<code>str</code></dt>
+<dd>The timestamp for the data collected in YYYY-MM-DD_HHMM format.</dd>
+<dt><strong><code>db_method</code></strong> :&ensp;<code>{'fail', 'append', 'replace'}</code>, optional</dt>
+<dd>The behavior to take when the database table already exists.
+Defaults to 'append'.</dd>
+<dt><strong><code>networks</code></strong> :&ensp;<code>list</code>, optional</dt>
+<dd>A list of Meraki network IDs. Defaults to an empty list.</dd>
+<dt><strong><code>orgs</code></strong> :&ensp;<code>list</code>, optional</dt>
+<dd>A list of Meraki organization IDs. Defaults to an empty list.</dd>
+<dt><strong><code>replace_table</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Whether to replace the 'meraki_network_appliance_vlans' table.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>pd.DataFrame</code></dt>
+<dd>A pandas DataFrame that contains the appliance VLANs.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<p>Example 1:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; ansible_os = '&lt;ansible_os&gt;'
+&gt;&gt;&gt; api_key = '&lt;your_api_key_here&gt;'
+&gt;&gt;&gt; collector = 'network_appliance_vlans'
+&gt;&gt;&gt; db_path = '/path/to/database.db'
+&gt;&gt;&gt; networks = ['N_123456789012345678', 'N_234567890123456789']
+&gt;&gt;&gt; timestamp = '2022-01-01_0000'
+&gt;&gt;&gt; df = get_network_appliance_vlans(api_key,
+                                     collector,
+                                     db_path,
+                                     timestamp,
+                                     networks=networks)
+&gt;&gt;&gt; print(df)
+</code></pre>
+<p>Example 2:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; ansible_os = '&lt;ansible_os&gt;'
+&gt;&gt;&gt; api_key = '&lt;your_api_key_here&gt;'
+&gt;&gt;&gt; collector = 'network_appliance_vlans'
+&gt;&gt;&gt; db_path = '/path/to/database.db'
+&gt;&gt;&gt; orgs = ['O_123456789012345678']
+&gt;&gt;&gt; timestamp = '2022-01-01_0000'
+&gt;&gt;&gt; df = get_network_appliance_vlans(api_key,
+                                     collector,
+                                     db_path,
+                                     timestamp,
+                                     orgs=orgs)
+&gt;&gt;&gt; print(df)
+</code></pre>
+<p>Example 3:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; ansible_os = '&lt;ansible_os&gt;'
+&gt;&gt;&gt; api_key = '&lt;your_api_key_here&gt;'
+&gt;&gt;&gt; collector = 'network_appliance_vlans'
+&gt;&gt;&gt; db_path = '/path/to/database.db'
+&gt;&gt;&gt; networks = ['N_123456789012345678', 'N_234567890123456789']
+&gt;&gt;&gt; orgs = ['O_123456789012345678']
+&gt;&gt;&gt; timestamp = '2022-01-01_0000'
+&gt;&gt;&gt; df = get_network_appliance_vlans(api_key,
+                                     collector,
+                                     db_path,
+                                     timestamp,
+                                     networks=networks,
+                                     orgs=orgs)
+&gt;&gt;&gt; print(df)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_network_appliance_vlans(ansible_os: str,
+                                api_key: str,
+                                collector: str,
+                                db_path: str,
+                                timestamp: str,
+                                db_method: str = &#39;append&#39;,
+                                networks: list = [],
+                                orgs: list = [],
+                                replace_table: bool = False) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Get the appliance VLANs for a list of networks or organizations.
+
+    Parameters
+    ----------
+    ansible_os : str
+        The Ansible OS version.
+    api_key : str
+        A valid Meraki Dashboard API key.
+    collector : str
+        A name for the Meraki data collector.
+    db_path : str
+        The path to the SQLite database file.
+    timestamp : str
+        The timestamp for the data collected in YYYY-MM-DD_HHMM format.
+    db_method : {&#39;fail&#39;, &#39;append&#39;, &#39;replace&#39;}, optional
+        The behavior to take when the database table already exists.
+        Defaults to &#39;append&#39;.
+    networks : list, optional
+        A list of Meraki network IDs. Defaults to an empty list.
+    orgs : list, optional
+        A list of Meraki organization IDs. Defaults to an empty list.
+    replace_table : bool, optional
+        Whether to replace the &#39;meraki_network_appliance_vlans&#39; table.
+
+    Returns
+    -------
+    pd.DataFrame
+        A pandas DataFrame that contains the appliance VLANs.
+
+    Examples
+    --------
+    Example 1:
+    &gt;&gt;&gt; ansible_os = &#39;&lt;ansible_os&gt;&#39;
+    &gt;&gt;&gt; api_key = &#39;&lt;your_api_key_here&gt;&#39;
+    &gt;&gt;&gt; collector = &#39;network_appliance_vlans&#39;
+    &gt;&gt;&gt; db_path = &#39;/path/to/database.db&#39;
+    &gt;&gt;&gt; networks = [&#39;N_123456789012345678&#39;, &#39;N_234567890123456789&#39;]
+    &gt;&gt;&gt; timestamp = &#39;2022-01-01_0000&#39;
+    &gt;&gt;&gt; df = get_network_appliance_vlans(api_key,
+                                         collector,
+                                         db_path,
+                                         timestamp,
+                                         networks=networks)
+    &gt;&gt;&gt; print(df)
+
+    Example 2:
+    &gt;&gt;&gt; ansible_os = &#39;&lt;ansible_os&gt;&#39;
+    &gt;&gt;&gt; api_key = &#39;&lt;your_api_key_here&gt;&#39;
+    &gt;&gt;&gt; collector = &#39;network_appliance_vlans&#39;
+    &gt;&gt;&gt; db_path = &#39;/path/to/database.db&#39;
+    &gt;&gt;&gt; orgs = [&#39;O_123456789012345678&#39;]
+    &gt;&gt;&gt; timestamp = &#39;2022-01-01_0000&#39;
+    &gt;&gt;&gt; df = get_network_appliance_vlans(api_key,
+                                         collector,
+                                         db_path,
+                                         timestamp,
+                                         orgs=orgs)
+    &gt;&gt;&gt; print(df)
+
+    Example 3:
+    &gt;&gt;&gt; ansible_os = &#39;&lt;ansible_os&gt;&#39;
+    &gt;&gt;&gt; api_key = &#39;&lt;your_api_key_here&gt;&#39;
+    &gt;&gt;&gt; collector = &#39;network_appliance_vlans&#39;
+    &gt;&gt;&gt; db_path = &#39;/path/to/database.db&#39;
+    &gt;&gt;&gt; networks = [&#39;N_123456789012345678&#39;, &#39;N_234567890123456789&#39;]
+    &gt;&gt;&gt; orgs = [&#39;O_123456789012345678&#39;]
+    &gt;&gt;&gt; timestamp = &#39;2022-01-01_0000&#39;
+    &gt;&gt;&gt; df = get_network_appliance_vlans(api_key,
+                                         collector,
+                                         db_path,
+                                         timestamp,
+                                         networks=networks,
+                                         orgs=orgs)
+    &gt;&gt;&gt; print(df)
+    &#39;&#39;&#39;
+
+    # If &#39;networks&#39; and &#39;orgs&#39; are empty, then gracefully exit the function.
+    if not networks and not orgs:
+        return pd.DataFrame()
+
+    # If &#39;networks&#39; is empty and &#39;orgs&#39; is not, get all applicable networks in
+    # the orgs.
+    if orgs and not networks:
+        joined_orgs = [f&#39;&#34;{_}&#34;&#39; for _ in orgs]
+        joined_orgs = &#39;, &#39;.join(joined_orgs)
+
+        con = sl.connect(db_path)
+
+        # Get the last timestamp in the MERAKI_ORG_NETWORKS table.
+        query = &#39;&#39;&#39;SELECT distinct timestamp
+        FROM meraki_org_networks
+        ORDER BY timestamp desc
+        LIMIT 1
+        &#39;&#39;&#39;
+        result = pd.read_sql(query, con)
+        ts = result[&#39;timestamp&#39;].to_list().pop()
+
+        # Get the unique network IDs for the most recent timestamp.
+        query = f&#39;&#39;&#39;SELECT distinct id
+        FROM meraki_org_networks
+        WHERE productTypes like &#34;%appliance%&#34;
+            AND timestamp = &#34;{ts}&#34;
+            AND organizationId IN ({joined_orgs})&#39;&#39;&#39;
+        result = pd.read_sql(query, con)
+        networks = result[&#39;id&#39;].to_list()
+
+    # Get the appliance vlans for each network. Note: if &#39;orgs&#39; and &#39;networks&#39;
+    # are both non-empty, then &#39;orgs&#39; is ignored. The list of networks takes
+    # priority.
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
+
+    # The only way to get appliance VLANs is to iterate over a list of
+    # networks. There is not a way to gather them for an organization. I found
+    # that it takes about 1 minute per 100 networks. The Meraki API
+    # automatically throttles requests (it uses a bucket token system), so
+    # there isn&#39;t a way to speed it up.
+    #
+    # Therefore, we process the networks in batches of &#39;s_len&#39;. This has two
+    # advantages:
+    # 1. Conserves memory. This is done by adding each batch to the database
+    #    then recreating the DataFrame.
+    # 2. Display progress to the end user.
+    s_len = 50  # Set the size of each slice (batch).
+    slices = list()
+    # Create a list of slices.
+    while networks:
+        slices.append(networks[:s_len])
+        if len(networks) &gt;= s_len:
+            networks = networks[s_len:]
+        else:
+            networks = list()
+
+    # Iterate over the slices, adding each slice to the database and displaying
+    # progress to the end user.
+    counter = 1
+    total = len(slices)
+    for slice in slices:
+        _ = len(slice)
+        # Display progress to the end user.
+        print(f&#39;Processing {_} networks (batch {counter} of {total})...&#39;)
+
+        for network in slice:
+            df = pd.DataFrame()
+            try:
+                result = dashboard.appliance.getNetworkApplianceVlans(network)
+                # Create the DataFrame and add it to the database.
+                df = pd.DataFrame(result).astype(str)
+                # Add the subnets, network IPs, and broadcast IPs.
+                addresses = df[&#39;subnet&#39;].to_list()
+                del df[&#39;subnet&#39;]
+                result = hp.generate_subnet_details(addresses)
+                df[&#39;subnet&#39;] = result[&#39;subnet&#39;]
+                df[&#39;network_ip&#39;] = result[&#39;network_ip&#39;]
+                df[&#39;broadcast_ip&#39;] = result[&#39;broadcast_ip&#39;]
+                # Add the DataFrame to the database.
+                if counter == 1 and replace_table:
+                    database_method = &#39;replace&#39;
+                else:
+                    database_method = db_method
+                rc.add_to_db(f&#39;{ansible_os.split(&#34;.&#34;)[-1]}_{collector}&#39;,
+                             df,
+                             timestamp,
+                             db_path,
+                             method=database_method)
+            except APIError:
+                pass
+        counter += 1
+
+    return df</code></pre>
+</details>
+</dd>
+<dt id="collectors.meraki_collectors.meraki_get_network_clients"><code class="name flex">
+<span>def <span class="ident">meraki_get_network_clients</span></span>(<span>api_key: str, networks: list, macs: list = [], per_page: int = 1000, timespan: int = 86400, total_pages: Union[int, str] = 'all') ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets the list of clients on a network.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>api_key</code></strong> :&ensp;<code>str</code></dt>
+<dd>The user's API key.</dd>
+<dt><strong><code>networks</code></strong> :&ensp;<code>list</code></dt>
+<dd>One or more network IDs.</dd>
+<dt><strong><code>macs</code></strong> :&ensp;<code>list</code>, optional</dt>
+<dd>A list of MAC addresses to filter the clients. Defaults to an empty
+list.</dd>
+<dt><strong><code>per_page</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>The number of clients to retrieve per page. Defaults to 1000.</dd>
+<dt><strong><code>timespan</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>The timespan in seconds to retrieve client data for. Defaults to 86400
+(24 hours).</dd>
+<dt><strong><code>total_pages</code></strong> :&ensp;<code>int</code> or <code>str</code>, optional</dt>
+<dd>The total number of pages to retrieve. If set to 'all', it will
+retrieve all available pages. Defaults to 'all'.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df_clients</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>A Pandas DataFrame containing the clients for the network(s).</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<p>Example 1:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; api_key = '&lt;your_api_key_here&gt;'
+&gt;&gt;&gt; networks = ['N_123456789012345678', 'N_234567890123456789']
+&gt;&gt;&gt; df = meraki_get_network_clients(api_key, networks)
+&gt;&gt;&gt; print(df)
+</code></pre>
+<p>Example 2:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; api_key = '&lt;your_api_key_here&gt;'
+&gt;&gt;&gt; networks = ['N_123456789012345678', 'N_234567890123456789']
+&gt;&gt;&gt; macs = ['00:11:22:33:44:55', 'AA:BB:CC:DD:EE:FF']
+&gt;&gt;&gt; df = meraki_get_network_clients(api_key, networks, macs=macs)
+&gt;&gt;&gt; print(df)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def meraki_get_network_clients(api_key: str,
+                               networks: list,
+                               macs: list = [],
+                               per_page: int = 1000,
+                               timespan: int = 86400,
+                               total_pages: Union[int, str] = &#39;all&#39;) \
+                                -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets the list of clients on a network.
+
+    Parameters
+    ----------
+    api_key : str
+        The user&#39;s API key.
+    networks : list
+        One or more network IDs.
+    macs : list, optional
+        A list of MAC addresses to filter the clients. Defaults to an empty
+        list.
+    per_page : int, optional
+        The number of clients to retrieve per page. Defaults to 1000.
+    timespan : int, optional
+        The timespan in seconds to retrieve client data for. Defaults to 86400
+        (24 hours).
+    total_pages : int or str, optional
+        The total number of pages to retrieve. If set to &#39;all&#39;, it will
+        retrieve all available pages. Defaults to &#39;all&#39;.
+
+    Returns
+    -------
+    df_clients : pd.DataFrame
+        A Pandas DataFrame containing the clients for the network(s).
+
+    Examples
+    --------
+    Example 1:
+    &gt;&gt;&gt; api_key = &#39;&lt;your_api_key_here&gt;&#39;
+    &gt;&gt;&gt; networks = [&#39;N_123456789012345678&#39;, &#39;N_234567890123456789&#39;]
+    &gt;&gt;&gt; df = meraki_get_network_clients(api_key, networks)
+    &gt;&gt;&gt; print(df)
+
+    Example 2:
+    &gt;&gt;&gt; api_key = &#39;&lt;your_api_key_here&gt;&#39;
+    &gt;&gt;&gt; networks = [&#39;N_123456789012345678&#39;, &#39;N_234567890123456789&#39;]
+    &gt;&gt;&gt; macs = [&#39;00:11:22:33:44:55&#39;, &#39;AA:BB:CC:DD:EE:FF&#39;]
+    &gt;&gt;&gt; df = meraki_get_network_clients(api_key, networks, macs=macs)
+    &gt;&gt;&gt; print(df)
+    &#39;&#39;&#39;
+    # Create a list to store the individual clients for each network.
+    data = list()
+
+    # Iterate over the network(s), gathering the clients and adding them to
+    # &#39;data&#39;
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
+    for network in networks:
+        clients = dashboard.networks.getNetworkClients(network,
+                                                       timespan=timespan,
+                                                       perPage=per_page,
+                                                       total_pages=total_pages)
+        for client in clients:
+            data.append(client)
+
+    # Create a dictionary to store the client data. It will be used to create
+    # &#39;df_clients&#39;
+    df_data = dict()
+
+    # Each client is returned as a dictionary. Iterate over the keys in the
+    # dictionary and add them to &#39;df_data&#39;. This requires iterating over all
+    # the clients twice, but it ensures that all keys are added to &#39;df_data&#39;.
+    for client in data:
+        for key in client:
+            df_data[key] = list()
+
+    # Iterate over the clients, adding the data to &#39;df_data&#39;
+    for client in data:
+        for key in df_data:
+            df_data[key].append(client.get(key))
+
+    # Create the dataframe and convert all datatypes to strings
+    df = pd.DataFrame.from_dict(df_data)
+    df = df.astype(&#39;str&#39;)
+
+    # Create &#39;df_clients&#39;. If the user has provided a list of MACs, then only
+    # add those clients to &#39;df_clients&#39;. Otherwise, add all clients.
+    if macs:
+        df_clients = pd.DataFrame()
+        for mac in macs:
+            mask = df[&#39;mac&#39;].str.contains(mac)
+            df_clients = pd.concat([df_clients, df[mask]])
+        # Drop duplicate rows. They can be created if a user esarches for
+        # partial MAC addresses that overlap (e.g., &#39;ec:f0&#39;, &#39;ec:f0:b6&#39;)
+        df_clients = df_clients.drop_duplicates()
+        df_clients = df_clients.reset_index(drop=True)
+    else:
+        df_clients = df.copy()
+
+    return df_clients</code></pre>
+</details>
+</dd>
+<dt id="collectors.meraki_collectors.meraki_get_network_device_statuses"><code class="name flex">
+<span>def <span class="ident">meraki_get_network_device_statuses</span></span>(<span>db_path: str, networks: list) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets the statuses of all devices in a network.</p>
+<p>This function leverages the 'meraki_get_org_device_statuses' function as
+there is no specific API endpoint available for retrieving device statuses
+at the network level.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>db_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the database to store the results.</dd>
+<dt><strong><code>networks</code></strong> :&ensp;<code>list</code></dt>
+<dd>One or more network IDs.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df_statuses</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>A DataFrame containing the device statuses.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; db_path = '/path/to/database.db'
+&gt;&gt;&gt; networks = ['N_123456789012345678', 'N_234567890123456789']
+&gt;&gt;&gt; df = meraki_get_network_device_statuses(db_path, networks)
+&gt;&gt;&gt; print(df)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def meraki_get_network_device_statuses(db_path: str,
+                                       networks: list) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets the statuses of all devices in a network.
+
+    This function leverages the &#39;meraki_get_org_device_statuses&#39; function as
+    there is no specific API endpoint available for retrieving device statuses
+    at the network level.
+
+    Parameters
+    ----------
+    db_path : str
+        The path to the database to store the results.
+    networks : list
+        One or more network IDs.
+
+    Returns
+    -------
+    df_statuses : pd.DataFrame
+        A DataFrame containing the device statuses.
+
+    Examples
+    --------
+    &gt;&gt;&gt; db_path = &#39;/path/to/database.db&#39;
+    &gt;&gt;&gt; networks = [&#39;N_123456789012345678&#39;, &#39;N_234567890123456789&#39;]
+    &gt;&gt;&gt; df = meraki_get_network_device_statuses(db_path, networks)
+    &gt;&gt;&gt; print(df)
+    &#39;&#39;&#39;
+    df_statuses = pd.DataFrame()
+
+    con = sl.connect(db_path)
+
+    for network in networks:
+        query = f&#39;&#39;&#39;SELECT *
+        FROM meraki_org_device_statuses
+        WHERE networkId = &#34;{network}&#34;
+        ORDER BY timestamp desc
+        LIMIT 1
+        &#39;&#39;&#39;
+        result = pd.read_sql(query, con)
+        df_statuses = pd.concat([df_statuses, result])
+
+    con.close()
+
+    # Delete the &#39;table_id&#39; column, since it was pulled from the
+    # &#39;meraki_org_device_statuses&#39; table and will need to be recreated
+    del df_statuses[&#39;table_id&#39;]
+
+    return df_statuses</code></pre>
+</details>
+</dd>
+<dt id="collectors.meraki_collectors.meraki_get_network_devices"><code class="name flex">
+<span>def <span class="ident">meraki_get_network_devices</span></span>(<span>api_key: str, db_path: str, networks: list = [], orgs: list = []) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets the devices for all orgs that the user's API key has access to.</p>
+<p>This function uses the following logic:</p>
+<ol>
+<li>If a user passes a list of networks, the list of orgs is ignored.</li>
+<li>If a user passes a list of orgs but not a list of networks, the function
+will query all networks in the list of orgs that the user's API key has
+access to.</li>
+<li>If a user does not pass a list of networks or a list of orgs, the
+function will query all networks in all orgs the user's API key has
+access to.</li>
+</ol>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>api_key</code></strong> :&ensp;<code>str</code></dt>
+<dd>The user's API key.</dd>
+<dt><strong><code>db_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the database to store results.</dd>
+<dt><strong><code>networks</code></strong> :&ensp;<code>list</code>, optional</dt>
+<dd>One or more network IDs. Defaults to an empty list.</dd>
+<dt><strong><code>orgs</code></strong> :&ensp;<code>list</code>, optional</dt>
+<dd>One or more organization IDs. If none are specified, then the devices
+for all orgs will be returned.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df_devices</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>The device statuses for the network(s).</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<p>Example 1:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; api_key = '&lt;your_api_key_here&gt;'
+&gt;&gt;&gt; db_path = '/path/to/database.db'
+&gt;&gt;&gt; networks = ['N_123456789012345678', 'N_234567890123456789']
+&gt;&gt;&gt; df = meraki_get_network_devices(api_key, db_path, networks=networks)
+&gt;&gt;&gt; print(df)
+</code></pre>
+<p>Example 2:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; api_key = '&lt;your_api_key_here&gt;'
+&gt;&gt;&gt; db_path = '/path/to/database.db'
+&gt;&gt;&gt; orgs = ['O_123456789012345678']
+&gt;&gt;&gt; df = meraki_get_network_devices(api_key, db_path, orgs=orgs)
+&gt;&gt;&gt; print(df)
+</code></pre>
+<p>Example 3:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; api_key = '&lt;your_api_key_here&gt;'
+&gt;&gt;&gt; db_path = '/path/to/database.db'
+&gt;&gt;&gt; df = meraki_get_network_devices(api_key, db_path)
+&gt;&gt;&gt; print(df)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def meraki_get_network_devices(api_key: str,
+                               db_path: str,
+                               networks: list = [],
+                               orgs: list = []) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets the devices for all orgs that the user&#39;s API key has access to.
+
+    This function uses the following logic:
+
+    1. If a user passes a list of networks, the list of orgs is ignored.
+    2. If a user passes a list of orgs but not a list of networks, the function
+       will query all networks in the list of orgs that the user&#39;s API key has
+       access to.
+    3. If a user does not pass a list of networks or a list of orgs, the
+       function will query all networks in all orgs the user&#39;s API key has
+       access to.
+
+    Parameters
+    ----------
+    api_key : str
+        The user&#39;s API key.
+    db_path : str
+        The path to the database to store results.
+    networks : list, optional
+        One or more network IDs. Defaults to an empty list.
+    orgs : list, optional
+        One or more organization IDs. If none are specified, then the devices
+        for all orgs will be returned.
+
+    Returns
+    -------
+    df_devices : pd.DataFrame
+        The device statuses for the network(s).
+
+    Examples
+    --------
+    Example 1:
+    &gt;&gt;&gt; api_key = &#39;&lt;your_api_key_here&gt;&#39;
+    &gt;&gt;&gt; db_path = &#39;/path/to/database.db&#39;
+    &gt;&gt;&gt; networks = [&#39;N_123456789012345678&#39;, &#39;N_234567890123456789&#39;]
+    &gt;&gt;&gt; df = meraki_get_network_devices(api_key, db_path, networks=networks)
+    &gt;&gt;&gt; print(df)
+
+    Example 2:
+    &gt;&gt;&gt; api_key = &#39;&lt;your_api_key_here&gt;&#39;
+    &gt;&gt;&gt; db_path = &#39;/path/to/database.db&#39;
+    &gt;&gt;&gt; orgs = [&#39;O_123456789012345678&#39;]
+    &gt;&gt;&gt; df = meraki_get_network_devices(api_key, db_path, orgs=orgs)
+    &gt;&gt;&gt; print(df)
+
+    Example 3:
+    &gt;&gt;&gt; api_key = &#39;&lt;your_api_key_here&gt;&#39;
+    &gt;&gt;&gt; db_path = &#39;/path/to/database.db&#39;
+    &gt;&gt;&gt; df = meraki_get_network_devices(api_key, db_path)
+    &gt;&gt;&gt; print(df)
+    &#39;&#39;&#39;
+    # Initialize Meraki dashboard
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
+    app = dashboard.networks
+
+    # This list will contain all of the devices for each network. It will be
+    # used to create the dataframe. This method accounts for networks that have
+    # different device types, since not all device types contain the same keys.
+    data = list()
+
+    if not networks:
+        df_networks = meraki_get_org_networks(api_key, db_path)  # , orgs=orgs)
+        print(df_networks)
+        networks = df_networks[&#39;network_id&#39;].to_list()
+
+    for net in networks:
+        # There is no easy way to check if the user&#39;s API key has access to
+        # each network, so this is wrapped in a try/except block.
+        try:
+            devices = app.getNetworkDevices(net)
+            for item in devices:
+                data.append(item)
+        except Exception as e:
+            print(str(e))
+
+    df_data = dict()
+
+    # Get all of the keys from devices in &#39;data&#39;, and add them as a key to
+    # &#39;df_data&#39;. The value of the key in &#39;df_data&#39; will be a list.
+    for item in data:
+        for key in item:
+            if not df_data.get(key):
+                df_data[key] = list()
+
+    # Iterate over the devices, adding the data for each device to
+    # &#39;df_data&#39;
+    for item in data:
+        for key in df_data:
+            df_data[key].append(item.get(key))
+
+    # Create and return the dataframe
+    df_devices = pd.DataFrame.from_dict(df_data)
+
+    # Convert all data to a string. This is because Pandas incorrectly detects
+    # the data type for latitude / longitude, which causes the table insertion
+    # to fail.
+    df_devices = df_devices.astype(str)
+
+    return df_devices</code></pre>
+</details>
+</dd>
+<dt id="collectors.meraki_collectors.meraki_get_org_device_statuses"><code class="name flex">
+<span>def <span class="ident">meraki_get_org_device_statuses</span></span>(<span>api_key: str, db_path: str, orgs: list = [], total_pages='all') ‑> tuple</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets the device statuses for all organizations the user's API key has
+access to.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>api_key</code></strong> :&ensp;<code>str</code></dt>
+<dd>The user's API key.</dd>
+<dt><strong><code>db_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the database to store results.</dd>
+<dt><strong><code>orgs</code></strong> :&ensp;<code>list</code>, optional</dt>
+<dd>One or more organization IDs. If none are specified, then the device
+statuses for all orgs will be returned. Defaults to an empty list.</dd>
+<dt><strong><code>total_pages</code></strong> :&ensp;<code>int</code> or <code>str</code>, optional</dt>
+<dd>The number of pages to retrieve. Defaults to 'all'. Note that a value
+besides 'all' must be an integer.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>tuple</code></dt>
+<dd>A tuple containing:
+- df_statuses : pd.DataFrame
+The device statuses for the organizations.
+- idx_cols : list
+The column names to use for creating the SQL table index.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; api_key = '&lt;your_api_key_here&gt;'
+&gt;&gt;&gt; db_path = '/path/to/database.db'
+&gt;&gt;&gt; orgs = ['org_id_1', 'org_id_2']
+&gt;&gt;&gt; total_pages = 5
+&gt;&gt;&gt; df, idx_cols = meraki_get_org_device_statuses(api_key,
+                                                  db_path,
+                                                  orgs,
+                                                  total_pages)
+&gt;&gt;&gt; print(df)
+&gt;&gt;&gt; print(idx_cols)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def meraki_get_org_device_statuses(api_key: str,
+                                   db_path: str,
+                                   orgs: list = [],
+                                   total_pages=&#39;all&#39;) -&gt; tuple:
+    &#39;&#39;&#39;
+    Gets the device statuses for all organizations the user&#39;s API key has
+    access to.
+
+    Parameters
+    ----------
+    api_key : str
+        The user&#39;s API key.
+    db_path : str
+        The path to the database to store results.
+    orgs : list, optional
+        One or more organization IDs. If none are specified, then the device
+        statuses for all orgs will be returned. Defaults to an empty list.
+    total_pages : int or str, optional
+        The number of pages to retrieve. Defaults to &#39;all&#39;. Note that a value
+        besides &#39;all&#39; must be an integer.
+
+    Returns
+    -------
+    tuple
+        A tuple containing:
+        - df_statuses : pd.DataFrame
+            The device statuses for the organizations.
+        - idx_cols : list
+            The column names to use for creating the SQL table index.
+
+    Examples
+    --------
+    &gt;&gt;&gt; api_key = &#39;&lt;your_api_key_here&gt;&#39;
+    &gt;&gt;&gt; db_path = &#39;/path/to/database.db&#39;
+    &gt;&gt;&gt; orgs = [&#39;org_id_1&#39;, &#39;org_id_2&#39;]
+    &gt;&gt;&gt; total_pages = 5
+    &gt;&gt;&gt; df, idx_cols = meraki_get_org_device_statuses(api_key,
+                                                      db_path,
+                                                      orgs,
+                                                      total_pages)
+    &gt;&gt;&gt; print(df)
+    &gt;&gt;&gt; print(idx_cols)
+    &#39;&#39;&#39;
+    # Initialize Meraki dashboard
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
+    app = dashboard.organizations
+
+    # If the user did not specify any organization IDs, then get them by
+    # querying the database
+    if not orgs:
+        table = &#39;meraki_organizations&#39;
+        orgs = hp.meraki_parse_organizations(db_path, orgs, table)
+
+    # Create a list to store raw results from the API (the results are
+    # returned as a list of dictionaries--one dictionary per device)
+    data = list()
+
+    # Query the API for the device statuses and add them to &#39;data&#39;)
+    tp = total_pages
+    for org in orgs:
+        # Check if API access is enabled for the org
+        enabled = hp.meraki_check_api_enablement(db_path, org)
+        if enabled:
+            statuses = app.getOrganizationDevicesStatuses(org, total_pages=tp)
+            for item in statuses:
+                item[&#39;orgId&#39;] = org  # Add the orgId to each device status
+                data.append(item)
+
+    # Create the dictionary &#39;df_data&#39; from the device statuses in &#39;data&#39;.
+    # This method adds all possible keys from the devices to &#39;df_data&#39; before
+    # adding the device statuses to &#39;df_data&#39;. If a device status does not
+    # contain a particular key then it will be added as None
+    df_data = dict()
+    for item in data:
+        for key in item:
+            if not df_data.get(key):
+                df_data[key] = list()
+
+    # Populate &#39;df_data&#39;
+    for item in data:
+        for key in df_data:
+            df_data[key].append(item.get(key))
+
+    # Create the dataframe and return it
+    df_statuses = pd.DataFrame.from_dict(df_data)
+
+    # Set all datatypes to string. Otherwise it will fail when adding the
+    # dataframe to the database
+    df_statuses = df_statuses.astype(str)
+
+    # Set the columns to use for the SQL database table index
+    idx_cols = [&#39;timestamp&#39;, &#39;mac&#39;, &#39;table_id&#39;]
+
+    return df_statuses, idx_cols</code></pre>
+</details>
+</dd>
+<dt id="collectors.meraki_collectors.meraki_get_org_devices"><code class="name flex">
+<span>def <span class="ident">meraki_get_org_devices</span></span>(<span>api_key: str, db_path: str, orgs: list = []) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets the devices for all orgs that the user's API key has access to.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>api_key</code></strong> :&ensp;<code>str</code></dt>
+<dd>The user's API key.</dd>
+<dt><strong><code>db_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the database to store results.</dd>
+<dt><strong><code>orgs</code></strong> :&ensp;<code>list</code>, optional</dt>
+<dd>One or more organization IDs. If none are specified, then the devices
+for all orgs will be returned. Defaults to an empty list.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df_devices</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>The device statuses for the organizations.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; api_key = '&lt;your_api_key_here&gt;'
+&gt;&gt;&gt; db_path = '/path/to/database.db'
+&gt;&gt;&gt; orgs = ['org_id_1', 'org_id_2']
+&gt;&gt;&gt; df = meraki_get_org_devices(api_key, db_path, orgs)
+&gt;&gt;&gt; print(df)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def meraki_get_org_devices(api_key: str,
+                           db_path: str,
+                           orgs: list = []) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets the devices for all orgs that the user&#39;s API key has access to.
+
+    Parameters
+    ----------
+    api_key : str
+        The user&#39;s API key.
+    db_path : str
+        The path to the database to store results.
+    orgs : list, optional
+        One or more organization IDs. If none are specified, then the devices
+        for all orgs will be returned. Defaults to an empty list.
+
+    Returns
+    -------
+    df_devices : pd.DataFrame
+        The device statuses for the organizations.
+
+    Examples
+    --------
+    &gt;&gt;&gt; api_key = &#39;&lt;your_api_key_here&gt;&#39;
+    &gt;&gt;&gt; db_path = &#39;/path/to/database.db&#39;
+    &gt;&gt;&gt; orgs = [&#39;org_id_1&#39;, &#39;org_id_2&#39;]
+    &gt;&gt;&gt; df = meraki_get_org_devices(api_key, db_path, orgs)
+    &gt;&gt;&gt; print(df)
+    &#39;&#39;&#39;
+    # Get the organizations (collected by &#39;meraki_get_orgs&#39;) from the database
+    table = &#39;meraki_organizations&#39;
+    organizations = hp.meraki_parse_organizations(db_path, orgs, table)
+
+    # Initialize Meraki dashboard
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
+    app = dashboard.organizations
+
+    # This list will contain all of the devices for each org. It will then be
+    # used to create the dataframe. This method accounts for orgs that have
+    # different device types, since not all device types contain the same keys.
+    data = list()
+    for org in organizations:
+        # Check if API access is enabled for the org
+        enabled = hp.meraki_check_api_enablement(db_path, org)
+        if enabled:
+            devices = app.getOrganizationDevices(org, total_pages=&#34;all&#34;)
+            for item in devices:
+                item[&#39;orgId&#39;] = org
+                data.append(item)
+
+    df_data = dict()
+    df_data[&#39;orgId&#39;] = list()
+
+    # Get all of the keys from devices in &#39;data&#39;, and add them as a key to
+    # &#39;df_data&#39;. The value of the key in &#39;df_data&#39; will be a list.
+    for item in data:
+        for key in item:
+            if not df_data.get(key) and key != &#39;orgId&#39;:
+                df_data[key] = list()
+
+    # Iterate over the devices, adding the data for each device to &#39;df_data&#39;
+    for item in data:
+        for key in df_data:
+            df_data[key].append(item.get(key))
+
+    # Create and return the dataframe
+    df_devices = pd.DataFrame.from_dict(df_data)
+
+    # Convert all data to a string. This is because Pandas incorrectly detects
+    # the data type for latitude / longitude, which causes the table insertion
+    # to fail.
+    df_devices = df_devices.astype(str)
+
+    return df_devices</code></pre>
+</details>
+</dd>
+<dt id="collectors.meraki_collectors.meraki_get_org_networks"><code class="name flex">
+<span>def <span class="ident">meraki_get_org_networks</span></span>(<span>api_key: str, db_path: str = '', orgs: list = [], use_db: bool = False) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets the networks for one or more organizations.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>api_key</code></strong> :&ensp;<code>str</code></dt>
+<dd>The user's API key.</dd>
+<dt><strong><code>db_path</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The path to the database to store results. Defaults to an empty string.</dd>
+<dt><strong><code>orgs</code></strong> :&ensp;<code>list</code>, optional</dt>
+<dd>A list of organization IDs to query. Note that the function assumes
+that the orgs are accessible with the user's API key. It will not do a
+separate check unless 'use_db' is set to True. Defaults to an empty
+list.</dd>
+<dt><strong><code>use_db</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Whether to use a database. Results will be stored in memory if this is
+set to False. Defaults to False.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>pd.DataFrame</code></dt>
+<dd>The networks in one or more organizations.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; api_key = '&lt;your_api_key_here&gt;'
+&gt;&gt;&gt; db_path = '/path/to/database.db'
+&gt;&gt;&gt; orgs = ['org_id_1', 'org_id_2']
+&gt;&gt;&gt; use_db = True
+&gt;&gt;&gt; df = meraki_get_org_networks(api_key, db_path, orgs, use_db)
+&gt;&gt;&gt; print(df)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def meraki_get_org_networks(api_key: str,
+                            db_path: str = &#39;&#39;,
+                            orgs: list = [],
+                            use_db: bool = False) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets the networks for one or more organizations.
+
+    Parameters
+    ----------
+    api_key : str
+        The user&#39;s API key.
+    db_path : str, optional
+        The path to the database to store results. Defaults to an empty string.
+    orgs : list, optional
+        A list of organization IDs to query. Note that the function assumes
+        that the orgs are accessible with the user&#39;s API key. It will not do a
+        separate check unless &#39;use_db&#39; is set to True. Defaults to an empty
+        list.
+    use_db : bool, optional
+        Whether to use a database. Results will be stored in memory if this is
+        set to False. Defaults to False.
+
+    Returns
+    -------
+    pd.DataFrame
+        The networks in one or more organizations.
+
+    Examples
+    --------
+    &gt;&gt;&gt; api_key = &#39;&lt;your_api_key_here&gt;&#39;
+    &gt;&gt;&gt; db_path = &#39;/path/to/database.db&#39;
+    &gt;&gt;&gt; orgs = [&#39;org_id_1&#39;, &#39;org_id_2&#39;]
+    &gt;&gt;&gt; use_db = True
+    &gt;&gt;&gt; df = meraki_get_org_networks(api_key, db_path, orgs, use_db)
+    &gt;&gt;&gt; print(df)
+    &#39;&#39;&#39;
+    if use_db:
+        # Get the organizations (collected by &#39;meraki_get_orgs&#39;) from the
+        # database
+        table = &#39;meraki_organizations&#39;
+        organizations = hp.meraki_parse_organizations(db_path, orgs, table)
+    else:
+        organizations = orgs
+
+    # Initialize Meraki dashboard
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
+    app = dashboard.organizations
+
+    # Create a list to store the results for all orgs. This is necessary to
+    # ensure that the DataFrame contains columns for all networks (not all
+    # networks return the same keys)
+    data = list()
+
+    df_data = dict()
+    for org in organizations:
+        if use_db:
+            # Check if API access is enabled for the org
+            enabled = hp.meraki_check_api_enablement(db_path, org)
+        else:
+            enabled = False
+        if enabled or not use_db:
+            networks = app.getOrganizationNetworks(org, total_pages=&#34;all&#34;)
+            for item in networks:
+                data.append(item)
+
+    # Iterate over &#39;data&#39;, creating the keys for the DataFrame
+    for item in data:
+        for key in item:
+            if not df_data.get(key):
+                df_data[key] = list()
+
+    # Iterate over &#39;data&#39;, adding the networks to &#39;df_data&#39;
+    for item in data:
+        for key in df_data:
+            df_data[key].append(item.get(key))
+
+    df_networks = pd.DataFrame.from_dict(df_data).astype(str)
+
+    return df_networks</code></pre>
+</details>
+</dd>
+<dt id="collectors.meraki_collectors.meraki_get_organizations"><code class="name flex">
+<span>def <span class="ident">meraki_get_organizations</span></span>(<span>api_key: str) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets a list of organizations and their associated parameters that the
+user's API key has access to.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>api_key</code></strong> :&ensp;<code>str</code></dt>
+<dd>The user's API key.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df_orgs</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>A DataFrame containing a list of organizations the user's API key
+has access to.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; api_key = '&lt;your_api_key_here&gt;'
+&gt;&gt;&gt; df = meraki_get_organizations(api_key)
+&gt;&gt;&gt; print(df)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def meraki_get_organizations(api_key: str) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets a list of organizations and their associated parameters that the
+    user&#39;s API key has access to.
+
+    Parameters
+    ----------
+    api_key : str
+        The user&#39;s API key.
+
+    Returns
+    -------
+    df_orgs : pd.DataFrame
+        A DataFrame containing a list of organizations the user&#39;s API key
+        has access to.
+
+    Examples
+    --------
+    &gt;&gt;&gt; api_key = &#39;&lt;your_api_key_here&gt;&#39;
+    &gt;&gt;&gt; df = meraki_get_organizations(api_key)
+    &gt;&gt;&gt; print(df)
+    &#39;&#39;&#39;
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
+
+    # Get the organizations the user has access to and add them to a dataframe
+    orgs = dashboard.organizations.getOrganizations()
+
+    df_orgs = pd.DataFrame(orgs).astype(str)
+
+    # df_data = list()
+
+    # for item in orgs:
+    #     df_data.append([item[&#39;id&#39;],
+    #                     item[&#39;name&#39;],
+    #                     item[&#39;url&#39;],
+    #                     item[&#39;api&#39;][&#39;enabled&#39;],
+    #                     item[&#39;licensing&#39;][&#39;model&#39;],
+    #                     item[&#39;cloud&#39;][&#39;region&#39;][&#39;name&#39;],
+    #                     &#39;|&#39;.join(item[&#39;management&#39;][&#39;details&#39;])]
+    #                    )
+    # cols = [&#39;org_id&#39;,
+    #         &#39;name&#39;,
+    #         &#39;url&#39;,
+    #         &#39;api&#39;,
+    #         &#39;licensing_model&#39;,
+    #         &#39;cloud_region&#39;,
+    #         &#39;management_details&#39;]
+
+    # df_orgs = pd.DataFrame(data=df_data, columns=cols).astype(str)
+
+    return df_orgs</code></pre>
+</details>
+</dd>
+<dt id="collectors.meraki_collectors.meraki_get_switch_lldp_neighbors"><code class="name flex">
+<span>def <span class="ident">meraki_get_switch_lldp_neighbors</span></span>(<span>db_path: str) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Uses the data returned from the 'meraki_get_switch_port_statuses' collector
+to create a dataframe containing switch LLDP neighbors.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>db_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the database containing the
+'meraki_get_switch_port_statuses' collector output.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>pd.DataFrame</code></dt>
+<dd>A dataframe containing the LLDP neighbors for the switch(es).</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; db_path = '/path/to/database.db'
+&gt;&gt;&gt; df_lldp = meraki_get_switch_lldp_neighbors(db_path)
+&gt;&gt;&gt; print(df_lldp)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def meraki_get_switch_lldp_neighbors(db_path: str) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Uses the data returned from the &#39;meraki_get_switch_port_statuses&#39; collector
+    to create a dataframe containing switch LLDP neighbors.
+
+    Parameters
+    ----------
+    db_path : str
+        The path to the database containing the
+        &#39;meraki_get_switch_port_statuses&#39; collector output.
+
+    Returns
+    -------
+    pd.DataFrame
+        A dataframe containing the LLDP neighbors for the switch(es).
+
+    Examples
+    --------
+    &gt;&gt;&gt; db_path = &#39;/path/to/database.db&#39;
+    &gt;&gt;&gt; df_lldp = meraki_get_switch_lldp_neighbors(db_path)
+    &gt;&gt;&gt; print(df_lldp)
+    &#39;&#39;&#39;
+    # Query the database to get the LLDP neighbors
+    headers = [&#39;orgId&#39;,
+               &#39;networkId&#39;,
+               &#39;name&#39;,
+               &#39;serial&#39;,
+               &#39;portId as local_port&#39;,
+               &#39;lldp&#39;]
+    query = f&#39;&#39;&#39;SELECT {&#39;,&#39;.join(headers)}
+    FROM MERAKI_SWITCH_PORT_STATUSES
+    WHERE lldp != &#39;None&#39;
+    &#39;&#39;&#39;
+    con = sl.connect(db_path)
+    result = pd.read_sql(query, con)
+
+    # Rename &#39;portId as local_port&#39; to &#39;local_port&#39; and update &#39;headers&#39;
+    result.rename(columns={&#39;portId as local&#39;: &#39;local_port&#39;}, inplace=True)
+    headers = result.columns.to_list()
+
+    # Add result[&#39;lldp&#39;] to a list and convert each item into a dictionary. The
+    # dictionaries will be used to create the column headers.
+    lldp_col = result[&#39;lldp&#39;].to_list()
+    lldp_col = [json.loads(_.replace(&#34;&#39;&#34;, &#39;&#34;&#39;)) for _ in lldp_col]
+
+    # keys = headers
+    keys = list()
+    for item in lldp_col:
+        for key in item:
+            if key not in keys:
+                keys.append(key)
+
+    # Create a list to store the data that will be used to create the
+    # dataframe. This method ensures that keys that the Meraki API did not
+    # return (because they were empty) are added to &#39;df_lldp&#39;
+    df_data = list()
+
+    for idx, row in result.iterrows():
+        _row = [row[&#39;orgId&#39;],
+                row[&#39;networkId&#39;],
+                row[&#39;name&#39;],
+                row[&#39;serial&#39;],
+                row[&#39;local_port&#39;]]
+        lldp = json.loads(row[&#39;lldp&#39;].replace(&#34;&#39;&#34;, &#39;&#34;&#39;))
+        for key in keys:
+            _row.append(lldp.get(key))
+        df_data.append(_row)
+
+    headers.reverse()
+    for item in headers:
+        if item != &#39;lldp&#39;:
+            keys.insert(0, item)
+
+    # Create the dataframe
+    df_lldp = pd.DataFrame(data=df_data, columns=keys)
+
+    df_lldp.rename(columns={&#39;portId&#39;: &#39;remote_port&#39;}, inplace=True)
+
+    # Re-order columns. Only certain columns are selected. This ensures that
+    # the code will continue to function if Meraki adds additional keys in the
+    # future.
+    col_order = [&#39;orgId&#39;,
+                 &#39;networkId&#39;,
+                 &#39;name&#39;,
+                 &#39;serial&#39;,
+                 &#39;local_port&#39;,
+                 &#39;remote_port&#39;,
+                 &#39;systemName&#39;,
+                 &#39;chassisId&#39;,
+                 &#39;systemDescription&#39;,
+                 &#39;managementAddress&#39;]
+
+    # Reverse the list so the last item becomes the first column, the next to
+    # last item becomes the second column, and so on.
+    col_order.reverse()
+    # Re-order the columns
+    for c in col_order:
+        df_lldp.insert(0, c, df_lldp.pop(c))
+
+    return df_lldp</code></pre>
+</details>
+</dd>
+<dt id="collectors.meraki_collectors.meraki_get_switch_port_statuses"><code class="name flex">
+<span>def <span class="ident">meraki_get_switch_port_statuses</span></span>(<span>api_key: str, db_path: str, networks: list) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets the port statuses and associated data (including errors and warnings)
+for all Meraki switches in the specified network(s).</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>api_key</code></strong> :&ensp;<code>str</code></dt>
+<dd>The user's API key.</dd>
+<dt><strong><code>db_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the database to store results.</dd>
+<dt><strong><code>networks</code></strong> :&ensp;<code>list</code></dt>
+<dd>The networks in which to gather switch port statuses.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>pd.DataFrame</code></dt>
+<dd>The port statuses.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; api_key = '&lt;your_api_key_here&gt;'
+&gt;&gt;&gt; db_path = '/path/to/database.db'
+&gt;&gt;&gt; networks = ['N_123456789012345678', 'N_234567890123456789']
+&gt;&gt;&gt; df_ports = meraki_get_switch_port_statuses(api_key, db_path, networks)
+&gt;&gt;&gt; print(df_ports)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def meraki_get_switch_port_statuses(api_key: str,
+                                    db_path: str,
+                                    networks: list) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets the port statuses and associated data (including errors and warnings)
+    for all Meraki switches in the specified network(s).
+
+    Parameters
+    ----------
+    api_key : str
+        The user&#39;s API key.
+    db_path : str
+        The path to the database to store results.
+    networks : list
+        The networks in which to gather switch port statuses.
+
+    Returns
+    -------
+    pd.DataFrame
+        The port statuses.
+
+    Examples
+    --------
+    &gt;&gt;&gt; api_key = &#39;&lt;your_api_key_here&gt;&#39;
+    &gt;&gt;&gt; db_path = &#39;/path/to/database.db&#39;
+    &gt;&gt;&gt; networks = [&#39;N_123456789012345678&#39;, &#39;N_234567890123456789&#39;]
+    &gt;&gt;&gt; df_ports = meraki_get_switch_port_statuses(api_key, db_path, networks)
+    &gt;&gt;&gt; print(df_ports)
+    &#39;&#39;&#39;
+    # Query the database to get all switches in the network(s)
+    statement = f&#39;&#39;&#39;networkId = &#34;{&#39;&#34; or networkId = &#34;&#39;.join(networks)}&#34;&#39;&#39;&#39;
+    query = f&#39;&#39;&#39;SELECT distinct orgId, networkId, name, serial
+    FROM MERAKI_ORG_DEVICES
+    WHERE ({statement}) and productType = &#39;switch&#39;
+    &#39;&#39;&#39;
+
+    con = sl.connect(db_path)
+    df_ports = pd.read_sql(query, con)
+
+    # Initialize the dashboard
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
+    app = dashboard.switch
+
+    # Get the port statuses for the switches in df_ports
+    data = dict()
+    for idx, row in df_ports.iterrows():
+        orgId = row[&#39;orgId&#39;]
+        networkId = row[&#39;networkId&#39;]
+        name = row[&#39;name&#39;]
+        serial = row[&#39;serial&#39;]
+
+        data[serial] = dict()
+
+        ports = app.getDeviceSwitchPortsStatuses(serial)
+        for port in ports:
+            port_id = port[&#39;portId&#39;]
+            data[serial][port_id] = dict()
+            data[serial][port_id][&#39;orgId&#39;] = orgId
+            data[serial][port_id][&#39;networkId&#39;] = networkId
+            data[serial][port_id][&#39;name&#39;] = name
+            data[serial][port_id][&#39;serial&#39;] = serial
+            for key, value in port.items():
+                data[serial][port_id][key] = value
+
+    # Create a dictionary based on the contents of &#39;data&#39;. This method ensures
+    # that all arrays are of equal length when we create the dataframe.
+    df_data = dict()
+    df_data[&#39;orgId&#39;] = list()
+    df_data[&#39;networkId&#39;] = list()
+    df_data[&#39;name&#39;] = list()
+    df_data[&#39;serial&#39;] = list()
+    for item in data:
+        device = data[item]
+        for port in device:
+            for key in device[port]:
+                if not df_data.get(key):
+                    df_data[key] = list()
+
+    for item in data:
+        device = data[item]
+        for port in device:
+            for key in df_data:
+                df_data[key].append(device[port].get(key))
+
+    df_ports = pd.DataFrame.from_dict(df_data)
+    df_ports = df_ports.astype(str)
+
+    return df_ports</code></pre>
+</details>
+</dd>
+<dt id="collectors.meraki_collectors.meraki_get_switch_port_usages"><code class="name flex">
+<span>def <span class="ident">meraki_get_switch_port_usages</span></span>(<span>api_key: str, db_path: str, networks: list, timestamp: str) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets switch port usage in total rate per second.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>api_key</code></strong> :&ensp;<code>str</code></dt>
+<dd>The user's API key.</dd>
+<dt><strong><code>db_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the database to store results.</dd>
+<dt><strong><code>networks</code></strong> :&ensp;<code>list</code></dt>
+<dd>The networks in which to gather switch port statuses.</dd>
+<dt><strong><code>timestamp</code></strong> :&ensp;<code>str</code></dt>
+<dd>The timestamp passed to run_collectors.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>pd.DataFrame</code></dt>
+<dd>The port usages.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; api_key = '&lt;your_api_key_here&gt;'
+&gt;&gt;&gt; db_path = '/path/to/database.db'
+&gt;&gt;&gt; networks = ['N_123456789012345678', 'N_234567890123456789']
+&gt;&gt;&gt; timestamp = '2022-01-01_0000'
+&gt;&gt;&gt; df_usage = meraki_get_switch_port_usages(api_key,
+                                             db_path,
+                                             networks,
+                                             timestamp)
+&gt;&gt;&gt; print(df_usage)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def meraki_get_switch_port_usages(api_key: str,
+                                  db_path: str,
+                                  networks: list,
+                                  timestamp: str) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets switch port usage in total rate per second.
+
+    Parameters
+    ----------
+    api_key : str
+        The user&#39;s API key.
+    db_path : str
+        The path to the database to store results.
+    networks : list
+        The networks in which to gather switch port statuses.
+    timestamp : str
+        The timestamp passed to run_collectors.
+
+    Returns
+    -------
+    pd.DataFrame
+        The port usages.
+
+    Examples
+    --------
+    &gt;&gt;&gt; api_key = &#39;&lt;your_api_key_here&gt;&#39;
+    &gt;&gt;&gt; db_path = &#39;/path/to/database.db&#39;
+    &gt;&gt;&gt; networks = [&#39;N_123456789012345678&#39;, &#39;N_234567890123456789&#39;]
+    &gt;&gt;&gt; timestamp = &#39;2022-01-01_0000&#39;
+    &gt;&gt;&gt; df_usage = meraki_get_switch_port_usages(api_key,
+                                                 db_path,
+                                                 networks,
+                                                 timestamp)
+    &gt;&gt;&gt; print(df_usage)
+    &#39;&#39;&#39;
+    # Query the database to get all switches in the network(s)
+    statement = f&#39;&#39;&#39;networkId = &#34;{&#39;&#34; or networkId = &#34;&#39;.join(networks)}&#34;&#39;&#39;&#39;
+    query = f&#39;&#39;&#39;SELECT distinct orgId, networkId, name, serial, portId
+    FROM MERAKI_SWITCH_PORT_STATUSES
+    WHERE {statement} and timestamp = &#34;{timestamp}&#34;
+    &#39;&#39;&#39;
+
+    con = sl.connect(db_path)
+    df_devices = pd.read_sql(query, con)
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
+    app = dashboard.switch
+
+    # Extract the unique serials
+    serials = [*set(df_devices[&#39;serial&#39;].to_list())]
+
+    # Convert the dataframe to a list. The keys will be the column names, and
+    # the values will be a list containing the column data
+    df_data = df_devices.to_dict(&#39;list&#39;)
+    # Create empty lists for rate per second data that will be collected
+    df_data[&#39;ratePerSec&#39;] = list()
+    df_data[&#39;sentRatePerSec&#39;] = list()
+    df_data[&#39;recvRatePerSec&#39;] = list()
+
+    # Get the port usage for each device in the network(s), and add it to
+    # df_data
+    for serial in serials:
+        for item in app.getDeviceSwitchPortsStatusesPackets(serial):
+            ratePerSec = item[&#39;packets&#39;][0][&#39;ratePerSec&#39;][&#39;total&#39;]
+            sentRatePerSec = item[&#39;packets&#39;][0][&#39;ratePerSec&#39;][&#39;sent&#39;]
+            recvRatePerSec = item[&#39;packets&#39;][0][&#39;ratePerSec&#39;][&#39;recv&#39;]
+            df_data[&#39;ratePerSec&#39;].append(ratePerSec)
+            df_data[&#39;sentRatePerSec&#39;].append(sentRatePerSec)
+            df_data[&#39;recvRatePerSec&#39;].append(recvRatePerSec)
+
+    # Create and return df_usage
+    df_usage = pd.DataFrame.from_dict(df_data)
+
+    return df_usage</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="collectors" href="index.html">collectors</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="collectors.meraki_collectors.get_network_appliance_vlans" href="#collectors.meraki_collectors.get_network_appliance_vlans">get_network_appliance_vlans</a></code></li>
+<li><code><a title="collectors.meraki_collectors.meraki_get_network_clients" href="#collectors.meraki_collectors.meraki_get_network_clients">meraki_get_network_clients</a></code></li>
+<li><code><a title="collectors.meraki_collectors.meraki_get_network_device_statuses" href="#collectors.meraki_collectors.meraki_get_network_device_statuses">meraki_get_network_device_statuses</a></code></li>
+<li><code><a title="collectors.meraki_collectors.meraki_get_network_devices" href="#collectors.meraki_collectors.meraki_get_network_devices">meraki_get_network_devices</a></code></li>
+<li><code><a title="collectors.meraki_collectors.meraki_get_org_device_statuses" href="#collectors.meraki_collectors.meraki_get_org_device_statuses">meraki_get_org_device_statuses</a></code></li>
+<li><code><a title="collectors.meraki_collectors.meraki_get_org_devices" href="#collectors.meraki_collectors.meraki_get_org_devices">meraki_get_org_devices</a></code></li>
+<li><code><a title="collectors.meraki_collectors.meraki_get_org_networks" href="#collectors.meraki_collectors.meraki_get_org_networks">meraki_get_org_networks</a></code></li>
+<li><code><a title="collectors.meraki_collectors.meraki_get_organizations" href="#collectors.meraki_collectors.meraki_get_organizations">meraki_get_organizations</a></code></li>
+<li><code><a title="collectors.meraki_collectors.meraki_get_switch_lldp_neighbors" href="#collectors.meraki_collectors.meraki_get_switch_lldp_neighbors">meraki_get_switch_lldp_neighbors</a></code></li>
+<li><code><a title="collectors.meraki_collectors.meraki_get_switch_port_statuses" href="#collectors.meraki_collectors.meraki_get_switch_port_statuses">meraki_get_switch_port_statuses</a></code></li>
+<li><code><a title="collectors.meraki_collectors.meraki_get_switch_port_usages" href="#collectors.meraki_collectors.meraki_get_switch_port_usages">meraki_get_switch_port_usages</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
