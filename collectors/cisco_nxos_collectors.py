@@ -9,27 +9,37 @@ import sqlite3 as sl
 from helpers import helpers as hp
 
 
-def nxos_diff_running_config(username,
-                             password,
-                             host_group,
-                             play_path,
-                             private_data_dir,
-                             nm_path,
-                             interface=None):
+def nxos_diff_running_config(username: str,
+                             password: str,
+                             host_group: str,
+                             play_path: str,
+                             private_data_dir: str,
+                             nm_path: str,
+                             interface: str = None) -> pd.DataFrame:
     '''
     Gets the running-config diff for NXOS devices.
 
-    Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): The path to the Ansible private data directory
-        interface (str):        The interface (defaults to all interfaces)
-        nm_path (str):          The path to the Net-Manage repository
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    interface : str, optional
+        The interface (defaults to all interfaces).
+    nm_path : str
+        The path to the Net-Manage repository.
 
-    Returns:
-        df_diff (DataFrame):    The diff
+    Returns
+    -------
+    df_diff : pd.DataFrame
+        The diff.
     '''
     cmd = 'show running-config diff'
     extravars = {'username': username,
@@ -64,33 +74,40 @@ def nxos_diff_running_config(username,
     return df_diff
 
 
-def nxos_get_arp_table(username,
-                       password,
-                       host_group,
-                       nm_path,
-                       play_path,
-                       private_data_dir,
-                       reverse_dns=False):
+def nxos_get_arp_table(username: str,
+                       password: str,
+                       host_group: str,
+                       nm_path: str,
+                       play_path: str,
+                       private_data_dir: str,
+                       reverse_dns: bool = False) -> pd.DataFrame:
     '''
-    Gets the ARP table for Cisco NXOS devices. Also returns the OUI (vendor)
-    for the MAC address. Will also return a reverse DNS query, but only if the
-    user requests it (it can take several minutes for large datasets).
+    Get the ARP table for Cisco NXOS devices and retrieve the OUI (vendor) for
+    each MAC address. Optionally, perform a reverse DNS query for hostnames,
+    but note that it may take several minutes for large datasets.
 
-    TODO: Create a standalone function for reverse DNS queries
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    reverse_dns : bool, optional
+        Whether to perform a reverse DNS lookup. Defaults to False because the
+        operation can be time-consuming for large ARP tables.
 
-    Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        nm_path (str):          The path to the Net-Manage repository
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): The path to the Ansible private data directory
-        reverse_dns (bool):     Whether to run a reverse DNS lookup. Defaults
-                                to False because the test can take several
-                                minutes on large ARP tables.
-
-    Returns:
-        df_arp (DataFrame):     The ARP table
+    Returns
+    -------
+    df_arp : pd.DataFrame
+        The ARP table as a pandas DataFrame.
     '''
     cmd = 'show ip arp vrf all | begin "Address         Age"'
     extravars = {'username': username,
@@ -157,28 +174,37 @@ def nxos_get_arp_table(username,
     return df_arp
 
 
-def nxos_get_fexes_table(username,
-                         password,
-                         host_group,
-                         nm_path,
-                         play_path,
-                         private_data_dir):
+def nxos_get_fexes_table(username: str,
+                         password: str,
+                         host_group: str,
+                         nm_path: str,
+                         play_path: str,
+                         private_data_dir: str) -> pd.DataFrame:
     '''
-    Gets the FEXes for Cisco 5Ks. This function is required for gathering
-    interface data on devices with lots of FEXes. Otherwise there will be
-    timeouts.
+    Get the FEXes for Cisco 5Ks. This function is required for gathering
+    interface data on devices with a large number of FEXes, as it helps
+    prevent timeouts.
 
-    Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        nm_path (str):          The path to the Net-Manage repository
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): The path to the Ansible private data directory
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
 
-    Returns:
-        df_fexes (DataFrame):   The device FEXes (if there are not any then an
-                                empty dataframe will be returned).
+    Returns
+    -------
+    df_fexes : pd.DataFrame
+        The FEXes of the device. If there are no FEXes, an empty DataFrame
+        will be returned.
     '''
     # Get selected FEX details
     cmd = 'show fex detail'
@@ -246,25 +272,34 @@ def nxos_get_fexes_table(username,
     return df_arp
 
 
-def nxos_get_bgp_neighbors(username,
-                           password,
-                           host_group,
-                           nm_path,
-                           play_path,
-                           private_data_dir):
+def nxos_get_bgp_neighbors(username: str,
+                           password: str,
+                           host_group: str,
+                           nm_path: str,
+                           play_path: str,
+                           private_data_dir: str) -> pd.DataFrame:
     '''
-    Gets the BGP neighbors for all VRFs on NXOS devices.
+    Get the BGP neighbors for all VRFs on NXOS devices.
 
-    Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        nm_path (str):          The path to the Net-Manage repository
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): The path to the Ansible private data directory
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
 
-    Returns:
-        df_bgp (DataFrame):     The BGP neighbors
+    Returns
+    -------
+    df_bgp : pd.DataFrame
+        The BGP neighbors as a pandas DataFrame.
     '''
     cmd = 'show ip bgp summary vrf all'
     extravars = {'username': username,
@@ -336,27 +371,37 @@ def nxos_get_bgp_neighbors(username,
     return df_bgp
 
 
-def nxos_get_cam_table(username,
-                       password,
-                       host_group,
-                       nm_path,
-                       play_path,
-                       private_data_dir,
-                       interface=None):
+def nxos_get_cam_table(username: str,
+                       password: str,
+                       host_group: str,
+                       nm_path: str,
+                       play_path: str,
+                       private_data_dir: str,
+                       interface: str = None) -> pd.DataFrame:
     '''
-    Gets the CAM table for NXOS devices and adds the vendor OUI.
+    Get the CAM table for NXOS devices and add the vendor OUI.
 
-    Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        nm_path (str):          The path to the Net-Manage repository
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): The path to the Ansible private data directory
-        interface (str):        The interface (defaults to all interfaces)
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    interface : str, optional
+        The interface (defaults to all interfaces).
 
-    Returns:
-        df_cam (DataFrame):     The CAM table and vendor OUI
+    Returns
+    -------
+    df_cam : pd.DataFrame
+        The CAM table and vendor OUI as a pandas DataFrame.
     '''
     if interface:
         cmd = f'show mac address-table interface {interface}'
@@ -415,27 +460,37 @@ def nxos_get_cam_table(username,
     return df_cam
 
 
-def nxos_get_hostname(username,
-                      password,
-                      host_group,
-                      play_path,
-                      private_data_dir,
-                      nm_path,
-                      interface=None):
+def nxos_get_hostname(username: str,
+                      password: str,
+                      host_group: str,
+                      play_path: str,
+                      private_data_dir: str,
+                      nm_path: str,
+                      interface: str = None) -> pd.DataFrame:
     '''
-    Gets the hostname for NXOS devices.
+    Get the hostname for NXOS devices.
 
-    Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): The path to the Ansible private data directory
-        interface (str):        The interface (defaults to all interfaces)
-        nm_path (str):          The path to the Net-Manage repository
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    interface : str, optional
+        The interface (defaults to all interfaces).
+    nm_path : str
+        The path to the Net-Manage repository.
 
-    Returns:
-        df_name (DataFrame):    The hostname
+    Returns
+    -------
+    df_name : pd.DataFrame
+        The hostname as a pandas DataFrame.
     '''
     cmd = 'show hostname'
     extravars = {'username': username,
@@ -471,25 +526,34 @@ def nxos_get_hostname(username,
     return df_name
 
 
-def nxos_get_interface_descriptions(username,
-                                    password,
-                                    host_group,
-                                    play_path,
-                                    private_data_dir,
-                                    interface=None):
+def nxos_get_interface_descriptions(username: str,
+                                    password: str,
+                                    host_group: str,
+                                    play_path: str,
+                                    private_data_dir: str,
+                                    interface: str = None) -> pd.DataFrame:
     '''
-    Gets NXOS interface descriptions.
+    Get NXOS interface descriptions.
 
-    Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): The path to the Ansible private data directory
-        interface (str):        The interface (defaults to all interfaces)
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    interface : str, optional
+        The interface (defaults to all interfaces).
 
-    Returns:
-        df_desc (DataFrame):    The interface descriptions
+    Returns
+    -------
+    df_desc : pd.DataFrame
+        The interface descriptions as a pandas DataFrame.
     '''
     # Get the interface descriptions and add them to df_cam
     cmd = 'show interface description | grep -v "\\-\\-\\-\\-"'
@@ -531,23 +595,32 @@ def nxos_get_interface_descriptions(username,
     return df_desc
 
 
-def nxos_get_interface_ips(username,
-                           password,
-                           host_group,
-                           play_path,
-                           private_data_dir):
+def nxos_get_interface_ips(username: str,
+                           password: str,
+                           host_group: str,
+                           play_path: str,
+                           private_data_dir: str) -> pd.DataFrame:
     '''
-    Gets the IP addresses assigned to interfaces.
+    Get the IP addresses assigned to interfaces.
 
-    Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): The path to the Ansible private data directory
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
 
-    Returns:
-        df (df):                A DataFrame containing the interfaces and IPs
+    Returns
+    -------
+    df : pd.DataFrame
+        A DataFrame containing the interfaces and their corresponding IP
+        addresses.
     '''
     grep = 'Interface status:\\|IP address:\\|IP Interface Status for VRF'
     cmd = f'show ip interface vrf all | grep "{grep}"'
@@ -603,24 +676,31 @@ def nxos_get_interface_ips(username,
     return df
 
 
-def nxos_get_interface_status(username,
-                              password,
-                              host_group,
-                              play_path,
-                              private_data_dir):
+def nxos_get_interface_status(username: str,
+                              password: str,
+                              host_group: str,
+                              play_path: str,
+                              private_data_dir: str) -> pd.DataFrame:
     '''
-    Gets the interface status for NXOS devices.
+    Get the interface status for NXOS devices.
 
-    Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): The path to the Ansible private data directory
-        nm_path (str):          The path to the Net-Manage repository
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
 
-    Returns:
-        df_inf_status (DataFrame): The interface statuses
+    Returns
+    -------
+    df_inf_status : pd.DataFrame
+        The interface statuses as a pandas DataFrame.
     '''
     cmd = 'show interface status | grep -v "\\-\\-\\-"'
     extravars = {'username': username,
@@ -684,16 +764,20 @@ def nxos_get_interface_status(username,
     return df_inf_status
 
 
-def nxos_get_interface_summary(db_path):
+def nxos_get_interface_summary(db_path: str) -> pd.DataFrame:
     '''
-    Gets a summary of the interfaces on a NXOS devices. The summary includes
+    Get a summary of the interfaces on a NXOS devices. The summary includes
     the interface status, description, associated MACs, and vendor OUIs.
 
-    Args:
-        db_path (str):          The path to the database
+    Parameters
+    ----------
+    db_path : str
+        The path to the database.
 
-    Returns:
-        df_summary (DataFrame): The summaries of interfaces on the devices
+    Returns
+    -------
+    df_summary : pd.DataFrame
+        The summaries of interfaces on the devices as a pandas DataFrame.
     '''
     # Get the interface statuses, descriptions and cam table
     con = sl.connect(db_path)
@@ -785,26 +869,32 @@ def nxos_get_interface_summary(db_path):
     return df_summary
 
 
-def nxos_get_inventory(username,
-                       password,
-                       host_group,
-                       play_path,
-                       private_data_dir):
+def nxos_get_inventory(username: str,
+                       password: str,
+                       host_group: str,
+                       play_path: str,
+                       private_data_dir: str) -> pd.DataFrame:
     '''
-    Gets the interface status for NXOS devices.
+    Get the inventory for NXOS devices.
 
-    Args:
-        username (str):             The username to login to devices
-        password (str):             The password to login to devices
-        host_group (str):           The inventory host group
-        play_path (str):            The path to the playbooks directory
-        private_data_dir (str):     The path to the Ansible private data
-                                    directory
-        nm_path (str):              The path to the Net-Manage repository
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
 
-    Returns:
-        df_inventory (DataFrame):   A dataframe containing the output of the
-                                    'show inventory | json' command.
+    Returns
+    -------
+    df_inventory : pd.DataFrame
+        A DataFrame containing the output of the 'show inventory | json'
+        command.
     '''
     # Create the playbook variables
     extravars = {'username': username,
@@ -853,24 +943,31 @@ def nxos_get_inventory(username,
     return df_inventory
 
 
-def nxos_get_logs(username,
-                  password,
-                  host_group,
-                  play_path,
-                  private_data_dir):
+def nxos_get_logs(username: str,
+                  password: str,
+                  host_group: str,
+                  play_path: str,
+                  private_data_dir: str) -> pd.DataFrame:
     '''
-    Gets the latest log messages for NXOS devices.
+    Get the latest log messages for NXOS devices.
 
-    Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): The path to the Ansible private data directory
-        nm_path (str):          The path to the Net-Manage repository
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
 
-    Returns:
-        df_logs (DataFrame):    The latest log messages
+    Returns
+    -------
+    df_logs : pd.DataFrame
+        The latest log messages as a pandas DataFrame.
     '''
     cmd = 'show logging last 999'
     extravars = {'username': username,
@@ -913,25 +1010,32 @@ def nxos_get_logs(username,
     return df_logs
 
 
-def nxos_get_port_channel_data(username,
-                               password,
-                               host_group,
-                               play_path,
-                               private_data_dir):
+def nxos_get_port_channel_data(username: str,
+                               password: str,
+                               host_group: str,
+                               play_path: str,
+                               private_data_dir: str) -> pd.DataFrame:
     '''
-    Gets port-channel data (output from 'show port-channel database') for Cisco
+    Get port-channel data (output from 'show port-channel database') for Cisco
     NXOS devices.
 
-    Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): The path to the Ansible private data directory
-        nm_path (str):          The path to the Net-Manage repository
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
 
-    Returns:
-        df_po_data (DataFrame): The port-channel data
+    Returns
+    -------
+    df_po_data : pd.DataFrame
+        The port-channel data as a pandas DataFrame.
     '''
     cmd = 'show port-channel database'
     extravars = {'username': username,
@@ -1059,24 +1163,31 @@ def nxos_get_port_channel_data(username,
     return df_po_data
 
 
-def nxos_get_vlan_db(username,
-                     password,
-                     host_group,
-                     play_path,
-                     private_data_dir):
+def nxos_get_vlan_db(username: str,
+                     password: str,
+                     host_group: str,
+                     play_path: str,
+                     private_data_dir: str) -> pd.DataFrame:
     '''
-    Gets the VLAN database for NXOS devices.
+    Get the VLAN database for NXOS devices.
 
-    Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): The path to the Ansible private data directory
-        nm_path (str):          The path to the Net-Manage repository
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
 
-    Returns:
-        df_vlans (DataFrame):   The VLAN database
+    Returns
+    -------
+    df_vlans : pd.DataFrame
+        The VLAN database as a pandas DataFrame.
     '''
     cmd = 'show vlan brief | grep "Status    Ports\\|active\\|suspend\\|shut"'
     extravars = {'username': username,
@@ -1129,23 +1240,31 @@ def nxos_get_vlan_db(username,
     return df_vlans
 
 
-def nxos_get_vpc_state(username,
-                       password,
-                       host_group,
-                       play_path,
-                       private_data_dir):
+def nxos_get_vpc_state(username: str,
+                       password: str,
+                       host_group: str,
+                       play_path: str,
+                       private_data_dir: str) -> pd.DataFrame:
     '''
-    Gets the VPC state for NXOS devices.
+    Get the VPC state for NXOS devices.
 
-    Args:
-        username (str):           The username to login to devices
-        password (str):           The password to login to devices
-        host_group (str):         The inventory host group
-        play_path (str):          The path to the playbooks directory
-        private_data_dir (str):   Path to the Ansible private data directory
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
 
-    Returns:
-        df_vpc_state (DataFrame): The VPC state information
+    Returns
+    -------
+    df_vpc_state : pd.DataFrame
+        The VPC state information as a pandas DataFrame.
     '''
     cmd = 'show vpc brief | begin "vPC domain id" | end "vPC Peer-link status"'
     extravars = {'username': username,
@@ -1195,23 +1314,31 @@ def nxos_get_vpc_state(username,
     return df_vpc_state
 
 
-def nxos_get_vrfs(username,
-                  password,
-                  host_group,
-                  play_path,
-                  private_data_dir):
+def nxos_get_vrfs(username: str,
+                  password: str,
+                  host_group: str,
+                  play_path: str,
+                  private_data_dir: str) -> pd.DataFrame:
     '''
-    Gets the VRFs on Nexus devices.
+    Get the VRFs on Nexus devices.
 
-    Args:
-        username (str):           The username to login to devices
-        password (str):           The password to login to devices
-        host_group (str):         The inventory host group
-        play_path (str):          The path to the playbooks directory
-        private_data_dir (str):   Path to the Ansible private data directory
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
 
-    Returns:
-    df_vrfs (DataFrame):          A dataframe containing the VRFs
+    Returns
+    -------
+    df_vrfs : pd.DataFrame
+        A DataFrame containing the VRFs.
     '''
     cmd = 'show vrf detail'
     extravars = {'username': username,

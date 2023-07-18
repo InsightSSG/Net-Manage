@@ -12,6 +12,7 @@ import sqlite3 as sl
 
 from helpers import helpers as hp
 from meraki.exceptions import APIError
+from typing import Union
 
 
 def get_network_appliance_vlans(ansible_os: str,
@@ -20,102 +21,85 @@ def get_network_appliance_vlans(ansible_os: str,
                                 db_path: str,
                                 timestamp: str,
                                 db_method: str = 'append',
-                                networks: list = list(),
-                                orgs: list = list(),
+                                networks: list = [],
+                                orgs: list = [],
                                 replace_table: bool = False) -> pd.DataFrame:
-    """
+    '''
     Get the appliance VLANs for a list of networks or organizations.
 
-    Args:
-    ----
-    api_key (str):
+    Parameters
+    ----------
+    ansible_os : str
+        The Ansible OS version.
+    api_key : str
         A valid Meraki Dashboard API key.
-    collector (str):
+    collector : str
         A name for the Meraki data collector.
-    db_path (str):
+    db_path : str
         The path to the SQLite database file.
-    timestamp (str):
+    timestamp : str
         The timestamp for the data collected in YYYY-MM-DD_HHMM format.
-    db_method (str, optional):
-        The behavior to take when the database table already exists. Valid
-        options are 'fail', 'append', and 'replace'. Defaults to 'append'.
-    networks (list, optional):
-        A list of Meraki network IDs. Defaults to list().
-    orgs (list, optional):
-        A list of Meraki organization IDs. Defaults to list().
+    db_method : {'fail', 'append', 'replace'}, optional
+        The behavior to take when the database table already exists.
+        Defaults to 'append'.
+    networks : list, optional
+        A list of Meraki network IDs. Defaults to an empty list.
+    orgs : list, optional
+        A list of Meraki organization IDs. Defaults to an empty list.
     replace_table : bool, optional
         Whether to replace the 'meraki_network_appliance_vlans' table.
 
-    Returns:
-    ----
-    pd.DataFrame:
+    Returns
+    -------
+    pd.DataFrame
         A pandas DataFrame that contains the appliance VLANs.
 
-    Examples:
-    ----
+    Examples
+    --------
     Example 1:
-    ```
-    # Get VLANs for all appliances in one or more networks.
-    import pandas as pd
-    from meraki_helpers import get_network_appliance_vlans
-
-    api_key = '<your_api_key_here>'
-    collector = 'network_appliance_vlans'
-    db_path = '/path/to/database.db'
-    networks = ['N_123456789012345678', 'N_234567890123456789']
-    timestamp = '2022-01-01_0000'
-
-    df = get_network_appliance_vlans(api_key,
-                                     collector,
-                                     db_path,
-                                     timestamp,
-                                     networks=networks)
-    print(df)
-    ```
+    >>> ansible_os = '<ansible_os>'
+    >>> api_key = '<your_api_key_here>'
+    >>> collector = 'network_appliance_vlans'
+    >>> db_path = '/path/to/database.db'
+    >>> networks = ['N_123456789012345678', 'N_234567890123456789']
+    >>> timestamp = '2022-01-01_0000'
+    >>> df = get_network_appliance_vlans(api_key,
+                                         collector,
+                                         db_path,
+                                         timestamp,
+                                         networks=networks)
+    >>> print(df)
 
     Example 2:
-    ```
-    # Get VLANs for all appliances in one or more organizations.
-    import pandas as pd
-    from meraki_helpers import get_network_appliance_vlans
-
-    api_key = '<your_api_key_here>'
-    collector = 'network_appliance_vlans'
-    db_path = '/path/to/database.db'
-    orgs = ['O_123456789012345678']
-    timestamp = '2022-01-01_0000'
-
-    df = get_network_appliance_vlans(api_key,
-                                     collector,
-                                     db_path,
-                                     timestamp
-                                     orgs=orgs)
-    print(df)
-    ```
+    >>> ansible_os = '<ansible_os>'
+    >>> api_key = '<your_api_key_here>'
+    >>> collector = 'network_appliance_vlans'
+    >>> db_path = '/path/to/database.db'
+    >>> orgs = ['O_123456789012345678']
+    >>> timestamp = '2022-01-01_0000'
+    >>> df = get_network_appliance_vlans(api_key,
+                                         collector,
+                                         db_path,
+                                         timestamp,
+                                         orgs=orgs)
+    >>> print(df)
 
     Example 3:
-    ```
-    # Get VLANs for all appliances in one or more networks (when 'networks'
-    # and 'organizations' are both passed to the function, only 'networks'
-    # will be used).
-    import pandas as pd
-    from meraki_helpers import get_network_appliance_vlans
-
-    api_key = '<your_api_key_here>'
-    collector = 'network_appliance_vlans'
-    db_path = '/path/to/database.db'
-    networks = ['N_123456789012345678', 'N_234567890123456789']
-    orgs = ['O_123456789012345678']
-    timestamp = '2022-01-01_0000'
-
-    df = get_network_appliance_vlans(api_key,
-                                     collector,
-                                     db_path,
-                                     timestamp,
-                                     networks=networks,
-                                     orgs=orgs)
-    print(df)
-    """
+    >>> ansible_os = '<ansible_os>'
+    >>> api_key = '<your_api_key_here>'
+    >>> collector = 'network_appliance_vlans'
+    >>> db_path = '/path/to/database.db'
+    >>> networks = ['N_123456789012345678', 'N_234567890123456789']
+    >>> orgs = ['O_123456789012345678']
+    >>> timestamp = '2022-01-01_0000'
+    >>> df = get_network_appliance_vlans(api_key,
+                                         collector,
+                                         db_path,
+                                         timestamp,
+                                         networks=networks,
+                                         orgs=orgs)
+    >>> print(df)
+    '''
 
     # If 'networks' and 'orgs' are empty, then gracefully exit the function.
     if not networks and not orgs:
@@ -212,22 +196,53 @@ def get_network_appliance_vlans(ansible_os: str,
     return df
 
 
-def meraki_get_network_clients(api_key,
-                               networks,
-                               macs=list(),
-                               per_page=1000,
-                               timespan=86400,
-                               total_pages='all'):
+def meraki_get_network_clients(api_key: str,
+                               networks: list,
+                               macs: list = [],
+                               per_page: int = 1000,
+                               timespan: int = 86400,
+                               total_pages: Union[int, str] = 'all') \
+                                -> pd.DataFrame:
     '''
     Gets the list of clients on a network.
 
-    Args:
-        api_key (str):          The user's API key
-        db_path (str):          The path to the database to store results
-        networks (list):        One or more network IDs.
+    Parameters
+    ----------
+    api_key : str
+        The user's API key.
+    networks : list
+        One or more network IDs.
+    macs : list, optional
+        A list of MAC addresses to filter the clients. Defaults to an empty
+        list.
+    per_page : int, optional
+        The number of clients to retrieve per page. Defaults to 1000.
+    timespan : int, optional
+        The timespan in seconds to retrieve client data for. Defaults to 86400
+        (24 hours).
+    total_pages : int or str, optional
+        The total number of pages to retrieve. If set to 'all', it will
+        retrieve all available pages. Defaults to 'all'.
 
-    Returns:
-        df_clients (DataFrame): The clients for the network(s)
+    Returns
+    -------
+    df_clients : pd.DataFrame
+        A Pandas DataFrame containing the clients for the network(s).
+
+    Examples
+    --------
+    Example 1:
+    >>> api_key = '<your_api_key_here>'
+    >>> networks = ['N_123456789012345678', 'N_234567890123456789']
+    >>> df = meraki_get_network_clients(api_key, networks)
+    >>> print(df)
+
+    Example 2:
+    >>> api_key = '<your_api_key_here>'
+    >>> networks = ['N_123456789012345678', 'N_234567890123456789']
+    >>> macs = ['00:11:22:33:44:55', 'AA:BB:CC:DD:EE:FF']
+    >>> df = meraki_get_network_clients(api_key, networks, macs=macs)
+    >>> print(df)
     '''
     # Create a list to store the individual clients for each network.
     data = list()
@@ -280,31 +295,61 @@ def meraki_get_network_clients(api_key,
     return df_clients
 
 
-def meraki_get_network_devices(api_key, db_path, networks=list(), orgs=list()):
+def meraki_get_network_devices(api_key: str,
+                               db_path: str,
+                               networks: list = [],
+                               orgs: list = []) -> pd.DataFrame:
     '''
-    Gets the devices for all orgs that the user's API key has access to. This
-    function uses the following logic:
+    Gets the devices for all orgs that the user's API key has access to.
+
+    This function uses the following logic:
 
     1. If a user passes a list of networks, the list of orgs is ignored.
-
     2. If a user passes a list of orgs but not a list of networks, the function
        will query all networks in the list of orgs that the user's API key has
        access to.
-
     3. If a user does not pass a list of networks or a list of orgs, the
        function will query all networks in all orgs the user's API key has
        access to.
 
-    Args:
-        api_key (str):          The user's API key
-        db_path (str):          The path to the database to store results
-        networks (list):        One or more network IDs.
-        orgs (list):            One or more organization IDs. If none are
-                                specified, then the devices for all orgs will
-                                be returned
+    Parameters
+    ----------
+    api_key : str
+        The user's API key.
+    db_path : str
+        The path to the database to store results.
+    networks : list, optional
+        One or more network IDs. Defaults to an empty list.
+    orgs : list, optional
+        One or more organization IDs. If none are specified, then the devices
+        for all orgs will be returned.
 
-    Returns:
-        df_devices (DataFrame): The device statuses for the network(s)
+    Returns
+    -------
+    df_devices : pd.DataFrame
+        The device statuses for the network(s).
+
+    Examples
+    --------
+    Example 1:
+    >>> api_key = '<your_api_key_here>'
+    >>> db_path = '/path/to/database.db'
+    >>> networks = ['N_123456789012345678', 'N_234567890123456789']
+    >>> df = meraki_get_network_devices(api_key, db_path, networks=networks)
+    >>> print(df)
+
+    Example 2:
+    >>> api_key = '<your_api_key_here>'
+    >>> db_path = '/path/to/database.db'
+    >>> orgs = ['O_123456789012345678']
+    >>> df = meraki_get_network_devices(api_key, db_path, orgs=orgs)
+    >>> print(df)
+
+    Example 3:
+    >>> api_key = '<your_api_key_here>'
+    >>> db_path = '/path/to/database.db'
+    >>> df = meraki_get_network_devices(api_key, db_path)
+    >>> print(df)
     '''
     # Initialize Meraki dashboard
     dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
@@ -356,17 +401,33 @@ def meraki_get_network_devices(api_key, db_path, networks=list(), orgs=list()):
     return df_devices
 
 
-def meraki_get_network_device_statuses(db_path, networks):
+def meraki_get_network_device_statuses(db_path: str,
+                                       networks: list) -> pd.DataFrame:
     '''
-    Gets the statuses of all devices in a network. There is not an API
-    endpoint for this, so it leverages 'meraki_get_org_device_statuses'.
+    Gets the statuses of all devices in a network.
 
-    Args:
-        db_path (str):              The path to the database to store results
-        networks (list):            One or more network IDs.
+    This function leverages the 'meraki_get_org_device_statuses' function as
+    there is no specific API endpoint available for retrieving device statuses
+    at the network level.
 
-    Returns:
-        df_statuses (DataFrame):    A dataframe containing the device statuses
+    Parameters
+    ----------
+    db_path : str
+        The path to the database to store the results.
+    networks : list
+        One or more network IDs.
+
+    Returns
+    -------
+    df_statuses : pd.DataFrame
+        A DataFrame containing the device statuses.
+
+    Examples
+    --------
+    >>> db_path = '/path/to/database.db'
+    >>> networks = ['N_123456789012345678', 'N_234567890123456789']
+    >>> df = meraki_get_network_device_statuses(db_path, networks)
+    >>> print(df)
     '''
     df_statuses = pd.DataFrame()
 
@@ -391,17 +452,27 @@ def meraki_get_network_device_statuses(db_path, networks):
     return df_statuses
 
 
-def meraki_get_organizations(api_key):
+def meraki_get_organizations(api_key: str) -> pd.DataFrame:
     '''
     Gets a list of organizations and their associated parameters that the
     user's API key has access to.
 
-    Args:
-        api_key (str):  The user's API key
+    Parameters
+    ----------
+    api_key : str
+        The user's API key.
 
-    Returns:
-        df_orgs (list): A dataframe containing a list of organizations the
-                        user's API key has access to
+    Returns
+    -------
+    df_orgs : pd.DataFrame
+        A DataFrame containing a list of organizations the user's API key
+        has access to.
+
+    Examples
+    --------
+    >>> api_key = '<your_api_key_here>'
+    >>> df = meraki_get_organizations(api_key)
+    >>> print(df)
     '''
     dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
 
@@ -434,19 +505,34 @@ def meraki_get_organizations(api_key):
     return df_orgs
 
 
-def meraki_get_org_devices(api_key, db_path, orgs=list()):
+def meraki_get_org_devices(api_key: str,
+                           db_path: str,
+                           orgs: list = []) -> pd.DataFrame:
     '''
     Gets the devices for all orgs that the user's API key has access to.
 
-    Args:
-        api_key (str):          The user's API key
-        db_path (str):          The path to the database to store results
-        orgs (list):            One or more organization IDs. If none are
-                                specified, then the devices for all orgs will
-                                be returned
+    Parameters
+    ----------
+    api_key : str
+        The user's API key.
+    db_path : str
+        The path to the database to store results.
+    orgs : list, optional
+        One or more organization IDs. If none are specified, then the devices
+        for all orgs will be returned. Defaults to an empty list.
 
-    Returns:
-        df_devices (DataFrame): The device statuses for the organizations
+    Returns
+    -------
+    df_devices : pd.DataFrame
+        The device statuses for the organizations.
+
+    Examples
+    --------
+    >>> api_key = '<your_api_key_here>'
+    >>> db_path = '/path/to/database.db'
+    >>> orgs = ['org_id_1', 'org_id_2']
+    >>> df = meraki_get_org_devices(api_key, db_path, orgs)
+    >>> print(df)
     '''
     # Get the organizations (collected by 'meraki_get_orgs') from the database
     table = 'meraki_organizations'
@@ -495,28 +581,48 @@ def meraki_get_org_devices(api_key, db_path, orgs=list()):
     return df_devices
 
 
-def meraki_get_org_device_statuses(api_key,
-                                   db_path,
-                                   orgs=list(),
-                                   total_pages='all'):
+def meraki_get_org_device_statuses(api_key: str,
+                                   db_path: str,
+                                   orgs: list = [],
+                                   total_pages='all') -> tuple:
     '''
     Gets the device statuses for all organizations the user's API key has
     access to.
 
-    Args:
-        api_key (str):              The user's API key
-        db_path (str):              The path to the database to store results
-        orgs (list):                (Optional) One or more organization IDs. If
-                                    none are specified, then the device
-                                    statuses for all orgs will be returned.
-        total_pages (int):          (Optional) The number of pages to retrieve.
-                                    Defaults to 'all'. Note that value
-                                    besides 'all' must be an integer.
+    Parameters
+    ----------
+    api_key : str
+        The user's API key.
+    db_path : str
+        The path to the database to store results.
+    orgs : list, optional
+        One or more organization IDs. If none are specified, then the device
+        statuses for all orgs will be returned. Defaults to an empty list.
+    total_pages : int or str, optional
+        The number of pages to retrieve. Defaults to 'all'. Note that a value
+        besides 'all' must be an integer.
 
-    Returns:
-        df_statuses (DataFrame):    The device statuses for the organizations
-        idx_cols (list):            The column names to use for creating the
-                                    SQL table index.
+    Returns
+    -------
+    tuple
+        A tuple containing:
+        - df_statuses : pd.DataFrame
+            The device statuses for the organizations.
+        - idx_cols : list
+            The column names to use for creating the SQL table index.
+
+    Examples
+    --------
+    >>> api_key = '<your_api_key_here>'
+    >>> db_path = '/path/to/database.db'
+    >>> orgs = ['org_id_1', 'org_id_2']
+    >>> total_pages = 5
+    >>> df, idx_cols = meraki_get_org_device_statuses(api_key,
+                                                      db_path,
+                                                      orgs,
+                                                      total_pages)
+    >>> print(df)
+    >>> print(idx_cols)
     '''
     # Initialize Meraki dashboard
     dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
@@ -571,26 +677,41 @@ def meraki_get_org_device_statuses(api_key,
     return df_statuses, idx_cols
 
 
-def meraki_get_org_networks(api_key,
-                            db_path=str(),
-                            orgs=list(),
-                            use_db=False):
+def meraki_get_org_networks(api_key: str,
+                            db_path: str = '',
+                            orgs: list = [],
+                            use_db: bool = False) -> pd.DataFrame:
     '''
     Gets the networks for one or more organizations.
 
-    Args:
-        api_key (str):              The user's API key
-        db_path (str):              The path to the database to store results
-        orgs (list):                A list of organization IDs to query. NOTE:
-                                    The function assumes that the orgs are
-                                    accessible with the user's API key. It will
-                                    not do a separate check unless 'use_db' is
-                                    set to True.
-        use_db (bool):              Whether to use a database. Results will be
-                                    stored in memory if this is set to False.
+    Parameters
+    ----------
+    api_key : str
+        The user's API key.
+    db_path : str, optional
+        The path to the database to store results. Defaults to an empty string.
+    orgs : list, optional
+        A list of organization IDs to query. Note that the function assumes
+        that the orgs are accessible with the user's API key. It will not do a
+        separate check unless 'use_db' is set to True. Defaults to an empty
+        list.
+    use_db : bool, optional
+        Whether to use a database. Results will be stored in memory if this is
+        set to False. Defaults to False.
 
-    Returns:
-        df_networks (DataFrame):    The networks in one or more organizations
+    Returns
+    -------
+    pd.DataFrame
+        The networks in one or more organizations.
+
+    Examples
+    --------
+    >>> api_key = '<your_api_key_here>'
+    >>> db_path = '/path/to/database.db'
+    >>> orgs = ['org_id_1', 'org_id_2']
+    >>> use_db = True
+    >>> df = meraki_get_org_networks(api_key, db_path, orgs, use_db)
+    >>> print(df)
     '''
     if use_db:
         # Get the organizations (collected by 'meraki_get_orgs') from the
@@ -637,19 +758,27 @@ def meraki_get_org_networks(api_key,
     return df_networks
 
 
-def meraki_get_switch_lldp_neighbors(db_path):
+def meraki_get_switch_lldp_neighbors(db_path: str) -> pd.DataFrame:
     '''
     Uses the data returned from the 'meraki_get_switch_port_statuses' collector
     to create a dataframe containing switch LLDP neighbors.
 
-    Args:
-        db_path (str):          The path to the database containing the
-                                'meraki_get_switch_port_statuses' collector
-                                output
+    Parameters
+    ----------
+    db_path : str
+        The path to the database containing the
+        'meraki_get_switch_port_statuses' collector output.
 
-    Returns:
-        df_lldp (dataframe):    A dataframe containing the LLDP neighbors for
-                                the switch(es)
+    Returns
+    -------
+    pd.DataFrame
+        A dataframe containing the LLDP neighbors for the switch(es).
+
+    Examples
+    --------
+    >>> db_path = '/path/to/database.db'
+    >>> df_lldp = meraki_get_switch_lldp_neighbors(db_path)
+    >>> print(df_lldp)
     '''
     # Query the database to get the LLDP neighbors
     headers = ['orgId',
@@ -731,19 +860,34 @@ def meraki_get_switch_lldp_neighbors(db_path):
     return df_lldp
 
 
-def meraki_get_switch_port_statuses(api_key, db_path, networks):
+def meraki_get_switch_port_statuses(api_key: str,
+                                    db_path: str,
+                                    networks: list) -> pd.DataFrame:
     '''
     Gets the port statuses and associated data (including errors and warnings)
     for all Meraki switches in the specified network(s).
 
-    Args:
-        api_key (str):          The user's API key
-        db_path (str):          The path to the database to store results
-        networks (list):        The networks in which to gather switch port
-                                statuses.
+    Parameters
+    ----------
+    api_key : str
+        The user's API key.
+    db_path : str
+        The path to the database to store results.
+    networks : list
+        The networks in which to gather switch port statuses.
 
-    Returns:
-        df_ports (DataFrame):   The port statuses
+    Returns
+    -------
+    pd.DataFrame
+        The port statuses.
+
+    Examples
+    --------
+    >>> api_key = '<your_api_key_here>'
+    >>> db_path = '/path/to/database.db'
+    >>> networks = ['N_123456789012345678', 'N_234567890123456789']
+    >>> df_ports = meraki_get_switch_port_statuses(api_key, db_path, networks)
+    >>> print(df_ports)
     '''
     # Query the database to get all switches in the network(s)
     statement = f'''networkId = "{'" or networkId = "'.join(networks)}"'''
@@ -806,19 +950,40 @@ def meraki_get_switch_port_statuses(api_key, db_path, networks):
     return df_ports
 
 
-def meraki_get_switch_port_usages(api_key, db_path, networks, timestamp):
+def meraki_get_switch_port_usages(api_key: str,
+                                  db_path: str,
+                                  networks: list,
+                                  timestamp: str) -> pd.DataFrame:
     '''
     Gets switch port usage in total rate per second.
 
-    Args:
-        api_key (str):          The user's API key
-        db_path (str):          The path to the database to store results
-        networks (list):        The networks in which to gather switch port
-                                statuses.
-        timestamp (str):        The timestamp passed to run_collectors
+    Parameters
+    ----------
+    api_key : str
+        The user's API key.
+    db_path : str
+        The path to the database to store results.
+    networks : list
+        The networks in which to gather switch port statuses.
+    timestamp : str
+        The timestamp passed to run_collectors.
 
-    Returns:
-        df_usage (DataFrame):   The port statuses
+    Returns
+    -------
+    pd.DataFrame
+        The port usages.
+
+    Examples
+    --------
+    >>> api_key = '<your_api_key_here>'
+    >>> db_path = '/path/to/database.db'
+    >>> networks = ['N_123456789012345678', 'N_234567890123456789']
+    >>> timestamp = '2022-01-01_0000'
+    >>> df_usage = meraki_get_switch_port_usages(api_key,
+                                                 db_path,
+                                                 networks,
+                                                 timestamp)
+    >>> print(df_usage)
     '''
     # Query the database to get all switches in the network(s)
     statement = f'''networkId = "{'" or networkId = "'.join(networks)}"'''

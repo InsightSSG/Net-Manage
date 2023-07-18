@@ -1,0 +1,3765 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>collectors.f5_collectors API documentation</title>
+<meta name="description" content="Define F5 collectors" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>collectors.f5_collectors</code></h1>
+</header>
+<section id="section-intro">
+<p>Define F5 collectors</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">#!/usr/bin/env python3
+
+&#39;&#39;&#39;
+Define F5 collectors
+&#39;&#39;&#39;
+
+import ansible_runner
+import ast
+import pandas as pd
+import run_collectors as rc
+from helpers import helpers as hp
+
+
+def build_pool_table(username: str,
+                     password: str,
+                     host_group: str,
+                     play_path: str,
+                     private_data_dir: str,
+                     db_path: str,
+                     timestamp: str,
+                     validate_certs: bool = True) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Creates a custom table that contains the F5 pools, associated VIPs (if
+    applicable), and pool members (if applicable).
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        Path to the Ansible private data directory.
+    db_path : str
+        The path to the database.
+    timestamp : str
+        The timestamp for the table.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to True.
+
+    Returns
+    -------
+    df_members : pd.DataFrame
+        The pool availability and associated data.
+    &#39;&#39;&#39;
+    # TODO: Optimize this so the table is only built for any device in the
+    #       hostgroup that does not exist in the table (or if the table is not
+    #       yet present)
+    df_pools = get_pools_and_members(username,
+                                     password,
+                                     host_group,
+                                     play_path,
+                                     private_data_dir)
+
+    rc.add_to_db(&#39;f5_pool_summary&#39;,
+                 df_pools,
+                 timestamp,
+                 db_path,
+                 method=&#39;replace&#39;)
+
+    df_vips = get_vip_summary(username,
+                              password,
+                              host_group,
+                              play_path,
+                              private_data_dir,
+                              df_pools)
+
+    rc.add_to_db(&#39;f5_vip_summary&#39;,
+                 df_vips,
+                 timestamp,
+                 db_path,
+                 method=&#39;replace&#39;)
+
+    return df_vips
+
+
+def convert_tmsh_output_to_dict(in_data: str):
+    &#39;&#39;&#39;
+    Converts F5 &#39;tmsh list&#39; output to a Python dictionary.
+
+    Parameters
+    ----------
+    in_data : str
+        The output to convert to a dictionary.
+
+    Returns
+    -------
+    out : dict
+        &#39;in_data&#39; formatted as a Python dictionary.
+
+    Notes
+    -----
+    F5 &#39;tmsh list&#39; output is close enough to a Python dictionary or JSON to be
+    confusing, but in reality it is neither. However, it does follow certain
+    rules.
+
+    Rule 1: After the first line, the maximum number of elements is 2.
+
+    Rule 2: If more than two words are in a line, then the second element will
+            be wrapped in quotes. (e.g., &#39;vendor &#34;F5 NETWORKS INC.&#34;)
+
+    Rule 3: If a line contains a single word, then it is a member of an array.
+
+    Rule 4: If a line contains a single word followed by &#39;{ }&#39;, then &#39;{ }&#39;
+            indicates an empty array.
+
+    By combining these rules, we can create a relatively simple parser that
+    will convert the output to a Python dictionary. It works like this:
+
+    1. The rules listed above are used to format each line of the output into
+       a form that is a valid part of a Python dictionary. For example, the
+       line &#39;net vlan VLAN1 {&#39; becomes, &#39;&#34;net vlan VLAN1&#34;: {&#39;.
+
+    2. Each line is added to a list.
+
+    3. Any additional formatting is completed.
+
+    4. The list is joined to create a string.
+
+    5. A simple string.replace() inserts any commas that are missing between a
+       &#39;}&#39; and a &#39;&#34;&#39;. (It was easier to do it this way than to embed the logic
+       inside the parser.)
+
+    6. Formatting is finalized.
+
+    7. ast.literal_eval is used to convert &#39;out&#39; into a dictionary.
+
+    Examples
+    ----------
+&gt;&gt;&gt; in_data = &#34;&#34;&#34;net interface 1.0 {
+...     if-index 542
+...     mac-address 00:94:a1:91:23:44
+...     media-active 1000SX-FD
+...     media-max 1000T-FD
+...     module-description &#34;F5 Qualified Optic&#34;
+...     mtu 9198
+...     serial N395NEY
+...     vendor &#34;F5 NETWORKS INC.&#34;
+...     vendor-oui 009065
+...     vendor-partnum OPT-0010
+...     vendor-revision 00
+... }&#34;&#34;&#34;
+&gt;&gt;&gt; output = convert_tmsh_output_to_dict(in_data)
+&gt;&gt;&gt; assert type(output) == dict()
+
+    &#39;&#39;&#39;
+    # Convert the data to a list and strip all spaces.
+    in_data = [_.strip() for _ in in_data.split(&#39;\n&#39;)]
+
+    # Create a list to store each line of the formatted data. Begin the list
+    # with a &#39;{&#39;.
+    out = [&#39;{&#39;]
+
+    for line in in_data:
+        # Format lines that look like the following:
+        # &#39;net interface mgmt {&#39;
+        # &#39;net self BIGIQ {&#39;
+        # &#39;net vlan SERVERS {&#39;
+        if len(line.split(&#39;{&#39;)) &gt; 1 and &#39;}&#39; not in line:
+            line = line.replace(&#39; {&#39;, &#39;&#34;: {&#39;)
+            line = f&#39;&#34;{line}&#39;
+
+        # Format lines that look like the following:
+        # &#39;fwd-mode l3&#39;
+        # &#39;vendor &#34;F5 NETWORKS INC.&#34;&#39;
+        # &#39;module-description &#34;F5 Qualified Optic&#34;&#39;
+        # &#39;tcp:ssh&#39;
+        # &#39;default&#39;
+        if &#39;{&#39; not in line and &#39;}&#39; not in line:
+            if len(line.split()) &gt; 1:
+                if &#39;&#34;&#39; in line:
+                    line = line.split(&#39;&#34;&#39;)
+                    line = list(filter(None, line))
+                    line = [_.strip() for _ in line]
+                else:
+                    line = line.split()
+                line = [f&#39;&#34;{_}&#34;&#39; for _ in line]
+                line = &#39;: &#39;.join(line)
+                line = f&#39;{line},&#39;
+            else:
+                line = f&#39;&#34;{line}&#34;,&#39;
+
+        # Format lines that look like the following:
+        # &#39;2.0 { }&#39;
+        elif &#39;{&#39; in line and &#39;}&#39; in line:
+            line = f&#39;&#34;{line.split()[0]}&#34;: [],&#39;
+
+        out.append(line)
+
+    # Additional formatting needs to be done, so create a dictionary to store
+    # the line numbers that require updates. Each key will be the line number
+    # and the value will be the formatted line.
+    replacements = dict()
+
+    counter = 0
+    for line in out:
+        # Check each line to find out if it is a member of an array. If it is,
+        # then do the following:
+        # 1. Convert the leading or trailing &#39;{&#39; or &#39;}&#39; to a &#39;[&#39; or &#39;]&#39;.
+        # 2. Insert a comma so ast.literal_eval can convert it to a list item.
+        if &#39;{&#39; in line:
+            if len(out[counter+1].split()) == 1:
+                replacements[counter] = line.replace(&#39;{&#39;, &#39;[&#39;)
+        if &#39;}&#39; in line:
+            if len(out[counter-1].split()) == 1:
+                if &#39;}&#39; not in out[counter-1]:
+                    replacements[counter] = line.replace(&#39;}&#39;, &#39;],&#39;)
+        counter += 1
+
+    # Update &#39;out&#39; with the data from &#39;replacements&#39;.
+    for key, value in replacements.items():
+        out[key] = value
+
+    # Add a trailing &#39;}&#39; to &#39;out&#39;.
+    out.append(&#39;}&#39;)
+
+    # Convert &#39;out&#39; to a string.
+    out = &#39;&#39;.join(out)
+
+    # Add a comma between &#39;}&#39; and &#39;&#34;.
+    out = out.replace(&#39;}&#34;&#39;, &#39;},&#34;&#39;)
+
+    # Convert &#39;out&#39; to a dictionary
+    out = ast.literal_eval(out)
+
+    return out
+
+
+def get_arp_table(username: str,
+                  password: str,
+                  host_group: str,
+                  nm_path: str,
+                  play_path: str,
+                  private_data_dir: str,
+                  validate_certs: bool = True) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Get the ARP table on F5 LTMs.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to the device.
+    host_group : str
+        The Ansible inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to True.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A Pandas DataFrame containing the ARP table.
+    &#39;&#39;&#39;
+    extravars = {&#39;username&#39;: username,
+                 &#39;password&#39;: password,
+                 &#39;host_group&#39;: host_group,
+                 &#39;command&#39;: r&#39;show net arp | grep -v &#34;\\-\\-\\-\\-\|Net::Arp&#34;&#39;}
+
+    if not validate_certs:
+        extravars[&#39;validate_certs&#39;] = &#39;no&#39;
+
+    playbook = f&#39;{play_path}/f5_run_adhoc_command.yml&#39;
+
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Create a list to store the ARP data for `df`.
+    df_data = list()
+
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            event_data = event[&#39;event_data&#39;]
+            device = event_data[&#39;remote_addr&#39;]
+
+            output = event_data[&#39;res&#39;][&#39;stdout_lines&#39;][0]
+
+            # Create the dataframe columns.
+            columns = [&#39;device&#39;] + output[0].split()
+
+            # Parse the output and add it to `df_data`
+            for line in output[1:]:
+                line = [device] + line.split()
+                df_data.append(line)
+
+    # Create `df`.
+    df = pd.DataFrame(df_data, columns=columns).astype(str)
+
+    # Get the MAC OUIs and add them to `df`
+    df_macs = hp.find_mac_vendors(df[&#39;HWaddress&#39;], nm_path)
+    df[&#39;vendor&#39;] = df_macs[&#39;vendor&#39;]
+
+    return df
+
+
+def get_self_ips(username: str,
+                 password: str,
+                 host_group: str,
+                 play_path: str,
+                 private_data_dir: str,
+                 validate_certs: bool = True) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Get the self IPs on F5 LTMs.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to the device.
+    host_group : str
+        The Ansible inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to True.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A Pandas DataFrame containing the self IPs.
+    &#39;&#39;&#39;
+    extravars = {&#39;username&#39;: username,
+                 &#39;password&#39;: password,
+                 &#39;host_group&#39;: host_group,
+                 &#39;command&#39;: &#39;list net self /*/*&#39;}
+
+    if not validate_certs:
+        extravars[&#39;validate_certs&#39;] = &#39;no&#39;
+
+    playbook = f&#39;{play_path}/f5_run_adhoc_command.yml&#39;
+
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Create a dictionary to store each self IP.
+    data = dict()
+
+    # Create a dictionary to store the data for `df`
+    df_data = dict()
+
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            event_data = event[&#39;event_data&#39;]
+            device = event_data[&#39;remote_addr&#39;]
+            data[device] = list()
+            output = event_data[&#39;res&#39;][&#39;stdout_lines&#39;][0]
+
+            # Parse the output and add it to `data``
+            counter = 0
+            for line in output:
+                if line[:8] == &#39;net self&#39;:
+                    block = list()
+                    pos = counter
+                    while output[pos][0] != &#39;}&#39;:
+                        block.append(output[pos])
+                        pos += 1
+                    block.append(&#39;}&#39;)
+
+                    # Convert the block to a dictionary then flatten it.
+                    # pprint(block)
+                    block = &#39;\n&#39;.join(block)
+                    block = convert_tmsh_output_to_dict(block)
+
+                    for key, value in block.items():
+                        self_name = key.split()[-1]
+                        value[&#39;name&#39;] = self_name
+
+                    # Add the device name to `value`, then add `block` to
+                    # `data`.
+                    value[&#39;device&#39;] = device
+                    data[device].append(value)
+
+                    # Add each key in `block` to `df_data`.
+                    for key in value:
+                        if not df_data.get(key):
+                            df_data[key] = list()
+
+                counter += 1
+
+    # Iterate over `data`, adding the values to `df_data`.
+    for key, value in data.items():
+        for item in value:
+            for k in df_data:
+                df_data[k].append(item.get(k))
+
+    # Create `df`.
+    df = pd.DataFrame.from_dict(df_data).astype(str)
+
+    # Make `device` the first column, then return `df`.
+    col_1 = df.pop(&#39;device&#39;)
+    df.insert(0, &#39;device&#39;, col_1)
+
+    # Add the subnets, network IPs, and broadcast IPs.
+    addresses = df[&#39;address&#39;].to_list()
+    result = hp.generate_subnet_details(addresses)
+    df[&#39;subnet&#39;] = result[&#39;subnet&#39;]
+    df[&#39;network_ip&#39;] = result[&#39;network_ip&#39;]
+    df[&#39;broadcast_ip&#39;] = result[&#39;broadcast_ip&#39;]
+
+    return df
+
+
+def get_interface_descriptions(username: str,
+                               password: str,
+                               host_group: str,
+                               nm_path: str,
+                               play_path: str,
+                               private_data_dir: str,
+                               reverse_dns: bool = False,
+                               validate_certs: bool = True) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets F5 interface descriptions.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    reverse_dns : bool, optional
+        Whether to run a reverse DNS lookup. Defaults to False because the test
+        can take several minutes on large ARP tables.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to True.
+
+    Returns
+    -------
+    df_desc : pd.DataFrame
+        The interface descriptions.
+    &#39;&#39;&#39;
+    extravars = {&#39;username&#39;: username,
+                 &#39;password&#39;: password,
+                 &#39;host_group&#39;: host_group}
+
+    if not validate_certs:
+        extravars[&#39;validate_certs&#39;] = &#39;no&#39;
+
+    # Execute the command and parse the results
+    playbook = f&#39;{play_path}/f5_get_interface_description.yml&#39;
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Create a list to store the rows for the dataframe
+    df_data = list()
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            event_data = event[&#39;event_data&#39;]
+
+            device = event_data[&#39;remote_addr&#39;]
+
+            output = event_data[&#39;res&#39;][&#39;stdout_lines&#39;][0]
+            pos = 1
+            for line in output:
+                if &#39;net interface&#39; in line or &#39;net trunk&#39; in line:
+                    inf = line.split()[-2]
+                    desc = output[pos].split()[1:]
+                    desc = &#39; &#39;.join(desc)  # To account for spaces in desc
+                    df_data.append([device, inf, desc])
+                pos += 1
+
+    # Create the dataframe and return it
+    cols = [&#39;device&#39;, &#39;interface&#39;, &#39;description&#39;]
+    df_desc = pd.DataFrame(data=df_data, columns=cols)
+    return df_desc
+
+
+def get_interface_status(username: str,
+                         password: str,
+                         host_group: str,
+                         play_path: str,
+                         private_data_dir: str,
+                         validate_certs: bool = True) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets the interface and trunk statuses for F5 devices.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to True.
+
+    Returns
+    -------
+    df_inf_status : pd.DataFrame
+        The interface statuses.
+    &#39;&#39;&#39;
+    # Get the interface statuses
+    extravars = {&#39;username&#39;: username,
+                 &#39;password&#39;: password,
+                 &#39;host_group&#39;: host_group}
+
+    if not validate_certs:
+        extravars[&#39;validate_certs&#39;] = &#39;no&#39;
+
+    # Execute the pre-checks
+    playbook = f&#39;{play_path}/f5_get_interface_status.yml&#39;
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse the output and add it to &#39;data&#39;
+    df_data = list()
+
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            event_data = event[&#39;event_data&#39;]
+
+            device = event_data[&#39;remote_addr&#39;]
+
+            # The playbook runs two commands--show net interface and show net
+            # trunk. The output of both commands is in the same event.
+            output = event_data[&#39;res&#39;][&#39;stdout_lines&#39;]
+            net_inf = output[0]
+            try:
+                net_trunk = output[1]
+            except IndexError:
+                net_trunk = []
+
+            # Parse the interface statuses and add it to &#39;df_data&#39;.
+            for line in net_inf:
+                line = line.split()
+                inf = line[0]
+                status = line[1]
+                vlan = str()
+                duplex = str()
+                speed = str()
+                media = line[8]
+                row = [device,
+                       inf,
+                       status,
+                       vlan,
+                       duplex,
+                       speed,
+                       media]
+                df_data.append(row)
+
+            for line in net_trunk:
+                line = line.split()
+                inf = line[0]
+                status = line[1]
+                vlan = str()
+                duplex = str()
+                speed = line[2]
+                media = str()
+                row = [device,
+                       inf,
+                       status,
+                       vlan,
+                       duplex,
+                       speed,
+                       media]
+                df_data.append(row)
+
+    # Create the dataframe and return it
+    cols = [&#39;device&#39;,
+            &#39;interface&#39;,
+            &#39;status&#39;,
+            &#39;vlan&#39;,
+            &#39;duplex&#39;,
+            &#39;speed&#39;,
+            &#39;type&#39;]
+
+    df_inf_status = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_inf_status
+
+
+def get_node_availability(username: str,
+                          password: str,
+                          host_group: str,
+                          play_path: str,
+                          private_data_dir: str,
+                          validate_certs: bool = True) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets node availability from F5 LTMs.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        Path to the Ansible private data directory.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to True.
+
+    Returns
+    -------
+    df_nodes : pd.DataFrame
+        The node availability and associated data.
+    &#39;&#39;&#39;
+    # Get the interface statuses
+    extravars = {&#39;username&#39;: username,
+                 &#39;password&#39;: password,
+                 &#39;host_group&#39;: host_group}
+
+    if not validate_certs:
+        extravars[&#39;validate_certs&#39;] = &#39;no&#39;
+
+    # Execute the pre-checks
+    playbook = f&#39;{play_path}/f5_get_node_availability.yml&#39;
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+    df_data[&#39;partition&#39;] = list()
+    df_data[&#39;node&#39;] = list()
+
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            event_data = event[&#39;event_data&#39;]
+
+            device = event_data[&#39;remote_addr&#39;]
+
+            output = event_data[&#39;res&#39;][&#39;stdout_lines&#39;][0]
+
+            # Create remaining dictionary structure for &#39;df_data&#39;
+            for line in output:
+                if &#39;ltm node&#39; in line and &#39;{&#39; in line:
+                    pos = output.index(line)
+                    while &#39;}&#39; not in output[pos+1]:
+                        key = output[pos+1].split()[0]
+                        if not df_data.get(key):
+                            df_data[key] = list()
+                        pos += 1
+                break
+
+            # Populate &#39;df_data&#39;
+            for line in output:
+                if &#39;ltm node&#39; in line and &#39;{&#39; in line:
+                    # Add the device to &#39;df_data&#39;
+                    df_data[&#39;device&#39;].append(device)
+
+                    # Set the partition and node and add them to &#39;df_data&#39;
+                    if &#39;/&#39; not in line:
+                        partition = &#39;Common&#39;
+                        node = line.split()[2]
+                    else:
+                        partition = line.split()[2].split(&#39;/&#39;)[1]
+                        node = line.split()[2].split(&#39;/&#39;)[-1]
+
+                    # Add the node to &#39;df_data&#39;
+                    df_data[&#39;partition&#39;].append(partition)
+                    df_data[&#39;node&#39;].append(node)
+
+                    # Add the node details to &#39;df_data&#39;
+                    pos = output.index(line)
+                    while &#39;}&#39; not in output[pos+1]:
+                        key = output[pos+1].split()[0]
+                        value = &#39; &#39;.join(output[pos+1].split()[1:])
+                        df_data[key].append(value)
+                        pos += 1
+
+    # Create the dataframe
+    df_nodes = pd.DataFrame.from_dict(df_data)
+
+    return df_nodes
+
+
+def get_pool_availability(username: str,
+                          password: str,
+                          host_group: str,
+                          play_path: str,
+                          private_data_dir: str,
+                          validate_certs: bool = True) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets pool availability from F5 LTMs.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        Path to the Ansible private data directory.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to True.
+
+    Returns
+    -------
+    df_pools : pd.DataFrame
+        The pool availability and associated data.
+    &#39;&#39;&#39;
+    extravars = {&#39;username&#39;: username,
+                 &#39;password&#39;: password,
+                 &#39;host_group&#39;: host_group}
+
+    if not validate_certs:
+        extravars[&#39;validate_certs&#39;] = &#39;no&#39;
+
+    # Execute the pre-checks
+    playbook = f&#39;{play_path}/f5_get_pool_availability.yml&#39;
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse the pool data and add it to two dictionaries--&#39;pools&#39; and
+    # &#39;pool_members&#39;. The data from those dictionaries will be used to
+    # create the two dataframes
+    pools = dict()
+
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            event_data = event[&#39;event_data&#39;]
+
+            device = event_data[&#39;remote_addr&#39;]
+            pools[device] = dict()
+
+            # The playbook runs two commands--show net interface and show net
+            # trunk. The output of both commands is in the same event.
+            output = event_data[&#39;res&#39;][&#39;stdout_lines&#39;][0]
+
+            pos = 0
+            for line in output:
+                if &#39;Ltm::Pool:&#39; in line:
+                    if &#39;/&#39; in line:
+                        pool = line.split(&#39;/&#39;)[-1].strip()
+                        partition = line.split(&#39;/&#39;)[1].split(&#39;/&#39;)[-1]
+                    else:
+                        pool = line.split()[-1].strip()
+                        partition = &#39;Common&#39;
+                    pools[device][pool] = dict()
+                    pools[device][pool][&#39;device&#39;] = device
+                    pools[device][pool][&#39;partition&#39;] = partition
+                    counter = pos+1
+                    while &#39;Ltm::Pool:&#39; not in output[counter]:
+                        _ = output[counter]
+                        if _.split()[0] != &#39;|&#39;:
+                            if &#39;Availability&#39; in _:
+                                pools[device][pool][&#39;availability&#39;] = \
+                                    _.split()[-1]
+                            if &#39;State&#39; in _:
+                                pools[device][pool][&#39;state&#39;] = _.split()[-1]
+                            if &#39;Reason&#39; in _:
+                                pools[device][pool][&#39;reason&#39;] = \
+                                    _.split(&#39;:&#39;)[-1].strip()
+                            if &#39;Minimum Active Members&#39; in _:
+                                pools[device][pool][&#39;minimum_active&#39;] = \
+                                    _.split()[-1]
+                            if &#39;Current Active Members&#39; in _:
+                                pools[device][pool][&#39;current_active&#39;] = \
+                                    _.split()[-1]
+                            if &#39;Available Members&#39; in _:
+                                pools[device][pool][&#39;available&#39;] = \
+                                    _.split()[-1]
+                            if &#39;Total Members&#39; in _:
+                                pools[device][pool][&#39;total&#39;] = _.split()[-1]
+                        counter += 1
+                        if counter == len(output):
+                            break
+                pos += 1
+
+    df_pools_data = list()
+    for key, value in pools.items():
+        for k, v in value.items():
+            pool = k
+            device = v[&#39;device&#39;]
+            available = v[&#39;available&#39;]
+            availability = v[&#39;availability&#39;]
+            current_active = v[&#39;current_active&#39;]
+            minimum_active = v[&#39;minimum_active&#39;]
+            partition = v[&#39;partition&#39;]
+            reason = v[&#39;reason&#39;]
+            state = v[&#39;state&#39;]
+            total = v[&#39;total&#39;]
+            df_pools_data.append([device,
+                                  partition,
+                                  pool,
+                                  availability,
+                                  state,
+                                  total,
+                                  available,
+                                  current_active,
+                                  minimum_active,
+                                  reason])
+
+    cols = [&#39;device&#39;,
+            &#39;partition&#39;,
+            &#39;pool&#39;,
+            &#39;availability&#39;,
+            &#39;state&#39;,
+            &#39;total&#39;,
+            &#39;avail&#39;,
+            &#39;cur&#39;,
+            &#39;min&#39;,
+            &#39;reason&#39;]
+
+    df_pools = pd.DataFrame(data=df_pools_data, columns=cols)
+
+    return df_pools
+
+
+def get_pool_data(username: str,
+                  password: str,
+                  host_group: str,
+                  play_path: str,
+                  private_data_dir: str,
+                  validate_certs: bool = False) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets F5 pool and pool members.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        Path to the Ansible private data directory.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to False.
+
+    Returns
+    -------
+    df_pools : pd.DataFrame
+        The F5 pools and members.
+    &#39;&#39;&#39;
+    extravars = {&#39;username&#39;: username,
+                 &#39;password&#39;: password,
+                 &#39;host_group&#39;: host_group}
+
+    if not validate_certs:
+        extravars[&#39;validate_certs&#39;] = &#39;no&#39;
+
+    # Execute the pre-checks
+    playbook = f&#39;{play_path}/f5_get_pool_data.yml&#39;
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True,
+                                quiet=True)
+
+    df_data = list()
+
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            event_data = event[&#39;event_data&#39;]
+            device = event_data[&#39;remote_addr&#39;]
+
+            # Extract the command output and clean it up
+            output = event_data[&#39;res&#39;][&#39;stdout_lines&#39;][0]
+
+            output = [_ for _ in output if &#39;members {&#39; not in _]
+            counter = 0
+            for line in output:
+                if &#39;ltm pool&#39; in line:
+                    if &#39;/&#39; in line:
+                        partition = line.split(&#39;/&#39;)[-2]
+                    else:
+                        partition = &#39;Common&#39;
+
+                    pool = line.strip(&#39; {&#39;).split()[-1].split(&#39;/&#39;)[-1]
+
+                    next_line = output[counter+1]
+                    if &#39;:&#39; not in next_line and &#39; {&#39; not in next_line:
+                        member = str()
+                        port = str()
+                        address = str()
+
+                        row = [device,
+                               partition,
+                               pool,
+                               str(),
+                               str(),
+                               str()]
+                        df_data.append(row)
+
+                if &#39;:&#39; in line and &#39; {&#39; in line:
+                    member = line.split()[0]
+                    port = line.split(&#39;:&#39;)[-1].split()[0]
+                    address = output[counter+1].split()[-1]
+
+                    row = [device,
+                           partition,
+                           pool,
+                           member,
+                           port,
+                           address]
+                    df_data.append(row)
+
+                counter += 1
+
+    # Create the dataframe
+    cols = [&#39;device&#39;,
+            &#39;partition&#39;,
+            &#39;pool&#39;,
+            &#39;member&#39;,
+            &#39;member_port&#39;,
+            &#39;address&#39;]
+
+    df_pools = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_pools
+
+
+def get_pool_member_availability(username: str,
+                                 password: str,
+                                 host_group: str,
+                                 play_path: str,
+                                 private_data_dir: str,
+                                 validate_certs: bool = True) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets F5 pool member availability from F5 LTMs.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        Path to the Ansible private data directory.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to True.
+
+    Returns
+    -------
+    df_members : pd.DataFrame
+        The pool availability and associated data.
+    &#39;&#39;&#39;
+    # Get the interface statuses
+    extravars = {&#39;username&#39;: username,
+                 &#39;password&#39;: password,
+                 &#39;host_group&#39;: host_group}
+
+    if not validate_certs:
+        extravars[&#39;validate_certs&#39;] = &#39;no&#39;
+
+    # Execute the pre-checks
+    playbook = f&#39;{play_path}/f5_get_pool_member_availability.yml&#39;
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    df_data = list()
+    # df_dict = dict()
+
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            event_data = event[&#39;event_data&#39;]
+
+            device = event_data[&#39;remote_addr&#39;]
+            # df_dict[device] = dict()
+
+            output = event_data[&#39;res&#39;][&#39;stdout_lines&#39;][0]
+            pos = 0
+            for line in output:
+                if &#39;Ltm::Pool:&#39; in line:
+                    # TODO: Separate partition from pool name.
+                    if &#39;/&#39; in line:
+                        name = line.split(&#39;/&#39;)
+                        partition = name[1].strip()
+                        pool = name[-1].strip()
+                    else:
+                        pool = line.split()[-1].strip()
+                        partition = &#39;Common&#39;
+
+                    # df_dict[device][pool] = dict()
+                    counter = pos+1
+                    while &#39;Ltm::Pool:&#39; not in output[counter]:
+                        _ = output[counter]
+                        if _.split()[0] == &#39;|&#39;:
+                            if &#39;Ltm::Pool Member:&#39; in _:
+                                member = _.split()[-1]
+                            if &#39;Availability&#39; in _:
+                                availability = _.split()[-1]
+                                df_data.append([device,
+                                                partition,
+                                                pool,
+                                                member,
+                                                availability])
+                        counter += 1
+                        if counter == len(output):
+                            break
+
+                pos += 1
+
+    cols = [&#39;device&#39;,
+            &#39;partition&#39;,
+            &#39;pool_name&#39;,
+            &#39;pool_member&#39;,
+            &#39;pool_member_state&#39;]
+
+    df_members = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_members
+
+
+def get_pools_and_members(username: str,
+                          password: str,
+                          host_group: str,
+                          play_path: str,
+                          private_data_dir: str,
+                          validate_certs: bool = False) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets F5 pools and members.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        Path to the Ansible private data directory.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to False.
+
+    Returns
+    -------
+    df_pools : pd.DataFrame
+        The F5 pools and members.
+    &#39;&#39;&#39;
+    extravars = {&#39;username&#39;: username,
+                 &#39;password&#39;: password,
+                 &#39;host_group&#39;: host_group}
+
+    if not validate_certs:
+        extravars[&#39;validate_certs&#39;] = &#39;no&#39;
+
+    # Execute the pre-checks
+    playbook = f&#39;{play_path}/f5_get_pools_and_members.yml&#39;
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True,
+                                quiet=True)
+
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+    df_data[&#39;partition&#39;] = list()
+    df_data[&#39;pool&#39;] = list()
+    df_data[&#39;member&#39;] = list()
+    df_data[&#39;address&#39;] = list()
+
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            event_data = event[&#39;event_data&#39;]
+
+            device = event_data[&#39;remote_addr&#39;]
+
+            output = event_data[&#39;res&#39;][&#39;stdout_lines&#39;][0]
+
+            for line in output:
+                if &#39;ltm pool &#39; in line:
+                    pos = output.index(line)+1
+                    if &#39;/&#39; in line:
+                        name = line.split()[-1]
+                        partition = name.split(&#39;/&#39;)[1]
+                        pool = name.split(&#39;/&#39;)[-1]
+                    else:
+                        partition = &#39;Common&#39;
+                        pool = line.split()[-1]
+
+                    addresses = False
+
+                    if pos &lt; len(output):
+                        while &#39;ltm pool &#39; not in output[pos]:
+                            if &#39;address&#39; in output[pos]:
+                                addresses = True
+                                df_data[&#39;device&#39;].append(device)
+                                df_data[&#39;partition&#39;].append(partition)
+                                df_data[&#39;pool&#39;].append(pool)
+                                member = output[pos-1].split()[0]
+                                address = output[pos].split()[-1]
+                                df_data[&#39;member&#39;].append(member)
+                                df_data[&#39;address&#39;].append(address)
+                            pos += 1
+                            if pos == len(output):
+                                break
+                    if not addresses:
+                        df_data[&#39;device&#39;].append(device)
+                        df_data[&#39;partition&#39;].append(partition)
+                        df_data[&#39;pool&#39;].append(pool)
+                        df_data[&#39;member&#39;].append(str())
+                        df_data[&#39;address&#39;].append(str())
+
+    df_pools = pd.DataFrame.from_dict(df_data)
+    return df_pools
+
+
+def get_vip_availability(username: str,
+                         password: str,
+                         host_group: str,
+                         play_path: str,
+                         private_data_dir: str,
+                         validate_certs: bool = True) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets VIP availability from F5 LTMs.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        Path to the Ansible private data directory.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to True.
+
+    Returns
+    -------
+    df_vips : pd.DataFrame
+        The VIP availability and associated data.
+    &#39;&#39;&#39;
+    # Get the interface statuses
+    extravars = {&#39;username&#39;: username,
+                 &#39;password&#39;: password,
+                 &#39;host_group&#39;: host_group}
+
+    if not validate_certs:
+        extravars[&#39;validate_certs&#39;] = &#34;no&#34;
+
+    # Execute the pre-checks
+    playbook = f&#39;{play_path}/f5_get_vip_availability_and_destination.yml&#39;
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True,
+                                quiet=True)
+
+    df_data = list()
+
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            event_data = event[&#39;event_data&#39;]
+
+            device = event_data[&#39;remote_addr&#39;]
+            # pools[device] = dict()
+
+            output = event_data[&#39;res&#39;][&#39;stdout_lines&#39;][0]
+            pos = 0
+            for line in output:
+                if &#39;Ltm::Virtual Server:&#39; in line:
+                    if &#39;/&#39; in line:
+                        vip = line.split(&#39;/&#39;)[-1]
+                        partition = line.split(&#39;/&#39;)[1].split(&#39;/&#39;)[-1]
+                    else:
+                        vip = line.split()[-1]
+                        partition = &#39;Common&#39;
+                    counter = pos+1
+                    while &#39;Ltm::Virtual Server:&#39; not in output[counter]:
+                        _ = output[counter]
+                        if &#39;Availability&#39; in _:
+                            availability = _.split()[-1]
+                        if &#39;State&#39; in _:
+                            state = _.split()[-1]
+                        if &#39;Reason&#39; in _:
+                            reason = _.split(&#39;:&#39;)[-1].strip()
+                        if &#39;Destination&#39; in _:
+                            destination = _.split()[-1].split(&#39;:&#39;)[0]
+                            port = _.split()[-1].split(&#39;:&#39;)[-1]
+                        counter += 1
+                        if counter == len(output):
+                            break
+                    df_data.append([device,
+                                    partition,
+                                    vip,
+                                    destination,
+                                    port,
+                                    availability,
+                                    state,
+                                    reason])
+                pos += 1
+
+    cols = [&#39;device&#39;,
+            &#39;partition&#39;,
+            &#39;vip&#39;,
+            &#39;destination&#39;,
+            &#39;port&#39;,
+            &#39;availability&#39;,
+            &#39;state&#39;,
+            &#39;reason&#39;]
+
+    df_vips = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_vips
+
+
+def get_vip_destinations(db_path: str) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Creates a summary view of the VIP destinations on F5 LTMs. It pulls the
+    data from the &#39;f5_get_vip_availability&#39; table. The view can be queried
+    just like a regular table.
+
+    Parameters
+    ----------
+    db_path : str
+        The path to the database.
+
+    Returns
+    -------
+    result : pd.DataFrame
+        A dataframe containing the view&#39;s data.
+    &#39;&#39;&#39;
+    # Connect to the database
+    con = hp.connect_to_db(db_path)
+    cur = con.cursor()
+
+    # Create the view and return the results so the user can see that the
+    # operation was successful
+    cur.execute(&#39;&#39;&#39;create view if not exists VIP_DESTINATIONS
+                   as
+                   select timestamp,
+                          device,
+                          partition,
+                          vip,
+                          destination,
+                          port
+                   from VIP_AVAILABILITY
+                   &#39;&#39;&#39;)
+
+    query = &#39;select * from BIGIP_VIP_AVAILABILITY&#39;
+
+    result = pd.read_sql(query, con)
+
+    return result
+
+
+def get_vip_summary(username: str,
+                    password: str,
+                    host_group: str,
+                    play_path: str,
+                    private_data_dir: str,
+                    df_pools: pd.DataFrame,
+                    validate_certs: bool = False) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets F5 summary.
+
+    Args:
+        username (str):         The username to login to devices.
+        password (str):         The password to login to devices.
+        host_group (str):       The inventory host group.
+        play_path (str):        The path to the playbooks directory.
+        private_data_dir (str): Path to the Ansible private data directory.
+        df_pools (pd.DataFrame): A DataFrame containing a summary of the pools
+                                 and members. This is created with the
+                                 &#39;f5_build_pool_table&#39; function.
+        validate_certs (bool):  Whether to validate SSL certificates. Defaults
+                                to False.
+
+    Returns:
+        df_vips (pd.DataFrame): The F5 VIP summary.
+    &#39;&#39;&#39;
+    extravars = {&#39;username&#39;: username,
+                 &#39;password&#39;: password,
+                 &#39;host_group&#39;: host_group}
+
+    if not validate_certs:
+        extravars[&#39;validate_certs&#39;] = &#39;no&#39;
+
+    # Execute the pre-checks
+    playbook = f&#39;{play_path}/f5_get_vip_summary.yml&#39;
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True,
+                                quiet=True)
+
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+    df_data[&#39;partition&#39;] = list()
+    df_data[&#39;vip&#39;] = list()
+    df_data[&#39;destination&#39;] = list()
+    df_data[&#39;pool&#39;] = list()
+    df_data[&#39;member&#39;] = list()
+    df_data[&#39;address&#39;] = list()
+
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            event_data = event[&#39;event_data&#39;]
+
+            device = event_data[&#39;remote_addr&#39;]
+
+            output = event_data[&#39;res&#39;][&#39;stdout_lines&#39;][0]
+
+            for line in output:
+                if &#39;ltm virtual &#39; in line:
+                    name = line.split()[-2]
+                    if &#39;/&#39; in name:
+                        partition = name.split(&#39;/&#39;)[1]
+                        vip = name.split(&#39;/&#39;)[-1]
+                    else:
+                        partition = &#39;Common&#39;
+                        vip = name
+
+                    destination = str()
+                    pool = str()
+                    member = str()
+                    address = str()
+
+                    pos = output.index(line)+1
+                    if pos &lt; len(output):
+                        while &#39;ltm virtual &#39; not in output[pos]:
+                            if output[pos].split()[0] == &#39;destination&#39;:
+                                destination = output[pos].split(&#39;/&#39;)[-1]
+                            if output[pos].split()[0] == &#39;pool&#39;:
+                                pool = output[pos].split(&#39;/&#39;)[-1]
+                            pos += 1
+                            if pos == len(output):
+                                break
+                    if pool:
+
+                        df_members = df_pools.loc[(df_pools[&#39;partition&#39;] ==
+                                                   partition) &amp;
+                                                  (df_pools[&#39;pool&#39;] == pool)]
+                        if len(df_members) &gt; 0:
+                            for idx, row in df_members.iterrows():
+                                member = row[&#39;member&#39;]
+                                address = row[&#39;address&#39;]
+                                df_data[&#39;device&#39;].append(device)
+                                df_data[&#39;partition&#39;].append(partition)
+                                df_data[&#39;vip&#39;].append(vip)
+                                df_data[&#39;destination&#39;].append(destination)
+                                df_data[&#39;pool&#39;].append(pool)
+                                df_data[&#39;member&#39;].append(member)
+                                df_data[&#39;address&#39;].append(address)
+                    df_data[&#39;device&#39;].append(device)
+                    df_data[&#39;partition&#39;].append(partition)
+                    df_data[&#39;vip&#39;].append(vip)
+                    df_data[&#39;destination&#39;].append(destination)
+                    df_data[&#39;pool&#39;].append(pool)
+                    df_data[&#39;member&#39;].append(member)
+                    df_data[&#39;address&#39;].append(address)
+
+    df_vips = pd.DataFrame.from_dict(df_data)
+
+    return df_vips
+
+
+def get_vlan_db(username: str,
+                password: str,
+                host_group: str,
+                play_path: str,
+                private_data_dir: str,
+                validate_certs: bool = True) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets the VLAN database on F5 LTMs.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to the device.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to True.
+
+    Returns
+    -------
+    df_vips : pd.DataFrame
+        A Pandas DataFrame containing the VLAN database.
+    &#39;&#39;&#39;
+    # Get the interface statuses
+    extravars = {&#39;username&#39;: username,
+                 &#39;password&#39;: password,
+                 &#39;host_group&#39;: host_group}
+
+    if not validate_certs:
+        extravars[&#39;validate_certs&#39;] = &#39;no&#39;
+
+    playbook = f&#39;{play_path}/f5_get_vlan_database.yml&#39;
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    df_data = list()
+
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            event_data = event[&#39;event_data&#39;]
+
+            device = event_data[&#39;remote_addr&#39;]
+
+            output = event_data[&#39;res&#39;][&#39;stdout_lines&#39;][0]
+
+            pos = 0
+            for line in output:
+                if &#39;Net::Vlan:&#39; in line:
+                    if &#39;Interface Name&#39; in output[pos+1]:
+                        name = output[pos+1].split()[-1]
+                    else:
+                        name = str()
+                    if output[pos+2].split()[0] == &#39;Tag&#39;:
+                        tag = output[pos+2].split()[-1]
+                    else:
+                        tag = str()
+                    # TODO: Add support for status and interfaces
+                    df_data.append([device,
+                                    tag,
+                                    name,
+                                    str(),
+                                    str()])
+                pos += 1
+
+    cols = [&#39;device&#39;,
+            &#39;id&#39;,
+            &#39;name&#39;,
+            &#39;status&#39;,
+            &#39;ports&#39;]
+    df_vlans = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_vlans
+
+
+def get_vlans(username: str,
+              password: str,
+              host_group: str,
+              play_path: str,
+              private_data_dir: str,
+              validate_certs: bool = True) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets the VLANs on F5 LTMs.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to the device.
+    host_group : str
+        The Ansible inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    validate_certs : bool, optional:
+        Whether to validate SSL certificates. Defaults to True.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A Pandas DataFrame containing the VLANs.
+    &#39;&#39;&#39;
+    extravars = {&#39;username&#39;: username,
+                 &#39;password&#39;: password,
+                 &#39;host_group&#39;: host_group,
+                 &#39;command&#39;: &#39;list net vlan /*/*&#39;}
+
+    if not validate_certs:
+        extravars[&#39;validate_certs&#39;] = &#39;no&#39;
+
+    playbook = f&#39;{play_path}/f5_run_adhoc_command.yml&#39;
+
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Create a dictionary to store each self IP.
+    data = dict()
+
+    # Create a dictionary to store the data for `df`
+    df_data = dict()
+
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            event_data = event[&#39;event_data&#39;]
+            device = event_data[&#39;remote_addr&#39;]
+            data[device] = list()
+            output = event_data[&#39;res&#39;][&#39;stdout_lines&#39;][0]
+
+            # Parse the output and add it to `data``
+            counter = 0
+            for line in output:
+                if line[:8] == &#39;net vlan&#39;:
+                    block = list()
+                    pos = counter
+                    while output[pos][0] != &#39;}&#39;:
+                        block.append(output[pos])
+                        pos += 1
+                    block.append(&#39;}&#39;)
+
+                    # Convert the block to a dictionary then flatten it.
+                    # pprint(block)
+                    block = &#39;\n&#39;.join(block)
+                    block = convert_tmsh_output_to_dict(block)
+
+                    for key, value in block.items():
+                        self_name = key.split()[-1]
+                        value[&#39;name&#39;] = self_name
+
+                    # Add the device name to `value`, then add `block` to
+                    # `data`.
+                    value[&#39;device&#39;] = device
+                    data[device].append(value)
+
+                    # Add each key in `block` to `df_data`.
+                    for key in value:
+                        if not df_data.get(key):
+                            df_data[key] = list()
+
+                counter += 1
+
+    # Iterate over `data`, adding the values to `df_data`.
+    for key, value in data.items():
+        for item in value:
+            for k in df_data:
+                df_data[k].append(item.get(k))
+
+    # Create `df`.
+    df = pd.DataFrame.from_dict(df_data).astype(str)
+
+    # Make `device` the first column, then return `df`.
+    col_1 = df.pop(&#39;device&#39;)
+    df.insert(0, &#39;device&#39;, col_1)
+
+    return df</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="collectors.f5_collectors.build_pool_table"><code class="name flex">
+<span>def <span class="ident">build_pool_table</span></span>(<span>username: str, password: str, host_group: str, play_path: str, private_data_dir: str, db_path: str, timestamp: str, validate_certs: bool = True) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a custom table that contains the F5 pools, associated VIPs (if
+applicable), and pool members (if applicable).</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>username</code></strong> :&ensp;<code>str</code></dt>
+<dd>The username to login to devices.</dd>
+<dt><strong><code>password</code></strong> :&ensp;<code>str</code></dt>
+<dd>The password to login to devices.</dd>
+<dt><strong><code>host_group</code></strong> :&ensp;<code>str</code></dt>
+<dd>The inventory host group.</dd>
+<dt><strong><code>play_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the playbooks directory.</dd>
+<dt><strong><code>private_data_dir</code></strong> :&ensp;<code>str</code></dt>
+<dd>Path to the Ansible private data directory.</dd>
+<dt><strong><code>db_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the database.</dd>
+<dt><strong><code>timestamp</code></strong> :&ensp;<code>str</code></dt>
+<dd>The timestamp for the table.</dd>
+<dt><strong><code>validate_certs</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Whether to validate SSL certificates. Defaults to True.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df_members</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>The pool availability and associated data.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def build_pool_table(username: str,
+                     password: str,
+                     host_group: str,
+                     play_path: str,
+                     private_data_dir: str,
+                     db_path: str,
+                     timestamp: str,
+                     validate_certs: bool = True) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Creates a custom table that contains the F5 pools, associated VIPs (if
+    applicable), and pool members (if applicable).
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        Path to the Ansible private data directory.
+    db_path : str
+        The path to the database.
+    timestamp : str
+        The timestamp for the table.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to True.
+
+    Returns
+    -------
+    df_members : pd.DataFrame
+        The pool availability and associated data.
+    &#39;&#39;&#39;
+    # TODO: Optimize this so the table is only built for any device in the
+    #       hostgroup that does not exist in the table (or if the table is not
+    #       yet present)
+    df_pools = get_pools_and_members(username,
+                                     password,
+                                     host_group,
+                                     play_path,
+                                     private_data_dir)
+
+    rc.add_to_db(&#39;f5_pool_summary&#39;,
+                 df_pools,
+                 timestamp,
+                 db_path,
+                 method=&#39;replace&#39;)
+
+    df_vips = get_vip_summary(username,
+                              password,
+                              host_group,
+                              play_path,
+                              private_data_dir,
+                              df_pools)
+
+    rc.add_to_db(&#39;f5_vip_summary&#39;,
+                 df_vips,
+                 timestamp,
+                 db_path,
+                 method=&#39;replace&#39;)
+
+    return df_vips</code></pre>
+</details>
+</dd>
+<dt id="collectors.f5_collectors.convert_tmsh_output_to_dict"><code class="name flex">
+<span>def <span class="ident">convert_tmsh_output_to_dict</span></span>(<span>in_data: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Converts F5 'tmsh list' output to a Python dictionary.</p>
+<pre><code>Parameters
+----------
+in_data : str
+    The output to convert to a dictionary.
+
+Returns
+-------
+out : dict
+    'in_data' formatted as a Python dictionary.
+
+Notes
+-----
+F5 'tmsh list' output is close enough to a Python dictionary or JSON to be
+confusing, but in reality it is neither. However, it does follow certain
+rules.
+
+Rule 1: After the first line, the maximum number of elements is 2.
+
+Rule 2: If more than two words are in a line, then the second element will
+        be wrapped in quotes. (e.g., 'vendor "F5 NETWORKS INC.")
+
+Rule 3: If a line contains a single word, then it is a member of an array.
+
+Rule 4: If a line contains a single word followed by '{ }', then '{ }'
+        indicates an empty array.
+
+By combining these rules, we can create a relatively simple parser that
+will convert the output to a Python dictionary. It works like this:
+
+1. The rules listed above are used to format each line of the output into
+   a form that is a valid part of a Python dictionary. For example, the
+   line 'net vlan VLAN1 {' becomes, '"net vlan VLAN1": {'.
+
+2. Each line is added to a list.
+
+3. Any additional formatting is completed.
+
+4. The list is joined to create a string.
+
+5. A simple string.replace() inserts any commas that are missing between a
+   '}' and a '"'. (It was easier to do it this way than to embed the logic
+   inside the parser.)
+
+6. Formatting is finalized.
+
+7. ast.literal_eval is used to convert 'out' into a dictionary.
+
+Examples
+----------
+</code></pre>
+<pre><code class="language-python-repl">&gt;&gt;&gt; in_data = &quot;&quot;&quot;net interface 1.0 {
+...     if-index 542
+...     mac-address 00:94:a1:91:23:44
+...     media-active 1000SX-FD
+...     media-max 1000T-FD
+...     module-description &quot;F5 Qualified Optic&quot;
+...     mtu 9198
+...     serial N395NEY
+...     vendor &quot;F5 NETWORKS INC.&quot;
+...     vendor-oui 009065
+...     vendor-partnum OPT-0010
+...     vendor-revision 00
+... }&quot;&quot;&quot;
+&gt;&gt;&gt; output = convert_tmsh_output_to_dict(in_data)
+&gt;&gt;&gt; assert type(output) == dict()
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def convert_tmsh_output_to_dict(in_data: str):
+    &#39;&#39;&#39;
+    Converts F5 &#39;tmsh list&#39; output to a Python dictionary.
+
+    Parameters
+    ----------
+    in_data : str
+        The output to convert to a dictionary.
+
+    Returns
+    -------
+    out : dict
+        &#39;in_data&#39; formatted as a Python dictionary.
+
+    Notes
+    -----
+    F5 &#39;tmsh list&#39; output is close enough to a Python dictionary or JSON to be
+    confusing, but in reality it is neither. However, it does follow certain
+    rules.
+
+    Rule 1: After the first line, the maximum number of elements is 2.
+
+    Rule 2: If more than two words are in a line, then the second element will
+            be wrapped in quotes. (e.g., &#39;vendor &#34;F5 NETWORKS INC.&#34;)
+
+    Rule 3: If a line contains a single word, then it is a member of an array.
+
+    Rule 4: If a line contains a single word followed by &#39;{ }&#39;, then &#39;{ }&#39;
+            indicates an empty array.
+
+    By combining these rules, we can create a relatively simple parser that
+    will convert the output to a Python dictionary. It works like this:
+
+    1. The rules listed above are used to format each line of the output into
+       a form that is a valid part of a Python dictionary. For example, the
+       line &#39;net vlan VLAN1 {&#39; becomes, &#39;&#34;net vlan VLAN1&#34;: {&#39;.
+
+    2. Each line is added to a list.
+
+    3. Any additional formatting is completed.
+
+    4. The list is joined to create a string.
+
+    5. A simple string.replace() inserts any commas that are missing between a
+       &#39;}&#39; and a &#39;&#34;&#39;. (It was easier to do it this way than to embed the logic
+       inside the parser.)
+
+    6. Formatting is finalized.
+
+    7. ast.literal_eval is used to convert &#39;out&#39; into a dictionary.
+
+    Examples
+    ----------
+&gt;&gt;&gt; in_data = &#34;&#34;&#34;net interface 1.0 {
+...     if-index 542
+...     mac-address 00:94:a1:91:23:44
+...     media-active 1000SX-FD
+...     media-max 1000T-FD
+...     module-description &#34;F5 Qualified Optic&#34;
+...     mtu 9198
+...     serial N395NEY
+...     vendor &#34;F5 NETWORKS INC.&#34;
+...     vendor-oui 009065
+...     vendor-partnum OPT-0010
+...     vendor-revision 00
+... }&#34;&#34;&#34;
+&gt;&gt;&gt; output = convert_tmsh_output_to_dict(in_data)
+&gt;&gt;&gt; assert type(output) == dict()
+
+    &#39;&#39;&#39;
+    # Convert the data to a list and strip all spaces.
+    in_data = [_.strip() for _ in in_data.split(&#39;\n&#39;)]
+
+    # Create a list to store each line of the formatted data. Begin the list
+    # with a &#39;{&#39;.
+    out = [&#39;{&#39;]
+
+    for line in in_data:
+        # Format lines that look like the following:
+        # &#39;net interface mgmt {&#39;
+        # &#39;net self BIGIQ {&#39;
+        # &#39;net vlan SERVERS {&#39;
+        if len(line.split(&#39;{&#39;)) &gt; 1 and &#39;}&#39; not in line:
+            line = line.replace(&#39; {&#39;, &#39;&#34;: {&#39;)
+            line = f&#39;&#34;{line}&#39;
+
+        # Format lines that look like the following:
+        # &#39;fwd-mode l3&#39;
+        # &#39;vendor &#34;F5 NETWORKS INC.&#34;&#39;
+        # &#39;module-description &#34;F5 Qualified Optic&#34;&#39;
+        # &#39;tcp:ssh&#39;
+        # &#39;default&#39;
+        if &#39;{&#39; not in line and &#39;}&#39; not in line:
+            if len(line.split()) &gt; 1:
+                if &#39;&#34;&#39; in line:
+                    line = line.split(&#39;&#34;&#39;)
+                    line = list(filter(None, line))
+                    line = [_.strip() for _ in line]
+                else:
+                    line = line.split()
+                line = [f&#39;&#34;{_}&#34;&#39; for _ in line]
+                line = &#39;: &#39;.join(line)
+                line = f&#39;{line},&#39;
+            else:
+                line = f&#39;&#34;{line}&#34;,&#39;
+
+        # Format lines that look like the following:
+        # &#39;2.0 { }&#39;
+        elif &#39;{&#39; in line and &#39;}&#39; in line:
+            line = f&#39;&#34;{line.split()[0]}&#34;: [],&#39;
+
+        out.append(line)
+
+    # Additional formatting needs to be done, so create a dictionary to store
+    # the line numbers that require updates. Each key will be the line number
+    # and the value will be the formatted line.
+    replacements = dict()
+
+    counter = 0
+    for line in out:
+        # Check each line to find out if it is a member of an array. If it is,
+        # then do the following:
+        # 1. Convert the leading or trailing &#39;{&#39; or &#39;}&#39; to a &#39;[&#39; or &#39;]&#39;.
+        # 2. Insert a comma so ast.literal_eval can convert it to a list item.
+        if &#39;{&#39; in line:
+            if len(out[counter+1].split()) == 1:
+                replacements[counter] = line.replace(&#39;{&#39;, &#39;[&#39;)
+        if &#39;}&#39; in line:
+            if len(out[counter-1].split()) == 1:
+                if &#39;}&#39; not in out[counter-1]:
+                    replacements[counter] = line.replace(&#39;}&#39;, &#39;],&#39;)
+        counter += 1
+
+    # Update &#39;out&#39; with the data from &#39;replacements&#39;.
+    for key, value in replacements.items():
+        out[key] = value
+
+    # Add a trailing &#39;}&#39; to &#39;out&#39;.
+    out.append(&#39;}&#39;)
+
+    # Convert &#39;out&#39; to a string.
+    out = &#39;&#39;.join(out)
+
+    # Add a comma between &#39;}&#39; and &#39;&#34;.
+    out = out.replace(&#39;}&#34;&#39;, &#39;},&#34;&#39;)
+
+    # Convert &#39;out&#39; to a dictionary
+    out = ast.literal_eval(out)
+
+    return out</code></pre>
+</details>
+</dd>
+<dt id="collectors.f5_collectors.get_arp_table"><code class="name flex">
+<span>def <span class="ident">get_arp_table</span></span>(<span>username: str, password: str, host_group: str, nm_path: str, play_path: str, private_data_dir: str, validate_certs: bool = True) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get the ARP table on F5 LTMs.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>username</code></strong> :&ensp;<code>str</code></dt>
+<dd>The username to login to devices.</dd>
+<dt><strong><code>password</code></strong> :&ensp;<code>str</code></dt>
+<dd>The password to login to the device.</dd>
+<dt><strong><code>host_group</code></strong> :&ensp;<code>str</code></dt>
+<dd>The Ansible inventory host group.</dd>
+<dt><strong><code>nm_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Net-Manage repository.</dd>
+<dt><strong><code>play_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the playbooks directory.</dd>
+<dt><strong><code>private_data_dir</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Ansible private data directory.</dd>
+<dt><strong><code>validate_certs</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Whether to validate SSL certificates. Defaults to True.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>A Pandas DataFrame containing the ARP table.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_arp_table(username: str,
+                  password: str,
+                  host_group: str,
+                  nm_path: str,
+                  play_path: str,
+                  private_data_dir: str,
+                  validate_certs: bool = True) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Get the ARP table on F5 LTMs.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to the device.
+    host_group : str
+        The Ansible inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to True.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A Pandas DataFrame containing the ARP table.
+    &#39;&#39;&#39;
+    extravars = {&#39;username&#39;: username,
+                 &#39;password&#39;: password,
+                 &#39;host_group&#39;: host_group,
+                 &#39;command&#39;: r&#39;show net arp | grep -v &#34;\\-\\-\\-\\-\|Net::Arp&#34;&#39;}
+
+    if not validate_certs:
+        extravars[&#39;validate_certs&#39;] = &#39;no&#39;
+
+    playbook = f&#39;{play_path}/f5_run_adhoc_command.yml&#39;
+
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Create a list to store the ARP data for `df`.
+    df_data = list()
+
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            event_data = event[&#39;event_data&#39;]
+            device = event_data[&#39;remote_addr&#39;]
+
+            output = event_data[&#39;res&#39;][&#39;stdout_lines&#39;][0]
+
+            # Create the dataframe columns.
+            columns = [&#39;device&#39;] + output[0].split()
+
+            # Parse the output and add it to `df_data`
+            for line in output[1:]:
+                line = [device] + line.split()
+                df_data.append(line)
+
+    # Create `df`.
+    df = pd.DataFrame(df_data, columns=columns).astype(str)
+
+    # Get the MAC OUIs and add them to `df`
+    df_macs = hp.find_mac_vendors(df[&#39;HWaddress&#39;], nm_path)
+    df[&#39;vendor&#39;] = df_macs[&#39;vendor&#39;]
+
+    return df</code></pre>
+</details>
+</dd>
+<dt id="collectors.f5_collectors.get_interface_descriptions"><code class="name flex">
+<span>def <span class="ident">get_interface_descriptions</span></span>(<span>username: str, password: str, host_group: str, nm_path: str, play_path: str, private_data_dir: str, reverse_dns: bool = False, validate_certs: bool = True) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets F5 interface descriptions.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>username</code></strong> :&ensp;<code>str</code></dt>
+<dd>The username to login to devices.</dd>
+<dt><strong><code>password</code></strong> :&ensp;<code>str</code></dt>
+<dd>The password to login to devices.</dd>
+<dt><strong><code>host_group</code></strong> :&ensp;<code>str</code></dt>
+<dd>The inventory host group.</dd>
+<dt><strong><code>nm_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Net-Manage repository.</dd>
+<dt><strong><code>play_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the playbooks directory.</dd>
+<dt><strong><code>private_data_dir</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Ansible private data directory.</dd>
+<dt><strong><code>reverse_dns</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Whether to run a reverse DNS lookup. Defaults to False because the test
+can take several minutes on large ARP tables.</dd>
+<dt><strong><code>validate_certs</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Whether to validate SSL certificates. Defaults to True.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df_desc</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>The interface descriptions.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_interface_descriptions(username: str,
+                               password: str,
+                               host_group: str,
+                               nm_path: str,
+                               play_path: str,
+                               private_data_dir: str,
+                               reverse_dns: bool = False,
+                               validate_certs: bool = True) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets F5 interface descriptions.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    reverse_dns : bool, optional
+        Whether to run a reverse DNS lookup. Defaults to False because the test
+        can take several minutes on large ARP tables.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to True.
+
+    Returns
+    -------
+    df_desc : pd.DataFrame
+        The interface descriptions.
+    &#39;&#39;&#39;
+    extravars = {&#39;username&#39;: username,
+                 &#39;password&#39;: password,
+                 &#39;host_group&#39;: host_group}
+
+    if not validate_certs:
+        extravars[&#39;validate_certs&#39;] = &#39;no&#39;
+
+    # Execute the command and parse the results
+    playbook = f&#39;{play_path}/f5_get_interface_description.yml&#39;
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Create a list to store the rows for the dataframe
+    df_data = list()
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            event_data = event[&#39;event_data&#39;]
+
+            device = event_data[&#39;remote_addr&#39;]
+
+            output = event_data[&#39;res&#39;][&#39;stdout_lines&#39;][0]
+            pos = 1
+            for line in output:
+                if &#39;net interface&#39; in line or &#39;net trunk&#39; in line:
+                    inf = line.split()[-2]
+                    desc = output[pos].split()[1:]
+                    desc = &#39; &#39;.join(desc)  # To account for spaces in desc
+                    df_data.append([device, inf, desc])
+                pos += 1
+
+    # Create the dataframe and return it
+    cols = [&#39;device&#39;, &#39;interface&#39;, &#39;description&#39;]
+    df_desc = pd.DataFrame(data=df_data, columns=cols)
+    return df_desc</code></pre>
+</details>
+</dd>
+<dt id="collectors.f5_collectors.get_interface_status"><code class="name flex">
+<span>def <span class="ident">get_interface_status</span></span>(<span>username: str, password: str, host_group: str, play_path: str, private_data_dir: str, validate_certs: bool = True) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets the interface and trunk statuses for F5 devices.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>username</code></strong> :&ensp;<code>str</code></dt>
+<dd>The username to login to devices.</dd>
+<dt><strong><code>password</code></strong> :&ensp;<code>str</code></dt>
+<dd>The password to login to devices.</dd>
+<dt><strong><code>host_group</code></strong> :&ensp;<code>str</code></dt>
+<dd>The inventory host group.</dd>
+<dt><strong><code>play_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the playbooks directory.</dd>
+<dt><strong><code>private_data_dir</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Ansible private data directory.</dd>
+<dt><strong><code>validate_certs</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Whether to validate SSL certificates. Defaults to True.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df_inf_status</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>The interface statuses.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_interface_status(username: str,
+                         password: str,
+                         host_group: str,
+                         play_path: str,
+                         private_data_dir: str,
+                         validate_certs: bool = True) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets the interface and trunk statuses for F5 devices.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to True.
+
+    Returns
+    -------
+    df_inf_status : pd.DataFrame
+        The interface statuses.
+    &#39;&#39;&#39;
+    # Get the interface statuses
+    extravars = {&#39;username&#39;: username,
+                 &#39;password&#39;: password,
+                 &#39;host_group&#39;: host_group}
+
+    if not validate_certs:
+        extravars[&#39;validate_certs&#39;] = &#39;no&#39;
+
+    # Execute the pre-checks
+    playbook = f&#39;{play_path}/f5_get_interface_status.yml&#39;
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse the output and add it to &#39;data&#39;
+    df_data = list()
+
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            event_data = event[&#39;event_data&#39;]
+
+            device = event_data[&#39;remote_addr&#39;]
+
+            # The playbook runs two commands--show net interface and show net
+            # trunk. The output of both commands is in the same event.
+            output = event_data[&#39;res&#39;][&#39;stdout_lines&#39;]
+            net_inf = output[0]
+            try:
+                net_trunk = output[1]
+            except IndexError:
+                net_trunk = []
+
+            # Parse the interface statuses and add it to &#39;df_data&#39;.
+            for line in net_inf:
+                line = line.split()
+                inf = line[0]
+                status = line[1]
+                vlan = str()
+                duplex = str()
+                speed = str()
+                media = line[8]
+                row = [device,
+                       inf,
+                       status,
+                       vlan,
+                       duplex,
+                       speed,
+                       media]
+                df_data.append(row)
+
+            for line in net_trunk:
+                line = line.split()
+                inf = line[0]
+                status = line[1]
+                vlan = str()
+                duplex = str()
+                speed = line[2]
+                media = str()
+                row = [device,
+                       inf,
+                       status,
+                       vlan,
+                       duplex,
+                       speed,
+                       media]
+                df_data.append(row)
+
+    # Create the dataframe and return it
+    cols = [&#39;device&#39;,
+            &#39;interface&#39;,
+            &#39;status&#39;,
+            &#39;vlan&#39;,
+            &#39;duplex&#39;,
+            &#39;speed&#39;,
+            &#39;type&#39;]
+
+    df_inf_status = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_inf_status</code></pre>
+</details>
+</dd>
+<dt id="collectors.f5_collectors.get_node_availability"><code class="name flex">
+<span>def <span class="ident">get_node_availability</span></span>(<span>username: str, password: str, host_group: str, play_path: str, private_data_dir: str, validate_certs: bool = True) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets node availability from F5 LTMs.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>username</code></strong> :&ensp;<code>str</code></dt>
+<dd>The username to login to devices.</dd>
+<dt><strong><code>password</code></strong> :&ensp;<code>str</code></dt>
+<dd>The password to login to devices.</dd>
+<dt><strong><code>host_group</code></strong> :&ensp;<code>str</code></dt>
+<dd>The inventory host group.</dd>
+<dt><strong><code>play_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the playbooks directory.</dd>
+<dt><strong><code>private_data_dir</code></strong> :&ensp;<code>str</code></dt>
+<dd>Path to the Ansible private data directory.</dd>
+<dt><strong><code>validate_certs</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Whether to validate SSL certificates. Defaults to True.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df_nodes</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>The node availability and associated data.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_node_availability(username: str,
+                          password: str,
+                          host_group: str,
+                          play_path: str,
+                          private_data_dir: str,
+                          validate_certs: bool = True) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets node availability from F5 LTMs.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        Path to the Ansible private data directory.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to True.
+
+    Returns
+    -------
+    df_nodes : pd.DataFrame
+        The node availability and associated data.
+    &#39;&#39;&#39;
+    # Get the interface statuses
+    extravars = {&#39;username&#39;: username,
+                 &#39;password&#39;: password,
+                 &#39;host_group&#39;: host_group}
+
+    if not validate_certs:
+        extravars[&#39;validate_certs&#39;] = &#39;no&#39;
+
+    # Execute the pre-checks
+    playbook = f&#39;{play_path}/f5_get_node_availability.yml&#39;
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+    df_data[&#39;partition&#39;] = list()
+    df_data[&#39;node&#39;] = list()
+
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            event_data = event[&#39;event_data&#39;]
+
+            device = event_data[&#39;remote_addr&#39;]
+
+            output = event_data[&#39;res&#39;][&#39;stdout_lines&#39;][0]
+
+            # Create remaining dictionary structure for &#39;df_data&#39;
+            for line in output:
+                if &#39;ltm node&#39; in line and &#39;{&#39; in line:
+                    pos = output.index(line)
+                    while &#39;}&#39; not in output[pos+1]:
+                        key = output[pos+1].split()[0]
+                        if not df_data.get(key):
+                            df_data[key] = list()
+                        pos += 1
+                break
+
+            # Populate &#39;df_data&#39;
+            for line in output:
+                if &#39;ltm node&#39; in line and &#39;{&#39; in line:
+                    # Add the device to &#39;df_data&#39;
+                    df_data[&#39;device&#39;].append(device)
+
+                    # Set the partition and node and add them to &#39;df_data&#39;
+                    if &#39;/&#39; not in line:
+                        partition = &#39;Common&#39;
+                        node = line.split()[2]
+                    else:
+                        partition = line.split()[2].split(&#39;/&#39;)[1]
+                        node = line.split()[2].split(&#39;/&#39;)[-1]
+
+                    # Add the node to &#39;df_data&#39;
+                    df_data[&#39;partition&#39;].append(partition)
+                    df_data[&#39;node&#39;].append(node)
+
+                    # Add the node details to &#39;df_data&#39;
+                    pos = output.index(line)
+                    while &#39;}&#39; not in output[pos+1]:
+                        key = output[pos+1].split()[0]
+                        value = &#39; &#39;.join(output[pos+1].split()[1:])
+                        df_data[key].append(value)
+                        pos += 1
+
+    # Create the dataframe
+    df_nodes = pd.DataFrame.from_dict(df_data)
+
+    return df_nodes</code></pre>
+</details>
+</dd>
+<dt id="collectors.f5_collectors.get_pool_availability"><code class="name flex">
+<span>def <span class="ident">get_pool_availability</span></span>(<span>username: str, password: str, host_group: str, play_path: str, private_data_dir: str, validate_certs: bool = True) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets pool availability from F5 LTMs.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>username</code></strong> :&ensp;<code>str</code></dt>
+<dd>The username to login to devices.</dd>
+<dt><strong><code>password</code></strong> :&ensp;<code>str</code></dt>
+<dd>The password to login to devices.</dd>
+<dt><strong><code>host_group</code></strong> :&ensp;<code>str</code></dt>
+<dd>The inventory host group.</dd>
+<dt><strong><code>play_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the playbooks directory.</dd>
+<dt><strong><code>private_data_dir</code></strong> :&ensp;<code>str</code></dt>
+<dd>Path to the Ansible private data directory.</dd>
+<dt><strong><code>validate_certs</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Whether to validate SSL certificates. Defaults to True.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df_pools</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>The pool availability and associated data.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_pool_availability(username: str,
+                          password: str,
+                          host_group: str,
+                          play_path: str,
+                          private_data_dir: str,
+                          validate_certs: bool = True) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets pool availability from F5 LTMs.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        Path to the Ansible private data directory.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to True.
+
+    Returns
+    -------
+    df_pools : pd.DataFrame
+        The pool availability and associated data.
+    &#39;&#39;&#39;
+    extravars = {&#39;username&#39;: username,
+                 &#39;password&#39;: password,
+                 &#39;host_group&#39;: host_group}
+
+    if not validate_certs:
+        extravars[&#39;validate_certs&#39;] = &#39;no&#39;
+
+    # Execute the pre-checks
+    playbook = f&#39;{play_path}/f5_get_pool_availability.yml&#39;
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse the pool data and add it to two dictionaries--&#39;pools&#39; and
+    # &#39;pool_members&#39;. The data from those dictionaries will be used to
+    # create the two dataframes
+    pools = dict()
+
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            event_data = event[&#39;event_data&#39;]
+
+            device = event_data[&#39;remote_addr&#39;]
+            pools[device] = dict()
+
+            # The playbook runs two commands--show net interface and show net
+            # trunk. The output of both commands is in the same event.
+            output = event_data[&#39;res&#39;][&#39;stdout_lines&#39;][0]
+
+            pos = 0
+            for line in output:
+                if &#39;Ltm::Pool:&#39; in line:
+                    if &#39;/&#39; in line:
+                        pool = line.split(&#39;/&#39;)[-1].strip()
+                        partition = line.split(&#39;/&#39;)[1].split(&#39;/&#39;)[-1]
+                    else:
+                        pool = line.split()[-1].strip()
+                        partition = &#39;Common&#39;
+                    pools[device][pool] = dict()
+                    pools[device][pool][&#39;device&#39;] = device
+                    pools[device][pool][&#39;partition&#39;] = partition
+                    counter = pos+1
+                    while &#39;Ltm::Pool:&#39; not in output[counter]:
+                        _ = output[counter]
+                        if _.split()[0] != &#39;|&#39;:
+                            if &#39;Availability&#39; in _:
+                                pools[device][pool][&#39;availability&#39;] = \
+                                    _.split()[-1]
+                            if &#39;State&#39; in _:
+                                pools[device][pool][&#39;state&#39;] = _.split()[-1]
+                            if &#39;Reason&#39; in _:
+                                pools[device][pool][&#39;reason&#39;] = \
+                                    _.split(&#39;:&#39;)[-1].strip()
+                            if &#39;Minimum Active Members&#39; in _:
+                                pools[device][pool][&#39;minimum_active&#39;] = \
+                                    _.split()[-1]
+                            if &#39;Current Active Members&#39; in _:
+                                pools[device][pool][&#39;current_active&#39;] = \
+                                    _.split()[-1]
+                            if &#39;Available Members&#39; in _:
+                                pools[device][pool][&#39;available&#39;] = \
+                                    _.split()[-1]
+                            if &#39;Total Members&#39; in _:
+                                pools[device][pool][&#39;total&#39;] = _.split()[-1]
+                        counter += 1
+                        if counter == len(output):
+                            break
+                pos += 1
+
+    df_pools_data = list()
+    for key, value in pools.items():
+        for k, v in value.items():
+            pool = k
+            device = v[&#39;device&#39;]
+            available = v[&#39;available&#39;]
+            availability = v[&#39;availability&#39;]
+            current_active = v[&#39;current_active&#39;]
+            minimum_active = v[&#39;minimum_active&#39;]
+            partition = v[&#39;partition&#39;]
+            reason = v[&#39;reason&#39;]
+            state = v[&#39;state&#39;]
+            total = v[&#39;total&#39;]
+            df_pools_data.append([device,
+                                  partition,
+                                  pool,
+                                  availability,
+                                  state,
+                                  total,
+                                  available,
+                                  current_active,
+                                  minimum_active,
+                                  reason])
+
+    cols = [&#39;device&#39;,
+            &#39;partition&#39;,
+            &#39;pool&#39;,
+            &#39;availability&#39;,
+            &#39;state&#39;,
+            &#39;total&#39;,
+            &#39;avail&#39;,
+            &#39;cur&#39;,
+            &#39;min&#39;,
+            &#39;reason&#39;]
+
+    df_pools = pd.DataFrame(data=df_pools_data, columns=cols)
+
+    return df_pools</code></pre>
+</details>
+</dd>
+<dt id="collectors.f5_collectors.get_pool_data"><code class="name flex">
+<span>def <span class="ident">get_pool_data</span></span>(<span>username: str, password: str, host_group: str, play_path: str, private_data_dir: str, validate_certs: bool = False) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets F5 pool and pool members.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>username</code></strong> :&ensp;<code>str</code></dt>
+<dd>The username to login to devices.</dd>
+<dt><strong><code>password</code></strong> :&ensp;<code>str</code></dt>
+<dd>The password to login to devices.</dd>
+<dt><strong><code>host_group</code></strong> :&ensp;<code>str</code></dt>
+<dd>The inventory host group.</dd>
+<dt><strong><code>play_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the playbooks directory.</dd>
+<dt><strong><code>private_data_dir</code></strong> :&ensp;<code>str</code></dt>
+<dd>Path to the Ansible private data directory.</dd>
+<dt><strong><code>validate_certs</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Whether to validate SSL certificates. Defaults to False.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df_pools</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>The F5 pools and members.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_pool_data(username: str,
+                  password: str,
+                  host_group: str,
+                  play_path: str,
+                  private_data_dir: str,
+                  validate_certs: bool = False) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets F5 pool and pool members.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        Path to the Ansible private data directory.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to False.
+
+    Returns
+    -------
+    df_pools : pd.DataFrame
+        The F5 pools and members.
+    &#39;&#39;&#39;
+    extravars = {&#39;username&#39;: username,
+                 &#39;password&#39;: password,
+                 &#39;host_group&#39;: host_group}
+
+    if not validate_certs:
+        extravars[&#39;validate_certs&#39;] = &#39;no&#39;
+
+    # Execute the pre-checks
+    playbook = f&#39;{play_path}/f5_get_pool_data.yml&#39;
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True,
+                                quiet=True)
+
+    df_data = list()
+
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            event_data = event[&#39;event_data&#39;]
+            device = event_data[&#39;remote_addr&#39;]
+
+            # Extract the command output and clean it up
+            output = event_data[&#39;res&#39;][&#39;stdout_lines&#39;][0]
+
+            output = [_ for _ in output if &#39;members {&#39; not in _]
+            counter = 0
+            for line in output:
+                if &#39;ltm pool&#39; in line:
+                    if &#39;/&#39; in line:
+                        partition = line.split(&#39;/&#39;)[-2]
+                    else:
+                        partition = &#39;Common&#39;
+
+                    pool = line.strip(&#39; {&#39;).split()[-1].split(&#39;/&#39;)[-1]
+
+                    next_line = output[counter+1]
+                    if &#39;:&#39; not in next_line and &#39; {&#39; not in next_line:
+                        member = str()
+                        port = str()
+                        address = str()
+
+                        row = [device,
+                               partition,
+                               pool,
+                               str(),
+                               str(),
+                               str()]
+                        df_data.append(row)
+
+                if &#39;:&#39; in line and &#39; {&#39; in line:
+                    member = line.split()[0]
+                    port = line.split(&#39;:&#39;)[-1].split()[0]
+                    address = output[counter+1].split()[-1]
+
+                    row = [device,
+                           partition,
+                           pool,
+                           member,
+                           port,
+                           address]
+                    df_data.append(row)
+
+                counter += 1
+
+    # Create the dataframe
+    cols = [&#39;device&#39;,
+            &#39;partition&#39;,
+            &#39;pool&#39;,
+            &#39;member&#39;,
+            &#39;member_port&#39;,
+            &#39;address&#39;]
+
+    df_pools = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_pools</code></pre>
+</details>
+</dd>
+<dt id="collectors.f5_collectors.get_pool_member_availability"><code class="name flex">
+<span>def <span class="ident">get_pool_member_availability</span></span>(<span>username: str, password: str, host_group: str, play_path: str, private_data_dir: str, validate_certs: bool = True) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets F5 pool member availability from F5 LTMs.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>username</code></strong> :&ensp;<code>str</code></dt>
+<dd>The username to login to devices.</dd>
+<dt><strong><code>password</code></strong> :&ensp;<code>str</code></dt>
+<dd>The password to login to devices.</dd>
+<dt><strong><code>host_group</code></strong> :&ensp;<code>str</code></dt>
+<dd>The inventory host group.</dd>
+<dt><strong><code>play_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the playbooks directory.</dd>
+<dt><strong><code>private_data_dir</code></strong> :&ensp;<code>str</code></dt>
+<dd>Path to the Ansible private data directory.</dd>
+<dt><strong><code>validate_certs</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Whether to validate SSL certificates. Defaults to True.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df_members</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>The pool availability and associated data.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_pool_member_availability(username: str,
+                                 password: str,
+                                 host_group: str,
+                                 play_path: str,
+                                 private_data_dir: str,
+                                 validate_certs: bool = True) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets F5 pool member availability from F5 LTMs.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        Path to the Ansible private data directory.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to True.
+
+    Returns
+    -------
+    df_members : pd.DataFrame
+        The pool availability and associated data.
+    &#39;&#39;&#39;
+    # Get the interface statuses
+    extravars = {&#39;username&#39;: username,
+                 &#39;password&#39;: password,
+                 &#39;host_group&#39;: host_group}
+
+    if not validate_certs:
+        extravars[&#39;validate_certs&#39;] = &#39;no&#39;
+
+    # Execute the pre-checks
+    playbook = f&#39;{play_path}/f5_get_pool_member_availability.yml&#39;
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    df_data = list()
+    # df_dict = dict()
+
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            event_data = event[&#39;event_data&#39;]
+
+            device = event_data[&#39;remote_addr&#39;]
+            # df_dict[device] = dict()
+
+            output = event_data[&#39;res&#39;][&#39;stdout_lines&#39;][0]
+            pos = 0
+            for line in output:
+                if &#39;Ltm::Pool:&#39; in line:
+                    # TODO: Separate partition from pool name.
+                    if &#39;/&#39; in line:
+                        name = line.split(&#39;/&#39;)
+                        partition = name[1].strip()
+                        pool = name[-1].strip()
+                    else:
+                        pool = line.split()[-1].strip()
+                        partition = &#39;Common&#39;
+
+                    # df_dict[device][pool] = dict()
+                    counter = pos+1
+                    while &#39;Ltm::Pool:&#39; not in output[counter]:
+                        _ = output[counter]
+                        if _.split()[0] == &#39;|&#39;:
+                            if &#39;Ltm::Pool Member:&#39; in _:
+                                member = _.split()[-1]
+                            if &#39;Availability&#39; in _:
+                                availability = _.split()[-1]
+                                df_data.append([device,
+                                                partition,
+                                                pool,
+                                                member,
+                                                availability])
+                        counter += 1
+                        if counter == len(output):
+                            break
+
+                pos += 1
+
+    cols = [&#39;device&#39;,
+            &#39;partition&#39;,
+            &#39;pool_name&#39;,
+            &#39;pool_member&#39;,
+            &#39;pool_member_state&#39;]
+
+    df_members = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_members</code></pre>
+</details>
+</dd>
+<dt id="collectors.f5_collectors.get_pools_and_members"><code class="name flex">
+<span>def <span class="ident">get_pools_and_members</span></span>(<span>username: str, password: str, host_group: str, play_path: str, private_data_dir: str, validate_certs: bool = False) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets F5 pools and members.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>username</code></strong> :&ensp;<code>str</code></dt>
+<dd>The username to login to devices.</dd>
+<dt><strong><code>password</code></strong> :&ensp;<code>str</code></dt>
+<dd>The password to login to devices.</dd>
+<dt><strong><code>host_group</code></strong> :&ensp;<code>str</code></dt>
+<dd>The inventory host group.</dd>
+<dt><strong><code>play_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the playbooks directory.</dd>
+<dt><strong><code>private_data_dir</code></strong> :&ensp;<code>str</code></dt>
+<dd>Path to the Ansible private data directory.</dd>
+<dt><strong><code>validate_certs</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Whether to validate SSL certificates. Defaults to False.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df_pools</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>The F5 pools and members.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_pools_and_members(username: str,
+                          password: str,
+                          host_group: str,
+                          play_path: str,
+                          private_data_dir: str,
+                          validate_certs: bool = False) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets F5 pools and members.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        Path to the Ansible private data directory.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to False.
+
+    Returns
+    -------
+    df_pools : pd.DataFrame
+        The F5 pools and members.
+    &#39;&#39;&#39;
+    extravars = {&#39;username&#39;: username,
+                 &#39;password&#39;: password,
+                 &#39;host_group&#39;: host_group}
+
+    if not validate_certs:
+        extravars[&#39;validate_certs&#39;] = &#39;no&#39;
+
+    # Execute the pre-checks
+    playbook = f&#39;{play_path}/f5_get_pools_and_members.yml&#39;
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True,
+                                quiet=True)
+
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+    df_data[&#39;partition&#39;] = list()
+    df_data[&#39;pool&#39;] = list()
+    df_data[&#39;member&#39;] = list()
+    df_data[&#39;address&#39;] = list()
+
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            event_data = event[&#39;event_data&#39;]
+
+            device = event_data[&#39;remote_addr&#39;]
+
+            output = event_data[&#39;res&#39;][&#39;stdout_lines&#39;][0]
+
+            for line in output:
+                if &#39;ltm pool &#39; in line:
+                    pos = output.index(line)+1
+                    if &#39;/&#39; in line:
+                        name = line.split()[-1]
+                        partition = name.split(&#39;/&#39;)[1]
+                        pool = name.split(&#39;/&#39;)[-1]
+                    else:
+                        partition = &#39;Common&#39;
+                        pool = line.split()[-1]
+
+                    addresses = False
+
+                    if pos &lt; len(output):
+                        while &#39;ltm pool &#39; not in output[pos]:
+                            if &#39;address&#39; in output[pos]:
+                                addresses = True
+                                df_data[&#39;device&#39;].append(device)
+                                df_data[&#39;partition&#39;].append(partition)
+                                df_data[&#39;pool&#39;].append(pool)
+                                member = output[pos-1].split()[0]
+                                address = output[pos].split()[-1]
+                                df_data[&#39;member&#39;].append(member)
+                                df_data[&#39;address&#39;].append(address)
+                            pos += 1
+                            if pos == len(output):
+                                break
+                    if not addresses:
+                        df_data[&#39;device&#39;].append(device)
+                        df_data[&#39;partition&#39;].append(partition)
+                        df_data[&#39;pool&#39;].append(pool)
+                        df_data[&#39;member&#39;].append(str())
+                        df_data[&#39;address&#39;].append(str())
+
+    df_pools = pd.DataFrame.from_dict(df_data)
+    return df_pools</code></pre>
+</details>
+</dd>
+<dt id="collectors.f5_collectors.get_self_ips"><code class="name flex">
+<span>def <span class="ident">get_self_ips</span></span>(<span>username: str, password: str, host_group: str, play_path: str, private_data_dir: str, validate_certs: bool = True) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get the self IPs on F5 LTMs.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>username</code></strong> :&ensp;<code>str</code></dt>
+<dd>The username to login to devices.</dd>
+<dt><strong><code>password</code></strong> :&ensp;<code>str</code></dt>
+<dd>The password to login to the device.</dd>
+<dt><strong><code>host_group</code></strong> :&ensp;<code>str</code></dt>
+<dd>The Ansible inventory host group.</dd>
+<dt><strong><code>play_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the playbooks directory.</dd>
+<dt><strong><code>private_data_dir</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Ansible private data directory.</dd>
+<dt><strong><code>validate_certs</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Whether to validate SSL certificates. Defaults to True.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>A Pandas DataFrame containing the self IPs.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_self_ips(username: str,
+                 password: str,
+                 host_group: str,
+                 play_path: str,
+                 private_data_dir: str,
+                 validate_certs: bool = True) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Get the self IPs on F5 LTMs.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to the device.
+    host_group : str
+        The Ansible inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to True.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A Pandas DataFrame containing the self IPs.
+    &#39;&#39;&#39;
+    extravars = {&#39;username&#39;: username,
+                 &#39;password&#39;: password,
+                 &#39;host_group&#39;: host_group,
+                 &#39;command&#39;: &#39;list net self /*/*&#39;}
+
+    if not validate_certs:
+        extravars[&#39;validate_certs&#39;] = &#39;no&#39;
+
+    playbook = f&#39;{play_path}/f5_run_adhoc_command.yml&#39;
+
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Create a dictionary to store each self IP.
+    data = dict()
+
+    # Create a dictionary to store the data for `df`
+    df_data = dict()
+
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            event_data = event[&#39;event_data&#39;]
+            device = event_data[&#39;remote_addr&#39;]
+            data[device] = list()
+            output = event_data[&#39;res&#39;][&#39;stdout_lines&#39;][0]
+
+            # Parse the output and add it to `data``
+            counter = 0
+            for line in output:
+                if line[:8] == &#39;net self&#39;:
+                    block = list()
+                    pos = counter
+                    while output[pos][0] != &#39;}&#39;:
+                        block.append(output[pos])
+                        pos += 1
+                    block.append(&#39;}&#39;)
+
+                    # Convert the block to a dictionary then flatten it.
+                    # pprint(block)
+                    block = &#39;\n&#39;.join(block)
+                    block = convert_tmsh_output_to_dict(block)
+
+                    for key, value in block.items():
+                        self_name = key.split()[-1]
+                        value[&#39;name&#39;] = self_name
+
+                    # Add the device name to `value`, then add `block` to
+                    # `data`.
+                    value[&#39;device&#39;] = device
+                    data[device].append(value)
+
+                    # Add each key in `block` to `df_data`.
+                    for key in value:
+                        if not df_data.get(key):
+                            df_data[key] = list()
+
+                counter += 1
+
+    # Iterate over `data`, adding the values to `df_data`.
+    for key, value in data.items():
+        for item in value:
+            for k in df_data:
+                df_data[k].append(item.get(k))
+
+    # Create `df`.
+    df = pd.DataFrame.from_dict(df_data).astype(str)
+
+    # Make `device` the first column, then return `df`.
+    col_1 = df.pop(&#39;device&#39;)
+    df.insert(0, &#39;device&#39;, col_1)
+
+    # Add the subnets, network IPs, and broadcast IPs.
+    addresses = df[&#39;address&#39;].to_list()
+    result = hp.generate_subnet_details(addresses)
+    df[&#39;subnet&#39;] = result[&#39;subnet&#39;]
+    df[&#39;network_ip&#39;] = result[&#39;network_ip&#39;]
+    df[&#39;broadcast_ip&#39;] = result[&#39;broadcast_ip&#39;]
+
+    return df</code></pre>
+</details>
+</dd>
+<dt id="collectors.f5_collectors.get_vip_availability"><code class="name flex">
+<span>def <span class="ident">get_vip_availability</span></span>(<span>username: str, password: str, host_group: str, play_path: str, private_data_dir: str, validate_certs: bool = True) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets VIP availability from F5 LTMs.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>username</code></strong> :&ensp;<code>str</code></dt>
+<dd>The username to login to devices.</dd>
+<dt><strong><code>password</code></strong> :&ensp;<code>str</code></dt>
+<dd>The password to login to devices.</dd>
+<dt><strong><code>host_group</code></strong> :&ensp;<code>str</code></dt>
+<dd>The inventory host group.</dd>
+<dt><strong><code>play_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the playbooks directory.</dd>
+<dt><strong><code>private_data_dir</code></strong> :&ensp;<code>str</code></dt>
+<dd>Path to the Ansible private data directory.</dd>
+<dt><strong><code>validate_certs</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Whether to validate SSL certificates. Defaults to True.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df_vips</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>The VIP availability and associated data.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_vip_availability(username: str,
+                         password: str,
+                         host_group: str,
+                         play_path: str,
+                         private_data_dir: str,
+                         validate_certs: bool = True) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets VIP availability from F5 LTMs.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        Path to the Ansible private data directory.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to True.
+
+    Returns
+    -------
+    df_vips : pd.DataFrame
+        The VIP availability and associated data.
+    &#39;&#39;&#39;
+    # Get the interface statuses
+    extravars = {&#39;username&#39;: username,
+                 &#39;password&#39;: password,
+                 &#39;host_group&#39;: host_group}
+
+    if not validate_certs:
+        extravars[&#39;validate_certs&#39;] = &#34;no&#34;
+
+    # Execute the pre-checks
+    playbook = f&#39;{play_path}/f5_get_vip_availability_and_destination.yml&#39;
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True,
+                                quiet=True)
+
+    df_data = list()
+
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            event_data = event[&#39;event_data&#39;]
+
+            device = event_data[&#39;remote_addr&#39;]
+            # pools[device] = dict()
+
+            output = event_data[&#39;res&#39;][&#39;stdout_lines&#39;][0]
+            pos = 0
+            for line in output:
+                if &#39;Ltm::Virtual Server:&#39; in line:
+                    if &#39;/&#39; in line:
+                        vip = line.split(&#39;/&#39;)[-1]
+                        partition = line.split(&#39;/&#39;)[1].split(&#39;/&#39;)[-1]
+                    else:
+                        vip = line.split()[-1]
+                        partition = &#39;Common&#39;
+                    counter = pos+1
+                    while &#39;Ltm::Virtual Server:&#39; not in output[counter]:
+                        _ = output[counter]
+                        if &#39;Availability&#39; in _:
+                            availability = _.split()[-1]
+                        if &#39;State&#39; in _:
+                            state = _.split()[-1]
+                        if &#39;Reason&#39; in _:
+                            reason = _.split(&#39;:&#39;)[-1].strip()
+                        if &#39;Destination&#39; in _:
+                            destination = _.split()[-1].split(&#39;:&#39;)[0]
+                            port = _.split()[-1].split(&#39;:&#39;)[-1]
+                        counter += 1
+                        if counter == len(output):
+                            break
+                    df_data.append([device,
+                                    partition,
+                                    vip,
+                                    destination,
+                                    port,
+                                    availability,
+                                    state,
+                                    reason])
+                pos += 1
+
+    cols = [&#39;device&#39;,
+            &#39;partition&#39;,
+            &#39;vip&#39;,
+            &#39;destination&#39;,
+            &#39;port&#39;,
+            &#39;availability&#39;,
+            &#39;state&#39;,
+            &#39;reason&#39;]
+
+    df_vips = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_vips</code></pre>
+</details>
+</dd>
+<dt id="collectors.f5_collectors.get_vip_destinations"><code class="name flex">
+<span>def <span class="ident">get_vip_destinations</span></span>(<span>db_path: str) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a summary view of the VIP destinations on F5 LTMs. It pulls the
+data from the 'f5_get_vip_availability' table. The view can be queried
+just like a regular table.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>db_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the database.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>result</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>A dataframe containing the view's data.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_vip_destinations(db_path: str) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Creates a summary view of the VIP destinations on F5 LTMs. It pulls the
+    data from the &#39;f5_get_vip_availability&#39; table. The view can be queried
+    just like a regular table.
+
+    Parameters
+    ----------
+    db_path : str
+        The path to the database.
+
+    Returns
+    -------
+    result : pd.DataFrame
+        A dataframe containing the view&#39;s data.
+    &#39;&#39;&#39;
+    # Connect to the database
+    con = hp.connect_to_db(db_path)
+    cur = con.cursor()
+
+    # Create the view and return the results so the user can see that the
+    # operation was successful
+    cur.execute(&#39;&#39;&#39;create view if not exists VIP_DESTINATIONS
+                   as
+                   select timestamp,
+                          device,
+                          partition,
+                          vip,
+                          destination,
+                          port
+                   from VIP_AVAILABILITY
+                   &#39;&#39;&#39;)
+
+    query = &#39;select * from BIGIP_VIP_AVAILABILITY&#39;
+
+    result = pd.read_sql(query, con)
+
+    return result</code></pre>
+</details>
+</dd>
+<dt id="collectors.f5_collectors.get_vip_summary"><code class="name flex">
+<span>def <span class="ident">get_vip_summary</span></span>(<span>username: str, password: str, host_group: str, play_path: str, private_data_dir: str, df_pools: pandas.core.frame.DataFrame, validate_certs: bool = False) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets F5 summary.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>username</code></strong> :&ensp;<code>str</code></dt>
+<dd>
+<pre><code>The username to login to devices.
+</code></pre>
+</dd>
+<dt><strong><code>password</code></strong> :&ensp;<code>str</code></dt>
+<dd>
+<pre><code>The password to login to devices.
+</code></pre>
+</dd>
+<dt><strong><code>host_group</code></strong> :&ensp;<code>str</code></dt>
+<dd>
+<p>The inventory host group.</p>
+</dd>
+<dt><strong><code>play_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>
+<p>The path to the playbooks directory.</p>
+</dd>
+<dt><strong><code>private_data_dir</code></strong> :&ensp;<code>str</code></dt>
+<dd>Path to the Ansible private data directory.</dd>
+<dt><strong><code>df_pools</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>A DataFrame containing a summary of the pools
+and members. This is created with the
+'f5_build_pool_table' function.</dd>
+<dt><strong><code>validate_certs</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Whether to validate SSL certificates. Defaults
+to False.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>df_vips (pd.DataFrame): The F5 VIP summary.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_vip_summary(username: str,
+                    password: str,
+                    host_group: str,
+                    play_path: str,
+                    private_data_dir: str,
+                    df_pools: pd.DataFrame,
+                    validate_certs: bool = False) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets F5 summary.
+
+    Args:
+        username (str):         The username to login to devices.
+        password (str):         The password to login to devices.
+        host_group (str):       The inventory host group.
+        play_path (str):        The path to the playbooks directory.
+        private_data_dir (str): Path to the Ansible private data directory.
+        df_pools (pd.DataFrame): A DataFrame containing a summary of the pools
+                                 and members. This is created with the
+                                 &#39;f5_build_pool_table&#39; function.
+        validate_certs (bool):  Whether to validate SSL certificates. Defaults
+                                to False.
+
+    Returns:
+        df_vips (pd.DataFrame): The F5 VIP summary.
+    &#39;&#39;&#39;
+    extravars = {&#39;username&#39;: username,
+                 &#39;password&#39;: password,
+                 &#39;host_group&#39;: host_group}
+
+    if not validate_certs:
+        extravars[&#39;validate_certs&#39;] = &#39;no&#39;
+
+    # Execute the pre-checks
+    playbook = f&#39;{play_path}/f5_get_vip_summary.yml&#39;
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True,
+                                quiet=True)
+
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+    df_data[&#39;partition&#39;] = list()
+    df_data[&#39;vip&#39;] = list()
+    df_data[&#39;destination&#39;] = list()
+    df_data[&#39;pool&#39;] = list()
+    df_data[&#39;member&#39;] = list()
+    df_data[&#39;address&#39;] = list()
+
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            event_data = event[&#39;event_data&#39;]
+
+            device = event_data[&#39;remote_addr&#39;]
+
+            output = event_data[&#39;res&#39;][&#39;stdout_lines&#39;][0]
+
+            for line in output:
+                if &#39;ltm virtual &#39; in line:
+                    name = line.split()[-2]
+                    if &#39;/&#39; in name:
+                        partition = name.split(&#39;/&#39;)[1]
+                        vip = name.split(&#39;/&#39;)[-1]
+                    else:
+                        partition = &#39;Common&#39;
+                        vip = name
+
+                    destination = str()
+                    pool = str()
+                    member = str()
+                    address = str()
+
+                    pos = output.index(line)+1
+                    if pos &lt; len(output):
+                        while &#39;ltm virtual &#39; not in output[pos]:
+                            if output[pos].split()[0] == &#39;destination&#39;:
+                                destination = output[pos].split(&#39;/&#39;)[-1]
+                            if output[pos].split()[0] == &#39;pool&#39;:
+                                pool = output[pos].split(&#39;/&#39;)[-1]
+                            pos += 1
+                            if pos == len(output):
+                                break
+                    if pool:
+
+                        df_members = df_pools.loc[(df_pools[&#39;partition&#39;] ==
+                                                   partition) &amp;
+                                                  (df_pools[&#39;pool&#39;] == pool)]
+                        if len(df_members) &gt; 0:
+                            for idx, row in df_members.iterrows():
+                                member = row[&#39;member&#39;]
+                                address = row[&#39;address&#39;]
+                                df_data[&#39;device&#39;].append(device)
+                                df_data[&#39;partition&#39;].append(partition)
+                                df_data[&#39;vip&#39;].append(vip)
+                                df_data[&#39;destination&#39;].append(destination)
+                                df_data[&#39;pool&#39;].append(pool)
+                                df_data[&#39;member&#39;].append(member)
+                                df_data[&#39;address&#39;].append(address)
+                    df_data[&#39;device&#39;].append(device)
+                    df_data[&#39;partition&#39;].append(partition)
+                    df_data[&#39;vip&#39;].append(vip)
+                    df_data[&#39;destination&#39;].append(destination)
+                    df_data[&#39;pool&#39;].append(pool)
+                    df_data[&#39;member&#39;].append(member)
+                    df_data[&#39;address&#39;].append(address)
+
+    df_vips = pd.DataFrame.from_dict(df_data)
+
+    return df_vips</code></pre>
+</details>
+</dd>
+<dt id="collectors.f5_collectors.get_vlan_db"><code class="name flex">
+<span>def <span class="ident">get_vlan_db</span></span>(<span>username: str, password: str, host_group: str, play_path: str, private_data_dir: str, validate_certs: bool = True) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets the VLAN database on F5 LTMs.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>username</code></strong> :&ensp;<code>str</code></dt>
+<dd>The username to login to devices.</dd>
+<dt><strong><code>password</code></strong> :&ensp;<code>str</code></dt>
+<dd>The password to login to the device.</dd>
+<dt><strong><code>host_group</code></strong> :&ensp;<code>str</code></dt>
+<dd>The inventory host group.</dd>
+<dt><strong><code>play_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the playbooks directory.</dd>
+<dt><strong><code>private_data_dir</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Ansible private data directory.</dd>
+<dt><strong><code>validate_certs</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Whether to validate SSL certificates. Defaults to True.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df_vips</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>A Pandas DataFrame containing the VLAN database.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_vlan_db(username: str,
+                password: str,
+                host_group: str,
+                play_path: str,
+                private_data_dir: str,
+                validate_certs: bool = True) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets the VLAN database on F5 LTMs.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to the device.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to True.
+
+    Returns
+    -------
+    df_vips : pd.DataFrame
+        A Pandas DataFrame containing the VLAN database.
+    &#39;&#39;&#39;
+    # Get the interface statuses
+    extravars = {&#39;username&#39;: username,
+                 &#39;password&#39;: password,
+                 &#39;host_group&#39;: host_group}
+
+    if not validate_certs:
+        extravars[&#39;validate_certs&#39;] = &#39;no&#39;
+
+    playbook = f&#39;{play_path}/f5_get_vlan_database.yml&#39;
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    df_data = list()
+
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            event_data = event[&#39;event_data&#39;]
+
+            device = event_data[&#39;remote_addr&#39;]
+
+            output = event_data[&#39;res&#39;][&#39;stdout_lines&#39;][0]
+
+            pos = 0
+            for line in output:
+                if &#39;Net::Vlan:&#39; in line:
+                    if &#39;Interface Name&#39; in output[pos+1]:
+                        name = output[pos+1].split()[-1]
+                    else:
+                        name = str()
+                    if output[pos+2].split()[0] == &#39;Tag&#39;:
+                        tag = output[pos+2].split()[-1]
+                    else:
+                        tag = str()
+                    # TODO: Add support for status and interfaces
+                    df_data.append([device,
+                                    tag,
+                                    name,
+                                    str(),
+                                    str()])
+                pos += 1
+
+    cols = [&#39;device&#39;,
+            &#39;id&#39;,
+            &#39;name&#39;,
+            &#39;status&#39;,
+            &#39;ports&#39;]
+    df_vlans = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_vlans</code></pre>
+</details>
+</dd>
+<dt id="collectors.f5_collectors.get_vlans"><code class="name flex">
+<span>def <span class="ident">get_vlans</span></span>(<span>username: str, password: str, host_group: str, play_path: str, private_data_dir: str, validate_certs: bool = True) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets the VLANs on F5 LTMs.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>username</code></strong> :&ensp;<code>str</code></dt>
+<dd>The username to login to devices.</dd>
+<dt><strong><code>password</code></strong> :&ensp;<code>str</code></dt>
+<dd>The password to login to the device.</dd>
+<dt><strong><code>host_group</code></strong> :&ensp;<code>str</code></dt>
+<dd>The Ansible inventory host group.</dd>
+<dt><strong><code>play_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the playbooks directory.</dd>
+<dt><strong><code>private_data_dir</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Ansible private data directory.</dd>
+<dt><strong><code>validate_certs</code></strong> :&ensp;<code>bool</code>, optional<code>:</code></dt>
+<dd>Whether to validate SSL certificates. Defaults to True.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>A Pandas DataFrame containing the VLANs.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_vlans(username: str,
+              password: str,
+              host_group: str,
+              play_path: str,
+              private_data_dir: str,
+              validate_certs: bool = True) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets the VLANs on F5 LTMs.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to the device.
+    host_group : str
+        The Ansible inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    validate_certs : bool, optional:
+        Whether to validate SSL certificates. Defaults to True.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A Pandas DataFrame containing the VLANs.
+    &#39;&#39;&#39;
+    extravars = {&#39;username&#39;: username,
+                 &#39;password&#39;: password,
+                 &#39;host_group&#39;: host_group,
+                 &#39;command&#39;: &#39;list net vlan /*/*&#39;}
+
+    if not validate_certs:
+        extravars[&#39;validate_certs&#39;] = &#39;no&#39;
+
+    playbook = f&#39;{play_path}/f5_run_adhoc_command.yml&#39;
+
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Create a dictionary to store each self IP.
+    data = dict()
+
+    # Create a dictionary to store the data for `df`
+    df_data = dict()
+
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            event_data = event[&#39;event_data&#39;]
+            device = event_data[&#39;remote_addr&#39;]
+            data[device] = list()
+            output = event_data[&#39;res&#39;][&#39;stdout_lines&#39;][0]
+
+            # Parse the output and add it to `data``
+            counter = 0
+            for line in output:
+                if line[:8] == &#39;net vlan&#39;:
+                    block = list()
+                    pos = counter
+                    while output[pos][0] != &#39;}&#39;:
+                        block.append(output[pos])
+                        pos += 1
+                    block.append(&#39;}&#39;)
+
+                    # Convert the block to a dictionary then flatten it.
+                    # pprint(block)
+                    block = &#39;\n&#39;.join(block)
+                    block = convert_tmsh_output_to_dict(block)
+
+                    for key, value in block.items():
+                        self_name = key.split()[-1]
+                        value[&#39;name&#39;] = self_name
+
+                    # Add the device name to `value`, then add `block` to
+                    # `data`.
+                    value[&#39;device&#39;] = device
+                    data[device].append(value)
+
+                    # Add each key in `block` to `df_data`.
+                    for key in value:
+                        if not df_data.get(key):
+                            df_data[key] = list()
+
+                counter += 1
+
+    # Iterate over `data`, adding the values to `df_data`.
+    for key, value in data.items():
+        for item in value:
+            for k in df_data:
+                df_data[k].append(item.get(k))
+
+    # Create `df`.
+    df = pd.DataFrame.from_dict(df_data).astype(str)
+
+    # Make `device` the first column, then return `df`.
+    col_1 = df.pop(&#39;device&#39;)
+    df.insert(0, &#39;device&#39;, col_1)
+
+    return df</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="collectors" href="index.html">collectors</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="collectors.f5_collectors.build_pool_table" href="#collectors.f5_collectors.build_pool_table">build_pool_table</a></code></li>
+<li><code><a title="collectors.f5_collectors.convert_tmsh_output_to_dict" href="#collectors.f5_collectors.convert_tmsh_output_to_dict">convert_tmsh_output_to_dict</a></code></li>
+<li><code><a title="collectors.f5_collectors.get_arp_table" href="#collectors.f5_collectors.get_arp_table">get_arp_table</a></code></li>
+<li><code><a title="collectors.f5_collectors.get_interface_descriptions" href="#collectors.f5_collectors.get_interface_descriptions">get_interface_descriptions</a></code></li>
+<li><code><a title="collectors.f5_collectors.get_interface_status" href="#collectors.f5_collectors.get_interface_status">get_interface_status</a></code></li>
+<li><code><a title="collectors.f5_collectors.get_node_availability" href="#collectors.f5_collectors.get_node_availability">get_node_availability</a></code></li>
+<li><code><a title="collectors.f5_collectors.get_pool_availability" href="#collectors.f5_collectors.get_pool_availability">get_pool_availability</a></code></li>
+<li><code><a title="collectors.f5_collectors.get_pool_data" href="#collectors.f5_collectors.get_pool_data">get_pool_data</a></code></li>
+<li><code><a title="collectors.f5_collectors.get_pool_member_availability" href="#collectors.f5_collectors.get_pool_member_availability">get_pool_member_availability</a></code></li>
+<li><code><a title="collectors.f5_collectors.get_pools_and_members" href="#collectors.f5_collectors.get_pools_and_members">get_pools_and_members</a></code></li>
+<li><code><a title="collectors.f5_collectors.get_self_ips" href="#collectors.f5_collectors.get_self_ips">get_self_ips</a></code></li>
+<li><code><a title="collectors.f5_collectors.get_vip_availability" href="#collectors.f5_collectors.get_vip_availability">get_vip_availability</a></code></li>
+<li><code><a title="collectors.f5_collectors.get_vip_destinations" href="#collectors.f5_collectors.get_vip_destinations">get_vip_destinations</a></code></li>
+<li><code><a title="collectors.f5_collectors.get_vip_summary" href="#collectors.f5_collectors.get_vip_summary">get_vip_summary</a></code></li>
+<li><code><a title="collectors.f5_collectors.get_vlan_db" href="#collectors.f5_collectors.get_vlan_db">get_vlan_db</a></code></li>
+<li><code><a title="collectors.f5_collectors.get_vlans" href="#collectors.f5_collectors.get_vlans">get_vlans</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

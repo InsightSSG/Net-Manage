@@ -11,35 +11,48 @@ import run_collectors as rc
 from helpers import helpers as hp
 
 
-def build_pool_table(username,
-                     password,
-                     hostgroup,
-                     play_path,
-                     private_data_dir,
-                     db_path,
-                     timestamp,
-                     validate_certs=True):
+def build_pool_table(username: str,
+                     password: str,
+                     host_group: str,
+                     play_path: str,
+                     private_data_dir: str,
+                     db_path: str,
+                     timestamp: str,
+                     validate_certs: bool = True) -> pd.DataFrame:
     '''
     Creates a custom table that contains the F5 pools, associated VIPs (if
     applicable), and pool members (if applicable).
 
-    Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): Path to the Ansible private data directory
-        validate_certs (bool):  Whether to validate SSL certificates
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        Path to the Ansible private data directory.
+    db_path : str
+        The path to the database.
+    timestamp : str
+        The timestamp for the table.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to True.
 
-    Returns:
-        df_members (DataFrame): The pool availability and associated data
+    Returns
+    -------
+    df_members : pd.DataFrame
+        The pool availability and associated data.
     '''
     # TODO: Optimize this so the table is only built for any device in the
     #       hostgroup that does not exist in the table (or if the table is not
     #       yet present)
     df_pools = get_pools_and_members(username,
                                      password,
-                                     hostgroup,
+                                     host_group,
                                      play_path,
                                      private_data_dir)
 
@@ -51,7 +64,7 @@ def build_pool_table(username,
 
     df_vips = get_vip_summary(username,
                               password,
-                              hostgroup,
+                              host_group,
                               play_path,
                               private_data_dir,
                               df_pools)
@@ -65,8 +78,9 @@ def build_pool_table(username,
     return df_vips
 
 
-def convert_tmsh_output_to_dict(in_data):
-    """Converts F5 'tmsh list' output to a Python dictionary.
+def convert_tmsh_output_to_dict(in_data: str):
+    '''
+    Converts F5 'tmsh list' output to a Python dictionary.
 
     Parameters
     ----------
@@ -74,12 +88,12 @@ def convert_tmsh_output_to_dict(in_data):
         The output to convert to a dictionary.
 
     Returns
-    ----------
+    -------
     out : dict
         'in_data' formatted as a Python dictionary.
 
     Notes
-    ----------
+    -----
     F5 'tmsh list' output is close enough to a Python dictionary or JSON to be
     confusing, but in reality it is neither. However, it does follow certain
     rules.
@@ -117,7 +131,7 @@ def convert_tmsh_output_to_dict(in_data):
 
     Examples
     ----------
->>> in_data = '''net interface 1.0 {
+>>> in_data = """net interface 1.0 {
 ...     if-index 542
 ...     mac-address 00:94:a1:91:23:44
 ...     media-active 1000SX-FD
@@ -129,11 +143,11 @@ def convert_tmsh_output_to_dict(in_data):
 ...     vendor-oui 009065
 ...     vendor-partnum OPT-0010
 ...     vendor-revision 00
-... }'''
+... }"""
 >>> output = convert_tmsh_output_to_dict(in_data)
 >>> assert type(output) == dict()
 
-    """
+    '''
     # Convert the data to a list and strip all spaces.
     in_data = [_.strip() for _ in in_data.split('\n')]
 
@@ -216,14 +230,15 @@ def convert_tmsh_output_to_dict(in_data):
     return out
 
 
-def get_arp_table(username,
-                  password,
-                  host_group,
-                  nm_path,
-                  play_path,
-                  private_data_dir,
-                  validate_certs=True):
-    """Get the ARP table on F5 LTMs.
+def get_arp_table(username: str,
+                  password: str,
+                  host_group: str,
+                  nm_path: str,
+                  play_path: str,
+                  private_data_dir: str,
+                  validate_certs: bool = True) -> pd.DataFrame:
+    '''
+    Get the ARP table on F5 LTMs.
 
     Parameters
     ----------
@@ -239,14 +254,14 @@ def get_arp_table(username,
         The path to the playbooks directory.
     private_data_dir : str
         The path to the Ansible private data directory.
-    validate_certs : bool, optional:
-        Whether to validate SSL certificates.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to True.
 
     Returns
-    ----------
-    df : DataFrame
-        A Pandas Dataframe containing the ARP table.
-    """
+    -------
+    df : pd.DataFrame
+        A Pandas DataFrame containing the ARP table.
+    '''
     extravars = {'username': username,
                  'password': password,
                  'host_group': host_group,
@@ -290,13 +305,14 @@ def get_arp_table(username,
     return df
 
 
-def get_self_ips(username,
-                 password,
-                 host_group,
-                 play_path,
-                 private_data_dir,
-                 validate_certs=True):
-    """Get the self IPs on F5 LTMs.
+def get_self_ips(username: str,
+                 password: str,
+                 host_group: str,
+                 play_path: str,
+                 private_data_dir: str,
+                 validate_certs: bool = True) -> pd.DataFrame:
+    '''
+    Get the self IPs on F5 LTMs.
 
     Parameters
     ----------
@@ -310,14 +326,14 @@ def get_self_ips(username,
         The path to the playbooks directory.
     private_data_dir : str
         The path to the Ansible private data directory.
-    validate_certs : bool, optional:
-        Whether to validate SSL certificates.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to True.
 
     Returns
-    ----------
-    df : DataFrame
-        A Pandas Dataframe containing the self IPs.
-    """
+    -------
+    df : pd.DataFrame
+        A Pandas DataFrame containing the self IPs.
+    '''
     extravars = {'username': username,
                  'password': password,
                  'host_group': host_group,
@@ -401,31 +417,41 @@ def get_self_ips(username,
     return df
 
 
-def get_interface_descriptions(username,
-                               password,
-                               host_group,
-                               nm_path,
-                               play_path,
-                               private_data_dir,
-                               reverse_dns=False,
-                               validate_certs=True):
+def get_interface_descriptions(username: str,
+                               password: str,
+                               host_group: str,
+                               nm_path: str,
+                               play_path: str,
+                               private_data_dir: str,
+                               reverse_dns: bool = False,
+                               validate_certs: bool = True) -> pd.DataFrame:
     '''
     Gets F5 interface descriptions.
 
-    Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        nm_path (str):          The path to the Net-Manage repository
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): The path to the Ansible private data directory
-        reverse_dns (bool):     Whether to run a reverse DNS lookup. Defaults
-                                to False because the test can take several
-                                minutes on large ARP tables.
-        validate_certs (bool):  Whether to validate SSL certificates
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    reverse_dns : bool, optional
+        Whether to run a reverse DNS lookup. Defaults to False because the test
+        can take several minutes on large ARP tables.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to True.
 
-    Returns:
-        df_desc (DataFrame):    The interface descriptions
+    Returns
+    -------
+    df_desc : pd.DataFrame
+        The interface descriptions.
     '''
     extravars = {'username': username,
                  'password': password,
@@ -465,26 +491,34 @@ def get_interface_descriptions(username,
     return df_desc
 
 
-def get_interface_status(username,
-                         password,
-                         host_group,
-                         play_path,
-                         private_data_dir,
-                         validate_certs=True):
+def get_interface_status(username: str,
+                         password: str,
+                         host_group: str,
+                         play_path: str,
+                         private_data_dir: str,
+                         validate_certs: bool = True) -> pd.DataFrame:
     '''
     Gets the interface and trunk statuses for F5 devices.
 
-    Args:
-        username (str):             The username to login to devices
-        password (str):             The password to login to devices
-        host_group (str):           The inventory host group
-        play_path (str):            The path to the playbooks directory
-        private_data_dir (str):     Path to the Ansible private data directory
-        nm_path (str):              The path to the Net-Manage repository
-        validate_certs (bool):      Whether to validate SSL certificates
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to True.
 
-    Returns:
-        df_inf_status (DataFrame):  The interface statuses
+    Returns
+    -------
+    df_inf_status : pd.DataFrame
+        The interface statuses.
     '''
     # Get the interface statuses
     extravars = {'username': username,
@@ -568,25 +602,34 @@ def get_interface_status(username,
     return df_inf_status
 
 
-def get_node_availability(username,
-                          password,
-                          host_group,
-                          play_path,
-                          private_data_dir,
-                          validate_certs=True):
+def get_node_availability(username: str,
+                          password: str,
+                          host_group: str,
+                          play_path: str,
+                          private_data_dir: str,
+                          validate_certs: bool = True) -> pd.DataFrame:
     '''
     Gets node availability from F5 LTMs.
 
-    Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): Path to the Ansible private data directory
-        validate_certs (bool):  Whether to validate SSL certificates
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        Path to the Ansible private data directory.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to True.
 
-    Returns:
-        df_nodes (DataFrame):   The node availability and associated data
+    Returns
+    -------
+    df_nodes : pd.DataFrame
+        The node availability and associated data.
     '''
     # Get the interface statuses
     extravars = {'username': username,
@@ -659,28 +702,35 @@ def get_node_availability(username,
     return df_nodes
 
 
-def get_pool_availability(username,
-                          password,
-                          host_group,
-                          play_path,
-                          private_data_dir,
-                          validate_certs=True):
+def get_pool_availability(username: str,
+                          password: str,
+                          host_group: str,
+                          play_path: str,
+                          private_data_dir: str,
+                          validate_certs: bool = True) -> pd.DataFrame:
     '''
     Gets pool availability from F5 LTMs.
 
-    Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): Path to the Ansible private data directory
-        nm_path (str):          The path to the Net-Manage repository
-        validate_certs (bool):  Whether to validate SSL certificates
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        Path to the Ansible private data directory.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to True.
 
-    Returns:
-        df_pools (DataFrame):   The pool availability and associated data
+    Returns
+    -------
+    df_pools : pd.DataFrame
+        The pool availability and associated data.
     '''
-    # Get the interface statuses
     extravars = {'username': username,
                  'password': password,
                  'host_group': host_group}
@@ -791,24 +841,34 @@ def get_pool_availability(username,
     return df_pools
 
 
-def get_pool_data(username,
-                  password,
-                  host_group,
-                  play_path,
-                  private_data_dir,
-                  validate_certs=False):
+def get_pool_data(username: str,
+                  password: str,
+                  host_group: str,
+                  play_path: str,
+                  private_data_dir: str,
+                  validate_certs: bool = False) -> pd.DataFrame:
     '''
-    Gets F5 pool and pool members
+    Gets F5 pool and pool members.
 
-    Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): Path to the Ansible private data directory
-        validate_certs (bool):  Whether to validate SSL certificates
-    Returns:
-        df_pools (DataFrame):   The F5 pools and members
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        Path to the Ansible private data directory.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to False.
+
+    Returns
+    -------
+    df_pools : pd.DataFrame
+        The F5 pools and members.
     '''
     extravars = {'username': username,
                  'password': password,
@@ -888,26 +948,34 @@ def get_pool_data(username,
     return df_pools
 
 
-def get_pool_member_availability(username,
-                                 password,
-                                 host_group,
-                                 play_path,
-                                 private_data_dir,
-                                 validate_certs=True):
+def get_pool_member_availability(username: str,
+                                 password: str,
+                                 host_group: str,
+                                 play_path: str,
+                                 private_data_dir: str,
+                                 validate_certs: bool = True) -> pd.DataFrame:
     '''
     Gets F5 pool member availability from F5 LTMs.
 
-    Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): Path to the Ansible private data directory
-        nm_path (str):          The path to the Net-Manage repository
-        validate_certs (bool):  Whether to validate SSL certificates
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        Path to the Ansible private data directory.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to True.
 
-    Returns:
-        df_members (DataFrame): The pool availability and associated data
+    Returns
+    -------
+    df_members : pd.DataFrame
+        The pool availability and associated data.
     '''
     # Get the interface statuses
     extravars = {'username': username,
@@ -978,23 +1046,34 @@ def get_pool_member_availability(username,
     return df_members
 
 
-def get_pools_and_members(username,
-                          password,
-                          host_group,
-                          play_path,
-                          private_data_dir,
-                          validate_certs=False):
+def get_pools_and_members(username: str,
+                          password: str,
+                          host_group: str,
+                          play_path: str,
+                          private_data_dir: str,
+                          validate_certs: bool = False) -> pd.DataFrame:
     '''
     Gets F5 pools and members.
-    Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): Path to the Ansible private data directory
-        validate_certs (bool):  Whether to validate SSL certificates
-    Returns:
-        df_pools (DataFrame):   The F5 pools and members
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        Path to the Ansible private data directory.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to False.
+
+    Returns
+    -------
+    df_pools : pd.DataFrame
+        The F5 pools and members.
     '''
     extravars = {'username': username,
                  'password': password,
@@ -1064,26 +1143,34 @@ def get_pools_and_members(username,
     return df_pools
 
 
-def get_vip_availability(username,
-                         password,
-                         host_group,
-                         play_path,
-                         private_data_dir,
-                         validate_certs=True):
+def get_vip_availability(username: str,
+                         password: str,
+                         host_group: str,
+                         play_path: str,
+                         private_data_dir: str,
+                         validate_certs: bool = True) -> pd.DataFrame:
     '''
     Gets VIP availability from F5 LTMs.
 
-    Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): Path to the Ansible private data directory
-        nm_path (str):          The path to the Net-Manage repository
-        validate_certs (bool):  Whether to validate SSL certificates
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        Path to the Ansible private data directory.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to True.
 
-    Returns:
-        df_vips (DataFrame):    The pool availability and associated data
+    Returns
+    -------
+    df_vips : pd.DataFrame
+        The VIP availability and associated data.
     '''
     # Get the interface statuses
     extravars = {'username': username,
@@ -1159,17 +1246,21 @@ def get_vip_availability(username,
     return df_vips
 
 
-def get_vip_destinations(db_path):
+def get_vip_destinations(db_path: str) -> pd.DataFrame:
     '''
     Creates a summary view of the VIP destinations on F5 LTMs. It pulls the
     data from the 'f5_get_vip_availability' table. The view can be queried
     just like a regular table.
 
-    Args:
-        db_path (str):  The path to the database
+    Parameters
+    ----------
+    db_path : str
+        The path to the database.
 
-    Returns:
-        result (ob):    A dataframe containing the view's data
+    Returns
+    -------
+    result : pd.DataFrame
+        A dataframe containing the view's data.
     '''
     # Connect to the database
     con = hp.connect_to_db(db_path)
@@ -1195,29 +1286,30 @@ def get_vip_destinations(db_path):
     return result
 
 
-def get_vip_summary(username,
-                    password,
-                    host_group,
-                    play_path,
-                    private_data_dir,
-                    df_pools,
-                    validate_certs=False):
+def get_vip_summary(username: str,
+                    password: str,
+                    host_group: str,
+                    play_path: str,
+                    private_data_dir: str,
+                    df_pools: pd.DataFrame,
+                    validate_certs: bool = False) -> pd.DataFrame:
     '''
     Gets F5 summary.
 
     Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): Path to the Ansible private data directory
-        df_pools (obj):         A DataFrame containing a summary of the pools
-                                and members. This is created with the
-                                'f5_build_pool_table' function.
-        validate_certs (bool):  Whether to validate SSL certificates
+        username (str):         The username to login to devices.
+        password (str):         The password to login to devices.
+        host_group (str):       The inventory host group.
+        play_path (str):        The path to the playbooks directory.
+        private_data_dir (str): Path to the Ansible private data directory.
+        df_pools (pd.DataFrame): A DataFrame containing a summary of the pools
+                                 and members. This is created with the
+                                 'f5_build_pool_table' function.
+        validate_certs (bool):  Whether to validate SSL certificates. Defaults
+                                to False.
 
     Returns:
-        df_vips (DataFrame):    The F5 VIP summary
+        df_vips (pd.DataFrame): The F5 VIP summary.
     '''
     extravars = {'username': username,
                  'password': password,
@@ -1305,95 +1397,34 @@ def get_vip_summary(username,
     return df_vips
 
 
-# def get_vip_data(username,
-#                  password,
-#                  host_group,
-#                  play_path,
-#                  private_data_dir,
-#                  validate_certs=False):
-#     '''
-#     Gets F5 VIPs and their associated destination and pool.
-#     Args:
-#         username (str):         The username to login to devices
-#         password (str):         The password to login to devices
-#         host_group (str):       The inventory host group
-#         play_path (str):        The path to the playbooks directory
-#         private_data_dir (str): Path to the Ansible private data directory
-#         validate_certs (bool):  Whether to validate SSL certificates
-#     Returns:
-#         df_vips (DataFrame):   The F5 pools and members
-#     '''
-#     extravars = {'username': username,
-#                  'password': password,
-#                  'host_group': host_group}
-
-#     if not validate_certs:
-#         extravars['validate_certs'] = 'no'
-
-#     # Execute the pre-checks
-#     playbook = f'{play_path}/f5_get_vip_data.yml'
-#     runner = ansible_runner.run(private_data_dir=private_data_dir,
-#                                 playbook=playbook,
-#                                 extravars=extravars,
-#                                 suppress_env_files=True,
-#                                 quiet=True)
-
-#     df_vip_data = dict()
-#     df_vip_data['device'] = list()
-#     df_vip_data['partition'] = list()
-#     df_vip_data['vip'] = list()
-#     df_vip_data['destination'] = list()
-#     df_vip_data['port'] = list()
-#     df_vip_data['pool'] = list()
-
-#     for event in runner.events:
-#         if event['event'] == 'runner_on_ok':
-#             event_data = event['event_data']
-#             device = event_data['remote_addr']
-
-#             # Extract the command output and clean it up
-#             vip_output = event_data['res']['stdout_lines'][0]
-#             vip_output = [_ for _ in vip_output if _ != '}']
-#             vip_output = [_.replace(' {', str()) for _ in vip_output]
-
-#             # Parse the command output and add it to 'df_vip_data'
-#             for line in vip_output:
-#                 partition, _, port = pa.f5_get_vip_data(line)
-#                 if 'ltm virtual' in line:
-#                     df_vip_data['device'].append(device)
-#                     df_vip_data['partition'].append(partition)
-#                     df_vip_data['vip'].append(_)
-#                 if 'destination' in line:
-#                     df_vip_data['destination'].append(_)
-#                     df_vip_data['port'].append(port)
-#                 if 'pool' in line:
-#                     df_vip_data['pool'].append(_)
-
-#     df_vips = pd.DataFrame.from_dict(df_vip_data)
-
-#     return df_vips
-
-
-def get_vlan_db(username,
-                password,
-                host_group,
-                play_path,
-                private_data_dir,
-                validate_certs=True):
+def get_vlan_db(username: str,
+                password: str,
+                host_group: str,
+                play_path: str,
+                private_data_dir: str,
+                validate_certs: bool = True) -> pd.DataFrame:
     '''
     Gets the VLAN database on F5 LTMs.
 
-    Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): Path to the Ansible private data directory
-        nm_path (str):          The path to the Net-Manage repository
-        validate_certs (bool):  Whether to validate SSL certificates
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to the device.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to True.
 
-    Returns:
-        df_vips (DataFrame):    The pool availability and associated data
+    Returns
+    -------
+    df_vips : pd.DataFrame
+        A Pandas DataFrame containing the VLAN database.
     '''
     # Get the interface statuses
     extravars = {'username': username,
@@ -1448,13 +1479,14 @@ def get_vlan_db(username,
     return df_vlans
 
 
-def get_vlans(username,
-              password,
-              host_group,
-              play_path,
-              private_data_dir,
-              validate_certs=True):
-    """Gets the VLANs on F5 LTMs.
+def get_vlans(username: str,
+              password: str,
+              host_group: str,
+              play_path: str,
+              private_data_dir: str,
+              validate_certs: bool = True) -> pd.DataFrame:
+    '''
+    Gets the VLANs on F5 LTMs.
 
     Parameters
     ----------
@@ -1469,13 +1501,13 @@ def get_vlans(username,
     private_data_dir : str
         The path to the Ansible private data directory.
     validate_certs : bool, optional:
-        Whether to validate SSL certificates.
+        Whether to validate SSL certificates. Defaults to True.
 
     Returns
-    ----------
-    df : DataFrame
-        A Pandas Dataframe containing the VLANs.
-    """
+    -------
+    df : pd.DataFrame
+        A Pandas DataFrame containing the VLANs.
+    '''
     extravars = {'username': username,
                  'password': password,
                  'host_group': host_group,

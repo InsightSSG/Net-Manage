@@ -12,24 +12,21 @@ import sys
 import streamlit as st
 
 
-def get_search_params() -> list:
+def get_search_params() -> tuple[bool, list]:
     '''
     Allows the user to provide a list of platform IDs to filter by.
 
-    Parameters
-    ----------
-    None
-
     Returns
     -------
-    allow_partial_match : bool
-        Whether to allow partial matches within the list of platform IDs.
-    dnac_platform_ids : list
-        A list of platform IDs to filter by.
+    tuple[bool, list]:
+        A tuple containing the following:
+        - allow_partial_match (bool): Whether to allow partial matches within
+          the list of platform IDs.
+        - dnac_platform_ids (list): A list of platform IDs to filter by.
     '''
     with st.form(key='my_form'):
         # Get the list of platform IDs.
-        msg = 'Comma-delimited list of platform ID to filter by (optional): '
+        msg = 'Comma-delimited list of platform IDs to filter by (optional): '
         dnac_platform_ids = st.text_input(msg)
         dnac_platform_ids = dnac_platform_ids.split(',')
         dnac_platform_ids = list(filter(None, dnac_platform_ids))

@@ -1,0 +1,1662 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>collectors.palo_alto_collectors API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>collectors.palo_alto_collectors</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">#!/usr/bin/env python3
+
+import ansible_runner
+import json
+import pandas as pd
+from helpers import helpers as hp
+from typing import Dict
+
+
+def run_adhoc_command(username: str,
+                      password: str,
+                      host_group: str,
+                      nm_path: str,
+                      private_data_dir: str,
+                      cmd: str,
+                      cmd_is_xml: bool) -&gt; Dict[str, dict]:
+    &#39;&#39;&#39;
+    Runs an ad-hoc command on the specified hosts using Ansible.
+
+    Parameters
+    ----------
+    username : str
+        The user&#39;s username.
+    password : str
+        The user&#39;s password.
+    host_group : str
+        The name of the Ansible inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    cmd : str
+        The command to run.
+    cmd_is_xml : bool
+        Whether the command is formatted as XML.
+
+    Returns
+    -------
+    dict
+        A dictionary containing the command output, where the keys are the
+        devices and the value is a dictionary containing all of the data
+        within the event that contains the &#39;runner_on_ok&#39; value.
+
+    Notes
+    -----
+    Ansible-runner returns a generator containing each event that Ansible
+    executed. In order to conserve memory, this function searches for
+    events that contain the &#39;event&#39; key with a value of
+    &#39;runner_on_ok&#39;. That key does not mean that the task succeeded,
+    it just indicates that it is the event that contains the results of the
+    task.
+
+    That logic should be revisited if a use-case arises that necessitates
+    returning other events to whichever function that is calling this
+    function.
+
+    Examples
+    --------
+    &gt;&gt;&gt; cmd = &#39;&lt;show&gt;&lt;system&gt;&lt;info&gt;&lt;/info&gt;&lt;/system&gt;&lt;/show&gt;&#39;
+    &gt;&gt;&gt; cmd_is_xml = True
+    &gt;&gt;&gt; response = run_adhoc_command(username,
+                                     password,
+                                     host_group,
+                                     nm_path,
+                                     private_data_dir,
+                                     cmd,
+                                     cmd_is_xml)
+    &gt;&gt;&gt; for key in response:
+    &gt;&gt;&gt;        assert isinstance(response[key][&#39;event&#39;], str)
+
+    &gt;&gt;&gt; cmd = &#39;show system software status&#39;
+    &gt;&gt;&gt; cmd_is_xml = False
+    &gt;&gt;&gt; response = run_adhoc_command(username,
+                                     password,
+                                     host_group,
+                                     nm_path,
+                                     private_data_dir,
+                                     cmd,
+                                     cmd_is_xml)
+    &gt;&gt;&gt; for key in response:
+    &gt;&gt;&gt;        assert isinstance(response[key][&#39;event&#39;], str)
+    &#39;&#39;&#39;
+    extravars = {&#39;user&#39;: username,
+                 &#39;password&#39;: password,
+                 &#39;host_group&#39;: host_group,
+                 &#39;cmd&#39;: cmd,
+                 &#39;cmd_is_xml&#39;: cmd_is_xml}
+
+    playbook = f&#39;{nm_path}/playbooks/palo_alto_run_adhoc_command.yml&#39;
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    result = dict()
+
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            device = event[&#39;event_data&#39;][&#39;remote_addr&#39;]
+            result[device] = event
+
+    return result
+
+
+def get_all_interfaces(username: str,
+                       password: str,
+                       host_group: str,
+                       nm_path: str,
+                       private_data_dir: str) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets all interfaces on Palo Altos.
+
+    Parameters
+    ----------
+    username : str
+        The user&#39;s username.
+    password : str
+        The user&#39;s password.
+    host_group : str
+        The name of the Ansible inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    private_data_dir : str
+        The path to the Ansible private data directory
+
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame containing the logical interfaces.
+
+    Examples
+    --------
+    &gt;&gt;&gt; df = get_all_interfaces(username,
+                                password,
+                                host_group,
+                                nm_path,
+                                play_path,
+                                private_data_dir)
+    &gt;&gt;&gt; df.columns.to_list()
+    [&#39;device&#39;,
+    &#39;name&#39;,
+    &#39;zone&#39;,
+    &#39;fwd&#39;,
+    &#39;vsys&#39;,
+    &#39;dyn-addr&#39;,
+    &#39;addr6&#39;,
+    &#39;tag&#39;,
+    &#39;ip&#39;,
+    &#39;id&#39;,
+    &#39;addr&#39;]
+    &#39;&#39;&#39;
+    cmd = &#39;show interface all&#39;
+    cmd_is_xml = False
+
+    response = run_adhoc_command(username,
+                                 password,
+                                 host_group,
+                                 nm_path,
+                                 private_data_dir,
+                                 cmd,
+                                 cmd_is_xml)
+
+    # Create a dictionary to store the formatted cmd output for each device.
+    result = dict()
+
+    # Parse &#39;response&#39;, adding the cmd output for each device to &#39;result&#39;.
+    for device, event in response.items():
+        output = json.loads(event[&#39;event_data&#39;][&#39;res&#39;][&#39;stdout&#39;])
+        if output[&#39;response&#39;][&#39;result&#39;][&#39;ifnet&#39;].get(&#39;entry&#39;):
+            output = output[&#39;response&#39;][&#39;result&#39;][&#39;ifnet&#39;][&#39;entry&#39;]
+            result[device] = output
+        else:
+            result[device] = dict()
+
+    # Use the data in &#39;result&#39; to populate &#39;df_data&#39;, which will be used to
+    # create the dataframe.
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+    for device in result:
+        for item in result[device]:
+            df_data[&#39;device&#39;].append(device)
+            for key, value in item.items():
+                if not df_data.get(key):
+                    df_data[key] = list()
+                df_data[key].append(value)
+
+    # Create the dataframe.
+    df = pd.DataFrame.from_dict(df_data).astype(str)
+
+    return df
+
+
+def get_arp_table(username: str,
+                  password: str,
+                  host_group: str,
+                  nm_path: str,
+                  private_data_dir: str,
+                  interface: str = &#39;&#39;) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Parses the Palo Alto ARP table and adds vendor OUIs.
+
+    Parameters
+    ----------
+    username : str
+        The user&#39;s username.
+    password : str
+        The user&#39;s password.
+    host_group : str
+        The name of the Ansible inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    private_data_dir : str
+        The path to the Ansible private data directory
+
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame containing the ARP table and vendor OUIs.
+
+    Other Parameters
+    ----------------
+    interface : str, optional
+        The interface for which to return the ARP table. The default is to
+        return the ARP table for all interfaces.
+
+    Examples
+    --------
+    &gt;&gt;&gt; df = get_arp_table(username,
+                           password,
+                           host_group,
+                           nm_path,
+                           play_path,
+                           private_data_dir)
+    &gt;&gt;&gt; print(df.columns.to_list())
+    [&#39;device&#39;, &#39;status&#39;, &#39;ip&#39;, &#39;mac&#39;, &#39;ttl&#39;, &#39;interface&#39;, &#39;port&#39;, &#39;vendor&#39;]
+
+    &gt;&gt;&gt; df = get_arp_table(username,
+                           password,
+                           host_group,
+                           nm_path,
+                           play_path,
+                           private_data_dir,
+                           interface=interface)
+    &gt;&gt;&gt; print(df.columns.to_list())
+    [&#39;device&#39;, &#39;status&#39;, &#39;ip&#39;, &#39;mac&#39;, &#39;ttl&#39;, &#39;interface&#39;, &#39;port&#39;, &#39;vendor&#39;]
+    &#39;&#39;&#39;
+    if interface:
+        cmd = f&#34;&lt;show&gt;&lt;arp&gt;&lt;entry name=&#39;{interface}&#39;/&gt;&lt;/arp&gt;&lt;/show&gt;&#34;
+    else:
+        cmd = &#34;&lt;show&gt;&lt;arp&gt;&lt;entry name=&#39;all&#39;/&gt;&lt;/arp&gt;&lt;/show&gt;&#34;
+
+    response = run_adhoc_command(username,
+                                 password,
+                                 host_group,
+                                 nm_path,
+                                 private_data_dir,
+                                 cmd,
+                                 True)
+
+    # Create a dictionary to store the data for &#39;df&#39;
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+
+    # Populate &#39;df_data&#39; from &#39;result&#39;
+    for device in response:
+        output = json.loads(response[device][&#39;event_data&#39;][&#39;res&#39;][&#39;stdout&#39;])
+        # An &#39;error&#39; key indicates the interface does not exist.
+        if not output[&#39;response&#39;][&#39;result&#39;].get(&#39;error&#39;):
+            if output[&#39;response&#39;][&#39;result&#39;].get(&#39;entries&#39;):
+                arp_table = output[&#39;response&#39;][&#39;result&#39;][&#39;entries&#39;][&#39;entry&#39;]
+                for item in arp_table:
+                    df_data[&#39;device&#39;].append(device)
+                    for key, value in item.items():
+                        if not df_data.get(key):
+                            df_data[key] = list()
+                        df_data[key].append(value)
+
+    # Get the vendors for the MAC addresses
+    df_vendors = hp.find_mac_vendors(df_data[&#39;mac&#39;], nm_path)
+    df_data[&#39;vendor&#39;] = df_vendors[&#39;vendor&#39;].to_list()
+
+    # Create the dataframe
+    df = pd.DataFrame.from_dict(df_data)
+
+    return df
+
+
+def get_interface_ips(username: str,
+                      password: str,
+                      host_group: str,
+                      nm_path: str,
+                      private_data_dir: str) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;Gets IP addresses on Palo Alto firewall interfaces.
+
+    Parameters
+    ----------
+    username : str
+        The user&#39;s username.
+    password : str
+        The user&#39;s password.
+    host_group : str
+        The name of the Ansible inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+
+    Returns
+    -------
+    df : Pandas Dataframe
+        A dataframe containing the IP addresses.
+
+    Examples
+    --------
+    &gt;&gt;&gt; df = get_ip_addresses(username,
+                              password,
+                              db_path,
+                              host_group,
+                              nm_path,
+                              play_path,
+                              private_data_dir,
+                              timestamp)
+    &gt;&gt;&gt; df.columns.to_list()
+    [&#39;device&#39;,
+    &#39;name&#39;,
+    &#39;zone&#39;,
+    &#39;fwd&#39;,
+    &#39;vsys&#39;,
+    &#39;dyn-addr&#39;,
+    &#39;addr6&#39;,
+    &#39;tag&#39;,
+    &#39;ip&#39;,
+    &#39;id&#39;,
+    &#39;addr&#39;]
+    &#39;&#39;&#39;
+    # TODO: Optimize this function by setting &#39;get_all_interfaces&#39; as a
+    #       dependency. That way the same command does not need to be
+    #       run twice (potentially) for two different collectors.
+    df = get_all_interfaces(username,
+                            password,
+                            host_group,
+                            nm_path,
+                            private_data_dir)
+
+    # Filter out interfaces that do not have an IP address.
+    df = df[df[&#39;ip&#39;] != &#39;N/A&#39;]
+
+    # Add the subnets, network IPs, and broadcast IPs.
+    addresses = df[&#39;ip&#39;].to_list()
+    result = hp.generate_subnet_details(addresses)
+    df[&#39;subnet&#39;] = result[&#39;subnet&#39;]
+    df[&#39;network_ip&#39;] = result[&#39;network_ip&#39;]
+    df[&#39;broadcast_ip&#39;] = result[&#39;broadcast_ip&#39;]
+
+    return df
+
+
+def get_logical_interfaces(username: str,
+                           password: str,
+                           host_group: str,
+                           nm_path: str,
+                           private_data_dir: str) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets the logical interfaces on Palo Altos.
+
+    Parameters
+    ----------
+    username : str
+        The user&#39;s username.
+    password : str
+        The user&#39;s password.
+    host_group : str
+        The name of the Ansible inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    private_data_dir : str
+        The path to the Ansible private data directory
+
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame containing the logical interfaces.
+
+    Examples
+    --------
+    &gt;&gt;&gt; df = get_logical_interfaces(username,
+                                    password,
+                                    host_group,
+                                    nm_path,
+                                    play_path,
+                                    private_data_dir)
+    &gt;&gt;&gt; df.columns.to_list()
+    [&#39;device&#39;,
+    &#39;name&#39;,
+    &#39;zone&#39;,
+    &#39;fwd&#39;,
+    &#39;vsys&#39;,
+    &#39;dyn-addr&#39;,
+    &#39;addr6&#39;,
+    &#39;tag&#39;,
+    &#39;ip&#39;,
+    &#39;id&#39;,
+    &#39;addr&#39;]
+    &#39;&#39;&#39;
+    cmd = &#39;show interface logical&#39;
+    cmd_is_xml = False
+
+    response = run_adhoc_command(username,
+                                 password,
+                                 host_group,
+                                 nm_path,
+                                 private_data_dir,
+                                 cmd,
+                                 cmd_is_xml)
+
+    # Create a dictionary to store the formatted cmd output for each device.
+    result = dict()
+
+    # Parse &#39;response&#39;, adding the cmd output for each device to &#39;result&#39;.
+    for device, event in response.items():
+        output = json.loads(event[&#39;event_data&#39;][&#39;res&#39;][&#39;stdout&#39;])
+        if output[&#39;response&#39;][&#39;result&#39;][&#39;ifnet&#39;].get(&#39;entry&#39;):
+            output = output[&#39;response&#39;][&#39;result&#39;][&#39;ifnet&#39;][&#39;entry&#39;]
+            result[device] = output
+        else:
+            result[device] = dict()
+
+    # Use the data in &#39;result&#39; to populate &#39;df_data&#39;, which will be used to
+    # create the dataframe.
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+    for device in result:
+        for item in result[device]:
+            df_data[&#39;device&#39;].append(device)
+            for key, value in item.items():
+                if not df_data.get(key):
+                    df_data[key] = list()
+                df_data[key].append(value)
+
+    # Create the dataframe.
+    df = pd.DataFrame.from_dict(df_data).astype(str)
+
+    return df
+
+
+def get_physical_interfaces(username: str,
+                            password: str,
+                            host_group: str,
+                            nm_path: str,
+                            private_data_dir: str) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets the physical interfaces on Palo Altos.
+
+    Parameters
+    ----------
+    username : str
+        The user&#39;s username.
+    password : str
+        The user&#39;s password.
+    host_group : str
+        The name of the Ansible inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    private_data_dir : str
+        The path to the Ansible private data directory
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A DataFrame containing the physical interfaces.
+
+    Examples
+    --------
+    &gt;&gt;&gt; df = get_physical_interfaces(username,
+                                     password,
+                                     host_group,
+                                     nm_path,
+                                     play_path,
+                                     private_data_dir)
+    &gt;&gt;&gt; df.columns.to_list()
+    [&#39;device&#39;,
+    &#39;name&#39;,
+    &#39;duplex&#39;,
+    &#39;type&#39;,
+    &#39;state&#39;,
+    &#39;st&#39;,
+    &#39;mac&#39;,
+    &#39;mode&#39;,
+    &#39;speed&#39;,
+    &#39;id&#39;]
+    &#39;&#39;&#39;
+    cmd = &#39;show interface hardware&#39;
+    cmd_is_xml = False
+    response = run_adhoc_command(username,
+                                 password,
+                                 host_group,
+                                 nm_path,
+                                 private_data_dir,
+                                 cmd,
+                                 cmd_is_xml)
+
+    # Create a dictionary to store the formatted cmd output for each device.
+    result = dict()
+
+    # Parse &#39;response&#39;, adding the cmd output for each device to &#39;result&#39;.
+    for device, event in response.items():
+        event_data = event[&#39;event_data&#39;]
+        output = event_data[&#39;res&#39;][&#39;stdout&#39;]
+        output = json.loads(output)
+        if output[&#39;response&#39;][&#39;result&#39;][&#39;hw&#39;].get(&#39;entry&#39;):
+            output = output[&#39;response&#39;][&#39;result&#39;][&#39;hw&#39;][&#39;entry&#39;]
+            result[device] = output
+        else:  # Just in case no results are returned for some reason.
+            result[device] = dict()
+
+    # Use the data in &#39;result&#39; to populate &#39;df_data&#39;, which will be used to
+    # create the dataframe.
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+    for device in result:
+        interfaces = result[device]
+        for item in interfaces:
+            df_data[&#39;device&#39;].append(device)
+            for key, value in item.items():
+                if key != &#39;ae_member&#39;:  # Exclude aggregation groups.
+                    if not df_data.get(key):
+                        df_data[key] = list()
+                    df_data[key].append(value)
+
+    # Create the dataframe.
+    df = pd.DataFrame.from_dict(df_data)
+
+    return df
+
+
+def get_security_rules(username: str,
+                       password: str,
+                       host_group: str,
+                       play_path: str,
+                       private_data_dir: str,
+                       device_group: str = &#39;shared&#39;) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Get a list of all security rules from a Palo Alto firewall.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    device_group : str, optional
+        The device group to query. Defaults to &#39;shared&#39;.
+
+    Returns
+    -------
+    df_rules : pd.DataFrame
+        A DataFrame containing the security rules.
+    &#39;&#39;&#39;
+    extravars = {&#39;user&#39;: username,
+                 &#39;password&#39;: password,
+                 &#39;device_group&#39;: device_group,
+                 &#39;host_group&#39;: host_group}
+
+    playbook = f&#39;{play_path}/palo_alto_get_security_rules.yml&#39;
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Create the &#39;df_data&#39; dictionary. It will be used to create the dataframe
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+
+    # Create a list to store the unformatted details for each rule
+    rules = list()
+
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            event_data = event[&#39;event_data&#39;]
+            device = event_data[&#39;remote_addr&#39;]
+            output = event_data[&#39;res&#39;][&#39;gathered&#39;]
+
+            for item in output:
+                item[&#39;device&#39;] = device
+                rules.append(item)
+                for key in item:
+                    if not df_data.get(key):
+                        df_data[key] = list()
+
+    # Iterate over the rule details, using the keys in dict_keys to create the
+    # &#39;df_data&#39; dictionary, which will be used to create the dataframe
+    for item in rules:
+        for key in df_data:
+            # If a key in a rule has a value that is a list, then convert it to
+            # a string by joining it with &#39;|&#39; as a delimiter. We do not want to
+            # use commas a delimiter, since that can cause issues when
+            # exporting the data to CSV files.
+            if isinstance(item.get(key), list):
+                # Some keys have a value that is a list, with commas inside the
+                # list items. For example, source_user might look like this:
+                # [&#39;cn=name,ou=firewall,ou=groups,dc=dcname,dc=local&#39;]. That
+                # creates an issue when exporting to a CSV file. Therefore,
+                # the commas inside list items will be replaced with a space
+                # before joining the list.
+                _list = item.get(key)
+                _list = [_.replace(&#39;,&#39;, &#39; &#39;) for _ in _list]
+
+                # Join the list using &#39;|&#39; as a delimiter
+                df_data[key].append(&#39;|&#39;.join(_list))
+            # If the key&#39;s value is not a list, then convert it to a string
+            # and append it to the key in &#39;df_data&#39;
+            else:
+                df_data[key].append(str(item.get(key)))
+
+    # Create the dataframe and return it
+    df_rules = pd.DataFrame.from_dict(df_data)
+
+    # Rename the &#39;destintaion_zone&#39; column to &#39;destination_zone&#39;
+    df_rules.rename({&#39;destintaion_zone&#39;: &#39;destination_zone&#39;},
+                    axis=1,
+                    inplace=True)
+
+    return df_rules</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="collectors.palo_alto_collectors.get_all_interfaces"><code class="name flex">
+<span>def <span class="ident">get_all_interfaces</span></span>(<span>username: str, password: str, host_group: str, nm_path: str, private_data_dir: str) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets all interfaces on Palo Altos.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>username</code></strong> :&ensp;<code>str</code></dt>
+<dd>The user's username.</dd>
+<dt><strong><code>password</code></strong> :&ensp;<code>str</code></dt>
+<dd>The user's password.</dd>
+<dt><strong><code>host_group</code></strong> :&ensp;<code>str</code></dt>
+<dd>The name of the Ansible inventory host group.</dd>
+<dt><strong><code>nm_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Net-Manage repository.</dd>
+<dt><strong><code>private_data_dir</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Ansible private data directory</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>pd.DataFrame</code></dt>
+<dd>A DataFrame containing the logical interfaces.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; df = get_all_interfaces(username,
+                            password,
+                            host_group,
+                            nm_path,
+                            play_path,
+                            private_data_dir)
+&gt;&gt;&gt; df.columns.to_list()
+['device',
+'name',
+'zone',
+'fwd',
+'vsys',
+'dyn-addr',
+'addr6',
+'tag',
+'ip',
+'id',
+'addr']
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_all_interfaces(username: str,
+                       password: str,
+                       host_group: str,
+                       nm_path: str,
+                       private_data_dir: str) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets all interfaces on Palo Altos.
+
+    Parameters
+    ----------
+    username : str
+        The user&#39;s username.
+    password : str
+        The user&#39;s password.
+    host_group : str
+        The name of the Ansible inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    private_data_dir : str
+        The path to the Ansible private data directory
+
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame containing the logical interfaces.
+
+    Examples
+    --------
+    &gt;&gt;&gt; df = get_all_interfaces(username,
+                                password,
+                                host_group,
+                                nm_path,
+                                play_path,
+                                private_data_dir)
+    &gt;&gt;&gt; df.columns.to_list()
+    [&#39;device&#39;,
+    &#39;name&#39;,
+    &#39;zone&#39;,
+    &#39;fwd&#39;,
+    &#39;vsys&#39;,
+    &#39;dyn-addr&#39;,
+    &#39;addr6&#39;,
+    &#39;tag&#39;,
+    &#39;ip&#39;,
+    &#39;id&#39;,
+    &#39;addr&#39;]
+    &#39;&#39;&#39;
+    cmd = &#39;show interface all&#39;
+    cmd_is_xml = False
+
+    response = run_adhoc_command(username,
+                                 password,
+                                 host_group,
+                                 nm_path,
+                                 private_data_dir,
+                                 cmd,
+                                 cmd_is_xml)
+
+    # Create a dictionary to store the formatted cmd output for each device.
+    result = dict()
+
+    # Parse &#39;response&#39;, adding the cmd output for each device to &#39;result&#39;.
+    for device, event in response.items():
+        output = json.loads(event[&#39;event_data&#39;][&#39;res&#39;][&#39;stdout&#39;])
+        if output[&#39;response&#39;][&#39;result&#39;][&#39;ifnet&#39;].get(&#39;entry&#39;):
+            output = output[&#39;response&#39;][&#39;result&#39;][&#39;ifnet&#39;][&#39;entry&#39;]
+            result[device] = output
+        else:
+            result[device] = dict()
+
+    # Use the data in &#39;result&#39; to populate &#39;df_data&#39;, which will be used to
+    # create the dataframe.
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+    for device in result:
+        for item in result[device]:
+            df_data[&#39;device&#39;].append(device)
+            for key, value in item.items():
+                if not df_data.get(key):
+                    df_data[key] = list()
+                df_data[key].append(value)
+
+    # Create the dataframe.
+    df = pd.DataFrame.from_dict(df_data).astype(str)
+
+    return df</code></pre>
+</details>
+</dd>
+<dt id="collectors.palo_alto_collectors.get_arp_table"><code class="name flex">
+<span>def <span class="ident">get_arp_table</span></span>(<span>username: str, password: str, host_group: str, nm_path: str, private_data_dir: str, interface: str = '') ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parses the Palo Alto ARP table and adds vendor OUIs.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>username</code></strong> :&ensp;<code>str</code></dt>
+<dd>The user's username.</dd>
+<dt><strong><code>password</code></strong> :&ensp;<code>str</code></dt>
+<dd>The user's password.</dd>
+<dt><strong><code>host_group</code></strong> :&ensp;<code>str</code></dt>
+<dd>The name of the Ansible inventory host group.</dd>
+<dt><strong><code>nm_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Net-Manage repository.</dd>
+<dt><strong><code>private_data_dir</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Ansible private data directory</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>pd.DataFrame</code></dt>
+<dd>A DataFrame containing the ARP table and vendor OUIs.</dd>
+</dl>
+<h2 id="other-parameters">Other Parameters</h2>
+<dl>
+<dt><strong><code>interface</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The interface for which to return the ARP table. The default is to
+return the ARP table for all interfaces.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; df = get_arp_table(username,
+                       password,
+                       host_group,
+                       nm_path,
+                       play_path,
+                       private_data_dir)
+&gt;&gt;&gt; print(df.columns.to_list())
+['device', 'status', 'ip', 'mac', 'ttl', 'interface', 'port', 'vendor']
+</code></pre>
+<pre><code class="language-python-repl">&gt;&gt;&gt; df = get_arp_table(username,
+                       password,
+                       host_group,
+                       nm_path,
+                       play_path,
+                       private_data_dir,
+                       interface=interface)
+&gt;&gt;&gt; print(df.columns.to_list())
+['device', 'status', 'ip', 'mac', 'ttl', 'interface', 'port', 'vendor']
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_arp_table(username: str,
+                  password: str,
+                  host_group: str,
+                  nm_path: str,
+                  private_data_dir: str,
+                  interface: str = &#39;&#39;) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Parses the Palo Alto ARP table and adds vendor OUIs.
+
+    Parameters
+    ----------
+    username : str
+        The user&#39;s username.
+    password : str
+        The user&#39;s password.
+    host_group : str
+        The name of the Ansible inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    private_data_dir : str
+        The path to the Ansible private data directory
+
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame containing the ARP table and vendor OUIs.
+
+    Other Parameters
+    ----------------
+    interface : str, optional
+        The interface for which to return the ARP table. The default is to
+        return the ARP table for all interfaces.
+
+    Examples
+    --------
+    &gt;&gt;&gt; df = get_arp_table(username,
+                           password,
+                           host_group,
+                           nm_path,
+                           play_path,
+                           private_data_dir)
+    &gt;&gt;&gt; print(df.columns.to_list())
+    [&#39;device&#39;, &#39;status&#39;, &#39;ip&#39;, &#39;mac&#39;, &#39;ttl&#39;, &#39;interface&#39;, &#39;port&#39;, &#39;vendor&#39;]
+
+    &gt;&gt;&gt; df = get_arp_table(username,
+                           password,
+                           host_group,
+                           nm_path,
+                           play_path,
+                           private_data_dir,
+                           interface=interface)
+    &gt;&gt;&gt; print(df.columns.to_list())
+    [&#39;device&#39;, &#39;status&#39;, &#39;ip&#39;, &#39;mac&#39;, &#39;ttl&#39;, &#39;interface&#39;, &#39;port&#39;, &#39;vendor&#39;]
+    &#39;&#39;&#39;
+    if interface:
+        cmd = f&#34;&lt;show&gt;&lt;arp&gt;&lt;entry name=&#39;{interface}&#39;/&gt;&lt;/arp&gt;&lt;/show&gt;&#34;
+    else:
+        cmd = &#34;&lt;show&gt;&lt;arp&gt;&lt;entry name=&#39;all&#39;/&gt;&lt;/arp&gt;&lt;/show&gt;&#34;
+
+    response = run_adhoc_command(username,
+                                 password,
+                                 host_group,
+                                 nm_path,
+                                 private_data_dir,
+                                 cmd,
+                                 True)
+
+    # Create a dictionary to store the data for &#39;df&#39;
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+
+    # Populate &#39;df_data&#39; from &#39;result&#39;
+    for device in response:
+        output = json.loads(response[device][&#39;event_data&#39;][&#39;res&#39;][&#39;stdout&#39;])
+        # An &#39;error&#39; key indicates the interface does not exist.
+        if not output[&#39;response&#39;][&#39;result&#39;].get(&#39;error&#39;):
+            if output[&#39;response&#39;][&#39;result&#39;].get(&#39;entries&#39;):
+                arp_table = output[&#39;response&#39;][&#39;result&#39;][&#39;entries&#39;][&#39;entry&#39;]
+                for item in arp_table:
+                    df_data[&#39;device&#39;].append(device)
+                    for key, value in item.items():
+                        if not df_data.get(key):
+                            df_data[key] = list()
+                        df_data[key].append(value)
+
+    # Get the vendors for the MAC addresses
+    df_vendors = hp.find_mac_vendors(df_data[&#39;mac&#39;], nm_path)
+    df_data[&#39;vendor&#39;] = df_vendors[&#39;vendor&#39;].to_list()
+
+    # Create the dataframe
+    df = pd.DataFrame.from_dict(df_data)
+
+    return df</code></pre>
+</details>
+</dd>
+<dt id="collectors.palo_alto_collectors.get_interface_ips"><code class="name flex">
+<span>def <span class="ident">get_interface_ips</span></span>(<span>username: str, password: str, host_group: str, nm_path: str, private_data_dir: str) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets IP addresses on Palo Alto firewall interfaces.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>username</code></strong> :&ensp;<code>str</code></dt>
+<dd>The user's username.</dd>
+<dt><strong><code>password</code></strong> :&ensp;<code>str</code></dt>
+<dd>The user's password.</dd>
+<dt><strong><code>host_group</code></strong> :&ensp;<code>str</code></dt>
+<dd>The name of the Ansible inventory host group.</dd>
+<dt><strong><code>nm_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Net-Manage repository.</dd>
+<dt><strong><code>private_data_dir</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Ansible private data directory.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>Pandas Dataframe</code></dt>
+<dd>A dataframe containing the IP addresses.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; df = get_ip_addresses(username,
+                          password,
+                          db_path,
+                          host_group,
+                          nm_path,
+                          play_path,
+                          private_data_dir,
+                          timestamp)
+&gt;&gt;&gt; df.columns.to_list()
+['device',
+'name',
+'zone',
+'fwd',
+'vsys',
+'dyn-addr',
+'addr6',
+'tag',
+'ip',
+'id',
+'addr']
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_interface_ips(username: str,
+                      password: str,
+                      host_group: str,
+                      nm_path: str,
+                      private_data_dir: str) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;Gets IP addresses on Palo Alto firewall interfaces.
+
+    Parameters
+    ----------
+    username : str
+        The user&#39;s username.
+    password : str
+        The user&#39;s password.
+    host_group : str
+        The name of the Ansible inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+
+    Returns
+    -------
+    df : Pandas Dataframe
+        A dataframe containing the IP addresses.
+
+    Examples
+    --------
+    &gt;&gt;&gt; df = get_ip_addresses(username,
+                              password,
+                              db_path,
+                              host_group,
+                              nm_path,
+                              play_path,
+                              private_data_dir,
+                              timestamp)
+    &gt;&gt;&gt; df.columns.to_list()
+    [&#39;device&#39;,
+    &#39;name&#39;,
+    &#39;zone&#39;,
+    &#39;fwd&#39;,
+    &#39;vsys&#39;,
+    &#39;dyn-addr&#39;,
+    &#39;addr6&#39;,
+    &#39;tag&#39;,
+    &#39;ip&#39;,
+    &#39;id&#39;,
+    &#39;addr&#39;]
+    &#39;&#39;&#39;
+    # TODO: Optimize this function by setting &#39;get_all_interfaces&#39; as a
+    #       dependency. That way the same command does not need to be
+    #       run twice (potentially) for two different collectors.
+    df = get_all_interfaces(username,
+                            password,
+                            host_group,
+                            nm_path,
+                            private_data_dir)
+
+    # Filter out interfaces that do not have an IP address.
+    df = df[df[&#39;ip&#39;] != &#39;N/A&#39;]
+
+    # Add the subnets, network IPs, and broadcast IPs.
+    addresses = df[&#39;ip&#39;].to_list()
+    result = hp.generate_subnet_details(addresses)
+    df[&#39;subnet&#39;] = result[&#39;subnet&#39;]
+    df[&#39;network_ip&#39;] = result[&#39;network_ip&#39;]
+    df[&#39;broadcast_ip&#39;] = result[&#39;broadcast_ip&#39;]
+
+    return df</code></pre>
+</details>
+</dd>
+<dt id="collectors.palo_alto_collectors.get_logical_interfaces"><code class="name flex">
+<span>def <span class="ident">get_logical_interfaces</span></span>(<span>username: str, password: str, host_group: str, nm_path: str, private_data_dir: str) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets the logical interfaces on Palo Altos.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>username</code></strong> :&ensp;<code>str</code></dt>
+<dd>The user's username.</dd>
+<dt><strong><code>password</code></strong> :&ensp;<code>str</code></dt>
+<dd>The user's password.</dd>
+<dt><strong><code>host_group</code></strong> :&ensp;<code>str</code></dt>
+<dd>The name of the Ansible inventory host group.</dd>
+<dt><strong><code>nm_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Net-Manage repository.</dd>
+<dt><strong><code>private_data_dir</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Ansible private data directory</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>pd.DataFrame</code></dt>
+<dd>A DataFrame containing the logical interfaces.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; df = get_logical_interfaces(username,
+                                password,
+                                host_group,
+                                nm_path,
+                                play_path,
+                                private_data_dir)
+&gt;&gt;&gt; df.columns.to_list()
+['device',
+'name',
+'zone',
+'fwd',
+'vsys',
+'dyn-addr',
+'addr6',
+'tag',
+'ip',
+'id',
+'addr']
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_logical_interfaces(username: str,
+                           password: str,
+                           host_group: str,
+                           nm_path: str,
+                           private_data_dir: str) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets the logical interfaces on Palo Altos.
+
+    Parameters
+    ----------
+    username : str
+        The user&#39;s username.
+    password : str
+        The user&#39;s password.
+    host_group : str
+        The name of the Ansible inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    private_data_dir : str
+        The path to the Ansible private data directory
+
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame containing the logical interfaces.
+
+    Examples
+    --------
+    &gt;&gt;&gt; df = get_logical_interfaces(username,
+                                    password,
+                                    host_group,
+                                    nm_path,
+                                    play_path,
+                                    private_data_dir)
+    &gt;&gt;&gt; df.columns.to_list()
+    [&#39;device&#39;,
+    &#39;name&#39;,
+    &#39;zone&#39;,
+    &#39;fwd&#39;,
+    &#39;vsys&#39;,
+    &#39;dyn-addr&#39;,
+    &#39;addr6&#39;,
+    &#39;tag&#39;,
+    &#39;ip&#39;,
+    &#39;id&#39;,
+    &#39;addr&#39;]
+    &#39;&#39;&#39;
+    cmd = &#39;show interface logical&#39;
+    cmd_is_xml = False
+
+    response = run_adhoc_command(username,
+                                 password,
+                                 host_group,
+                                 nm_path,
+                                 private_data_dir,
+                                 cmd,
+                                 cmd_is_xml)
+
+    # Create a dictionary to store the formatted cmd output for each device.
+    result = dict()
+
+    # Parse &#39;response&#39;, adding the cmd output for each device to &#39;result&#39;.
+    for device, event in response.items():
+        output = json.loads(event[&#39;event_data&#39;][&#39;res&#39;][&#39;stdout&#39;])
+        if output[&#39;response&#39;][&#39;result&#39;][&#39;ifnet&#39;].get(&#39;entry&#39;):
+            output = output[&#39;response&#39;][&#39;result&#39;][&#39;ifnet&#39;][&#39;entry&#39;]
+            result[device] = output
+        else:
+            result[device] = dict()
+
+    # Use the data in &#39;result&#39; to populate &#39;df_data&#39;, which will be used to
+    # create the dataframe.
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+    for device in result:
+        for item in result[device]:
+            df_data[&#39;device&#39;].append(device)
+            for key, value in item.items():
+                if not df_data.get(key):
+                    df_data[key] = list()
+                df_data[key].append(value)
+
+    # Create the dataframe.
+    df = pd.DataFrame.from_dict(df_data).astype(str)
+
+    return df</code></pre>
+</details>
+</dd>
+<dt id="collectors.palo_alto_collectors.get_physical_interfaces"><code class="name flex">
+<span>def <span class="ident">get_physical_interfaces</span></span>(<span>username: str, password: str, host_group: str, nm_path: str, private_data_dir: str) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets the physical interfaces on Palo Altos.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>username</code></strong> :&ensp;<code>str</code></dt>
+<dd>The user's username.</dd>
+<dt><strong><code>password</code></strong> :&ensp;<code>str</code></dt>
+<dd>The user's password.</dd>
+<dt><strong><code>host_group</code></strong> :&ensp;<code>str</code></dt>
+<dd>The name of the Ansible inventory host group.</dd>
+<dt><strong><code>nm_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Net-Manage repository.</dd>
+<dt><strong><code>private_data_dir</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Ansible private data directory</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>A DataFrame containing the physical interfaces.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; df = get_physical_interfaces(username,
+                                 password,
+                                 host_group,
+                                 nm_path,
+                                 play_path,
+                                 private_data_dir)
+&gt;&gt;&gt; df.columns.to_list()
+['device',
+'name',
+'duplex',
+'type',
+'state',
+'st',
+'mac',
+'mode',
+'speed',
+'id']
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_physical_interfaces(username: str,
+                            password: str,
+                            host_group: str,
+                            nm_path: str,
+                            private_data_dir: str) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets the physical interfaces on Palo Altos.
+
+    Parameters
+    ----------
+    username : str
+        The user&#39;s username.
+    password : str
+        The user&#39;s password.
+    host_group : str
+        The name of the Ansible inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    private_data_dir : str
+        The path to the Ansible private data directory
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A DataFrame containing the physical interfaces.
+
+    Examples
+    --------
+    &gt;&gt;&gt; df = get_physical_interfaces(username,
+                                     password,
+                                     host_group,
+                                     nm_path,
+                                     play_path,
+                                     private_data_dir)
+    &gt;&gt;&gt; df.columns.to_list()
+    [&#39;device&#39;,
+    &#39;name&#39;,
+    &#39;duplex&#39;,
+    &#39;type&#39;,
+    &#39;state&#39;,
+    &#39;st&#39;,
+    &#39;mac&#39;,
+    &#39;mode&#39;,
+    &#39;speed&#39;,
+    &#39;id&#39;]
+    &#39;&#39;&#39;
+    cmd = &#39;show interface hardware&#39;
+    cmd_is_xml = False
+    response = run_adhoc_command(username,
+                                 password,
+                                 host_group,
+                                 nm_path,
+                                 private_data_dir,
+                                 cmd,
+                                 cmd_is_xml)
+
+    # Create a dictionary to store the formatted cmd output for each device.
+    result = dict()
+
+    # Parse &#39;response&#39;, adding the cmd output for each device to &#39;result&#39;.
+    for device, event in response.items():
+        event_data = event[&#39;event_data&#39;]
+        output = event_data[&#39;res&#39;][&#39;stdout&#39;]
+        output = json.loads(output)
+        if output[&#39;response&#39;][&#39;result&#39;][&#39;hw&#39;].get(&#39;entry&#39;):
+            output = output[&#39;response&#39;][&#39;result&#39;][&#39;hw&#39;][&#39;entry&#39;]
+            result[device] = output
+        else:  # Just in case no results are returned for some reason.
+            result[device] = dict()
+
+    # Use the data in &#39;result&#39; to populate &#39;df_data&#39;, which will be used to
+    # create the dataframe.
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+    for device in result:
+        interfaces = result[device]
+        for item in interfaces:
+            df_data[&#39;device&#39;].append(device)
+            for key, value in item.items():
+                if key != &#39;ae_member&#39;:  # Exclude aggregation groups.
+                    if not df_data.get(key):
+                        df_data[key] = list()
+                    df_data[key].append(value)
+
+    # Create the dataframe.
+    df = pd.DataFrame.from_dict(df_data)
+
+    return df</code></pre>
+</details>
+</dd>
+<dt id="collectors.palo_alto_collectors.get_security_rules"><code class="name flex">
+<span>def <span class="ident">get_security_rules</span></span>(<span>username: str, password: str, host_group: str, play_path: str, private_data_dir: str, device_group: str = 'shared') ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get a list of all security rules from a Palo Alto firewall.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>username</code></strong> :&ensp;<code>str</code></dt>
+<dd>The username to login to devices.</dd>
+<dt><strong><code>password</code></strong> :&ensp;<code>str</code></dt>
+<dd>The password to login to devices.</dd>
+<dt><strong><code>host_group</code></strong> :&ensp;<code>str</code></dt>
+<dd>The inventory host group.</dd>
+<dt><strong><code>play_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the playbooks directory.</dd>
+<dt><strong><code>private_data_dir</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Ansible private data directory.</dd>
+<dt><strong><code>device_group</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The device group to query. Defaults to 'shared'.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df_rules</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>A DataFrame containing the security rules.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_security_rules(username: str,
+                       password: str,
+                       host_group: str,
+                       play_path: str,
+                       private_data_dir: str,
+                       device_group: str = &#39;shared&#39;) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Get a list of all security rules from a Palo Alto firewall.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    device_group : str, optional
+        The device group to query. Defaults to &#39;shared&#39;.
+
+    Returns
+    -------
+    df_rules : pd.DataFrame
+        A DataFrame containing the security rules.
+    &#39;&#39;&#39;
+    extravars = {&#39;user&#39;: username,
+                 &#39;password&#39;: password,
+                 &#39;device_group&#39;: device_group,
+                 &#39;host_group&#39;: host_group}
+
+    playbook = f&#39;{play_path}/palo_alto_get_security_rules.yml&#39;
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Create the &#39;df_data&#39; dictionary. It will be used to create the dataframe
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+
+    # Create a list to store the unformatted details for each rule
+    rules = list()
+
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            event_data = event[&#39;event_data&#39;]
+            device = event_data[&#39;remote_addr&#39;]
+            output = event_data[&#39;res&#39;][&#39;gathered&#39;]
+
+            for item in output:
+                item[&#39;device&#39;] = device
+                rules.append(item)
+                for key in item:
+                    if not df_data.get(key):
+                        df_data[key] = list()
+
+    # Iterate over the rule details, using the keys in dict_keys to create the
+    # &#39;df_data&#39; dictionary, which will be used to create the dataframe
+    for item in rules:
+        for key in df_data:
+            # If a key in a rule has a value that is a list, then convert it to
+            # a string by joining it with &#39;|&#39; as a delimiter. We do not want to
+            # use commas a delimiter, since that can cause issues when
+            # exporting the data to CSV files.
+            if isinstance(item.get(key), list):
+                # Some keys have a value that is a list, with commas inside the
+                # list items. For example, source_user might look like this:
+                # [&#39;cn=name,ou=firewall,ou=groups,dc=dcname,dc=local&#39;]. That
+                # creates an issue when exporting to a CSV file. Therefore,
+                # the commas inside list items will be replaced with a space
+                # before joining the list.
+                _list = item.get(key)
+                _list = [_.replace(&#39;,&#39;, &#39; &#39;) for _ in _list]
+
+                # Join the list using &#39;|&#39; as a delimiter
+                df_data[key].append(&#39;|&#39;.join(_list))
+            # If the key&#39;s value is not a list, then convert it to a string
+            # and append it to the key in &#39;df_data&#39;
+            else:
+                df_data[key].append(str(item.get(key)))
+
+    # Create the dataframe and return it
+    df_rules = pd.DataFrame.from_dict(df_data)
+
+    # Rename the &#39;destintaion_zone&#39; column to &#39;destination_zone&#39;
+    df_rules.rename({&#39;destintaion_zone&#39;: &#39;destination_zone&#39;},
+                    axis=1,
+                    inplace=True)
+
+    return df_rules</code></pre>
+</details>
+</dd>
+<dt id="collectors.palo_alto_collectors.run_adhoc_command"><code class="name flex">
+<span>def <span class="ident">run_adhoc_command</span></span>(<span>username: str, password: str, host_group: str, nm_path: str, private_data_dir: str, cmd: str, cmd_is_xml: bool) ‑> Dict[str, dict]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Runs an ad-hoc command on the specified hosts using Ansible.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>username</code></strong> :&ensp;<code>str</code></dt>
+<dd>The user's username.</dd>
+<dt><strong><code>password</code></strong> :&ensp;<code>str</code></dt>
+<dd>The user's password.</dd>
+<dt><strong><code>host_group</code></strong> :&ensp;<code>str</code></dt>
+<dd>The name of the Ansible inventory host group.</dd>
+<dt><strong><code>nm_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Net-Manage repository.</dd>
+<dt><strong><code>private_data_dir</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Ansible private data directory.</dd>
+<dt><strong><code>cmd</code></strong> :&ensp;<code>str</code></dt>
+<dd>The command to run.</dd>
+<dt><strong><code>cmd_is_xml</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Whether the command is formatted as XML.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>dict</code></dt>
+<dd>A dictionary containing the command output, where the keys are the
+devices and the value is a dictionary containing all of the data
+within the event that contains the 'runner_on_ok' value.</dd>
+</dl>
+<h2 id="notes">Notes</h2>
+<p>Ansible-runner returns a generator containing each event that Ansible
+executed. In order to conserve memory, this function searches for
+events that contain the 'event' key with a value of
+'runner_on_ok'. That key does not mean that the task succeeded,
+it just indicates that it is the event that contains the results of the
+task.</p>
+<p>That logic should be revisited if a use-case arises that necessitates
+returning other events to whichever function that is calling this
+function.</p>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; cmd = '&lt;show&gt;&lt;system&gt;&lt;info&gt;&lt;/info&gt;&lt;/system&gt;&lt;/show&gt;'
+&gt;&gt;&gt; cmd_is_xml = True
+&gt;&gt;&gt; response = run_adhoc_command(username,
+                                 password,
+                                 host_group,
+                                 nm_path,
+                                 private_data_dir,
+                                 cmd,
+                                 cmd_is_xml)
+&gt;&gt;&gt; for key in response:
+&gt;&gt;&gt;        assert isinstance(response[key]['event'], str)
+</code></pre>
+<pre><code class="language-python-repl">&gt;&gt;&gt; cmd = 'show system software status'
+&gt;&gt;&gt; cmd_is_xml = False
+&gt;&gt;&gt; response = run_adhoc_command(username,
+                                 password,
+                                 host_group,
+                                 nm_path,
+                                 private_data_dir,
+                                 cmd,
+                                 cmd_is_xml)
+&gt;&gt;&gt; for key in response:
+&gt;&gt;&gt;        assert isinstance(response[key]['event'], str)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def run_adhoc_command(username: str,
+                      password: str,
+                      host_group: str,
+                      nm_path: str,
+                      private_data_dir: str,
+                      cmd: str,
+                      cmd_is_xml: bool) -&gt; Dict[str, dict]:
+    &#39;&#39;&#39;
+    Runs an ad-hoc command on the specified hosts using Ansible.
+
+    Parameters
+    ----------
+    username : str
+        The user&#39;s username.
+    password : str
+        The user&#39;s password.
+    host_group : str
+        The name of the Ansible inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    cmd : str
+        The command to run.
+    cmd_is_xml : bool
+        Whether the command is formatted as XML.
+
+    Returns
+    -------
+    dict
+        A dictionary containing the command output, where the keys are the
+        devices and the value is a dictionary containing all of the data
+        within the event that contains the &#39;runner_on_ok&#39; value.
+
+    Notes
+    -----
+    Ansible-runner returns a generator containing each event that Ansible
+    executed. In order to conserve memory, this function searches for
+    events that contain the &#39;event&#39; key with a value of
+    &#39;runner_on_ok&#39;. That key does not mean that the task succeeded,
+    it just indicates that it is the event that contains the results of the
+    task.
+
+    That logic should be revisited if a use-case arises that necessitates
+    returning other events to whichever function that is calling this
+    function.
+
+    Examples
+    --------
+    &gt;&gt;&gt; cmd = &#39;&lt;show&gt;&lt;system&gt;&lt;info&gt;&lt;/info&gt;&lt;/system&gt;&lt;/show&gt;&#39;
+    &gt;&gt;&gt; cmd_is_xml = True
+    &gt;&gt;&gt; response = run_adhoc_command(username,
+                                     password,
+                                     host_group,
+                                     nm_path,
+                                     private_data_dir,
+                                     cmd,
+                                     cmd_is_xml)
+    &gt;&gt;&gt; for key in response:
+    &gt;&gt;&gt;        assert isinstance(response[key][&#39;event&#39;], str)
+
+    &gt;&gt;&gt; cmd = &#39;show system software status&#39;
+    &gt;&gt;&gt; cmd_is_xml = False
+    &gt;&gt;&gt; response = run_adhoc_command(username,
+                                     password,
+                                     host_group,
+                                     nm_path,
+                                     private_data_dir,
+                                     cmd,
+                                     cmd_is_xml)
+    &gt;&gt;&gt; for key in response:
+    &gt;&gt;&gt;        assert isinstance(response[key][&#39;event&#39;], str)
+    &#39;&#39;&#39;
+    extravars = {&#39;user&#39;: username,
+                 &#39;password&#39;: password,
+                 &#39;host_group&#39;: host_group,
+                 &#39;cmd&#39;: cmd,
+                 &#39;cmd_is_xml&#39;: cmd_is_xml}
+
+    playbook = f&#39;{nm_path}/playbooks/palo_alto_run_adhoc_command.yml&#39;
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    result = dict()
+
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            device = event[&#39;event_data&#39;][&#39;remote_addr&#39;]
+            result[device] = event
+
+    return result</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="collectors" href="index.html">collectors</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="collectors.palo_alto_collectors.get_all_interfaces" href="#collectors.palo_alto_collectors.get_all_interfaces">get_all_interfaces</a></code></li>
+<li><code><a title="collectors.palo_alto_collectors.get_arp_table" href="#collectors.palo_alto_collectors.get_arp_table">get_arp_table</a></code></li>
+<li><code><a title="collectors.palo_alto_collectors.get_interface_ips" href="#collectors.palo_alto_collectors.get_interface_ips">get_interface_ips</a></code></li>
+<li><code><a title="collectors.palo_alto_collectors.get_logical_interfaces" href="#collectors.palo_alto_collectors.get_logical_interfaces">get_logical_interfaces</a></code></li>
+<li><code><a title="collectors.palo_alto_collectors.get_physical_interfaces" href="#collectors.palo_alto_collectors.get_physical_interfaces">get_physical_interfaces</a></code></li>
+<li><code><a title="collectors.palo_alto_collectors.get_security_rules" href="#collectors.palo_alto_collectors.get_security_rules">get_security_rules</a></code></li>
+<li><code><a title="collectors.palo_alto_collectors.run_adhoc_command" href="#collectors.palo_alto_collectors.run_adhoc_command">run_adhoc_command</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

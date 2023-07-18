@@ -233,25 +233,49 @@ def get_vrfs(username: str,
     return df
 
 
-def ios_find_uplink_by_ip(username,
-                          password,
-                          host_group,
-                          play_path,
-                          private_data_dir,
-                          subnets=list()):
+def ios_find_uplink_by_ip(username: str,
+                          password: str,
+                          host_group: str,
+                          play_path: str,
+                          private_data_dir: str,
+                          subnets: list = []) -> pd.DataFrame:
     '''
-    Searches the hostgroup for a list of subnets (use /32 to esarch for a
+    Search the hostgroup for a list of subnets (use /32 to search for a
     single IP). Once it finds them, it uses CDP and LLDP (if applicable) to try
     to find the uplink.
 
     If a list of IP addresses is not provided, it will attempt to find the
     uplinks for all IP addresses on the devices.
 
-    This is a simple function that was writting for a single use case. It has
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    subnets : list, optional
+        A list of one or more subnets to search for. Use CIDR notation. Use /32
+        to search for individual IPs. If no list is provided, the function will
+        try to find the uplinks for all IP addresses on the devices.
+
+    Returns
+    -------
+    df_combined : pd.DataFrame
+        A DataFrame containing the IP to remote port mapping.
+
+    Notes
+    -----
+    This is a simple function that was written for a single use case. It has
     some limitations:
 
     1. There is not an option to specify the VRF (although it will still return
-       the uplinks for every IP that meets the parameters)
+       the uplinks for every IP that meets the parameters).
     2. If CDP and LLDP are disabled or the table is not populated, it does not
        try alternative methods like interface descriptions and CAM tables. I
        can add those if there is enough interest in this function.
@@ -261,24 +285,8 @@ def ios_find_uplink_by_ip(username,
       - Interface descriptions
       - Reverse DNS (in the case of P2P IPs)
       - CAM table
-    - Add option to specify the VRF (low priority)
-
-    Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): The path to the Ansible private data directory
-        addresses (list):       (Optional) A list of one or more subnets to
-                                search for. Use CIDR notation. Use /32 to
-                                search for individual IPs. If no list is
-                                provided then the function will try to find the
-                                uplinks for all IP addresses on the devices.
-
-    Returns:
-        df_combined (DF):       A DataFrame containing IP > remote port mapping
+    - Add an option to specify the VRF (low priority).
     '''
-
     # Get the IP addresses on the devices in the host group
     df_ip = ios_get_interface_ips(username,
                                   password,
@@ -326,26 +334,34 @@ def ios_find_uplink_by_ip(username,
     return df_combined
 
 
-def ios_get_arp_table(username,
-                      password,
-                      host_group,
-                      nm_path,
-                      play_path,
-                      private_data_dir):
+def ios_get_arp_table(username: str,
+                      password: str,
+                      host_group: str,
+                      nm_path: str,
+                      play_path: str,
+                      private_data_dir: str) -> pd.DataFrame:
     '''
-    Gets the IOS ARP table and adds the vendor OUI.
+    Get the IOS ARP table and add the vendor OUI.
 
-    Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        nm_path (str):          The path to the Net-Manage repository
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): The path to the Ansible private data directory
-        interface (str):        The interface (defaults to all interfaces)
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
 
-    Returns:
-        df_arp (DataFrame):     The ARP table and vendor OUI
+    Returns
+    -------
+    df_arp : pd.DataFrame
+        The ARP table and vendor OUI as a pandas DataFrame.
     '''
     cmd = 'show ip arp'
     extravars = {'username': username,
@@ -398,27 +414,37 @@ def ios_get_arp_table(username,
     return df_arp
 
 
-def ios_get_cam_table(username,
-                      password,
-                      host_group,
-                      nm_path,
-                      play_path,
-                      private_data_dir,
-                      interface=None):
+def ios_get_cam_table(username: str,
+                      password: str,
+                      host_group: str,
+                      nm_path: str,
+                      play_path: str,
+                      private_data_dir: str,
+                      interface: str = None) -> pd.DataFrame:
     '''
-    Gets the IOS CAM table and adds the vendor OUI.
+    Get the IOS CAM table and add the vendor OUI.
 
-    Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        nm_path (str):          The path to the Net-Manage repository
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): The path to the Ansible private data directory
-        interface (str):        The interface (defaults to all interfaces)
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    interface : str, optional
+        The interface (defaults to all interfaces).
 
-    Returns:
-        df_cam (DataFrame):     The CAM table and vendor OUI
+    Returns
+    -------
+    df_cam : pd.DataFrame
+        The CAM table and vendor OUI as a pandas DataFrame.
     '''
     if interface:
         cmd = f'show mac address-table interface {interface}'
@@ -475,26 +501,35 @@ def ios_get_cam_table(username,
     return df_cam
 
 
-def ios_get_cdp_neighbors(username,
-                          password,
-                          host_group,
-                          play_path,
-                          private_data_dir,
-                          interface=str()):
+def ios_get_cdp_neighbors(username: str,
+                          password: str,
+                          host_group: str,
+                          play_path: str,
+                          private_data_dir: str,
+                          interface: str = '') -> pd.DataFrame:
     '''
-    Gets the CDP neighbors for a Cisco IOS device.
+    Get the CDP neighbors for a Cisco IOS device.
 
-    Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): The path to the Ansible private data directory
-        interface (str):        The interface to get the neighbor entry for. If
-                                not specified, it will get all neighbors.
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    interface : str, optional
+        The interface to get the neighbor entry for. If not specified, it will
+        get all neighbors.
 
-    Returns:
-        df_cdp (DataFrame):     A DataFrame containing the CDP neighbors
+    Returns
+    -------
+    df_cdp : pd.DataFrame
+        A DataFrame containing the CDP neighbors.
     '''
     cmd = 'show cdp neighbor detail | include Device ID|Interface'
     extravars = {'username': username,
@@ -533,25 +568,34 @@ def ios_get_cdp_neighbors(username,
     return df_cdp
 
 
-def ios_get_interface_descriptions(username,
-                                   password,
-                                   host_group,
-                                   play_path,
-                                   private_data_dir,
-                                   interface=None):
+def ios_get_interface_descriptions(username: str,
+                                   password: str,
+                                   host_group: str,
+                                   play_path: str,
+                                   private_data_dir: str,
+                                   interface: str = None) -> pd.DataFrame:
     '''
-    Gets IOS interface descriptions.
+    Get IOS interface descriptions.
 
-    Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): The path to the Ansible private data directory
-        interface (str):        The interface (defaults to all interfaces)
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    interface : str, optional
+        The interface (defaults to all interfaces).
 
-    Returns:
-        df_desc (DataFrame):    The interface descriptions
+    Returns
+    -------
+    df_desc : pd.DataFrame
+        A DataFrame containing the interface descriptions.
     '''
     # Get the interface descriptions and add them to df_cam
     cmd = 'show interface description'
@@ -589,23 +633,31 @@ def ios_get_interface_descriptions(username,
     return df_desc
 
 
-def ios_get_interface_ips(username,
-                          password,
-                          host_group,
-                          play_path,
-                          private_data_dir):
+def ios_get_interface_ips(username: str,
+                          password: str,
+                          host_group: str,
+                          play_path: str,
+                          private_data_dir: str) -> pd.DataFrame:
     '''
-    Gets the IP addresses assigned to interfaces.
+    Get the IP addresses assigned to interfaces.
 
-    Args:
-        username (str):         The username to login to devices
-        password (str):         The password to login to devices
-        host_group (str):       The inventory host group
-        play_path (str):        The path to the playbooks directory
-        private_data_dir (str): The path to the Ansible private data directory
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
 
-    Returns:
-        df (df):                A DataFrame containing the interfaces and IPs
+    Returns
+    -------
+    df : pd.DataFrame
+        A DataFrame containing the interfaces and IP addresses.
     '''
     cmd = ['show ip interface',
            '|',
@@ -668,7 +720,6 @@ def ios_get_vlan_db(username: str,
                     play_path: str,
                     private_data_dir: str) -> pd.DataFrame:
     '''
-    """
     Gets the VLAN database for Cisco IOS devices.
 
     Parameters
@@ -686,9 +737,8 @@ def ios_get_vlan_db(username: str,
 
     Returns
     -------
-    pd.DataFrame
+    df : pd.DataFrame
         A DataFrame containing the VLAN database.
-    """
     '''
     # Get the interface descriptions and add them to df_cam
     cmd = 'show vlan brief | exclude ----'

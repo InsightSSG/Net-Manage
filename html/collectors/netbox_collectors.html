@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>collectors.netbox_collectors API documentation</title>
+<meta name="description" content="A collection of collectors to gather data from Netbox, using pynetbox." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>collectors.netbox_collectors</code></h1>
+</header>
+<section id="section-intro">
+<p>A collection of collectors to gather data from Netbox, using pynetbox.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">#!/usr/bin/env python3
+
+&#34;&#34;&#34;A collection of collectors to gather data from Netbox, using pynetbox.
+
+&#34;&#34;&#34;
+
+import pandas as pd
+import pynetbox
+from typing import Optional
+
+
+def create_netbox_handler(nb_path: str,
+                          token: str) -&gt; pynetbox.core.api.Api:
+    &#39;&#39;&#39;
+    Creates the handler for connecting to Netbox using pynetbox.
+
+    Parameters
+    ----------
+    nb_path : str
+        The path to the Netbox instance. Can be either an IP or a URL.
+        Must be preceded by &#39;http://&#39; or &#39;https://&#39;.
+    token : str
+        The API token to use for authentication.
+
+    Returns
+    -------
+    nb : pynetbox.core.api.Api
+        An object used to connect to the Netbox API.
+
+    Examples
+    --------
+    &gt;&gt;&gt; nb = create_netbox_handler(nb_path, token)
+    &gt;&gt;&gt; print(nb)
+    &lt;pynetbox.core.api.Api object at 0x7fb3576a4c1990&gt;
+    &#39;&#39;&#39;
+    nb = pynetbox.api(nb_path, token)
+    return nb
+
+
+def netbox_get_ipam_prefixes(nb_path: str,
+                             token: str) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;Gets all prefixes from a Netbox instance.
+
+    Parameters
+    ----------
+    nb_path : str
+        The path to the Netbox instance. Can be either an IP or a URL.
+        Must be preceded by &#39;http://&#39; or &#39;https://&#39;.
+    token : str
+        The API token to use for authentication.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A Pandas dataframe containing the IPAM prefixes.
+
+    See Also
+    --------
+    create_netbox_handler : A function to create &#39;nb&#39;
+
+    Notes
+    -----
+    The Netbox API returns the prefixes in the form of a nested dictionary.
+    Some items in the nested dictionaries have keys that overlap with the
+    top-level dictionary. Because of that, the keys in the nested
+    dictionaries are prefixed with the key(s) in the level(s) above it,
+    followed by an underscore.
+
+    For example, a key named &#39;id&#39; that is nested under &#39;tenant&#39; would be
+    added as a column named &#39;tenant_id&#39;.
+
+    Examples
+    ----------
+    &gt;&gt;&gt; df = netbox_get_ipam_prefixes(nb_path, token)
+    print(type(df))
+    &gt;&gt;&gt; &lt;class &#39;pandas.core.frame.DataFrame&#39;&gt;
+    &#34;&#34;&#34;
+    # Create the netbox handler
+    nb = create_netbox_handler(nb_path, token)
+
+    # Query the Netbox API for all IPAM prefixes
+    result = nb.ipam.prefixes.all()
+
+    # Iterate over the prefixes, adding each one as a row for &#39;df&#39;.
+    df = pd.DataFrame()
+    for _ in result:
+        _ = dict(_)
+        df = pd.concat([df, pd.DataFrame.from_dict(_, orient=&#39;index&#39;).T]).\
+            reset_index(drop=True)
+    return df
+
+
+def netbox_get_tenant_attributes(nb_path: str,
+                                 token: str,
+                                 tenant: Optional[str] = None) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets the attributes for one or more tenants.
+
+    Parameters
+    ----------
+    nb_path : str
+        The path to the Netbox instance. Can be either an IP or a URL.
+        Must be preceded by &#39;http://&#39; or &#39;https://&#39;.
+    token : str
+        The API token to use for authentication.
+    tenant: Optional[str], Default None
+        The name of the tenant for wihch to retrieve attributes. If one is not
+        provided, then attributes for all tenants will be returned.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A Pandas dataframe containing the VRF details.
+
+    See Also
+    --------
+    create_netbox_handler : A function to create &#39;nb&#39;
+
+    Examples
+    --------
+    &gt;&gt;&gt; df = netbox_get_tenant_attributes(nb_path, token)
+    print(type(df))
+    &gt;&gt;&gt; &lt;class &#39;pandas.core.frame.DataFrame&#39;&gt;
+    &#39;&#39;&#39;
+    # Create the netbox handler.
+    nb = create_netbox_handler(nb_path, token)
+
+    # Query the Netbox API for all tenants.
+    tenants = nb.tenancy.tenants.all()
+    tenants_list = list(tenants)
+
+    df_data = list()
+
+    # Get the attributes for the tenant(s), add them to &#39;df_data&#39;, then create
+    # and return a DataFrame.
+    if tenants_list and tenant:
+        for item in tenants_list:
+            if item[&#39;name&#39;] == tenant:
+                tenant_attributes = vars(item)
+                df_data.append(tenant_attributes)
+                break
+    elif tenants_list:
+        for _tenant in tenants_list:
+            df_data.append(vars(_tenant))
+
+    df = pd.DataFrame(df_data)
+
+    return df
+
+
+def netbox_get_vrf_details(nb_path: str,
+                           token: str,
+                           vrf: Optional[str] = None) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets details of one or more VRFs in Netbox.
+
+    Parameters
+    ----------
+    nb_path : str
+        The path to the Netbox instance. Can be either an IP or a URL.
+        Must be preceded by &#39;http://&#39; or &#39;https://&#39;.
+    token : str
+        The API token to use for authentication.
+    vrf: Optional[str], Default None
+        The name of the VRF for wihch to retrieve details. If one is not
+        provided, then details for all VRFs will be returned.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A Pandas dataframe containing the VRF details.
+
+    See Also
+    --------
+    create_netbox_handler : A function to create &#39;nb&#39;
+
+    Examples
+    --------
+    &gt;&gt;&gt; df = netbox_get_vrf_details(nb_path, token)
+    print(type(df))
+    &gt;&gt;&gt; &lt;class &#39;pandas.core.frame.DataFrame&#39;&gt;
+    &#39;&#39;&#39;
+    # Create the netbox handler
+    nb = create_netbox_handler(nb_path, token)
+
+    # Query the Netbox API for the VRF details and add them to &#39;df_data&#39;.
+    df_data = dict()
+    if vrf:
+        result = nb.ipam.vrfs.get(name=vrf)
+        for attribute_name in dir(result):
+            attribute_value = getattr(result, attribute_name)
+            if attribute_name[:1] != &#39;_&#39;:
+                if not df_data.get(attribute_name):
+                    df_data[attribute_name] = list()
+                df_data[attribute_name].append(attribute_value)
+    else:
+        result = nb.ipam.vrfs.all()
+        for item in result:
+            # result = nb.ipam.vrfs.get(name=vrf)
+            for attribute_name in dir(item):
+                attribute_value = getattr(item, attribute_name)
+                if attribute_name[:1] != &#39;_&#39;:
+                    if not df_data.get(attribute_name):
+                        df_data[attribute_name] = list()
+                    df_data[attribute_name].append(attribute_value)
+
+    # Create the DataFrame and re-order the columns so that &#39;id&#39;, &#39;name&#39;,
+    # &#39;description&#39;, and &#39;tenant&#39; are first.
+    df = pd.DataFrame.from_dict(df_data)
+
+    to_move = [&#39;id&#39;, &#39;name&#39;, &#39;description&#39;, &#39;tenant&#39;]
+    to_move.reverse()
+    for col_name in to_move:
+        try:
+            col = df.pop(col_name)
+            df.insert(0, col_name, col)
+        except KeyError:
+            print(f&#39;[{vrf}]: VRF does not exist.&#39;)
+            break
+
+    return df</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="collectors.netbox_collectors.create_netbox_handler"><code class="name flex">
+<span>def <span class="ident">create_netbox_handler</span></span>(<span>nb_path: str, token: str) ‑> pynetbox.core.api.Api</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates the handler for connecting to Netbox using pynetbox.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>nb_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Netbox instance. Can be either an IP or a URL.
+Must be preceded by 'http://' or 'https://'.</dd>
+<dt><strong><code>token</code></strong> :&ensp;<code>str</code></dt>
+<dd>The API token to use for authentication.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>nb</code></strong> :&ensp;<code>pynetbox.core.api.Api</code></dt>
+<dd>An object used to connect to the Netbox API.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; nb = create_netbox_handler(nb_path, token)
+&gt;&gt;&gt; print(nb)
+&lt;pynetbox.core.api.Api object at 0x7fb3576a4c1990&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def create_netbox_handler(nb_path: str,
+                          token: str) -&gt; pynetbox.core.api.Api:
+    &#39;&#39;&#39;
+    Creates the handler for connecting to Netbox using pynetbox.
+
+    Parameters
+    ----------
+    nb_path : str
+        The path to the Netbox instance. Can be either an IP or a URL.
+        Must be preceded by &#39;http://&#39; or &#39;https://&#39;.
+    token : str
+        The API token to use for authentication.
+
+    Returns
+    -------
+    nb : pynetbox.core.api.Api
+        An object used to connect to the Netbox API.
+
+    Examples
+    --------
+    &gt;&gt;&gt; nb = create_netbox_handler(nb_path, token)
+    &gt;&gt;&gt; print(nb)
+    &lt;pynetbox.core.api.Api object at 0x7fb3576a4c1990&gt;
+    &#39;&#39;&#39;
+    nb = pynetbox.api(nb_path, token)
+    return nb</code></pre>
+</details>
+</dd>
+<dt id="collectors.netbox_collectors.netbox_get_ipam_prefixes"><code class="name flex">
+<span>def <span class="ident">netbox_get_ipam_prefixes</span></span>(<span>nb_path: str, token: str) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets all prefixes from a Netbox instance.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>nb_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Netbox instance. Can be either an IP or a URL.
+Must be preceded by 'http://' or 'https://'.</dd>
+<dt><strong><code>token</code></strong> :&ensp;<code>str</code></dt>
+<dd>The API token to use for authentication.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>A Pandas dataframe containing the IPAM prefixes.</dd>
+</dl>
+<h2 id="see-also">See Also</h2>
+<dl>
+<dt><code><a title="collectors.netbox_collectors.create_netbox_handler" href="#collectors.netbox_collectors.create_netbox_handler">create_netbox_handler()</a></code></dt>
+<dd>A function to create 'nb'</dd>
+</dl>
+<h2 id="notes">Notes</h2>
+<p>The Netbox API returns the prefixes in the form of a nested dictionary.
+Some items in the nested dictionaries have keys that overlap with the
+top-level dictionary. Because of that, the keys in the nested
+dictionaries are prefixed with the key(s) in the level(s) above it,
+followed by an underscore.</p>
+<p>For example, a key named 'id' that is nested under 'tenant' would be
+added as a column named 'tenant_id'.</p>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; df = netbox_get_ipam_prefixes(nb_path, token)
+print(type(df))
+&gt;&gt;&gt; &lt;class 'pandas.core.frame.DataFrame'&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def netbox_get_ipam_prefixes(nb_path: str,
+                             token: str) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;Gets all prefixes from a Netbox instance.
+
+    Parameters
+    ----------
+    nb_path : str
+        The path to the Netbox instance. Can be either an IP or a URL.
+        Must be preceded by &#39;http://&#39; or &#39;https://&#39;.
+    token : str
+        The API token to use for authentication.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A Pandas dataframe containing the IPAM prefixes.
+
+    See Also
+    --------
+    create_netbox_handler : A function to create &#39;nb&#39;
+
+    Notes
+    -----
+    The Netbox API returns the prefixes in the form of a nested dictionary.
+    Some items in the nested dictionaries have keys that overlap with the
+    top-level dictionary. Because of that, the keys in the nested
+    dictionaries are prefixed with the key(s) in the level(s) above it,
+    followed by an underscore.
+
+    For example, a key named &#39;id&#39; that is nested under &#39;tenant&#39; would be
+    added as a column named &#39;tenant_id&#39;.
+
+    Examples
+    ----------
+    &gt;&gt;&gt; df = netbox_get_ipam_prefixes(nb_path, token)
+    print(type(df))
+    &gt;&gt;&gt; &lt;class &#39;pandas.core.frame.DataFrame&#39;&gt;
+    &#34;&#34;&#34;
+    # Create the netbox handler
+    nb = create_netbox_handler(nb_path, token)
+
+    # Query the Netbox API for all IPAM prefixes
+    result = nb.ipam.prefixes.all()
+
+    # Iterate over the prefixes, adding each one as a row for &#39;df&#39;.
+    df = pd.DataFrame()
+    for _ in result:
+        _ = dict(_)
+        df = pd.concat([df, pd.DataFrame.from_dict(_, orient=&#39;index&#39;).T]).\
+            reset_index(drop=True)
+    return df</code></pre>
+</details>
+</dd>
+<dt id="collectors.netbox_collectors.netbox_get_tenant_attributes"><code class="name flex">
+<span>def <span class="ident">netbox_get_tenant_attributes</span></span>(<span>nb_path: str, token: str, tenant: Optional[str] = None) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets the attributes for one or more tenants.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>nb_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Netbox instance. Can be either an IP or a URL.
+Must be preceded by 'http://' or 'https://'.</dd>
+<dt><strong><code>token</code></strong> :&ensp;<code>str</code></dt>
+<dd>The API token to use for authentication.</dd>
+<dt><strong><code>tenant</code></strong> :&ensp;<code>Optional[str], Default None</code></dt>
+<dd>The name of the tenant for wihch to retrieve attributes. If one is not
+provided, then attributes for all tenants will be returned.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>A Pandas dataframe containing the VRF details.</dd>
+</dl>
+<h2 id="see-also">See Also</h2>
+<dl>
+<dt><code><a title="collectors.netbox_collectors.create_netbox_handler" href="#collectors.netbox_collectors.create_netbox_handler">create_netbox_handler()</a></code></dt>
+<dd>A function to create 'nb'</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; df = netbox_get_tenant_attributes(nb_path, token)
+print(type(df))
+&gt;&gt;&gt; &lt;class 'pandas.core.frame.DataFrame'&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def netbox_get_tenant_attributes(nb_path: str,
+                                 token: str,
+                                 tenant: Optional[str] = None) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets the attributes for one or more tenants.
+
+    Parameters
+    ----------
+    nb_path : str
+        The path to the Netbox instance. Can be either an IP or a URL.
+        Must be preceded by &#39;http://&#39; or &#39;https://&#39;.
+    token : str
+        The API token to use for authentication.
+    tenant: Optional[str], Default None
+        The name of the tenant for wihch to retrieve attributes. If one is not
+        provided, then attributes for all tenants will be returned.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A Pandas dataframe containing the VRF details.
+
+    See Also
+    --------
+    create_netbox_handler : A function to create &#39;nb&#39;
+
+    Examples
+    --------
+    &gt;&gt;&gt; df = netbox_get_tenant_attributes(nb_path, token)
+    print(type(df))
+    &gt;&gt;&gt; &lt;class &#39;pandas.core.frame.DataFrame&#39;&gt;
+    &#39;&#39;&#39;
+    # Create the netbox handler.
+    nb = create_netbox_handler(nb_path, token)
+
+    # Query the Netbox API for all tenants.
+    tenants = nb.tenancy.tenants.all()
+    tenants_list = list(tenants)
+
+    df_data = list()
+
+    # Get the attributes for the tenant(s), add them to &#39;df_data&#39;, then create
+    # and return a DataFrame.
+    if tenants_list and tenant:
+        for item in tenants_list:
+            if item[&#39;name&#39;] == tenant:
+                tenant_attributes = vars(item)
+                df_data.append(tenant_attributes)
+                break
+    elif tenants_list:
+        for _tenant in tenants_list:
+            df_data.append(vars(_tenant))
+
+    df = pd.DataFrame(df_data)
+
+    return df</code></pre>
+</details>
+</dd>
+<dt id="collectors.netbox_collectors.netbox_get_vrf_details"><code class="name flex">
+<span>def <span class="ident">netbox_get_vrf_details</span></span>(<span>nb_path: str, token: str, vrf: Optional[str] = None) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets details of one or more VRFs in Netbox.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>nb_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Netbox instance. Can be either an IP or a URL.
+Must be preceded by 'http://' or 'https://'.</dd>
+<dt><strong><code>token</code></strong> :&ensp;<code>str</code></dt>
+<dd>The API token to use for authentication.</dd>
+<dt><strong><code>vrf</code></strong> :&ensp;<code>Optional[str], Default None</code></dt>
+<dd>The name of the VRF for wihch to retrieve details. If one is not
+provided, then details for all VRFs will be returned.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>A Pandas dataframe containing the VRF details.</dd>
+</dl>
+<h2 id="see-also">See Also</h2>
+<dl>
+<dt><code><a title="collectors.netbox_collectors.create_netbox_handler" href="#collectors.netbox_collectors.create_netbox_handler">create_netbox_handler()</a></code></dt>
+<dd>A function to create 'nb'</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; df = netbox_get_vrf_details(nb_path, token)
+print(type(df))
+&gt;&gt;&gt; &lt;class 'pandas.core.frame.DataFrame'&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def netbox_get_vrf_details(nb_path: str,
+                           token: str,
+                           vrf: Optional[str] = None) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets details of one or more VRFs in Netbox.
+
+    Parameters
+    ----------
+    nb_path : str
+        The path to the Netbox instance. Can be either an IP or a URL.
+        Must be preceded by &#39;http://&#39; or &#39;https://&#39;.
+    token : str
+        The API token to use for authentication.
+    vrf: Optional[str], Default None
+        The name of the VRF for wihch to retrieve details. If one is not
+        provided, then details for all VRFs will be returned.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A Pandas dataframe containing the VRF details.
+
+    See Also
+    --------
+    create_netbox_handler : A function to create &#39;nb&#39;
+
+    Examples
+    --------
+    &gt;&gt;&gt; df = netbox_get_vrf_details(nb_path, token)
+    print(type(df))
+    &gt;&gt;&gt; &lt;class &#39;pandas.core.frame.DataFrame&#39;&gt;
+    &#39;&#39;&#39;
+    # Create the netbox handler
+    nb = create_netbox_handler(nb_path, token)
+
+    # Query the Netbox API for the VRF details and add them to &#39;df_data&#39;.
+    df_data = dict()
+    if vrf:
+        result = nb.ipam.vrfs.get(name=vrf)
+        for attribute_name in dir(result):
+            attribute_value = getattr(result, attribute_name)
+            if attribute_name[:1] != &#39;_&#39;:
+                if not df_data.get(attribute_name):
+                    df_data[attribute_name] = list()
+                df_data[attribute_name].append(attribute_value)
+    else:
+        result = nb.ipam.vrfs.all()
+        for item in result:
+            # result = nb.ipam.vrfs.get(name=vrf)
+            for attribute_name in dir(item):
+                attribute_value = getattr(item, attribute_name)
+                if attribute_name[:1] != &#39;_&#39;:
+                    if not df_data.get(attribute_name):
+                        df_data[attribute_name] = list()
+                    df_data[attribute_name].append(attribute_value)
+
+    # Create the DataFrame and re-order the columns so that &#39;id&#39;, &#39;name&#39;,
+    # &#39;description&#39;, and &#39;tenant&#39; are first.
+    df = pd.DataFrame.from_dict(df_data)
+
+    to_move = [&#39;id&#39;, &#39;name&#39;, &#39;description&#39;, &#39;tenant&#39;]
+    to_move.reverse()
+    for col_name in to_move:
+        try:
+            col = df.pop(col_name)
+            df.insert(0, col_name, col)
+        except KeyError:
+            print(f&#39;[{vrf}]: VRF does not exist.&#39;)
+            break
+
+    return df</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="collectors" href="index.html">collectors</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="collectors.netbox_collectors.create_netbox_handler" href="#collectors.netbox_collectors.create_netbox_handler">create_netbox_handler</a></code></li>
+<li><code><a title="collectors.netbox_collectors.netbox_get_ipam_prefixes" href="#collectors.netbox_collectors.netbox_get_ipam_prefixes">netbox_get_ipam_prefixes</a></code></li>
+<li><code><a title="collectors.netbox_collectors.netbox_get_tenant_attributes" href="#collectors.netbox_collectors.netbox_get_tenant_attributes">netbox_get_tenant_attributes</a></code></li>
+<li><code><a title="collectors.netbox_collectors.netbox_get_vrf_details" href="#collectors.netbox_collectors.netbox_get_vrf_details">netbox_get_vrf_details</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
