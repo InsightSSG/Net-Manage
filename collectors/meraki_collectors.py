@@ -20,102 +20,85 @@ def get_network_appliance_vlans(ansible_os: str,
                                 db_path: str,
                                 timestamp: str,
                                 db_method: str = 'append',
-                                networks: list = list(),
-                                orgs: list = list(),
+                                networks: list = [],
+                                orgs: list = [],
                                 replace_table: bool = False) -> pd.DataFrame:
-    """
+    '''
     Get the appliance VLANs for a list of networks or organizations.
 
-    Args:
-    ----
-    api_key (str):
+    Parameters
+    ----------
+    ansible_os : str
+        The Ansible OS version.
+    api_key : str
         A valid Meraki Dashboard API key.
-    collector (str):
+    collector : str
         A name for the Meraki data collector.
-    db_path (str):
+    db_path : str
         The path to the SQLite database file.
-    timestamp (str):
+    timestamp : str
         The timestamp for the data collected in YYYY-MM-DD_HHMM format.
-    db_method (str, optional):
-        The behavior to take when the database table already exists. Valid
-        options are 'fail', 'append', and 'replace'. Defaults to 'append'.
-    networks (list, optional):
-        A list of Meraki network IDs. Defaults to list().
-    orgs (list, optional):
-        A list of Meraki organization IDs. Defaults to list().
+    db_method : {'fail', 'append', 'replace'}, optional
+        The behavior to take when the database table already exists.
+        Defaults to 'append'.
+    networks : list, optional
+        A list of Meraki network IDs. Defaults to an empty list.
+    orgs : list, optional
+        A list of Meraki organization IDs. Defaults to an empty list.
     replace_table : bool, optional
         Whether to replace the 'meraki_network_appliance_vlans' table.
 
-    Returns:
-    ----
-    pd.DataFrame:
+    Returns
+    -------
+    pd.DataFrame
         A pandas DataFrame that contains the appliance VLANs.
 
-    Examples:
-    ----
+    Examples
+    --------
     Example 1:
-    ```
-    # Get VLANs for all appliances in one or more networks.
-    import pandas as pd
-    from meraki_helpers import get_network_appliance_vlans
-
-    api_key = '<your_api_key_here>'
-    collector = 'network_appliance_vlans'
-    db_path = '/path/to/database.db'
-    networks = ['N_123456789012345678', 'N_234567890123456789']
-    timestamp = '2022-01-01_0000'
-
-    df = get_network_appliance_vlans(api_key,
-                                     collector,
-                                     db_path,
-                                     timestamp,
-                                     networks=networks)
-    print(df)
-    ```
+    >>> ansible_os = '<ansible_os>'
+    >>> api_key = '<your_api_key_here>'
+    >>> collector = 'network_appliance_vlans'
+    >>> db_path = '/path/to/database.db'
+    >>> networks = ['N_123456789012345678', 'N_234567890123456789']
+    >>> timestamp = '2022-01-01_0000'
+    >>> df = get_network_appliance_vlans(api_key,
+                                         collector,
+                                         db_path,
+                                         timestamp,
+                                         networks=networks)
+    >>> print(df)
 
     Example 2:
-    ```
-    # Get VLANs for all appliances in one or more organizations.
-    import pandas as pd
-    from meraki_helpers import get_network_appliance_vlans
-
-    api_key = '<your_api_key_here>'
-    collector = 'network_appliance_vlans'
-    db_path = '/path/to/database.db'
-    orgs = ['O_123456789012345678']
-    timestamp = '2022-01-01_0000'
-
-    df = get_network_appliance_vlans(api_key,
-                                     collector,
-                                     db_path,
-                                     timestamp
-                                     orgs=orgs)
-    print(df)
-    ```
+    >>> ansible_os = '<ansible_os>'
+    >>> api_key = '<your_api_key_here>'
+    >>> collector = 'network_appliance_vlans'
+    >>> db_path = '/path/to/database.db'
+    >>> orgs = ['O_123456789012345678']
+    >>> timestamp = '2022-01-01_0000'
+    >>> df = get_network_appliance_vlans(api_key,
+                                         collector,
+                                         db_path,
+                                         timestamp,
+                                         orgs=orgs)
+    >>> print(df)
 
     Example 3:
-    ```
-    # Get VLANs for all appliances in one or more networks (when 'networks'
-    # and 'organizations' are both passed to the function, only 'networks'
-    # will be used).
-    import pandas as pd
-    from meraki_helpers import get_network_appliance_vlans
-
-    api_key = '<your_api_key_here>'
-    collector = 'network_appliance_vlans'
-    db_path = '/path/to/database.db'
-    networks = ['N_123456789012345678', 'N_234567890123456789']
-    orgs = ['O_123456789012345678']
-    timestamp = '2022-01-01_0000'
-
-    df = get_network_appliance_vlans(api_key,
-                                     collector,
-                                     db_path,
-                                     timestamp,
-                                     networks=networks,
-                                     orgs=orgs)
-    print(df)
-    """
+    >>> ansible_os = '<ansible_os>'
+    >>> api_key = '<your_api_key_here>'
+    >>> collector = 'network_appliance_vlans'
+    >>> db_path = '/path/to/database.db'
+    >>> networks = ['N_123456789012345678', 'N_234567890123456789']
+    >>> orgs = ['O_123456789012345678']
+    >>> timestamp = '2022-01-01_0000'
+    >>> df = get_network_appliance_vlans(api_key,
+                                         collector,
+                                         db_path,
+                                         timestamp,
+                                         networks=networks,
+                                         orgs=orgs)
+    >>> print(df)
+    '''
 
     # If 'networks' and 'orgs' are empty, then gracefully exit the function.
     if not networks and not orgs:
