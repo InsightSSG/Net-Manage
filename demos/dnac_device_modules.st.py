@@ -26,7 +26,7 @@ def get_search_params() -> tuple[bool, list]:
     '''
     with st.form(key='my_form'):
         # Get the list of platform IDs.
-        msg = 'Comma-delimited list of platform ID to filter by (optional): '
+        msg = 'Comma-delimited list of platform IDs to filter by (optional): '
         dnac_platform_ids = st.text_input(msg)
         dnac_platform_ids = dnac_platform_ids.split(',')
         dnac_platform_ids = list(filter(None, dnac_platform_ids))
