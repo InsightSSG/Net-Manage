@@ -13,13 +13,11 @@ import readline
 from netmanage import run_collectors as rc
 from netmanage import validators as vl
 
-from netmanage.collectors import collectors as cl
-from helpers import helpers as hp
+from netmanage.helpers import helpers as hp
 from IPython.display import clear_output
 from IPython.display import display
 
 # Reload helper modules after changes. Mostly used for development.
-importlib.reload(cl)
 importlib.reload(hp)
 importlib.reload(rc)
 importlib.reload(vl)
