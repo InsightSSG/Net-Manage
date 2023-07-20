@@ -1,10 +1,9 @@
 import streamlit as st
 import datetime as dt
 import os
-import sys
-from dotenv import load_dotenv
 from netmanage.run_collectors import collect
-from netmanage.setup import select_hostgroups, select_collectors, create_collectors_df
+from netmanage.setup import select_hostgroups, select_collectors
+from netmanage.setup import create_collectors_df
 
 if st.session_state.get('collector_select') is None:
     st.session_state['collector_select'] = None
@@ -38,9 +37,9 @@ if collector_select:
         st.subheader(dev)
         cols = st.columns(len(collector_select[dev]))
         for idx, key in enumerate(collector_select[dev]):
-            col_checkboxes[f'{dev}_{key.description}'] = cols[idx].checkbox(
-                f'{key.description}', True, key=f'{dev}_{key.description}')
-            collector_select[dev][idx].value = col_checkboxes[f'{dev}_{key.description}']
+            _index = f'{dev}_{key.description}'
+            col_checkboxes[_index] = cols[idx].checkbox(_index, 1, key=_index)
+            collector_select[dev][idx].value = col_checkboxes[_index]
 
 if True in col_checkboxes.values():
     selected_cols = st.button('Run Selected Collectors', key='col_checkboxes')
@@ -65,5 +64,7 @@ if selected_cols:
                              ts)
 
             st.write(
-                f'\nRESULT: {ansible_os.upper()} {collector.upper()} COLLECTOR\n')
+                f'\nRESULT: {ansible_os.upper()}'
+                f' {collector.upper()} COLLECTOR\n'
+            )
             st.write(result)
