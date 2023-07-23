@@ -7,6 +7,7 @@ import datetime as dt
 import importlib
 import ipywidgets as widgets
 import jupyterlab_widgets
+import nest_asyncio
 import os
 import pandas as pd
 import readline

@@ -4,6 +4,7 @@
 Define Meraki collectors.
 '''
 
+import asyncio
 import json
 import meraki
 import pandas as pd
@@ -11,6 +12,7 @@ import run_collectors as rc
 import sqlite3 as sl
 
 from helpers import helpers as hp
+from meraki.aio import AsyncDashboardAPI
 from meraki.exceptions import APIError
 from typing import Union
 
@@ -196,13 +198,14 @@ def get_network_appliance_vlans(ansible_os: str,
     return df
 
 
-def meraki_get_network_clients(api_key: str,
-                               networks: list,
-                               macs: list = [],
-                               per_page: int = 1000,
-                               timespan: int = 86400,
-                               total_pages: Union[int, str] = 'all') \
-                                -> pd.DataFrame:
+async def meraki_get_network_clients(api_key: str,
+                                     networks: list = [],
+                                     macs: list = [],
+                                     orgs: list = [],
+                                     per_page: int = 1000,
+                                     timespan: int = 86400,
+                                     total_pages: Union[int, str] = 'all') \
+                                         -> pd.DataFrame:
     '''
     Gets the list of clients on a network.
 
@@ -210,19 +213,28 @@ def meraki_get_network_clients(api_key: str,
     ----------
     api_key : str
         The user's API key.
-    networks : list
+    networks : list, optional
         One or more network IDs.
     macs : list, optional
         A list of MAC addresses to filter the clients. Defaults to an empty
         list.
+    orgs : list, optional
+        A list of organization IDs. If this list is populated, then the clients
+        for all of the networks in the organization(s) will be returned. This
+        could take several minutes for large organizations. Also, if 'networks'
+        and 'org_ids' are both passed to the function, then 'org_ids' will be
+        ignored.
     per_page : int, optional
         The number of clients to retrieve per page. Defaults to 1000.
     timespan : int, optional
         The timespan in seconds to retrieve client data for. Defaults to 86400
         (24 hours).
     total_pages : int or str, optional
-        The total number of pages to retrieve. If set to 'all', it will
-        retrieve all available pages. Defaults to 'all'.
+        Important: 'total_pages' is ignored due to an issue with the meraki.aio
+        API. The argument still exists for backwards compatibility, but the
+        maximum number of pages that is returned is currently 1. We recommend
+        using 'per_page' and 'timespan' to filter results. We will re-enable
+        'total_pages' when Meraki fixes the issue.
 
     Returns
     -------
@@ -244,19 +256,44 @@ def meraki_get_network_clients(api_key: str,
     >>> df = meraki_get_network_clients(api_key, networks, macs=macs)
     >>> print(df)
     '''
+
+    async def get_clients_for_network(dashboard, network_id):
+        '''
+        Get all clients for a single network ID.
+        '''
+        # Get all the clients for the network
+        clients = await dashboard.networks.\
+            getNetworkClients(network_id,
+                              per_page=per_page,
+                              timespan=timespan,
+                              print_console=False)
+        return clients
+
     # Create a list to store the individual clients for each network.
     data = list()
 
-    # Iterate over the network(s), gathering the clients and adding them to
-    # 'data'
-    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
-    for network in networks:
-        clients = dashboard.networks.getNetworkClients(network,
-                                                       timespan=timespan,
-                                                       perPage=per_page,
-                                                       total_pages=total_pages)
-        for client in clients:
-            data.append(client)
+    # If the user did not pass a list of networks to the function, then get all
+    # of the networks from the list of orgs. If the user did not pass a list
+    # of orgs either, then get all of the networks from all of the
+    # organizations that the user's API key has access to.
+    if not networks and not orgs:
+        df_orgs = meraki_get_organizations(api_key)
+        orgs = df_orgs['id'].to_list()
+    if not networks:
+        df_networks = meraki_get_org_networks(api_key,
+                                              orgs=orgs)
+        networks = df_networks['id'].to_list()
+
+    # Use the meraki.aio API to concurrently gather the network clients.
+    async with AsyncDashboardAPI(api_key) as dashboard:
+        # Schedule get_clients_for_network() for all network_ids to run
+        # concurrently.
+        results = await asyncio.gather(*(get_clients_for_network(
+            dashboard, network_id) for network_id in networks))
+
+    # Flatten the list of clients into a single list, which will ultimately be
+    # used to create a DataFrame.
+    data = [client for clients in results for client in clients]
 
     # Create a dictionary to store the client data. It will be used to create
     # 'df_clients'
@@ -481,27 +518,6 @@ def meraki_get_organizations(api_key: str) -> pd.DataFrame:
 
     df_orgs = pd.DataFrame(orgs).astype(str)
 
-    # df_data = list()
-
-    # for item in orgs:
-    #     df_data.append([item['id'],
-    #                     item['name'],
-    #                     item['url'],
-    #                     item['api']['enabled'],
-    #                     item['licensing']['model'],
-    #                     item['cloud']['region']['name'],
-    #                     '|'.join(item['management']['details'])]
-    #                    )
-    # cols = ['org_id',
-    #         'name',
-    #         'url',
-    #         'api',
-    #         'licensing_model',
-    #         'cloud_region',
-    #         'management_details']
-
-    # df_orgs = pd.DataFrame(data=df_data, columns=cols).astype(str)
-
     return df_orgs
 
 
@@ -701,7 +717,7 @@ def meraki_get_org_networks(api_key: str,
 
     Returns
     -------
-    pd.DataFrame
+    df_networks : pd.DataFrame
         The networks in one or more organizations.
 
     Examples
@@ -720,7 +736,6 @@ def meraki_get_org_networks(api_key: str,
         organizations = hp.meraki_parse_organizations(db_path, orgs, table)
     else:
         organizations = orgs
-
     # Initialize Meraki dashboard
     dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
     app = dashboard.organizations
