@@ -23,6 +23,7 @@ from collectors import palo_alto_collectors as pac
 from collectors import solarwinds_collectors as swc
 from dotenv import load_dotenv
 from helpers import helpers as hp
+from typing import List
 
 # Load environment variables.
 load_dotenv()
@@ -38,16 +39,21 @@ def collect(ansible_os: str,
     '''
     This function calls the test that the user requested.
 
-    Args:
-    ----
-    ansible_os (str)
+    Parameters
+    ----------
+    ansible_os : str
         The Ansible OS of the hostgroup.
-    collector (str)
+    collector : str
         The name of the collector that the user requested.
-    hostgroup (str)
+    hostgroup : str
         The name of the Ansible hostgroup.
-    timestamp (str)
+    timestamp : str
         The timestamp is YYYY-MM-DD_hhmm format.
+
+    Returns
+    -------
+    result : pd.DataFrame
+        A DataFrame containing the data from the collector.
     '''
     # Read global variables
     database_name = os.environ['database_name']
@@ -615,28 +621,36 @@ def collect(ansible_os: str,
     return result
 
 
-def add_to_db(table_name,
-              result,
-              timestamp,
-              database_path,
-              method='append',
-              idx_cols=list()):
+def add_to_db(table_name: str,
+              result: pd.DataFrame,
+              timestamp: str,
+              database_path: str,
+              method: str = 'append',
+              idx_cols: List[str] = list()) -> None:
     '''
-    Adds the output of a collector to the database
+    Adds the output of a collector to the database.
 
-    Args:
-        result (DataFrame): The output of a collector
-        timestamp (str):    The timestamp
-        database_path (str):      The path to the database
-        method (str):       What to do if the database already exists. Options
-                            are 'append', 'fail', 'replace'. Defaults to
-                            'append'.
-        idx_cols (list):    The list of columns to use for indexing the table.
-                            Note that this is NOT related to the dataframe
-                            index; it is for indexing the sqlite database table
+    Parameters
+    ----------
+    table_name : str
+        The name of the table in the database to which the data will be added.
+    result : DataFrame
+        The output of a collector as a Pandas DataFrame.
+    timestamp : str
+        The timestamp for the data in YYYY-MM-DD_hhmm format.
+    database_path : str
+        The path to the database where the data will be stored.
+    method : str, optional
+        What to do if the table already exists in the database. Options are
+        'append', 'fail', 'replace'. Defaults to 'append'.
+    idx_cols : List[str], optional
+        The list of columns to use for indexing the table in the database.
+        Note that this is NOT related to the dataframe index; it is for
+        indexing the SQLite database table.
 
-    Returns:
-        None
+    Returns
+    -------
+    None
     '''
     # Set the timestamp as the index of the dataframe (this is unrelated to
     # the 'idx_cols' arg)
@@ -714,7 +728,7 @@ def add_to_db(table_name,
     con.close()
 
 
-def create_parser():
+def create_parser() -> argparse.Namespace:
     '''
     Create command line arguments.
 
@@ -722,8 +736,9 @@ def create_parser():
         None
 
     Returns:
-        args:   Parsed command line arguments
+        args:   Parsed command line arguments (argparse.Namespace)
     '''
+    pass
     # Create the parser for command line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--database',
@@ -783,15 +798,19 @@ def create_parser():
     return args
 
 
-def arg_parser(args):
+def arg_parser(args: argparse.Namespace) -> dict:
     '''
     Extract system args and assign variable names.
 
-    Args:
-        args (args):        Parsed command line arguments
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Parsed command line arguments.
 
-    Returns:
-        vars_dict (dict):   A dictionary containing arg variables
+    Returns
+    -------
+    vars_dict : dict
+        A dictionary containing arg variables.
     '''
     # Set the collectors
     collectors = [c.strip() for c in args.collectors.split(',')]

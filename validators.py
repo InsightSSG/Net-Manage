@@ -9,16 +9,21 @@ import sqlite3 as sl
 from helpers import helpers as hp
 
 
-def f5_node_availability(db_path, table):
+def f5_node_availability(db_path: str, table: str) -> pd.DataFrame:
     '''
     Validates the state of F5 nodes based on the 'monitor-status' column.
 
-    Args:
-        db_path (str):  The path to the database
-        table (str):    The name of the table
+    Parameters
+    ----------
+    db_path : str
+        The path to the database.
+    table : str
+        The name of the table.
 
-    Returns:
-        df_diff (obj):  A DataFrame containing any differences
+    Returns
+    -------
+    df_diff : pd.DataFrame
+        A DataFrame containing any differences.
     '''
     # Define the columns to query
     cols = ['device',
@@ -40,16 +45,21 @@ def f5_node_availability(db_path, table):
     return df_diff
 
 
-def f5_pool_availability(db_path, table):
+def f5_pool_availability(db_path: str, table: str) -> pd.DataFrame:
     '''
     Validates the state of F5 pools based on the 'availability' column.
 
-    Args:
-        db_path (str):  The path to the database
-        table (str):    The name of the table
+    Parameters
+    ----------
+    db_path : str
+        The path to the database.
+    table : str
+        The name of the table.
 
-    Returns:
-        df_diff (obj):  A DataFrame containing any differences
+    Returns
+    -------
+    df_diff : pd.DataFrame
+        A DataFrame containing any differences.
     '''
     # Define the columns to query
     cols = ['device',
@@ -70,16 +80,21 @@ def f5_pool_availability(db_path, table):
     return df_diff
 
 
-def f5_pool_member_availability(db_path, table):
+def f5_pool_member_availability(db_path: str, table: str) -> pd.DataFrame:
     '''
     Validates the state of F5 pool members based on the 'availability' column.
 
-    Args:
-        db_path (str):  The path to the database
-        table (str):    The name of the table
+    Parameters
+    ----------
+    db_path : str
+        The path to the database.
+    table : str
+        The name of the table.
 
-    Returns:
-        df_diff (obj):  A DataFrame containing any differences
+    Returns
+    -------
+    df_diff : pd.DataFrame
+        A DataFrame containing any differences.
     '''
     # Define the columns to query
     cols = ['device',
@@ -99,16 +114,21 @@ def f5_pool_member_availability(db_path, table):
     return df_diff
 
 
-def f5_vip_availability(db_path, table):
+def f5_vip_availability(db_path: str, table: str) -> pd.DataFrame:
     '''
     Validates the state of F5 VIPs based on the 'availability' column.
 
-    Args:
-        db_path (str):  The path to the database
-        table (str):    The name of the table
+    Parameters
+    ----------
+    db_path : str
+        The path to the database.
+    table : str
+        The name of the table.
 
-    Returns:
-        df_diff (obj):  A DataFrame containing any differences
+    Returns
+    -------
+    df_diff : pd.DataFrame
+        A DataFrame containing any differences.
     '''
     # Define the columns to query
     cols = ['device',
@@ -130,16 +150,22 @@ def f5_vip_availability(db_path, table):
     return df_diff
 
 
-def meraki_device_statuses_availability(db_path, table):
+def meraki_device_statuses_availability(db_path: str,
+                                        table: str) -> pd.DataFrame:
     '''
     Validates the state of Meraki devices based on the 'status' column.
 
-    Args:
-        db_path (str):  The path to the database
-        table (str):    The name of the table
+    Parameters
+    ----------
+    db_path : str
+        The path to the database.
+    table : str
+        The name of the table.
 
-    Returns:
-        df_diff (obj):  A DataFrame containing any differences
+    Returns
+    -------
+    df_diff : pd.DataFrame
+        A DataFrame containing any differences.
     '''
     # Define the columns to query
     cols = ['orgId',
@@ -162,31 +188,37 @@ def meraki_device_statuses_availability(db_path, table):
     return df_diff
 
 
-def validator_single_col(columns,
-                         db_path,
-                         expected,
-                         identifier_col,
-                         table,
-                         validation_col):
+def validator_single_col(columns: list,
+                         db_path: str,
+                         expected: str,
+                         identifier_col: str,
+                         table: str,
+                         validation_col: str) -> pd.DataFrame:
     '''
     A generic validator for collectors that can be validated with the state of
     a single column--e.g., 'status', 'availability', etc.
 
-    Args:
-        columns (list):         A list of columns to return. One of the columns
-                                must be the one that is being used for
-                                validation.
-        db_path (str):          The path to the database
-        expected (str):         The expected value of 'validation_col' (see
-                                below)
-        identifier_col (str):   The column name to use for identifying a unique
-                                entity (e.g., device, network, organization,
-                                mac, etc)
-        table (str):            The name of the table
-        validation_col (str):   The column name to use for validation
+    Parameters
+    ----------
+    columns : list
+        A list of columns to return. One of the columns must be the one that
+        is being used for validation.
+    db_path : str
+        The path to the database.
+    expected : str
+        The expected value of 'validation_col' (see below).
+    identifier_col : str
+        The column name to use for identifying a unique entity (e.g., device,
+        network, organization, mac, etc).
+    table : str
+        The name of the table.
+    validation_col : str
+        The column name to use for validation.
 
-    Returns:
-        df_diff (obj):  A DataFrame containing any differences
+    Returns
+    -------
+    df_diff : pd.DataFrame
+        A DataFrame containing any differences.
     '''
     # Wrap 'columns' in quotes
     columns = [f'"{_}"' for _ in columns]

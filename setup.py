@@ -47,19 +47,24 @@ total_pages = 'all'
 validate_certs = True
 
 # Define several functions that need to be run within Jupyter
-def create_collectors_df(collector_select, hostgroup_select):
+def create_collectors_df(collector_select: dict,
+                         hostgroup_select: dict) -> pd.DataFrame:
     '''
     Creates a dataframe of collectors to execute. Each row contains the
     ansible_os, hostgroup, and collector.
 
-    Args:
-        collector_select(dict):    A dictionary of selected collectors
-        hostgroup_select (dict):   A dictionary of selected hostgroups
+    Parameters
+    ----------
+    collector_select : dict
+        A dictionary of selected collectors.
+    hostgroup_select : dict
+        A dictionary of selected hostgroups.
 
-    Returns:
-        df_collectors (DataFrame): A dataframe of collectors to run
+    Returns
+    -------
+    df_collectors : pd.DataFrame
+        A dataframe of collectors to run.
     '''
-
     df_data = dict()
     df_data['ansible_os'] = list()
     df_data['hostgroup'] = list()
@@ -145,22 +150,28 @@ def select_collectors(collector_select, hostgroup_select):
                 del collector_select[key]
     return collector_select
 
-def select_hostgroups(private_data_dir):
+def select_hostgroups(collector_select: dict,
+                      hostgroup_select: dict,
+                      private_data_dir: str) -> dict:
     '''
     Selects the collectors for the selected hostgroups.
 
-    Args:
-        collector_select (dict): The collectors the user selected. The first
-                                 time this is run, it will be an empty
-                                 dictionary. Passing it to the function
-                                 allows the user to select additional
-                                 hostgroups later without losing their
-                                 selected collectors.
-        hostgroup_select (dict): The hostgroups the user selected
-        private_data_dir (str):  The path to the Ansible private data directory
+    Parameters
+    ----------
+    collector_select : dict
+        The collectors the user selected. The first time this is run, it will
+        be an empty dictionary. Passing it to the function allows the user to
+        select additional hostgroups later without losing their selected
+        collectors.
+    hostgroup_select : dict
+        The hostgroups the user selected.
+    private_data_dir : str
+        The path to the Ansible private data directory.
 
-    Returns:
-        collector_select (dict): A dictionary of collectors to select
+    Returns
+    -------
+    collector_select : dict
+        A dictionary of collectors to select.
     '''
     # Define and select hostgroups
     groups = hp.ansible_group_hostgroups_by_os(private_data_dir)    
