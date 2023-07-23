@@ -244,16 +244,20 @@ async def meraki_get_network_clients(api_key: str,
     Examples
     --------
     Example 1:
+    >>> import asyncio
     >>> api_key = '<your_api_key_here>'
     >>> networks = ['N_123456789012345678', 'N_234567890123456789']
-    >>> df = meraki_get_network_clients(api_key, networks)
+    >>> df = asyncio.run(meraki_get_network_clients(api_key, networks))
     >>> print(df)
 
     Example 2:
+    >>> import asyncio
     >>> api_key = '<your_api_key_here>'
     >>> networks = ['N_123456789012345678', 'N_234567890123456789']
     >>> macs = ['00:11:22:33:44:55', 'AA:BB:CC:DD:EE:FF']
-    >>> df = meraki_get_network_clients(api_key, networks, macs=macs)
+    >>> df = asyncio.run(meraki_get_network_clients(api_key,
+                                                    networks,
+                                                    macs=macs))
     >>> print(df)
     '''
 
