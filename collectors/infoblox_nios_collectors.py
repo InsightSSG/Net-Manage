@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
 
-'''
-A collection of collectors for the NIOS (Infoblox) operating system.
-'''
-
 import ipaddress as ip
 import pandas as pd
 from helpers import helpers as hp

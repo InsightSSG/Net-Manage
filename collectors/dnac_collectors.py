@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
 
-'''
-Define Cisco DNAC collectors.
-'''
-
 import dnacentersdk
 import pandas as pd
 import sys

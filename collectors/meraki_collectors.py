@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
 
-'''
-Define Meraki collectors.
-'''
-
 import asyncio
 import json
 import meraki
@@ -256,8 +252,7 @@ async def meraki_get_network_clients(api_key: str,
     >>> networks = ['N_123456789012345678', 'N_234567890123456789']
     >>> macs = ['00:11:22:33:44:55', 'AA:BB:CC:DD:EE:FF']
     >>> df = asyncio.run(meraki_get_network_clients(api_key,
-                                                    networks,
-                                                    macs=macs))
+                                                    networks,macs=macs))
     >>> print(df)
     '''
 

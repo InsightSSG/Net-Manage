@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
 
-"""A collection of collectors to gather data from Netbox, using pynetbox.
-
-"""
-
 import pandas as pd
 import pynetbox
 from typing import Optional
