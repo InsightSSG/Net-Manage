@@ -4,6 +4,7 @@
 Define Meraki collectors.
 '''
 
+import asyncio
 import json
 import meraki
 import pandas as pd
@@ -11,6 +12,7 @@ import run_collectors as rc
 import sqlite3 as sl
 
 from helpers import helpers as hp
+from meraki.aio import AsyncDashboardAPI
 from meraki.exceptions import APIError
 from typing import Union
 
@@ -196,14 +198,14 @@ def get_network_appliance_vlans(ansible_os: str,
     return df
 
 
-def meraki_get_network_clients(api_key: str,
-                               networks: list = [],
-                               macs: list = [],
-                               orgs: list = [],
-                               per_page: int = 1000,
-                               timespan: int = 86400,
-                               total_pages: Union[int, str] = 'all') \
-                                -> pd.DataFrame:
+async def meraki_get_network_clients(api_key: str,
+                                     networks: list = [],
+                                     macs: list = [],
+                                     orgs: list = [],
+                                     per_page: int = 1000,
+                                     timespan: int = 86400,
+                                     total_pages: Union[int, str] = 'all') \
+                                         -> pd.DataFrame:
     '''
     Gets the list of clients on a network.
 
@@ -228,8 +230,11 @@ def meraki_get_network_clients(api_key: str,
         The timespan in seconds to retrieve client data for. Defaults to 86400
         (24 hours).
     total_pages : int or str, optional
-        The total number of pages to retrieve. If set to 'all', it will
-        retrieve all available pages. Defaults to 'all'.
+        Important: 'total_pages' is ignored due to an issue with the meraki.aio
+        API. The argument still exists for backwards compatibility, but the
+        maximum number of pages that is returned is currently 1. We recommend
+        using 'per_page' and 'timespan' to filter results. We will re-enable
+        'total_pages' when Meraki fixes the issue.
 
     Returns
     -------
@@ -251,6 +256,19 @@ def meraki_get_network_clients(api_key: str,
     >>> df = meraki_get_network_clients(api_key, networks, macs=macs)
     >>> print(df)
     '''
+
+    async def get_clients_for_network(dashboard, network_id):
+        '''
+        Get all clients for a single network ID.
+        '''
+        # Get all the clients for the network
+        clients = await dashboard.networks.\
+            getNetworkClients(network_id,
+                              per_page=per_page,
+                              timespan=timespan,
+                              print_console=False)
+        return clients
+
     # Create a list to store the individual clients for each network.
     data = list()
 
@@ -266,16 +284,16 @@ def meraki_get_network_clients(api_key: str,
                                               orgs=orgs)
         networks = df_networks['id'].to_list()
 
-    # Iterate over the network(s), gathering the clients and adding them to
-    # 'data'
-    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
-    for network in networks:
-        clients = dashboard.networks.getNetworkClients(network,
-                                                       timespan=timespan,
-                                                       perPage=per_page,
-                                                       total_pages=total_pages)
-        for client in clients:
-            data.append(client)
+    # Use the meraki.aio API to concurrently gather the network clients.
+    async with AsyncDashboardAPI(api_key) as dashboard:
+        # Schedule get_clients_for_network() for all network_ids to run
+        # concurrently.
+        results = await asyncio.gather(*(get_clients_for_network(
+            dashboard, network_id) for network_id in networks))
+
+    # Flatten the list of clients into a single list, which will ultimately be
+    # used to create a DataFrame.
+    data = [client for clients in results for client in clients]
 
     # Create a dictionary to store the client data. It will be used to create
     # 'df_clients'
