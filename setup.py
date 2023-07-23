@@ -13,13 +13,11 @@ import readline
 import run_collectors as rc
 import validators as vl
 
-from collectors import collectors as cl
 from helpers import helpers as hp
 from IPython.display import clear_output
 from IPython.display import display
 
 # Reload helper modules after changes. Mostly used for development.
-importlib.reload(cl)
 importlib.reload(hp)
 importlib.reload(rc)
 importlib.reload(vl)
