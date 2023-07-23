@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 '''
-A library of generic helper functions for dynamic runbooks.
+A library of generic helper functions.
 '''
 
 import ansible_runner
@@ -20,20 +20,34 @@ import yaml
 from datetime import datetime as dt
 from getpass import getpass
 from tabulate import tabulate
-from typing import Dict, List
+from typing import Any, Dict, List, Tuple, Union
 
 
-def ansible_create_collectors_df(hostgroups, collectors):
+def ansible_create_collectors_df(hostgroups: List[str],
+                                 collectors: List[str]) -> pd.DataFrame:
     '''
-    Creates a dataframe where the index is the selected collectors and each row
+    Create a DataFrame where the index is the selected collectors and each row
     contains a comma-delimited string of selected hostgroups.
 
-    Args:
-        hostgroups (list):          A comma-delimited list of hostgroups.
-        collectors (list):          One or more collectors, comma-delimited
+    Parameters
+    ----------
+    hostgroups : list of str
+        A list of hostgroups, each of which is a comma-delimited string.
+    collectors : list of str
+        A list of one or more collectors, each of which is a comma-delimited
+        string.
 
-    Returns:
-        df_collectors (DataFrame):  A DataFrame created from test_file
+    Returns
+    -------
+    df_collectors : pd.DataFrame
+        A DataFrame created from hostgroups and collectors.
+
+    Examples
+    --------
+    >>> hostgroups = ['hostgroup1', 'hostgroup2']
+    >>> collectors = ['collector1', 'collector2']
+    >>> df_collectors = ansible_create_collectors_df(hostgroups, collectors)
+    >>> print(df_collectors)
     '''
     df_data = list()
     for c in collectors:
@@ -45,19 +59,35 @@ def ansible_create_collectors_df(hostgroups, collectors):
     return df_collectors
 
 
-def ansible_create_vars_df(hostgroups, private_data_dir):
+def ansible_create_vars_df(hostgroups: List[str],
+                           private_data_dir: str) -> pd.DataFrame:
     '''
-    This function is created to be used with the maintenance tests notebooks.
-    It reads all of the host groups from the 'df_test', gets the ansible
-    variables for each group from the host file, creates a dataframe containing
-    the variables, then returns it.
-    Args:
-        hostgroups (list):      A list of hostgroups.
-        private_data_dir (str): The path to the Ansible private_data_dir.
-                                It is the path that the 'inventory' folder
-                                is in. The default is the current folder.
-    Returns:
-        df_vars (DataFrame):    A dataframe containing the group variables
+    Create a DataFrame containing the Ansible variables for each hostgroup.
+
+    This function is designed to be used with the net-manage.ipynb. It reads
+    all the host groups from the 'df_test', gets the Ansible variables for each
+    group from the host file, creates a DataFrame containing the variables,
+    then returns it.
+
+    Parameters
+    ----------
+    hostgroups : list of str
+        A list of hostgroups.
+    private_data_dir : str
+        The path to the Ansible private_data_dir, which is the directory
+        containing the 'inventory' folder. The default is the current folder.
+
+    Returns
+    -------
+    df_vars : pd.DataFrame
+        A DataFrame containing the group variables.
+
+    Examples
+    --------
+    >>> hostgroups = ['group1', 'group2']
+    >>> private_data_dir = '/path/to/private/data/dir'
+    >>> df_vars = ansible_create_vars_df(hostgroups, private_data_dir)
+    >>> print(df_vars)
     '''
     host_vars = dict()
 
@@ -91,17 +121,27 @@ def ansible_create_vars_df(hostgroups, private_data_dir):
     return df_vars
 
 
-def ansible_get_all_hostgroup_os(private_data_dir):
+def ansible_get_all_hostgroup_os(private_data_dir: str) -> Dict[str, str]:
     '''
-    Gets the Ansible OS for every hostgroup.
+    Get the Ansible OS for every hostgroup.
 
-    Args:
-        private_data_dir (str): The path to the Ansible private_data_dir. This
-                                is the path that the 'inventory' folder is in.
-                                The default is the current folder.
+    Parameters
+    ----------
+    private_data_dir : str
+        The path to the Ansible private_data_dir. This is the directory
+        containing the 'inventory' folder. The default is the current folder.
 
-    Returns:
-        groups_os (dict):       The Ansible variables for all host groups
+    Returns
+    -------
+    groups_os : dict
+        The Ansible OS for all host groups. The keys are host group names and
+        the values are the corresponding Ansible OS.
+
+    Examples
+    --------
+    >>> private_data_dir = '/path/to/private/data/dir'
+    >>> groups_os = ansible_get_all_hostgroup_os(private_data_dir)
+    >>> print(groups_os)
     '''
     # Get all group variables
     groups_vars = ansible_get_all_host_variables(private_data_dir)
@@ -116,17 +156,27 @@ def ansible_get_all_hostgroup_os(private_data_dir):
     return groups_os
 
 
-def ansible_get_all_host_variables(private_data_dir):
+def ansible_get_all_host_variables(private_data_dir: str) -> Dict[str, str]:
     '''
-    Gets the Ansible variables for all hostgroups in the inventory.
+    Get the Ansible variables for all hostgroups in the inventory.
 
-    Args:
-        private_data_dir (str): The path to the Ansible private_data_dir. This
-                                is the path that the 'inventory' folder is in.
-                                The default is the current folder.
+    Parameters
+    ----------
+    private_data_dir : str
+        The path to the Ansible private_data_dir. This is the directory
+        containing the 'inventory' folder. The default is the current folder.
 
-    Returns:
-        groups_vars (dict):     The Ansible variables for all host groups
+    Returns
+    -------
+    groups_vars : dict
+        The Ansible variables for all host groups. The keys are host group
+        names and the values are the corresponding Ansible variables.
+
+    Examples
+    --------
+    >>> private_data_dir = '/path/to/private/data/dir'
+    >>> groups_vars = ansible_get_all_host_variables(private_data_dir)
+    >>> print(groups_vars)
     '''
     # Read the contents of the playbook into a dictionary
     with open(f'{private_data_dir}/inventory/hosts') as f:
@@ -134,15 +184,25 @@ def ansible_get_all_host_variables(private_data_dir):
     return groups_vars
 
 
-def check_dir_existence(dir_path):
+def check_dir_existence(dir_path: str) -> bool:
     '''
-    Checks whether a directory exists.
+    Check whether a directory exists.
 
-    Args:
-        dir_path (str): The path to the directory
+    Parameters
+    ----------
+    dir_path : str
+        The path to the directory.
 
-    Returns:
-        exists (bool):  A boolean to indicate whether the directory exists
+    Returns
+    -------
+    exists : bool
+        A boolean to indicate whether the directory exists.
+
+    Examples
+    --------
+    >>> dir_path = '/path/to/directory'
+    >>> exists = check_dir_existence(dir_path)
+    >>> print(exists)
     '''
     exists = False
     if os.path.exists(dir_path):
@@ -150,42 +210,64 @@ def check_dir_existence(dir_path):
     return exists
 
 
-def convert_mask_to_cidr(netmask):
+def convert_mask_to_cidr(netmask: str) -> str:
     '''
-    Converts a subnet mask to CIDR notation.
+    Convert a subnet mask to CIDR notation.
 
-    Args:
-        netmask (str):  A subnet mask in xxx.xxx.xxx.xxx format
+    Parameters
+    ----------
+    netmask : str
+        A subnet mask in xxx.xxx.xxx.xxx format.
 
-    Returns:
-        cidr (str):     The number of bits in the subnet mask (CIDR)
+    Returns
+    -------
+    cidr : str
+        The number of bits in the subnet mask (CIDR).
+
+    Examples
+    --------
+    >>> netmask = '255.255.255.0'
+    >>> cidr = convert_mask_to_cidr(netmask)
+    >>> print(cidr)
     '''
     cidr = sum(bin(int(x)).count('1') for x in netmask.split('.'))
     return cidr
 
 
-def create_dir(dir_path):
+def create_dir(dir_path: str) -> None:
     '''
-    Creates a directory
+    Create a directory.
 
-    Args:
-        dir_path (str): The path to the directory
+    Parameters
+    ----------
+    dir_path : str
+        The path to the directory.
 
-    Returns:
-        None
+    Returns
+    -------
+    None
+
+    Examples
+    --------
+    >>> dir_path = '/path/to/new/directory'
+    >>> create_dir(dir_path)
     '''
     os.mkdir(dir_path)
 
 
-def define_supported_validation_tables():
+def define_supported_validation_tables() -> List[str]:
     '''
-    Returns a list of tables that are supported for validation
+    Return a list of tables that are supported for validation.
 
-    Args:
-        None
+    Returns
+    -------
+    supported_tables : list
+        A list of supported tables.
 
-    Returns:
-        supported_tables (dict): A list of supported tables
+    Examples
+    --------
+    >>> supported_tables = define_supported_validation_tables()
+    >>> print(supported_tables)
     '''
     supported_tables = dict()
 
@@ -205,15 +287,25 @@ def define_supported_validation_tables():
     return supported_tables
 
 
-def get_database_tables(db_path):
+def get_database_tables(db_path: str) -> List[str]:
     '''
-    Gets all of the tables out of the database.
+    Get all of the tables out of the database.
 
-    Args:
-        db_path (str): The path to the database
+    Parameters
+    ----------
+    db_path : str
+        The path to the database.
 
-    Returns:
-        tables (list): A list of tables
+    Returns
+    -------
+    tables : list
+        A list of tables.
+
+    Examples
+    --------
+    >>> db_path = '/path/to/database'
+    >>> tables = get_database_tables(db_path)
+    >>> print(tables)
     '''
     # sqlite_schema used to be named sqlite_master. This method tries the new
     # name but will fail back to the old name if the user is on an older
@@ -233,32 +325,48 @@ def get_database_tables(db_path):
     return tables
 
 
-def ansible_get_hostgroup():
+def ansible_get_hostgroup() -> str:
     '''
-    Gets the Ansible hostgroup
+    Get the Ansible hostgroup.
 
-    Args:
-        None
+    Returns
+    -------
+    hostgroup : str
+        The Ansible hostgroup.
 
-    Returns:
-        hostgroup (str): The Ansible hostgroup
+    Examples
+    --------
+    >>> hostgroup = ansible_get_hostgroup()
+    >>> print(hostgroup)
     '''
+
     host_group = input('Enter the name of the host group in the hosts file: ')
     return host_group
 
 
-def ansible_get_host_variables(host_group, private_data_dir):
+def ansible_get_host_variables(host_group: str, private_data_dir: str) -> Dict:
     '''
-    Gets the variables for a host or host group in the hosts file.
+    Get the variables for a host or host group in the hosts file.
 
-    Args:
-        host_group (str):       The name of the host group
-        private_data_dir (str): The path to the Ansible private_data_dir. This
-                                is the path that the 'inventory' folder is in.
-                                The default is the current folder.
+    Parameters
+    ----------
+    host_group : str
+        The name of the host group.
+    private_data_dir : str
+        The path to the Ansible private_data_dir. This is the path that
+        the 'inventory' folder is in. The default is the current folder.
 
-    Returns:
-        group_vars (dict):      The host group variables
+    Returns
+    -------
+    group_vars : dict
+        The host group variables.
+
+    Examples
+    --------
+    >>> host_group = '<host_group>'
+    >>> private_data_dir = '/path/to/private/data/dir'
+    >>> group_vars = ansible_get_host_variables(host_group, private_data_dir)
+    >>> print(group_vars)
     '''
     # Read the contents of the playbook into a dictionary
     with open(f'{private_data_dir}/inventory/hosts') as f:
@@ -269,16 +377,32 @@ def ansible_get_host_variables(host_group, private_data_dir):
     return group_vars
 
 
-def ansible_get_hostgroup_devices(hostgroup, host_files, quiet=True):
+def ansible_get_hostgroup_devices(hostgroup: str,
+                                  host_files: List[str],
+                                  quiet: bool = True) -> List[str]:
     '''
-    Gets the devices inside an Ansible inventory hostgroup.
-    Args:
-        hostgroup (str):   The Ansible hostgroup
-        host_files (list): The path to one or more Ansible host files
-                           (I.e., ['inventory/hosts'])
-        quiet (bool):      Whether to output the entire graph.
-    Returns:
-        devices (list):  A list of devices in the hostgroup
+    Get the devices inside an Ansible inventory hostgroup.
+
+    Parameters
+    ----------
+    hostgroup : str
+        The Ansible hostgroup.
+    host_files : list
+        The path to one or more Ansible host files (e.g., ['inventory/hosts']).
+    quiet : bool, optional
+        Whether to output the entire graph. Defaults to True.
+
+    Returns
+    -------
+    devices : list
+        A list of devices in the hostgroup.
+
+    Examples
+    --------
+    >>> hostgroup = '<hostgroup>'
+    >>> host_files = ['inventory/hosts']
+    >>> devices = ansible_get_hostgroup_devices(hostgroup, host_files)
+    >>> print(devices)
     '''
     graph = ansible_runner.interface.get_inventory('graph',
                                                    host_files,
@@ -293,22 +417,33 @@ def ansible_get_hostgroup_devices(hostgroup, host_files, quiet=True):
     return devices
 
 
-def ansible_group_hostgroups_by_os(private_data_dir):
+def ansible_group_hostgroups_by_os(private_data_dir: str) \
+        -> Dict[str, List[str]]:
     '''
     Finds the ansible_network_os for all hostgroups that have defined it in the
-    variables, then organizes the hostgroups by os. For example:
+    variables, then organizes the hostgroups by os.
 
-    groups_os['cisco.asa.asa'] = [asa_group_1]
-    groups_os['cisco.nxos.nxos'] = [nxos_group_1, nxos_group_2]
+    For example:
 
-    Args:
-        private_data_dir (str): The path to the Ansible private_data_dir. This
-                                is the path that the 'inventory' folder is in.
-                                The default is the current folder.
+    groups_os['cisco.asa.asa'] = ['asa_group_1']
+    groups_os['cisco.nxos.nxos'] = ['nxos_group_1', 'nxos_group_2']
 
-    Returns:
-        hostgroup_by_os (dict): A dictionary containing the hostgroups, grouped
-                                by OS.
+    Parameters
+    ----------
+    private_data_dir : str
+        The path to the Ansible private_data_dir. This is the path that the
+        'inventory' folder is in. The default is the current folder.
+
+    Returns
+    -------
+    hostgroup_by_os : dict
+        A dictionary containing the hostgroups, grouped by OS.
+
+    Examples
+    --------
+    >>> private_data_dir = '<private_data_dir>'
+    >>> hostgroup_by_os = ansible_group_hostgroups_by_os(private_data_dir)
+    >>> print(hostgroup_by_os)
     '''
     # Get the OS for all Ansible hostgroups
     groups_os = ansible_get_all_hostgroup_os(private_data_dir)
@@ -322,15 +457,25 @@ def ansible_group_hostgroups_by_os(private_data_dir):
     return groups_by_os
 
 
-def define_collectors(hostgroup):
+def define_collectors(hostgroup: str) -> Dict[str, Any]:
     '''
     Creates a list of collectors.
 
-    Args:
-        hostgroup (str):    The name of the hostgroup
+    Parameters
+    ----------
+    hostgroup : str
+        The name of the hostgroup.
 
-    Returns:
-        available (dict):   The collectors supported by the hostgroup
+    Returns
+    -------
+    available : dict
+        The collectors supported by the hostgroup.
+
+    Examples
+    --------
+    >>> hostgroup = '<hostgroup>'
+    >>> available = define_collectors(hostgroup)
+    >>> print(available)
     '''
     # TODO: Find a more dynamic way to create this dictionary
     collectors = {'arp_table': ['bigip',
@@ -403,26 +548,35 @@ def define_collectors(hostgroup):
     return available
 
 
-def f5_create_authentication_token(device,
-                                   username,
-                                   password,
-                                   loginProviderName='tmos',
-                                   verify=True):
+def f5_create_authentication_token(device: str,
+                                   username: str,
+                                   password: str,
+                                   loginProviderName: str = 'tmos',
+                                   verify: bool = True) -> str:
     '''
     Creates an authentication token to use for F5 REST API calls.
 
-    Args:
-        device (str):               The device name or IP address
-        username (str):             The user's username
-        password (str):             The user's password
-        loginProviderName (str):    The value to use for 'loginProviderName'.
-                                    Defaults to 'tmos'. It should only need to
-                                    be changed if F5 documentation or support
-                                    says it is necessary.
-        verify (bool):              Whether to verify certs. Defaults to
-                                    'True'. Should only be set to 'False' if it
-                                    is a dev environment or the F5 is using
-                                    self-signed certificates.
+    Parameters
+    ----------
+    device : str
+        The device name or IP address.
+    username : str
+        The user's username.
+    password : str
+        The user's password.
+    loginProviderName : str, optional
+        The value to use for 'loginProviderName'. Defaults to 'tmos'.
+        It should only need to be changed if F5 documentation or support
+        says it is necessary.
+    verify : bool, optional
+        Whether to verify certs. Defaults to 'True'. Should only be set
+        to 'False' if it is a dev environment or the F5 is using
+        self-signed certificates.
+
+    Returns
+    -------
+    token : str
+        The authentication token.
     '''
     # Create the URL used for creating the authentication token
     url = f'{device}/mgmt/shared/authn/login'
@@ -442,8 +596,9 @@ def f5_create_authentication_token(device,
     return token
 
 
-def find_mac_vendors(macs, nm_path):
-    """Finds the vendor OUI for a list of MAC addresses.
+def find_mac_vendors(macs: List[str], nm_path: str) -> pd.DataFrame:
+    '''
+    Finds the vendor OUI for a list of MAC addresses.
 
     Parameters
     ----------
@@ -452,8 +607,14 @@ def find_mac_vendors(macs, nm_path):
     nm_path : str
         The path to the Net-Manage repository.
 
+    Returns
+    -------
+    df : DataFrame
+        A Pandas DataFrame containing two columns. The first is the MAC
+        address, and the second is the corresponding vendor.
+
     Notes
-    ----------
+    -----
     There is a Python library to do this, but it is quite slow.
 
     It might seem inefficient to parse the OUIs from a text file on an
@@ -461,14 +622,8 @@ def find_mac_vendors(macs, nm_path):
     about 250ms, and the size of the resulting dataframe is only
     approximately 500KB.
 
-    Returns
-    ----------
-    df : DataFrame
-        A Pandas DataFrame containing two columns. The first is the MAC
-        address, and the second is the corresponding vendor.
-
-    Examples:
-    ----------
+    Examples
+    --------
     >>> import os
     >>> macs = ['00:50:56:bd:52:79', 'c4:34:6b:b9:99:32']
     >>> home_dir = os.path.expanduser('~')
@@ -477,7 +632,7 @@ def find_mac_vendors(macs, nm_path):
     >>> print(df.to_dict())
     {'mac': {0: '00:50:56:bd:52:79', 1: 'c4:34:6b:b9:99:32'},
     'vendor': {0: 'VMware, Inc.', 1: 'Hewlett Packard'}}
-    """
+    '''
     # Convert MAC addresses to base 16 by removing special characters.
     addresses = [''.join(filter(str.isalnum, _)).upper() for _ in macs]
 
@@ -508,30 +663,32 @@ def generate_subnet_details(addresses: List[str],
                                                       'network_ip',
                                                       'broadcast_ip']) \
         -> Dict[str, List[str]]:
-    """
+    '''
     Generates the subnet, network, and broadcast IPs for a list of IPs.
 
     Parameters
     ----------
     addresses : list of str
-        List of IP addresses in the format {ip}/{subnet_mask_length}
+        List of IP addresses in the format {ip}/{subnet_mask_length}.
     return_keys : list of str, optional
         List of keys to return. Used for when a table has column names that
         conflict with the default return_keys of 'subnet', 'network_ip', and
         'broadcast_ip'. NOTE: The keys should be ordered so that element[0]
         is for the 'subnet' column, element[1] for 'network_ip', and element[2]
-        for 'broadcast_ip'.
+        for 'broadcast_ip'. Defaults to ['subnet','network_ip','broadcast_ip'].
 
     Returns
     -------
-    Dictionary with three keys:
-    - subnet : list of str
-    List of subnet in CIDR notation for each IP address in the input list
-    - network_ip : list of str
-    List of network IP for each IP address in the input list
-    - broadcast_ip : list of str
-    List of broadcast IP for each IP address in the input list
-    """
+    dict
+        A dictionary with three keys:
+        - 'subnet' : list of str
+            List of subnet in CIDR notation for each IP address in the input
+            list.
+        - 'network_ip' : list of str
+            List of network IP for each IP address in the input list.
+        - 'broadcast_ip' : list of str
+            List of broadcast IP for each IP address in the input list.
+    '''
     subnet = list()
     network_ip = list()
     broadcast_ip = list()
@@ -548,36 +705,48 @@ def generate_subnet_details(addresses: List[str],
             return_keys[2]: broadcast_ip}
 
 
-def get_creds(prompt=str()):
+def get_creds(prompt: str = '') -> Tuple[str, str]:
     '''
     Gets the username and password to use for authentication.
 
-    Args:
-        prompt (str):   A one-word description to use inside the prompt. For
-                        example, if prompt == 'device', then the user would
-                        be presented with the full prompt of:
-                        'Enter the username to use for device authentication.'
-                        If no prompt is passed to the function, then the
-                        generic prompt will be used.
+    Parameters
+    ----------
+    prompt : str, optional
+        A one-word description to use inside the prompt. For example, if
+        prompt == 'device', then the user would be presented with the full
+        prompt of 'Enter the username to use for device authentication.' If no
+        prompt is passed to the function, then the generic prompt will be used.
+        Defaults to ''.
 
-    Returns:
-        username (str): The username
-        password (str): The password
+    Returns
+    -------
+    username : str
+        The username.
+    password : str
+        The password.
     '''
     username = get_username(prompt)
     password = get_password(prompt)
     return username, password
 
 
-def ansible_get_hostgroups(inventories, quiet=True):
+def ansible_get_hostgroups(inventories: List[str],
+                           quiet: bool = True) -> List[str]:
     '''
     Gets the devices inside an Ansible inventory hostgroup.
-    Args:
-        inventories (list): The path to one or more Ansible host files
-                            (I.e., ['inventory/hosts'])
-        quiet (bool):       Whether to output the entire graph.
-    Returns:
-        devices (list):  A list of devices in the hostgroup
+
+    Parameters
+    ----------
+    inventories : list of str
+        The path to one or more Ansible host files (e.g.,
+        ['inventory/hosts']).
+    quiet : bool, optional
+        Whether to output the entire graph. Defaults to True.
+
+    Returns
+    -------
+    devices : list of str
+        A list of devices in the hostgroup.
     '''
     graph = ansible_runner.interface.get_inventory('graph',
                                                    inventories,
@@ -593,15 +762,19 @@ def ansible_get_hostgroups(inventories, quiet=True):
     return hostgroups
 
 
-def connect_to_db(db):
+def connect_to_db(db: str) -> sl.Connection:
     '''
     Opens a connection to the sqlite database.
 
-    Args:
-        db (str):   Path to the database
+    Parameters
+    ----------
+    db : str
+        Path to the database
 
-    Returns:
-        con (ob):   Connection to the database
+    Returns
+    -------
+    con : sl.Connection
+        Connection to the database
     '''
     try:
         con = sl.connect(db)
@@ -615,10 +788,10 @@ def connect_to_db(db):
     return con
 
 
-def create_sqlite_regexp_function(conn):
+def create_sqlite_regexp_function(conn: sl.Connection) -> None:
     '''
-    Creates a SQLite3 function that allows REGEXP queries. See these two URLs
-    for more details. See these two URLs for more details:
+    Creates a SQLite3 function that allows REGEXP queries. More details can be
+    found at the following URLs:
     - 'https://tinyurl.com/mwxz2dn8'
     - 'https://tinyurl.com/ye285mnj'
 
@@ -628,7 +801,7 @@ def create_sqlite_regexp_function(conn):
         An object for connecting to the sqlite3 database.
 
     Returns
-    ----------
+    -------
     None
     '''
     # This function is credited to Stack Overflow user 'unutbu':
@@ -639,8 +812,9 @@ def create_sqlite_regexp_function(conn):
     conn.create_function('REGEXP', 2, regexp)
 
 
-def get_dir_timestamps(path):
-    """Gets the timestamp for all files and folders in a directory.
+def get_dir_timestamps(path: str) -> Dict[str, dt]:
+    '''
+    Gets the timestamp for all files and folders in a directory.
 
     This function is not recursive.
 
@@ -650,21 +824,21 @@ def get_dir_timestamps(path):
         The path to search.
 
     Returns
-    ----------
+    -------
     result : dict
         A dictionary for each file or folder, where the key is the file or
         folder name and the value is a datetime object containing the
         timestamp.
 
     Examples
-    ----------
+    --------
     >>> from pprint import pprint
     >>> path = '/tmp/test/'
-    >>> result = hp.get_dir_timestamps(path)
+    >>> result = get_dir_timestamps(path)
     >>> pprint(result)
     {'/tmp/test/test.txt': datetime.datetime(2023, 3, 7, 16, 15, 9),
     '/tmp/test/test2.txt': datetime.datetime(2023, 3, 7, 16, 16, 4)}
-    """
+    '''
     files = glob.glob(f'{path}/*')
 
     result = dict()
@@ -676,20 +850,27 @@ def get_dir_timestamps(path):
     return result
 
 
-def get_first_last_timestamp(db_path, table, col_name):
+def get_first_last_timestamp(db_path: str,
+                             table: str,
+                             col_name: str) -> pd.DataFrame:
     '''
     Gets the first and last timestamp from a database table for each unique
     entry in a column.
 
-    Args:
-        db_path (str):  The path to the database
-        table (str):    The table name
-        col_name (str): The column name to search by ('device', 'networkId',
-                        etc)
+    Parameters
+    ----------
+    db_path : str
+        The path to the database.
+    table : str
+        The table name.
+    col_name : str
+        The column name to search by (e.g., 'device', 'networkId', etc).
 
-    Returns:
-        df_stamps (df): A DataFrame containing the first and last timestamp for
-                        each unique device
+    Returns
+    -------
+    df_stamps : DataFrame
+        A DataFrame containing the first and last timestamp for each unique
+        entry in the specified column.
     '''
     df_data = dict()
     df_data[col_name] = list()
@@ -743,20 +924,23 @@ def get_first_last_timestamp(db_path, table, col_name):
     return df_stamps
 
 
-def get_username(prompt=str()):
+def get_username(prompt: str = '') -> str:
     '''
-    Gets the username to use for authentication
+    Gets the username to use for authentication.
 
-    Args:
-        prompt (str):   A one-word description to use inside the prompt. For
-                        example, if prompt == 'device', then the user would
-                        be presented with the full prompt of:
-                        'Enter the username to use for device authentication.'
-                        If no prompt is passed to the function, then the
-                        generic prompt will be used.
+    Parameters
+    ----------
+    prompt : str, optional
+        A one-word description to use inside the prompt. For example, if
+        prompt == 'device', then the user would be presented with the full
+        prompt of 'Enter the username to use for device authentication.' If
+        no prompt is passed to the function, then the generic prompt will be
+        used. Default is an empty string.
 
-    Returns:
-        username (str): The username
+    Returns
+    -------
+    username : str
+        The username.
     '''
     # Create the full prompt
     if not prompt:
@@ -770,20 +954,23 @@ def get_username(prompt=str()):
     return username
 
 
-def get_password(prompt=str()):
+def get_password(prompt: str = '') -> str:
     '''
-    Gets the password to use for authentication
+    Gets the password to use for authentication.
 
-    Args:
-        prompt (str):   A one-word description to use inside the prompt. For
-                        example, if prompt == 'device', then the user would
-                        be presented with the full prompt of:
-                        'Enter the username to use for device authentication.'
-                        If no prompt is passed to the function, then the
-                        generic prompt will be used.
+    Parameters
+    ----------
+    prompt : str, optional
+        A one-word description to use inside the prompt. For example, if
+        prompt == 'device', then the user would be presented with the full
+        prompt of 'Enter the username to use for device authentication.' If
+        no prompt is passed to the function, then the generic prompt will be
+        used. Default is an empty string.
 
-    Returns:
-        password (str): The password
+    Returns
+    -------
+    password : str
+        The password.
     '''
     # Create the full prompt
     if not prompt:
@@ -804,51 +991,59 @@ def get_password(prompt=str()):
     return password
 
 
-def meraki_get_api_key():
+def meraki_get_api_key() -> str:
     '''
-    Gets the Meraki API key
+    Gets the Meraki API key.
 
-    Args:
-        None
-
-    Returns:
-        api_key (str):  The user's API key
+    Returns
+    -------
+    api_key : str
+        The user's API key.
     '''
     api_key = getpass('Enter your Meraki API key: ')
     return api_key
 
 
-def move_cols_to_end(df, cols):
+def move_cols_to_end(df: pd.DataFrame, cols: List[str]) -> pd.DataFrame:
     '''
     Moves one or more columns on a dataframe to be the end. For example,
-    if the dataframe columns are ['A', 'C', B'], then this function can be
-    used to re-order them to ['A', 'B', 'C']
+    if the dataframe columns are ['A', 'C', 'B'], then this function can be
+    used to re-order them to ['A', 'B', 'C'].
 
-    Args:
-        df (DataFrame): The Pandas dataframe to re-order.
-        cols (list):    A list of one or more columns to move. If more than one
-                        column is specified, then they will be added to the end
-                        in the order that is in the list.
+    Parameters
+    ----------
+    df : pd.DataFrame
+        The Pandas dataframe to re-order.
+    cols : list of str
+        A list of one or more columns to move. If more than one column is
+        specified, they will be added to the end in the order that is in
+        the list.
 
-    Returns:
-        df (DataFrame): The re-ordered DataFrame
-
+    Returns
+    -------
+    pd.DataFrame
+        The re-ordered DataFrame.
     '''
     for c in cols:
         df[c] = df.pop(c)
     return df
 
 
-def read_table(db_path, table):
+def read_table(db_path: str, table: str) -> pd.DataFrame:
     '''
     Reads all columns for the latest timestamp from a database table.
 
-    Args:
-        db_path (str):  The full path to the database
-        table (str):    The table name
+    Parameters
+    ----------
+    db_path : str
+        The full path to the database.
+    table : str
+        The table name.
 
-    Returns:
-        df (df):        A Pandas dataframe containing the data
+    Returns
+    -------
+    df : pd.DataFrame
+        A Pandas dataframe containing the data.
     '''
     con = connect_to_db(db_path)
     df_ts = pd.read_sql(f'select timestamp from {table} limit 1', con)
@@ -858,7 +1053,7 @@ def read_table(db_path, table):
     return df
 
 
-def set_dependencies(selected):
+def set_dependencies(selected: List[str]) -> List[str]:
     '''
     Ensures that dependent collectors are added to the selection. For example,
     collecting 'f5_vip_destinations' requires collecting 'f5_vip_availability'.
@@ -872,11 +1067,15 @@ def set_dependencies(selected):
           hostgroups that the user did not select. If that happens, this
           function will need to be modified accordingly.
 
-    Args:
-        selected (list): The list of selected collectors
+    Parameters
+    ----------
+    selected : list
+        The list of selected collectors.
 
-    Returns:
-        selected (list): The updated list of selected collectors
+    Returns
+    -------
+    selected : list
+        The updated list of selected collectors.
     '''
     s = selected
     if 'devices_modules' in s:
@@ -1009,17 +1208,21 @@ def set_dependencies(selected):
     return s
 
 
-def set_filepath(filepath):
+def set_filepath(filepath: str) -> str:
     '''
     Creates a filename with the date and time added to a path the user
     provides. The function assumes the last "." in a filename is the extension.
 
-    Args:
-        filepath (str):     The base filepath. Do not include the date; that
-                            will be added dynamically at runtime.
+    Parameters
+    ----------
+    filepath : str
+        The base filepath. Do not include the date; that will be added
+        dynamically at runtime.
 
-    Returns:
-        filepath (str):     The full path to the modified filename.
+    Returns
+    -------
+    filepath : str
+        The full path to the modified filename.
     '''
     # Convert '~' to the user's home folder
     if '~' in filepath:
@@ -1045,7 +1248,7 @@ def set_filepath(filepath):
     return filepath
 
 
-def suppress_extravars(extravars):
+def suppress_extravars(extravars: dict) -> dict:
     '''
     ansible_runner.run stores extravars to a file named 'extravars' then saves
     it to the local drive. The file is unencrypted, so any sensitive data, like
@@ -1063,40 +1266,39 @@ def suppress_extravars(extravars):
     This will ensure the functions are secure if someone adds extravars to them
     later.
 
-    Args:
-        extravars (dict):       A dictionary containing the extravars. If your
-                                function does not use it, then pass an empty
-                                dict instead.
+    Parameters
+    ----------
+    extravars : dict
+        A dictionary containing the extravars. If your function does not use
+        it, then pass an empty dict instead.
 
-    Returns: extravars (dict):  'extravars' with the 'suppress_env_files' key.
+    Returns
+    -------
+    extravars : dict
+        'extravars' with the 'suppress_env_files' key.
     '''
     # TODO: Finish this function. (Note: I thought about adding a check to
     #       manually delete any files in extravars at beginning and end of
     #       each run, but users might not want that.)
 
 
-def get_net_manage_path():
+def get_net_manage_path() -> str:
     '''
     Set the absolute path to the Net-Manage repository.
 
-    Args:
-        None
-
-    Returns:
-        nm_path (str):  The absolute path to the Net-Manage repository.
+    Returns
+    -------
+    nm_path : str
+        The absolute path to the Net-Manage repository.
     '''
     nm_path = input("Enter the absolute path to the Net-Manage repository: ")
     nm_path = os.path.expanduser(nm_path)
     return nm_path
 
 
-def set_db_timestamp():
+def set_db_timestamp() -> str:
     '''
     Sets a timestamp in the form the database expects.
-
-    Parameters
-    ----------
-    None
 
     Returns
     -------
@@ -1108,22 +1310,30 @@ def set_db_timestamp():
     return timestamp
 
 
-def set_vars():
+def set_vars() -> Tuple[str, str, List[str], str, str, str]:
     '''
     Prompts the user for the required variables for running collectors and
     validators. Several defaults are presented.
 
-    Note: The 'inventories' argument is a list of inventory file. Right now,
-          the function statically defines it as
-          ['private_data_dir/inventory/hosts']. If people want to use different
-          file names or more than one file name, that functionality can be
-          added later.
+    Note: The 'inventories' argument is a list of inventory files. Currently,
+    the function statically defines it as ['private_data_dir/inventory/hosts'].
+    If users want to use different file names or more than one file name,
+    that functionality can be added later.
 
-    Args:
-        None
-
-    Returns:
-        api_key, db_path, inventories, nm_path, out_path, private_data_dir
+    Returns
+    -------
+    api_key : str
+        The api key.
+    db_path : str
+        The path to the database.
+    inventories : list of str
+        The list of inventory files.
+    nm_path : str
+        The path to the nm.
+    out_path : str
+        The path for output.
+    private_data_dir : str
+        The private data directory.
     '''
     default_db = f'{str(dt.now()).split()[0]}.db'
     default_nm_path = '~/source/repos/InsightSSG/Net-Manage/'
@@ -1170,47 +1380,52 @@ def set_vars():
         npm_password, nm_path, out_path, private_data_dir
 
 
-def get_tests_file():
+def get_tests_file() -> str:
     '''
     Set the absolute path to the Net-Manage repository.
 
-    Args:
-        None
-
-    Returns:
-        t)path (str):   The absolute path to the file containing tests to run.
+    Returns
+    -------
+    t_path : str
+        The absolute path to the file containing tests to run.
     '''
     t_file = input("Enter the absolute path to the Net-Manage repository: ")
     t_file = os.path.expanduser(t_file)
     return t_file
 
 
-def get_user_meraki_input():
+def get_user_meraki_input() -> Tuple[List[str],
+                                     List[str],
+                                     List[str],
+                                     int,
+                                     int,
+                                     Union[int, str]]:
     '''
     Gets and parses user input when they select collectors for Meraki
     organizations.
 
-    Args:
-        None
-
-    Returns:
-        orgs (list):        A list of one or more organizations. Defaults to
-                            an empty list.
-        networks (list):    A list of one or more networks. Defaults to an
-                            empty list.
-        macs (list):        A list of one or more MAC addresses. Partial
-                            addresses are accepted. Defaults to an empty list.
-        timestamp (int):    The lookback timespan in seconds. Defaults to
-                            1 day (86400 seconds). If a user has an * between
-                            numbers, it will multiply them. It does not perform
-                            any other calculation (addition, subtraction, etc).
-        per_age (int):      The number of results to return per page. Defaults
-                            to 10. I recommend leaving it at 10, since
-                            increasing the number of results can reduce
-                            performance. However, you might try increasing it
-                            when working with large datasets.
-        total_pages (int):  The total number of pages to return. Defaults to
-                            '-1' (which is the equivalent of 'all')
+    Returns
+    -------
+    orgs : list
+        A list of one or more organizations. Defaults to an empty list.
+    networks : list
+        A list of one or more networks. Defaults to an empty list.
+    macs : list
+        A list of one or more MAC addresses. Partial addresses are accepted.
+        Defaults to an empty list.
+    timespan : int
+        The lookback timespan in seconds. Defaults to 1 day (86400 seconds).
+        If a user has an * between numbers, it will multiply them. It does not
+        perform any other calculation (addition, subtraction, etc).
+    per_page : int
+        The number of results to return per page. Defaults to 10. It is
+        recommended to leave it at 10, as increasing the number of results
+        can reduce performance. However, increasing it might be worth trying
+        when working with large datasets.
+    total_pages : int or str
+        The total number of pages to return. If input is 'all', returns as
+        'all'. Otherwise, converts the input into an integer. Defaults to
+        'all'.
     '''
     orgs = input('Enter a comma-delimited list of organizations to query: ')\
         or list()
@@ -1238,17 +1453,22 @@ def get_user_meraki_input():
     return orgs, networks, macs, timespan, per_page, total_pages
 
 
-def meraki_check_api_enablement(db_path, org):
+def meraki_check_api_enablement(db_path: str, org: str) -> bool:
     '''
     Queries the database to find if API access is enabled.
 
-    Args:
-        db_path (str):  The path to the database to store results
-        org (str):      The organization to check API access for.
+    Parameters
+    ----------
+    db_path : str
+        The path to the database to store results.
+    org : str
+        The organization to check API access for.
 
-    Returns:
-        enabled (bool): A boolean indicating whether API access is enabled for
-                        the user's API key.
+    Returns
+    -------
+    enabled : bool
+        A boolean indicating whether API access is enabled for the user's API
+        key.
     '''
     # enabled = False
 
@@ -1269,16 +1489,21 @@ def meraki_check_api_enablement(db_path, org):
     # return enabled
 
 
-def meraki_map_network_to_organization(db_path, network):
+def meraki_map_network_to_organization(network: str, db_path: str) -> str:
     '''
     Gets the organization ID for a network.
 
-    Args:
-        network (str):  A network ID
-        db_path (str):  The path to the database
+    Parameters
+    ----------
+    network : str
+        A network ID.
+    db_path : str
+        The path to the database.
 
-    Returns:
-        org_id (str):   The organization ID
+    Returns
+    -------
+    org_id : str
+        The organization ID.
     '''
     query = f'''SELECT distinct timestamp, organizationId
                 FROM MERAKI_ORG_NETWORKS
@@ -1295,20 +1520,27 @@ def meraki_map_network_to_organization(db_path, network):
     return org_id
 
 
-def meraki_parse_organizations(db_path, orgs=list(), table=str()):
+def meraki_parse_organizations(db_path: str,
+                               orgs: list = None,
+                               table: str = None) -> list:
     '''
     Parses a list of organizations that are passed to certain Meraki
     collectors.
 
-    Args:
-        db_path (str):          The path to the database to store results
-        orgs (list):            One or more organization IDs. If none are
-                                specified, then the networks for all orgs
-                                will be returned.
-        table (str):            The database table to query
+    Parameters
+    ----------
+    db_path : str
+        The path to the database to store results.
+    orgs : list, optional
+        One or more organization IDs. If none are specified, then the
+        networks for all orgs will be returned. Defaults to None.
+    table : str, optional
+        The database table to query. Defaults to None.
 
-    Returns:
-        organizations (list):   A list of organizations
+    Returns
+    -------
+    organizations : list
+        A list of organizations.
     '''
     con = sl.connect(db_path)
     organizations = list()
@@ -1326,17 +1558,22 @@ def meraki_parse_organizations(db_path, orgs=list(), table=str()):
     return organizations
 
 
-def sql_get_table_schema(db_path, table):
+def sql_get_table_schema(db_path: str, table: str) -> pd.DataFrame:
     '''
-    Gets the schema of a table
+    Gets the schema of a table.
 
-    Args:
-        db_path (str):      The path to the database
-        table (str):        The table from which to get the schema
+    Parameters
+    ----------
+    db_path : str
+        The path to the database.
+    table : str
+        The table from which to get the schema.
 
-    Returns:
-        df_schema (obj):    The table schema. If the table does not exist then
-                            an empty dataframe will be returned.
+    Returns
+    -------
+    df_schema : pd.DataFrame
+        The table schema. If the table does not exist then an empty dataframe
+        will be returned.
     '''
     query = f'pragma table_info("{table}")'
 
@@ -1346,8 +1583,9 @@ def sql_get_table_schema(db_path, table):
     return df_schema
 
 
-def download_ouis(path):
-    """Downloads vendor OUIs from https://standards-oui.ieee.org/.
+def download_ouis(path: str) -> None:
+    '''
+    Downloads vendor OUIs from https://standards-oui.ieee.org/.
 
     The results will be stored in a text file located at 'path'.
 
@@ -1367,7 +1605,7 @@ def download_ouis(path):
     ----------
     >>> path = '/tmp/ouis.txt'
     >>> download_ouis(path)
-    """
+    '''
     url = 'https://standards-oui.ieee.org/'
     response = requests.get(url, stream=True)
     with open(path, 'wb') as txt:
@@ -1376,29 +1614,28 @@ def download_ouis(path):
                 txt.write(chunk)
 
 
-def tabulate_df_head(df):
-    """
+def tabulate_df_head(df: pd.DataFrame) -> None:
+    '''
     Print the first 5 rows of a DataFrame as a table.
 
     Parameters
     ----------
     df : pandas.DataFrame
-    The DataFrame to print.
+        The DataFrame to print.
 
     Returns
     -------
     None
-    This function does not return anything, it simply prints the table.
-
-    """
-
+        This function does not return anything, it simply prints the table.
+    '''
     table_data = df.head().to_dict('records')
 
     print(tabulate(table_data, headers='keys', tablefmt='psql'))
 
 
-def update_ouis(nm_path):
-    """Download or update vendor OUIs and save them to a file.
+def update_ouis(nm_path: str) -> pd.DataFrame:
+    '''
+    Download or update vendor OUIs and save them to a file.
 
     The data is pulled from https://standards-oui.ieee.org/ and saved to a
     text file named 'ouis.txt'. If 'ouis.txt' does not exist or is more
@@ -1425,13 +1662,13 @@ def update_ouis(nm_path):
         address base in base16 format, and the second is the corresponding
         vendor OUI.
 
-    Examples:
+    Examples
     ----------
     >>> df = update_ouis(nm_path)
     >>> print(df[:2].to_dict())
     {'mac_base': {0: '002272', 1: '00D0EF'},
     'vendor_oui': {0: 'American Micro-Fuel Device Corp.', 1: 'IGT'}}
-    """
+    '''
     # Check if 'ouis.txt' exists in 'nm_path', and, if so, get the timestamp.
     files = get_dir_timestamps(nm_path)
 
@@ -1459,17 +1696,20 @@ def update_ouis(nm_path):
     return df
 
 
-def validate_table(table, db_path, diff_col):
+def validate_table(table: str, db_path: str, diff_col: List[str]) -> None:
     '''
     Validates a table, based on the columns that the user passes to the
     function.
 
     Args:
-        table (str): The table to validate
-        db_path (str): The path to the database
-        diff_col (list): The column to diff. It should contain two items:
-                         item1: The column to diff (I.e., status)
-                         item2: The expected state (I.e., online)
+        table : str
+            The table to validate.
+        db_path : str
+            The path to the database.
+        diff_col : list of str
+            The column to diff. It should contain two items:
+            - item1: The column to diff (e.g., 'status').
+            - item2: The expected state (e.g., 'online').
     '''
     # Get the first and last timestamps from the table
     con = sl.connect(db_path)

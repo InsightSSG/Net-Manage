@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
 
-'''
-Define F5 collectors
-'''
-
 import ansible_runner
 import ast
 import pandas as pd

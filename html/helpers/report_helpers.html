@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>collectors API documentation</title>
-<meta name="description" content="" />
+<title>helpers.report_helpers API documentation</title>
+<meta name="description" content="Helpers specifically for running reports scripts." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -19,58 +19,166 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Package <code>collectors</code></h1>
+<h1 class="title">Module <code>helpers.report_helpers</code></h1>
 </header>
 <section id="section-intro">
+<p>Helpers specifically for running reports scripts.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">#!/usr/bin/env python3
+
+&#39;&#39;&#39;
+Helpers specifically for running reports scripts.
+&#39;&#39;&#39;
+
+import datetime
+import pandas as pd
+
+
+def export_dataframe_to_csv(dataframe: pd.DataFrame,
+                            file_path: str,
+                            report_name: str) -&gt; None:
+    &#39;&#39;&#39;
+    Export a Pandas DataFrame to a CSV file.
+
+    Parameters
+    ----------
+    dataframe : pd.DataFrame
+        The DataFrame to be exported.
+    file_path : str
+        The path to the CSV file where the DataFrame will be saved.
+    report_name : str
+        The name of the report--I.e., &#39;dnac_device_modules&#39;.
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    OSError
+        If the specified file path&#39;s directory does not exist.
+    Exception
+        If there is any other error.
+    &#39;&#39;&#39;
+    try:
+        # Set the file name
+        ts = datetime.datetime.now().strftime(&#39;%Y-%m-%d_%H%M&#39;)
+        fname = f&#39;{ts}_{report_name}.csv&#39;
+        full_path = f&#39;{file_path}/{fname}&#39;
+
+        try:
+            # Export the DataFrame to a CSV file
+            dataframe.to_csv(full_path, index=False)
+        except OSError as e:
+            _ = file_path
+            if str(e) == \
+                    f&#34;Cannot save file into a non-existent directory: &#39;{_}&#39;&#34;:
+                print(e)
+        except Exception as e:
+            print(type(e), str(e))
+
+    except FileNotFoundError as e:
+        raise e
+
+    except Exception as e:
+        raise Exception(f&#34;Error exporting DataFrame to CSV: {str(e)}&#34;)
+
+    return full_path</code></pre>
+</details>
 </section>
 <section>
-<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt><code class="name"><a title="collectors.cisco_asa_collectors" href="cisco_asa_collectors.html">collectors.cisco_asa_collectors</a></code></dt>
+<dt id="helpers.report_helpers.export_dataframe_to_csv"><code class="name flex">
+<span>def <span class="ident">export_dataframe_to_csv</span></span>(<span>dataframe: pandas.core.frame.DataFrame, file_path: str, report_name: str) ‑> None</span>
+</code></dt>
 <dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="collectors.cisco_ios_collectors" href="cisco_ios_collectors.html">collectors.cisco_ios_collectors</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="collectors.cisco_nxos_collectors" href="cisco_nxos_collectors.html">collectors.cisco_nxos_collectors</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="collectors.dnac_collectors" href="dnac_collectors.html">collectors.dnac_collectors</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="collectors.f5_collectors" href="f5_collectors.html">collectors.f5_collectors</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="collectors.infoblox_nios_collectors" href="infoblox_nios_collectors.html">collectors.infoblox_nios_collectors</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="collectors.meraki_collectors" href="meraki_collectors.html">collectors.meraki_collectors</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="collectors.netbox_collectors" href="netbox_collectors.html">collectors.netbox_collectors</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="collectors.palo_alto_collectors" href="palo_alto_collectors.html">collectors.palo_alto_collectors</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="collectors.solarwinds_collectors" href="solarwinds_collectors.html">collectors.solarwinds_collectors</a></code></dt>
-<dd>
-<div class="desc"></div>
+<div class="desc"><p>Export a Pandas DataFrame to a CSV file.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>dataframe</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>The DataFrame to be exported.</dd>
+<dt><strong><code>file_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the CSV file where the DataFrame will be saved.</dd>
+<dt><strong><code>report_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>The name of the report&ndash;I.e., 'dnac_device_modules'.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>None</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>OSError</code></dt>
+<dd>If the specified file path's directory does not exist.</dd>
+<dt><code>Exception</code></dt>
+<dd>If there is any other error.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def export_dataframe_to_csv(dataframe: pd.DataFrame,
+                            file_path: str,
+                            report_name: str) -&gt; None:
+    &#39;&#39;&#39;
+    Export a Pandas DataFrame to a CSV file.
+
+    Parameters
+    ----------
+    dataframe : pd.DataFrame
+        The DataFrame to be exported.
+    file_path : str
+        The path to the CSV file where the DataFrame will be saved.
+    report_name : str
+        The name of the report--I.e., &#39;dnac_device_modules&#39;.
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    OSError
+        If the specified file path&#39;s directory does not exist.
+    Exception
+        If there is any other error.
+    &#39;&#39;&#39;
+    try:
+        # Set the file name
+        ts = datetime.datetime.now().strftime(&#39;%Y-%m-%d_%H%M&#39;)
+        fname = f&#39;{ts}_{report_name}.csv&#39;
+        full_path = f&#39;{file_path}/{fname}&#39;
+
+        try:
+            # Export the DataFrame to a CSV file
+            dataframe.to_csv(full_path, index=False)
+        except OSError as e:
+            _ = file_path
+            if str(e) == \
+                    f&#34;Cannot save file into a non-existent directory: &#39;{_}&#39;&#34;:
+                print(e)
+        except Exception as e:
+            print(type(e), str(e))
+
+    except FileNotFoundError as e:
+        raise e
+
+    except Exception as e:
+        raise Exception(f&#34;Error exporting DataFrame to CSV: {str(e)}&#34;)
+
+    return full_path</code></pre>
+</details>
 </dd>
 </dl>
-</section>
-<section>
-</section>
-<section>
 </section>
 <section>
 </section>
@@ -81,18 +189,14 @@
 <ul></ul>
 </div>
 <ul id="index">
-<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<li><h3>Super-module</h3>
 <ul>
-<li><code><a title="collectors.cisco_asa_collectors" href="cisco_asa_collectors.html">collectors.cisco_asa_collectors</a></code></li>
-<li><code><a title="collectors.cisco_ios_collectors" href="cisco_ios_collectors.html">collectors.cisco_ios_collectors</a></code></li>
-<li><code><a title="collectors.cisco_nxos_collectors" href="cisco_nxos_collectors.html">collectors.cisco_nxos_collectors</a></code></li>
-<li><code><a title="collectors.dnac_collectors" href="dnac_collectors.html">collectors.dnac_collectors</a></code></li>
-<li><code><a title="collectors.f5_collectors" href="f5_collectors.html">collectors.f5_collectors</a></code></li>
-<li><code><a title="collectors.infoblox_nios_collectors" href="infoblox_nios_collectors.html">collectors.infoblox_nios_collectors</a></code></li>
-<li><code><a title="collectors.meraki_collectors" href="meraki_collectors.html">collectors.meraki_collectors</a></code></li>
-<li><code><a title="collectors.netbox_collectors" href="netbox_collectors.html">collectors.netbox_collectors</a></code></li>
-<li><code><a title="collectors.palo_alto_collectors" href="palo_alto_collectors.html">collectors.palo_alto_collectors</a></code></li>
-<li><code><a title="collectors.solarwinds_collectors" href="solarwinds_collectors.html">collectors.solarwinds_collectors</a></code></li>
+<li><code><a title="helpers" href="index.html">helpers</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="helpers.report_helpers.export_dataframe_to_csv" href="#helpers.report_helpers.export_dataframe_to_csv">export_dataframe_to_csv</a></code></li>
 </ul>
 </li>
 </ul>
