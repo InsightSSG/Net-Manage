@@ -422,8 +422,9 @@ def collect(ansible_os: str,
     if collector == 'network_clients':
         if ansible_os == 'meraki':
             result = mc.meraki_get_network_clients(meraki_api_key,
-                                                   meraki_networks,
+                                                   networks=meraki_networks,
                                                    macs=meraki_macs,
+                                                   orgs=meraki_organizations,
                                                    per_page=meraki_per_page,
                                                    timespan=meraki_lookback,
                                                    total_pages=meraki_tp)

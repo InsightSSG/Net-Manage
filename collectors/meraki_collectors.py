@@ -199,7 +199,7 @@ def get_network_appliance_vlans(ansible_os: str,
 def meraki_get_network_clients(api_key: str,
                                networks: list = [],
                                macs: list = [],
-                               org_ids: list = [],
+                               orgs: list = [],
                                per_page: int = 1000,
                                timespan: int = 86400,
                                total_pages: Union[int, str] = 'all') \
@@ -216,7 +216,7 @@ def meraki_get_network_clients(api_key: str,
     macs : list, optional
         A list of MAC addresses to filter the clients. Defaults to an empty
         list.
-    org_ids : list, optional
+    orgs : list, optional
         A list of organization IDs. If this list is populated, then the clients
         for all of the networks in the organization(s) will be returned. This
         could take several minutes for large organizations. Also, if 'networks'
@@ -255,12 +255,15 @@ def meraki_get_network_clients(api_key: str,
     data = list()
 
     # If the user did not pass a list of networks to the function, then get all
-    # of the networks from the list of org_ids. If the user did not pass a list
-    # of org_ids either, then get all of the networks from all of the
+    # of the networks from the list of orgs. If the user did not pass a list
+    # of orgs either, then get all of the networks from all of the
     # organizations that the user's API key has access to.
+    if not networks and not orgs:
+        df_orgs = meraki_get_organizations(api_key)
+        orgs = df_orgs['id'].to_list()
     if not networks:
         df_networks = meraki_get_org_networks(api_key,
-                                              orgs=org_ids)
+                                              orgs=orgs)
         networks = df_networks['id'].to_list()
 
     # Iterate over the network(s), gathering the clients and adding them to
@@ -715,7 +718,6 @@ def meraki_get_org_networks(api_key: str,
         organizations = hp.meraki_parse_organizations(db_path, orgs, table)
     else:
         organizations = orgs
-
     # Initialize Meraki dashboard
     dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
     app = dashboard.organizations
