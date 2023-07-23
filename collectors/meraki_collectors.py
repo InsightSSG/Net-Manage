@@ -197,8 +197,9 @@ def get_network_appliance_vlans(ansible_os: str,
 
 
 def meraki_get_network_clients(api_key: str,
-                               networks: list,
+                               networks: list = [],
                                macs: list = [],
+                               org_ids: list = [],
                                per_page: int = 1000,
                                timespan: int = 86400,
                                total_pages: Union[int, str] = 'all') \
@@ -210,11 +211,17 @@ def meraki_get_network_clients(api_key: str,
     ----------
     api_key : str
         The user's API key.
-    networks : list
+    networks : list, optional
         One or more network IDs.
     macs : list, optional
         A list of MAC addresses to filter the clients. Defaults to an empty
         list.
+    org_ids : list, optional
+        A list of organization IDs. If this list is populated, then the clients
+        for all of the networks in the organization(s) will be returned. This
+        could take several minutes for large organizations. Also, if 'networks'
+        and 'org_ids' are both passed to the function, then 'org_ids' will be
+        ignored.
     per_page : int, optional
         The number of clients to retrieve per page. Defaults to 1000.
     timespan : int, optional
@@ -246,6 +253,15 @@ def meraki_get_network_clients(api_key: str,
     '''
     # Create a list to store the individual clients for each network.
     data = list()
+
+    # If the user did not pass a list of networks to the function, then get all
+    # of the networks from the list of org_ids. If the user did not pass a list
+    # of org_ids either, then get all of the networks from all of the
+    # organizations that the user's API key has access to.
+    if not networks:
+        df_networks = meraki_get_org_networks(api_key,
+                                              orgs=org_ids)
+        networks = df_networks['id'].to_list()
 
     # Iterate over the network(s), gathering the clients and adding them to
     # 'data'
@@ -481,27 +497,6 @@ def meraki_get_organizations(api_key: str) -> pd.DataFrame:
 
     df_orgs = pd.DataFrame(orgs).astype(str)
 
-    # df_data = list()
-
-    # for item in orgs:
-    #     df_data.append([item['id'],
-    #                     item['name'],
-    #                     item['url'],
-    #                     item['api']['enabled'],
-    #                     item['licensing']['model'],
-    #                     item['cloud']['region']['name'],
-    #                     '|'.join(item['management']['details'])]
-    #                    )
-    # cols = ['org_id',
-    #         'name',
-    #         'url',
-    #         'api',
-    #         'licensing_model',
-    #         'cloud_region',
-    #         'management_details']
-
-    # df_orgs = pd.DataFrame(data=df_data, columns=cols).astype(str)
-
     return df_orgs
 
 
@@ -701,7 +696,7 @@ def meraki_get_org_networks(api_key: str,
 
     Returns
     -------
-    pd.DataFrame
+    df_networks : pd.DataFrame
         The networks in one or more organizations.
 
     Examples
