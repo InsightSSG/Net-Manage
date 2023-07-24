@@ -32,10 +32,10 @@ import asyncio
 import json
 import meraki
 import pandas as pd
-import run_collectors as rc
+from netmanage import run_collectors as rc
 import sqlite3 as sl
 
-from helpers import helpers as hp
+from netmanage.helpers import helpers as hp
 from meraki.aio import AsyncDashboardAPI
 from meraki.exceptions import APIError
 from typing import Union
