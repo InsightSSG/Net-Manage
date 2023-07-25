@@ -485,6 +485,7 @@ def define_collectors(hostgroup: str) -> Dict[str, Any]:
                   'cam_table': ['cisco.ios.ios', 'cisco.nxos.nxos'],
                   'config': ['cisco.ios.ios'],
                   'devices_inventory': ['cisco.dnac'],
+                  'device_cdp_lldp_neighbors': ['meraki'],
                   'devices_modules': ['cisco.dnac'],
                   'ncm_serial_numbers': ['solarwinds'],
                   'network_appliance_vlans': ['meraki'],
@@ -1078,6 +1079,7 @@ def set_dependencies(selected: List[str]) -> List[str]:
         The updated list of selected collectors.
     '''
     s = selected
+
     if 'devices_modules' in s:
         if 'devices_inventory' in s:
             pos = s.index('devices_inventory')
