@@ -134,9 +134,34 @@ def netbox_get_device_attributes(nb_path: str,
     return df
 
 
+def netbox_get_all_device_ids(nb_url: str, token: str) -> list:
+    """
+    Retrieves all the device IDs from the NetBox instance.
+
+    Parameters
+    ----------
+    nb_url : str
+        The URL of the NetBox instance.
+    token : str
+        The API token for the NetBox instance.
+
+    Returns
+    -------
+    device_ids : list
+        A list of all device IDs.
+    """
+
+    nb = pynetbox.api(url=nb_url, token=token)
+    devices = nb.dcim.devices.all()
+
+    device_ids = [str(device.id) for device in devices]
+
+    return device_ids
+
+
 def netbox_get_device_interfaces(nb_url: str,
                                  token: str,
-                                 device_id: int) -> dict:
+                                 device_id: str) -> dict:
     """
     Retrieves all the interfaces for a device by its device ID.
 
@@ -146,7 +171,7 @@ def netbox_get_device_interfaces(nb_url: str,
         The URL of the NetBox instance.
     token : str
         The API token for the NetBox instance.
-    device_id : int
+    device_id : str
         The ID of the device for which to retrieve the interfaces.
 
     Returns
@@ -286,7 +311,7 @@ def netbox_get_device_type_attributes(nb_path: str,
 
 def netbox_get_interface_attributes(nb_path: str,
                                     token: str,
-                                    interface_id: int) -> dict:
+                                    interface_id: str) -> dict:
     """
     Gets the attributes for a specific interface.
 
@@ -297,7 +322,7 @@ def netbox_get_interface_attributes(nb_path: str,
         Must be preceded by 'http://' or 'https://'.
     token : str
         The API token to use for authentication.
-    interface_id: int
+    interface_id: str
         The ID of the interface for which to retrieve attributes.
 
     Returns
