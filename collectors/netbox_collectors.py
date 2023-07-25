@@ -33,6 +33,49 @@ def create_netbox_handler(nb_path: str,
     return nb
 
 
+def netbox_get_all_cable_attributes(nb_path: str, token: str) -> dict:
+    """
+    Gets the attributes for all cables.
+
+    Parameters
+    ----------
+    nb_path : str
+        The path to the Netbox instance. Can be either an IP or a URL.
+        Must be preceded by 'http://' or 'https://'.
+    token : str
+        The API token to use for authentication.
+
+    Returns
+    -------
+    all_cables : dict
+        A dictionary containing the attributes of all cables.
+
+    See Also
+    --------
+    create_netbox_handler : A function to create 'nb'
+
+    Examples
+    --------
+    >>> all_cables = netbox_get_all_cable_attributes(nb_path, token)
+    print(all_cables)
+    """
+    # Create the Netbox handler.
+    nb = create_netbox_handler(nb_path, token)
+
+    # Query the Netbox API for all cables.
+    cables = nb.dcim.cables.all()
+
+    # Initialize an empty dictionary to hold all the cable attributes.
+    all_cables = {}
+
+    # Get the attributes for each cable and add them to the dictionary.
+    for cable in cables:
+        # The cable id is used as the key and the attributes are the values.
+        all_cables[cable.id] = vars(cable)
+
+    return all_cables
+
+
 def netbox_get_device_attributes(nb_path: str,
                                  token: str,
                                  device: Optional[str] = None) -> pd.DataFrame:
@@ -207,6 +250,51 @@ def netbox_get_device_type_attributes(nb_path: str,
     df = pd.DataFrame(df_data)
 
     return df
+
+
+def netbox_get_interface_attributes(nb_path: str,
+                                    token: str,
+                                    interface_id: int) -> dict:
+    """
+    Gets the attributes for a specific interface.
+
+    Parameters
+    ----------
+    nb_path : str
+        The path to the Netbox instance. Can be either an IP or a URL.
+        Must be preceded by 'http://' or 'https://'.
+    token : str
+        The API token to use for authentication.
+    interface_id: int
+        The ID of the interface for which to retrieve attributes.
+
+    Returns
+    -------
+    interface_attributes : dict
+        A dictionary containing the attributes of the specified interface.
+
+    See Also
+    --------
+    create_netbox_handler : A function to create 'nb'
+
+    Examples
+    --------
+    >>> interface_attributes = netbox_get_interface_attributes(nb_path,
+                                                               token,
+                                                               interface_id)
+    print(interface_attributes)
+    """
+    # Create the Netbox handler.
+    nb = create_netbox_handler(nb_path, token)
+
+    # Query the Netbox API for the specified interface.
+    interface = nb.dcim.interfaces.get(interface_id)
+
+    # Get the attributes for the specified interface and store them in a
+    # dictionary.
+    interface_attributes = vars(interface)
+
+    return interface_attributes
 
 
 def netbox_get_ipam_prefixes(nb_path: str,
