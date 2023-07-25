@@ -13,8 +13,11 @@ from meraki.exceptions import APIError
 from typing import Union
 
 
-def meraki_get_device_cdp_lldp_neighbors(api_key: str,
-                                         serials: list) -> pd.DataFrame:
+async def meraki_get_device_cdp_lldp_neighbors(api_key: str,
+                                               db_path: str = '',
+                                               serials: list = [],
+                                               orgs: list = []) \
+                                                -> pd.DataFrame:
     '''
     Gets the CDP and LLDP neighbors for a list of device serial numbers.
 
@@ -22,16 +25,29 @@ def meraki_get_device_cdp_lldp_neighbors(api_key: str,
     ----------
     api_key : str
         A valid Meraki Dashboard API key.
+    db_path : str
+        The path to the database to store results.
     serials : list
         A list containing one or more device serial numbers.
+    orgs : list
+        A list of organization IDs. If this list is populated, then the
+        neighbors for all of the devices in the organization(s) will be
+        returned. This could take several minutes for large organizations.
+        Also, if 'serials' and 'org_ids' are both passed to the function,
+        then 'org_ids' will be ignored.
 
     Returns
     -------
     df : pd.DataFrame
         A DataFrame containing the CDP and LLDP neighbors.
     '''
-    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
-    app = dashboard.devices
+    async def get_neighbors_for_device(dashboard, serial):
+        '''
+        Get all neighbors for a single device serial number.
+        '''
+        # Get all the neighbors for the device
+        neighbors = await dashboard.devices.getDeviceLldpCdp(serial)
+        return neighbors
 
     # Create two dictionaries to store the neighbors data.
     cdp_headers = ['sourceMac',
@@ -48,31 +64,54 @@ def meraki_get_device_cdp_lldp_neighbors(api_key: str,
     cdp_data = {key: [] for key in cdp_headers}
     lldp_data = {key: [] for key in lldp_headers}
 
-    # Iterate through the serial numbers, collecting them and adding the CDP
+    # If the user did not pass a list of serials to the function, then get all
+    # of the serials from the list of orgs. If the user did not pass a list
+    # of orgs either, then get all of the serials from all of the
+    # organizations that the user's API key has access to.
+    if not serials and not orgs:
+        df_orgs = meraki_get_organizations(api_key)
+        orgs = df_orgs['id'].to_list()
+    if not serials:
+        df_devices = meraki_get_org_devices(api_key, db_path, orgs=orgs)
+        serials = df_devices['serial'].to_list()
+
+    # Use the meraki.aio API to concurrently gather the device neighbors.
+    async with AsyncDashboardAPI(api_key) as dashboard:
+        # Schedule get_neighbors_for_device() for all serials to run
+        # concurrently.
+        results = await asyncio.gather(*(get_neighbors_for_device(
+            dashboard, serial) for serial in serials))
+
+    # Flatten the list of neighbors into a single list, which will ultimately
+    # be used to create a DataFrame.
+    # data = [neighbor for neighbors in results for neighbor in neighbors]
+    df = pd.DataFrame()
+    for item in results:
+        df = pd.concat([df, pd.DataFrame(item)], axis=0).reset_index(drop=True)
+
+    # Iterate through the neighbors, collecting them and adding the CDP
     # and/or LLDP neighbors to their respective dictionaries.
-    for serial in serials:
-        df = pd.DataFrame(app.getDeviceLldpCdp(serial))
-        for idx, row in df.iterrows():
-            sourceMac = row['sourceMac']
-            ports = row['ports']
-            # Collect the CDP neighbors.
-            if ports.get('cdp'):
-                excluded_keys = ['sourceMac',
-                                 'systemName',
-                                 'managementAddress']
-                cdp_data['sourceMac'].append(sourceMac)
-                neighbors = ports.get('cdp')
-                for key in cdp_data:
-                    if key not in excluded_keys:
-                        cdp_data[key].append(neighbors.get(key))
-            # Collect the LLDP neighbors.
-            if ports.get('lldp'):
-                excluded_keys = ['sourceMac', 'deviceId', 'address']
-                lldp_data['sourceMac'].append(sourceMac)
-                neighbors = ports.get('lldp')
-                for key in lldp_data:
-                    if key not in excluded_keys:
-                        lldp_data[key].append(neighbors.get(key))
+    for idx, row in df.iterrows():
+        sourceMac = row['sourceMac']
+        ports = row['ports']
+        # Collect the CDP neighbors.
+        if ports.get('cdp'):
+            excluded_keys = ['sourceMac',
+                             'systemName',
+                             'managementAddress']
+            cdp_data['sourceMac'].append(sourceMac)
+            neighbors = ports.get('cdp')
+            for key in cdp_data:
+                if key not in excluded_keys:
+                    cdp_data[key].append(neighbors.get(key))
+        # Collect the LLDP neighbors.
+        if ports.get('lldp'):
+            excluded_keys = ['sourceMac', 'deviceId', 'address']
+            lldp_data['sourceMac'].append(sourceMac)
+            neighbors = ports.get('lldp')
+            for key in lldp_data:
+                if key not in excluded_keys:
+                    lldp_data[key].append(neighbors.get(key))
 
     # Create the DataFrames and return them.
     df_cdp = pd.DataFrame(cdp_data)

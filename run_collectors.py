@@ -246,9 +246,10 @@ def collect(ansible_os: str,
 
     if collector == 'device_cdp_lldp_neighbors':
         if ansible_os == 'meraki':
-            result = mc.\
-                meraki_get_device_cdp_lldp_neighbors(meraki_api_key,
-                                                     meraki_serials)
+            result = asyncio.run(
+                mc.meraki_get_device_cdp_lldp_neighbors(meraki_api_key,
+                                                        database_full_path,
+                                                        meraki_serials))
 
     if collector == 'devices_modules':
         if ansible_os == 'cisco.dnac':
