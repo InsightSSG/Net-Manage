@@ -993,7 +993,7 @@ def meraki_get_switch_lldp_neighbors(db_path: str) -> pd.DataFrame:
 
 def meraki_get_switch_port_statuses(api_key: str,
                                     db_path: str,
-                                    networks: list) -> pd.DataFrame:
+                                    networks: list = []) -> pd.DataFrame:
     '''
     Gets the port statuses and associated data (including errors and warnings)
     for all Meraki switches in the specified network(s).
@@ -1004,8 +1004,10 @@ def meraki_get_switch_port_statuses(api_key: str,
         The user's API key.
     db_path : str
         The path to the database to store results.
-    networks : list
-        The networks in which to gather switch port statuses.
+    networks : list, optional
+        The networks in which to gather switch port statuses. If none are
+        provided, then all switch ports for all networks will be returned
+        (which could take several minutes in large organizations).
 
     Returns
     -------
@@ -1020,12 +1022,19 @@ def meraki_get_switch_port_statuses(api_key: str,
     >>> df_ports = meraki_get_switch_port_statuses(api_key, db_path, networks)
     >>> print(df_ports)
     '''
-    # Query the database to get all switches in the network(s)
-    statement = f'''networkId = "{'" or networkId = "'.join(networks)}"'''
-    query = f'''SELECT distinct orgId, networkId, name, serial
-    FROM MERAKI_ORG_DEVICES
-    WHERE ({statement}) and productType = 'switch'
-    '''
+    if networks:
+        # Query the database to get all switches in the network(s)
+        statement = f'''networkId = "{'" or networkId = "'.join(networks)}"'''
+        query = f'''SELECT distinct orgId, networkId, name, serial
+        FROM MERAKI_ORG_DEVICES
+        WHERE ({statement}) and productType = 'switch'
+        '''
+    else:
+        # Query the database to get all switches in the
+        # 'MERAKI_ORG_DEVICES' table.
+        query = '''SELECT distinct orgId, networkId, name, serial
+                    FROM MERAKI_ORG_DEVICES
+                    WHERE productType = "switch"'''
 
     con = sl.connect(db_path)
     df_ports = pd.read_sql(query, con)

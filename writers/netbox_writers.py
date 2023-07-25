@@ -8,6 +8,59 @@ from collectors import netbox_collectors as nbc
 from pynetbox import api
 
 
+def add_cable(netbox_url: str,
+              netbox_token: str,
+              a_terminations: list,
+              b_terminations: list) -> None:
+    """
+    Add a cable to NetBox.
+
+    Parameters
+    ----------
+    netbox_url : str
+        The URL of the NetBox instance.
+    netbox_token : str
+        The authentication token for the NetBox API.
+    a_terminations : list
+        A list of dictionaries containing the terminations for the A side.
+    b_terminations : list
+        A list of dictionaries containing the terminations for the B side.
+
+    Notes
+    -----
+    In Netbox 3.3, cables were changed so that they can have multiple
+    terminations. This change was mentioned in the release notes, but it does
+    not seem to be documented anywhere. Even the Ansible examples are out of
+    date. The bulk import reference isn't of use either, since the field names
+    and types are different.
+
+    This version of the function works. Currently it only adds the
+    terminations. It does not have support for adding colors and lengths, etc.
+    We can add those later.
+
+    Examples
+    --------
+    >>> netbox_token = '12387asdv13'
+    >>> netbox_url = 'http://0.0.0.0:8000'
+    >>> add_cable(netbox_url,
+                  netbox_token,
+                  [{'object_id': 22104, 'object_type': 'dcim.interface'}],
+                  [{'object_id': 29287, 'object_type': 'dcim.interface'}])
+    """
+    nb = pynetbox.api(netbox_url, netbox_token)
+
+    cable = {
+        'a_terminations': a_terminations,
+        'b_terminations': b_terminations
+    }
+
+    # Remove any keys that do not have values.
+    cable = {k: v for k, v in cable.items() if v}
+    print(cable)
+
+    nb.dcim.cables.create(cable)
+
+
 def add_device_to_netbox(netbox_url: str,
                          netbox_token: str,
                          name: str,
