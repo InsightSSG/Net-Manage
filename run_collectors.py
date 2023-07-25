@@ -103,6 +103,9 @@ def collect(ansible_os: str,
     meraki_macs = os.environ['meraki_macs']
     meraki_lookback = os.environ['meraki_lookback_timespan']
     meraki_per_page = os.environ['meraki_per_page']
+    meraki_serials = list(filter(
+        None, os.environ['meraki_serials'].split(',')))
+    meraki_serials = [_.strip() for _ in meraki_serials]
     try:
         meraki_tp = int(os.environ['meraki_total_pages'])
     except ValueError:
@@ -240,6 +243,12 @@ def collect(ansible_os: str,
                                            dnac_password,
                                            platform_ids=dnac_platform_ids,
                                            verify=validate_certs)
+
+    if collector == 'device_cdp_lldp_neighbors':
+        if ansible_os == 'meraki':
+            result = mc.\
+                meraki_get_device_cdp_lldp_neighbors(meraki_api_key,
+                                                     meraki_serials)
 
     if collector == 'devices_modules':
         if ansible_os == 'cisco.dnac':
