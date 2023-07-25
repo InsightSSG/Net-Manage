@@ -134,6 +134,38 @@ def netbox_get_device_attributes(nb_path: str,
     return df
 
 
+def netbox_get_device_interfaces(nb_url: str,
+                                 token: str,
+                                 device_id: int) -> dict:
+    """
+    Retrieves all the interfaces for a device by its device ID.
+
+    Parameters
+    ----------
+    nb_url : str
+        The URL of the NetBox instance.
+    token : str
+        The API token for the NetBox instance.
+    device_id : int
+        The ID of the device for which to retrieve the interfaces.
+
+    Returns
+    -------
+    interfaces_dict : dict
+        A dictionary where keys are the IDs of the interfaces and values are
+        the interface details.
+    """
+    nb = pynetbox.api(url=nb_url, token=token)
+    device_interfaces = nb.dcim.interfaces.filter(device_id=device_id)
+
+    interfaces_dict = {}
+
+    for interface in device_interfaces:
+        interfaces_dict[interface.id] = vars(interface)
+
+    return interfaces_dict
+
+
 def netbox_get_device_role_attributes(nb_path: str,
                                       token: str,
                                       device_role: Optional[str] = None) \
