@@ -11,14 +11,18 @@ from pynetbox import api
 def add_device_to_netbox(netbox_url: str,
                          netbox_token: str,
                          name: str,
-                         device_role: str,
                          manufacturer: str,
-                         device_type: str,
                          status: str,
-                         site: str,
+                         device_role_id: str = str(),
+                         device_role_name: str = str(),
+                         device_type_id: str = str(),
+                         device_type_name: str = str(),
+                         site_id: str = str(),
+                         site_name: str = str(),
                          tenant_id: str = str(),
                          tenant_name: str = str(),
                          serial: str = str(),
+                         custom_fields: dict = {},
                          asset_tag: str = str(),
                          location: str = str(),
                          rack: str = str(),
@@ -32,13 +36,9 @@ def add_device_to_netbox(netbox_url: str,
                          vc_priority: int = int(),
                          cluster: str = str(),
                          description: str = str(),
+                         config_context: dict = {},
                          config_template: str = str(),
-                         comments: str = str(),
-                         tags: str = str(),
-                         cf_meraki_network_id: str = str(),
-                         cf_meraki_product_type: str = str(),
-                         cf_meraki_firmware: str = str(),
-                         cf_meraki_notes: str = str()) -> None:
+                         comments: str = str()) -> None:
     """
     Add a new device to NetBox.
 
@@ -50,117 +50,141 @@ def add_device_to_netbox(netbox_url: str,
         The authentication token for the NetBox API.
     name : str
         The name of the device.
-    device_role : str
-        The assigned role of the device.
     manufacturer : str
-        The manufacturer of the device type.
-    device_type : str
-        The model of the device type.
+        The manufacturer of the device.
     status : str
         The operational status of the device.
-    site : str
-        The assigned site of the device.
-    tenant_id (str, optional):
-        The numeric ID of the tenant. Defaults to None.
-    tenant_name (str, optional):
-        The name of the tenant. Defaults to None.
+    device_role_id : str, optional
+        The ID of the role assigned to the device.
+    device_role_name : str, optional
+        The name of the role assigned to the device.
+    device_type_id : str, optional
+        The ID of the device type.
+    device_type_name : str, optional
+        The name of the device type.
+    site_id : str, optional
+        The ID of the site where the device is located.
+    site_name : str, optional
+        The name of the site where the device is located.
+    tenant_id : str, optional
+        The ID of the tenant that owns the device.
+    tenant_name : str, optional
+        The name of the tenant that owns the device.
     serial : str, optional
-        The chassis serial number assigned by the manufacturer.
+        The serial number of the device.
+    custom_fields : dict, optional
+        The custom fields related to the device.
     asset_tag : str, optional
-        A unique tag used to identify the device.
+        The asset tag of the device.
     location : str, optional
-        The assigned location of the device.
+        The location of the device.
     rack : str, optional
-        The assigned rack of the device.
+        The rack of the device.
     position : int, optional
-        The lowest-numbered unit occupied by the device.
+        The position of the device in the rack.
     face : str, optional
-        The mounted rack face.
+        The face of the device in the rack.
     parent : str, optional
-        The parent device for child devices.
+        The parent device of the device.
     device_bay : str, optional
-        The device bay in which this device is installed for child devices.
+        The device bay where the device is installed.
     airflow : str, optional
-        The airflow direction.
+        The airflow direction of the device.
     virtual_chassis : str, optional
         The virtual chassis to which the device belongs.
     vc_position : int, optional
-        The virtual chassis position.
+        The position of the device in the virtual chassis.
     vc_priority : int, optional
-        The virtual chassis master election priority.
+        The priority of the device in the virtual chassis.
     cluster : str, optional
-        The virtualization cluster.
+        The cluster to which the device belongs.
     description : str, optional
         The description of the device.
+    config_context : dict, optional
+        A dictionary containing the config context.
     config_template : str, optional
-        The configuration template for the device.
+        The configuration template of the device.
     comments : str, optional
-        Additional comments.
-    tags : str, optional
-        Tag slugs separated by commas, enclosed in double quotes
-        (e.g., "tag1,tag2,tag3").
-    cf_meraki_network_id : str, optional
-        The NetworkID for the device (only applicable to Merakis).
-    cf_meraki_product_type : str, optional
-        The device product type (only applicable to Merakis).
-    cf_meraki_firmware : str, optional
-        The device firmware (only applicable to Merakis).
-    cf_meraki_notes : str, optional
-        The device notes (only applicable to Merakis).
+        Any comments about the device.
 
     Returns
     -------
     None
-        This function does not return any value.
-
-    Raises
-    ------
-    Exception
-        If any error occurs while adding the device to NetBox.
+        This function does not return any value. It only creates the device in
+        NetBox.
     """
     # Create an instance of the API using the provided URL and token
     nb = api(url=netbox_url, token=netbox_token)
 
+    # If the user provided a device_role name instead of a device_role ID, then
+    # use the name of the device_role to find its ID.
+    if device_role_name and not device_role_id:
+        df = nbc.\
+            netbox_get_device_role_attributes(netbox_url,
+                                              netbox_token,
+                                              device_role=device_role_name)
+        device_role_id = str(df.loc[0, 'id'])
+
+    # If the user provided a device_type name instead of a device_tole ID, then
+    # user the name of the device_type to find its ID.
+    if device_type_name and not device_type_id:
+        df = nbc.\
+            netbox_get_device_type_attributes(netbox_url,
+                                              netbox_token,
+                                              device_type=device_type_name)
+        device_type_id = str(df.loc[0, 'id'])
+
+    # If the user provided a site name instead of a site ID, then use the name
+    # to find the ID.
+    if site_name and not site_id:
+        df = nbc.netbox_get_site_attributes(netbox_url,
+                                            netbox_token,
+                                            site_name)
+        site_id = str(df.loc[0, 'id'])
+
     # If the user provided a tenant name instead of a tenant ID, then use the
     # name to find the ID.
     if tenant_name and not tenant_id:
-        tenant_df = nbc.netbox_get_tenant_attributes(netbox_url,
-                                                     netbox_token,
-                                                     tenant_name)
-        tenant_id = str(tenant_df.iloc[0]["id"])
+        df = nbc.netbox_get_tenant_attributes(netbox_url,
+                                              netbox_token,
+                                              tenant_name)
+        tenant_id = str(df.iloc[0]['id'])
+
+    # Create the device dictionary.
+    device = {
+        'name': name,
+        'manufacturer': manufacturer,
+        'device_role': device_role_id,
+        'device_type': device_type_id,
+        'status': status,
+        'site': site_id,
+        'tenant': tenant_id,
+        'serial': serial,
+        'asset_tag': asset_tag,
+        'location': location,
+        'rack': rack,
+        'position': position,
+        'face': face,
+        'parent': parent,
+        'device_bay': device_bay,
+        'airflow': airflow,
+        'virtual_chassis': virtual_chassis,
+        'vc_position': vc_position,
+        'vc_priority': vc_priority,
+        'cluster': cluster,
+        'description': description,
+        'comments': comments,
+        'config_context': config_context,
+        'config_template': config_template,
+        'custom_fields': custom_fields
+    }
+
+    # Remove any keys that do not have values.
+    device = {k: v for k, v in device.items() if v}
 
     # Add the device to NetBox
     try:
-        nb.dcim.devices.create(
-            name=name,
-            device_role=device_role,
-            manufacturer=manufacturer,
-            device_type=device_type,
-            status=status,
-            site=site,
-            tenant=tenant_id,
-            serial=serial,
-            asset_tag=asset_tag,
-            location=location,
-            rack=rack,
-            position=position,
-            face=face,
-            parent=parent,
-            device_bay=device_bay,
-            airflow=airflow,
-            virtual_chassis=virtual_chassis,
-            vc_position=vc_position,
-            vc_priority=vc_priority,
-            cluster=cluster,
-            description=description,
-            config_context=config_template,
-            comments=comments,
-            tags=tags,
-            cf_meraki_network_id=cf_meraki_network_id,
-            cf_meraki_product_type=cf_meraki_product_type,
-            cf_meraki_firmware=cf_meraki_firmware,
-            cf_meraki_notes=cf_meraki_notes
-        )
+        nb.dcim.devices.create(device)
     except Exception as e:
         raise Exception(f"Error occurred while adding the device: {str(e)}")
 

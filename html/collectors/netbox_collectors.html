@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>collectors.netbox_collectors API documentation</title>
+<title>netbox_collectors API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,7 +19,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>collectors.netbox_collectors</code></h1>
+<h1 class="title">Module <code>netbox_collectors</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
@@ -59,6 +59,182 @@ def create_netbox_handler(nb_path: str,
     &#39;&#39;&#39;
     nb = pynetbox.api(nb_path, token)
     return nb
+
+
+def netbox_get_device_attributes(nb_path: str,
+                                 token: str,
+                                 device: Optional[str] = None) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Gets the attributes for one or more devices.
+
+    Parameters
+    ----------
+    nb_path : str
+        The path to the Netbox instance. Can be either an IP or a URL.
+        Must be preceded by &#39;http://&#39; or &#39;https://&#39;.
+    token : str
+        The API token to use for authentication.
+    device: Optional[str], Default None
+        The name of the device for which to retrieve attributes. If one is not
+        provided, then attributes for all devices will be returned.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A Pandas dataframe containing the device details.
+
+    See Also
+    --------
+    create_netbox_handler : A function to create &#39;nb&#39;
+
+    Examples
+    --------
+    &gt;&gt;&gt; df = netbox_get_device_attributes(nb_path, token)
+    print(type(df))
+    &gt;&gt;&gt; &lt;class &#39;pandas.core.frame.DataFrame&#39;&gt;
+    &#34;&#34;&#34;
+    # Create the netbox handler.
+    nb = create_netbox_handler(nb_path, token)
+
+    # Query the Netbox API for all devices.
+    devices = nb.dcim.devices.all()
+    devices_list = list(devices)
+
+    df_data = list()
+
+    # Get the attributes for the device(s), add them to &#39;df_data&#39;, then create
+    # and return a DataFrame.
+    if devices_list and device:
+        for item in devices_list:
+            if item[&#39;name&#39;] == device:
+                device_attributes = vars(item)
+                df_data.append(device_attributes)
+                break
+    elif devices_list:
+        for _device in devices_list:
+            df_data.append(vars(_device))
+
+    df = pd.DataFrame(df_data)
+
+    return df
+
+
+def netbox_get_device_role_attributes(nb_path: str,
+                                      token: str,
+                                      device_role: Optional[str] = None) \
+                                        -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Gets the attributes for one or more device roles.
+
+    Parameters
+    ----------
+    nb_path : str
+        The path to the Netbox instance. Can be either an IP or a URL.
+        Must be preceded by &#39;http://&#39; or &#39;https://&#39;.
+    token : str
+        The API token to use for authentication.
+    device_role: Optional[str], Default None
+        The name of the device role for which to retrieve attributes. If one ]
+        is not provided, then attributes for all device roles will be returned.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A Pandas dataframe containing the device role details.
+
+    See Also
+    --------
+    create_netbox_handler : A function to create &#39;nb&#39;
+
+    Examples
+    --------
+    &gt;&gt;&gt; df = netbox_get_device_role_attributes(nb_path, token)
+    print(type(df))
+    &gt;&gt;&gt; &lt;class &#39;pandas.core.frame.DataFrame&#39;&gt;
+    &#34;&#34;&#34;
+    # Create the netbox handler.
+    nb = create_netbox_handler(nb_path, token)
+
+    # Query the Netbox API for all device roles.
+    device_roles = nb.dcim.device_roles.all()
+    device_roles_list = list(device_roles)
+
+    df_data = list()
+
+    # Get the attributes for the device role(s), add them to &#39;df_data&#39;, then
+    # create and return a DataFrame.
+    if device_roles_list and device_role:
+        for item in device_roles_list:
+            if item[&#39;name&#39;] == device_role:
+                device_role_attributes = vars(item)
+                df_data.append(device_role_attributes)
+                break
+    elif device_roles_list:
+        for role in device_roles_list:
+            df_data.append(vars(role))
+
+    df = pd.DataFrame(df_data)
+
+    return df
+
+
+def netbox_get_device_type_attributes(nb_path: str,
+                                      token: str,
+                                      device_type: Optional[str] = None) \
+                                        -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Gets the attributes for one or more device types.
+
+    Parameters
+    ----------
+    nb_path : str
+        The path to the Netbox instance. Can be either an IP or a URL.
+        Must be preceded by &#39;http://&#39; or &#39;https://&#39;.
+    token : str
+        The API token to use for authentication.
+    device_type: Optional[str], Default None
+        The name of the device type for which to retrieve attributes. If one
+        is not provided, then attributes for all device types will be returned.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A Pandas dataframe containing the device type details.
+
+    See Also
+    --------
+    create_netbox_handler : A function to create &#39;nb&#39;
+
+    Examples
+    --------
+    &gt;&gt;&gt; df = netbox_get_device_type_attributes(nb_path, token)
+    print(type(df))
+    &gt;&gt;&gt; &lt;class &#39;pandas.core.frame.DataFrame&#39;&gt;
+    &#34;&#34;&#34;
+    # Create the netbox handler.
+    nb = create_netbox_handler(nb_path, token)
+
+    # Query the Netbox API for all device types.
+    device_types = nb.dcim.device_types.all()
+    device_types_list = list(device_types)
+
+    df_data = list()
+
+    # Get the attributes for the device type(s), add them to &#39;df_data&#39;, then
+    # create and return a DataFrame.
+    if device_types_list and device_type:
+        for item in device_types_list:
+            if item[&#39;model&#39;] == device_type:
+                device_type_attributes = vars(item)
+                df_data.append(device_type_attributes)
+                break
+    elif device_types_list:
+        for _type in device_types_list:
+            df_data.append(vars(_type))
+
+    df = pd.DataFrame(df_data)
+
+    return df
 
 
 def netbox_get_ipam_prefixes(nb_path: str,
@@ -111,6 +287,64 @@ def netbox_get_ipam_prefixes(nb_path: str,
         _ = dict(_)
         df = pd.concat([df, pd.DataFrame.from_dict(_, orient=&#39;index&#39;).T]).\
             reset_index(drop=True)
+    return df
+
+
+def netbox_get_site_attributes(nb_path: str,
+                               token: str,
+                               site: Optional[str] = None) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets the attributes for one or more sites.
+
+    Parameters
+    ----------
+    nb_path : str
+        The path to the Netbox instance. Can be either an IP or a URL.
+        Must be preceded by &#39;http://&#39; or &#39;https://&#39;.
+    token : str
+        The API token to use for authentication.
+    site: Optional[str], Default None
+        The name of the site for which to retrieve attributes. If one is not
+        provided, then attributes for all sites will be returned.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A Pandas dataframe containing the site details.
+
+    See Also
+    --------
+    create_netbox_handler : A function to create &#39;nb&#39;
+
+    Examples
+    --------
+    &gt;&gt;&gt; df = netbox_get_site_attributes(nb_path, token)
+    print(type(df))
+    &gt;&gt;&gt; &lt;class &#39;pandas.core.frame.DataFrame&#39;&gt;
+    &#39;&#39;&#39;
+    # Create the netbox handler.
+    nb = create_netbox_handler(nb_path, token)
+
+    # Query the Netbox API for all sites.
+    sites = nb.dcim.sites.all()
+    sites_list = list(sites)
+
+    df_data = list()
+
+    # Get the attributes for the site(s), add them to &#39;df_data&#39;, then create
+    # and return a DataFrame.
+    if sites_list and site:
+        for item in sites_list:
+            if item[&#39;name&#39;] == site:
+                site_attributes = vars(item)
+                df_data.append(site_attributes)
+                break
+    elif sites_list:
+        for _site in sites_list:
+            df_data.append(vars(_site))
+
+    df = pd.DataFrame(df_data)
+
     return df
 
 
@@ -252,7 +486,7 @@ def netbox_get_vrf_details(nb_path: str,
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="collectors.netbox_collectors.create_netbox_handler"><code class="name flex">
+<dt id="netbox_collectors.create_netbox_handler"><code class="name flex">
 <span>def <span class="ident">create_netbox_handler</span></span>(<span>nb_path: str, token: str) ‑> pynetbox.core.api.Api</span>
 </code></dt>
 <dd>
@@ -307,7 +541,288 @@ Must be preceded by 'http://' or 'https://'.</dd>
     return nb</code></pre>
 </details>
 </dd>
-<dt id="collectors.netbox_collectors.netbox_get_ipam_prefixes"><code class="name flex">
+<dt id="netbox_collectors.netbox_get_device_attributes"><code class="name flex">
+<span>def <span class="ident">netbox_get_device_attributes</span></span>(<span>nb_path: str, token: str, device: Optional[str] = None) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets the attributes for one or more devices.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>nb_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Netbox instance. Can be either an IP or a URL.
+Must be preceded by 'http://' or 'https://'.</dd>
+<dt><strong><code>token</code></strong> :&ensp;<code>str</code></dt>
+<dd>The API token to use for authentication.</dd>
+<dt><strong><code>device</code></strong> :&ensp;<code>Optional[str], Default None</code></dt>
+<dd>The name of the device for which to retrieve attributes. If one is not
+provided, then attributes for all devices will be returned.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>A Pandas dataframe containing the device details.</dd>
+</dl>
+<h2 id="see-also">See Also</h2>
+<dl>
+<dt><code><a title="netbox_collectors.create_netbox_handler" href="#netbox_collectors.create_netbox_handler">create_netbox_handler()</a></code></dt>
+<dd>A function to create 'nb'</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; df = netbox_get_device_attributes(nb_path, token)
+print(type(df))
+&gt;&gt;&gt; &lt;class 'pandas.core.frame.DataFrame'&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def netbox_get_device_attributes(nb_path: str,
+                                 token: str,
+                                 device: Optional[str] = None) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Gets the attributes for one or more devices.
+
+    Parameters
+    ----------
+    nb_path : str
+        The path to the Netbox instance. Can be either an IP or a URL.
+        Must be preceded by &#39;http://&#39; or &#39;https://&#39;.
+    token : str
+        The API token to use for authentication.
+    device: Optional[str], Default None
+        The name of the device for which to retrieve attributes. If one is not
+        provided, then attributes for all devices will be returned.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A Pandas dataframe containing the device details.
+
+    See Also
+    --------
+    create_netbox_handler : A function to create &#39;nb&#39;
+
+    Examples
+    --------
+    &gt;&gt;&gt; df = netbox_get_device_attributes(nb_path, token)
+    print(type(df))
+    &gt;&gt;&gt; &lt;class &#39;pandas.core.frame.DataFrame&#39;&gt;
+    &#34;&#34;&#34;
+    # Create the netbox handler.
+    nb = create_netbox_handler(nb_path, token)
+
+    # Query the Netbox API for all devices.
+    devices = nb.dcim.devices.all()
+    devices_list = list(devices)
+
+    df_data = list()
+
+    # Get the attributes for the device(s), add them to &#39;df_data&#39;, then create
+    # and return a DataFrame.
+    if devices_list and device:
+        for item in devices_list:
+            if item[&#39;name&#39;] == device:
+                device_attributes = vars(item)
+                df_data.append(device_attributes)
+                break
+    elif devices_list:
+        for _device in devices_list:
+            df_data.append(vars(_device))
+
+    df = pd.DataFrame(df_data)
+
+    return df</code></pre>
+</details>
+</dd>
+<dt id="netbox_collectors.netbox_get_device_role_attributes"><code class="name flex">
+<span>def <span class="ident">netbox_get_device_role_attributes</span></span>(<span>nb_path: str, token: str, device_role: Optional[str] = None) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets the attributes for one or more device roles.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>nb_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Netbox instance. Can be either an IP or a URL.
+Must be preceded by 'http://' or 'https://'.</dd>
+<dt><strong><code>token</code></strong> :&ensp;<code>str</code></dt>
+<dd>The API token to use for authentication.</dd>
+<dt><strong><code>device_role</code></strong> :&ensp;<code>Optional[str], Default None</code></dt>
+<dd>The name of the device role for which to retrieve attributes. If one ]
+is not provided, then attributes for all device roles will be returned.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>A Pandas dataframe containing the device role details.</dd>
+</dl>
+<h2 id="see-also">See Also</h2>
+<dl>
+<dt><code><a title="netbox_collectors.create_netbox_handler" href="#netbox_collectors.create_netbox_handler">create_netbox_handler()</a></code></dt>
+<dd>A function to create 'nb'</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; df = netbox_get_device_role_attributes(nb_path, token)
+print(type(df))
+&gt;&gt;&gt; &lt;class 'pandas.core.frame.DataFrame'&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def netbox_get_device_role_attributes(nb_path: str,
+                                      token: str,
+                                      device_role: Optional[str] = None) \
+                                        -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Gets the attributes for one or more device roles.
+
+    Parameters
+    ----------
+    nb_path : str
+        The path to the Netbox instance. Can be either an IP or a URL.
+        Must be preceded by &#39;http://&#39; or &#39;https://&#39;.
+    token : str
+        The API token to use for authentication.
+    device_role: Optional[str], Default None
+        The name of the device role for which to retrieve attributes. If one ]
+        is not provided, then attributes for all device roles will be returned.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A Pandas dataframe containing the device role details.
+
+    See Also
+    --------
+    create_netbox_handler : A function to create &#39;nb&#39;
+
+    Examples
+    --------
+    &gt;&gt;&gt; df = netbox_get_device_role_attributes(nb_path, token)
+    print(type(df))
+    &gt;&gt;&gt; &lt;class &#39;pandas.core.frame.DataFrame&#39;&gt;
+    &#34;&#34;&#34;
+    # Create the netbox handler.
+    nb = create_netbox_handler(nb_path, token)
+
+    # Query the Netbox API for all device roles.
+    device_roles = nb.dcim.device_roles.all()
+    device_roles_list = list(device_roles)
+
+    df_data = list()
+
+    # Get the attributes for the device role(s), add them to &#39;df_data&#39;, then
+    # create and return a DataFrame.
+    if device_roles_list and device_role:
+        for item in device_roles_list:
+            if item[&#39;name&#39;] == device_role:
+                device_role_attributes = vars(item)
+                df_data.append(device_role_attributes)
+                break
+    elif device_roles_list:
+        for role in device_roles_list:
+            df_data.append(vars(role))
+
+    df = pd.DataFrame(df_data)
+
+    return df</code></pre>
+</details>
+</dd>
+<dt id="netbox_collectors.netbox_get_device_type_attributes"><code class="name flex">
+<span>def <span class="ident">netbox_get_device_type_attributes</span></span>(<span>nb_path: str, token: str, device_type: Optional[str] = None) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets the attributes for one or more device types.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>nb_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Netbox instance. Can be either an IP or a URL.
+Must be preceded by 'http://' or 'https://'.</dd>
+<dt><strong><code>token</code></strong> :&ensp;<code>str</code></dt>
+<dd>The API token to use for authentication.</dd>
+<dt><strong><code>device_type</code></strong> :&ensp;<code>Optional[str], Default None</code></dt>
+<dd>The name of the device type for which to retrieve attributes. If one
+is not provided, then attributes for all device types will be returned.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>A Pandas dataframe containing the device type details.</dd>
+</dl>
+<h2 id="see-also">See Also</h2>
+<dl>
+<dt><code><a title="netbox_collectors.create_netbox_handler" href="#netbox_collectors.create_netbox_handler">create_netbox_handler()</a></code></dt>
+<dd>A function to create 'nb'</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; df = netbox_get_device_type_attributes(nb_path, token)
+print(type(df))
+&gt;&gt;&gt; &lt;class 'pandas.core.frame.DataFrame'&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def netbox_get_device_type_attributes(nb_path: str,
+                                      token: str,
+                                      device_type: Optional[str] = None) \
+                                        -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Gets the attributes for one or more device types.
+
+    Parameters
+    ----------
+    nb_path : str
+        The path to the Netbox instance. Can be either an IP or a URL.
+        Must be preceded by &#39;http://&#39; or &#39;https://&#39;.
+    token : str
+        The API token to use for authentication.
+    device_type: Optional[str], Default None
+        The name of the device type for which to retrieve attributes. If one
+        is not provided, then attributes for all device types will be returned.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A Pandas dataframe containing the device type details.
+
+    See Also
+    --------
+    create_netbox_handler : A function to create &#39;nb&#39;
+
+    Examples
+    --------
+    &gt;&gt;&gt; df = netbox_get_device_type_attributes(nb_path, token)
+    print(type(df))
+    &gt;&gt;&gt; &lt;class &#39;pandas.core.frame.DataFrame&#39;&gt;
+    &#34;&#34;&#34;
+    # Create the netbox handler.
+    nb = create_netbox_handler(nb_path, token)
+
+    # Query the Netbox API for all device types.
+    device_types = nb.dcim.device_types.all()
+    device_types_list = list(device_types)
+
+    df_data = list()
+
+    # Get the attributes for the device type(s), add them to &#39;df_data&#39;, then
+    # create and return a DataFrame.
+    if device_types_list and device_type:
+        for item in device_types_list:
+            if item[&#39;model&#39;] == device_type:
+                device_type_attributes = vars(item)
+                df_data.append(device_type_attributes)
+                break
+    elif device_types_list:
+        for _type in device_types_list:
+            df_data.append(vars(_type))
+
+    df = pd.DataFrame(df_data)
+
+    return df</code></pre>
+</details>
+</dd>
+<dt id="netbox_collectors.netbox_get_ipam_prefixes"><code class="name flex">
 <span>def <span class="ident">netbox_get_ipam_prefixes</span></span>(<span>nb_path: str, token: str) ‑> pandas.core.frame.DataFrame</span>
 </code></dt>
 <dd>
@@ -327,7 +842,7 @@ Must be preceded by 'http://' or 'https://'.</dd>
 </dl>
 <h2 id="see-also">See Also</h2>
 <dl>
-<dt><code><a title="collectors.netbox_collectors.create_netbox_handler" href="#collectors.netbox_collectors.create_netbox_handler">create_netbox_handler()</a></code></dt>
+<dt><code><a title="netbox_collectors.create_netbox_handler" href="#netbox_collectors.create_netbox_handler">create_netbox_handler()</a></code></dt>
 <dd>A function to create 'nb'</dd>
 </dl>
 <h2 id="notes">Notes</h2>
@@ -400,7 +915,100 @@ print(type(df))
     return df</code></pre>
 </details>
 </dd>
-<dt id="collectors.netbox_collectors.netbox_get_tenant_attributes"><code class="name flex">
+<dt id="netbox_collectors.netbox_get_site_attributes"><code class="name flex">
+<span>def <span class="ident">netbox_get_site_attributes</span></span>(<span>nb_path: str, token: str, site: Optional[str] = None) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets the attributes for one or more sites.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>nb_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Netbox instance. Can be either an IP or a URL.
+Must be preceded by 'http://' or 'https://'.</dd>
+<dt><strong><code>token</code></strong> :&ensp;<code>str</code></dt>
+<dd>The API token to use for authentication.</dd>
+<dt><strong><code>site</code></strong> :&ensp;<code>Optional[str], Default None</code></dt>
+<dd>The name of the site for which to retrieve attributes. If one is not
+provided, then attributes for all sites will be returned.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>A Pandas dataframe containing the site details.</dd>
+</dl>
+<h2 id="see-also">See Also</h2>
+<dl>
+<dt><code><a title="netbox_collectors.create_netbox_handler" href="#netbox_collectors.create_netbox_handler">create_netbox_handler()</a></code></dt>
+<dd>A function to create 'nb'</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; df = netbox_get_site_attributes(nb_path, token)
+print(type(df))
+&gt;&gt;&gt; &lt;class 'pandas.core.frame.DataFrame'&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def netbox_get_site_attributes(nb_path: str,
+                               token: str,
+                               site: Optional[str] = None) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Gets the attributes for one or more sites.
+
+    Parameters
+    ----------
+    nb_path : str
+        The path to the Netbox instance. Can be either an IP or a URL.
+        Must be preceded by &#39;http://&#39; or &#39;https://&#39;.
+    token : str
+        The API token to use for authentication.
+    site: Optional[str], Default None
+        The name of the site for which to retrieve attributes. If one is not
+        provided, then attributes for all sites will be returned.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A Pandas dataframe containing the site details.
+
+    See Also
+    --------
+    create_netbox_handler : A function to create &#39;nb&#39;
+
+    Examples
+    --------
+    &gt;&gt;&gt; df = netbox_get_site_attributes(nb_path, token)
+    print(type(df))
+    &gt;&gt;&gt; &lt;class &#39;pandas.core.frame.DataFrame&#39;&gt;
+    &#39;&#39;&#39;
+    # Create the netbox handler.
+    nb = create_netbox_handler(nb_path, token)
+
+    # Query the Netbox API for all sites.
+    sites = nb.dcim.sites.all()
+    sites_list = list(sites)
+
+    df_data = list()
+
+    # Get the attributes for the site(s), add them to &#39;df_data&#39;, then create
+    # and return a DataFrame.
+    if sites_list and site:
+        for item in sites_list:
+            if item[&#39;name&#39;] == site:
+                site_attributes = vars(item)
+                df_data.append(site_attributes)
+                break
+    elif sites_list:
+        for _site in sites_list:
+            df_data.append(vars(_site))
+
+    df = pd.DataFrame(df_data)
+
+    return df</code></pre>
+</details>
+</dd>
+<dt id="netbox_collectors.netbox_get_tenant_attributes"><code class="name flex">
 <span>def <span class="ident">netbox_get_tenant_attributes</span></span>(<span>nb_path: str, token: str, tenant: Optional[str] = None) ‑> pandas.core.frame.DataFrame</span>
 </code></dt>
 <dd>
@@ -423,7 +1031,7 @@ provided, then attributes for all tenants will be returned.</dd>
 </dl>
 <h2 id="see-also">See Also</h2>
 <dl>
-<dt><code><a title="collectors.netbox_collectors.create_netbox_handler" href="#collectors.netbox_collectors.create_netbox_handler">create_netbox_handler()</a></code></dt>
+<dt><code><a title="netbox_collectors.create_netbox_handler" href="#netbox_collectors.create_netbox_handler">create_netbox_handler()</a></code></dt>
 <dd>A function to create 'nb'</dd>
 </dl>
 <h2 id="examples">Examples</h2>
@@ -493,7 +1101,7 @@ print(type(df))
     return df</code></pre>
 </details>
 </dd>
-<dt id="collectors.netbox_collectors.netbox_get_vrf_details"><code class="name flex">
+<dt id="netbox_collectors.netbox_get_vrf_details"><code class="name flex">
 <span>def <span class="ident">netbox_get_vrf_details</span></span>(<span>nb_path: str, token: str, vrf: Optional[str] = None) ‑> pandas.core.frame.DataFrame</span>
 </code></dt>
 <dd>
@@ -516,7 +1124,7 @@ provided, then details for all VRFs will be returned.</dd>
 </dl>
 <h2 id="see-also">See Also</h2>
 <dl>
-<dt><code><a title="collectors.netbox_collectors.create_netbox_handler" href="#collectors.netbox_collectors.create_netbox_handler">create_netbox_handler()</a></code></dt>
+<dt><code><a title="netbox_collectors.create_netbox_handler" href="#netbox_collectors.create_netbox_handler">create_netbox_handler()</a></code></dt>
 <dd>A function to create 'nb'</dd>
 </dl>
 <h2 id="examples">Examples</h2>
@@ -612,17 +1220,16 @@ print(type(df))
 <ul></ul>
 </div>
 <ul id="index">
-<li><h3>Super-module</h3>
-<ul>
-<li><code><a title="collectors" href="index.html">collectors</a></code></li>
-</ul>
-</li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="collectors.netbox_collectors.create_netbox_handler" href="#collectors.netbox_collectors.create_netbox_handler">create_netbox_handler</a></code></li>
-<li><code><a title="collectors.netbox_collectors.netbox_get_ipam_prefixes" href="#collectors.netbox_collectors.netbox_get_ipam_prefixes">netbox_get_ipam_prefixes</a></code></li>
-<li><code><a title="collectors.netbox_collectors.netbox_get_tenant_attributes" href="#collectors.netbox_collectors.netbox_get_tenant_attributes">netbox_get_tenant_attributes</a></code></li>
-<li><code><a title="collectors.netbox_collectors.netbox_get_vrf_details" href="#collectors.netbox_collectors.netbox_get_vrf_details">netbox_get_vrf_details</a></code></li>
+<li><code><a title="netbox_collectors.create_netbox_handler" href="#netbox_collectors.create_netbox_handler">create_netbox_handler</a></code></li>
+<li><code><a title="netbox_collectors.netbox_get_device_attributes" href="#netbox_collectors.netbox_get_device_attributes">netbox_get_device_attributes</a></code></li>
+<li><code><a title="netbox_collectors.netbox_get_device_role_attributes" href="#netbox_collectors.netbox_get_device_role_attributes">netbox_get_device_role_attributes</a></code></li>
+<li><code><a title="netbox_collectors.netbox_get_device_type_attributes" href="#netbox_collectors.netbox_get_device_type_attributes">netbox_get_device_type_attributes</a></code></li>
+<li><code><a title="netbox_collectors.netbox_get_ipam_prefixes" href="#netbox_collectors.netbox_get_ipam_prefixes">netbox_get_ipam_prefixes</a></code></li>
+<li><code><a title="netbox_collectors.netbox_get_site_attributes" href="#netbox_collectors.netbox_get_site_attributes">netbox_get_site_attributes</a></code></li>
+<li><code><a title="netbox_collectors.netbox_get_tenant_attributes" href="#netbox_collectors.netbox_get_tenant_attributes">netbox_get_tenant_attributes</a></code></li>
+<li><code><a title="netbox_collectors.netbox_get_vrf_details" href="#netbox_collectors.netbox_get_vrf_details">netbox_get_vrf_details</a></code></li>
 </ul>
 </li>
 </ul>
