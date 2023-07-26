@@ -11,18 +11,18 @@ import datetime as dt
 import os
 import pandas as pd
 import readline
-from collectors import cisco_asa_collectors as cac
-from collectors import cisco_ios_collectors as cic
-from collectors import cisco_nxos_collectors as cnc
-from collectors import dnac_collectors as dnc
-from collectors import f5_collectors as f5c
-from collectors import infoblox_nios_collectors as nc
-from collectors import meraki_collectors as mc
-from collectors import netbox_collectors as nbc
-from collectors import palo_alto_collectors as pac
-from collectors import solarwinds_collectors as swc
+from netmanage.collectors import cisco_asa_collectors as cac
+from netmanage.collectors import cisco_ios_collectors as cic
+from netmanage.collectors import cisco_nxos_collectors as cnc
+from netmanage.collectors import dnac_collectors as dnc
+from netmanage.collectors import f5_collectors as f5c
+from netmanage.collectors import infoblox_nios_collectors as nc
+from netmanage.collectors import meraki_collectors as mc
+from netmanage.collectors import netbox_collectors as nbc
+from netmanage.collectors import palo_alto_collectors as pac
+from netmanage.collectors import solarwinds_collectors as swc
 from dotenv import load_dotenv
-from helpers import helpers as hp
+from netmanage.helpers import helpers as hp
 from typing import List
 
 # Load environment variables.

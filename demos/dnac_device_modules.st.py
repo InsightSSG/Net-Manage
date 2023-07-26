@@ -47,7 +47,7 @@ def main():
     nm_path = os.path.expanduser(st.secrets['netmanage_path'])
     os.chdir(nm_path)
     sys.path.append('.')
-    from collectors import dnac_collectors as dnc
+    from netmanage.collectors import dnac_collectors as dnc
 
     # Set the variables for connecting to DNAC.
     dnac_url = st.secrets['dnac_url']
