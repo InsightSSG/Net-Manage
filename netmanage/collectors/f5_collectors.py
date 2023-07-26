@@ -3,8 +3,8 @@
 import ansible_runner
 import ast
 import pandas as pd
-import run_collectors as rc
-from helpers import helpers as hp
+from netmanage import run_collectors as rc
+from netmanage.helpers import helpers as hp
 
 
 def build_pool_table(username: str,

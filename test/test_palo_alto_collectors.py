@@ -7,7 +7,7 @@ import sys
 nm_path = os.environ.get('NM_PATH')
 os.chdir(f'{nm_path}/test')
 sys.path.append('..')
-from collectors import palo_alto_collectors  # noqa
+from netmanage.collectors import palo_alto_collectors  # noqa
 
 
 def test_run_adhoc_command(username,

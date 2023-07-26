@@ -11,10 +11,10 @@ import nest_asyncio
 import os
 import pandas as pd
 import readline
-import run_collectors as rc
-import validators as vl
+from netmanage import run_collectors as rc
+from netmanage import validators as vl
 
-from helpers import helpers as hp
+from netmanage.helpers import helpers as hp
 from IPython.display import clear_output
 from IPython.display import display
 
