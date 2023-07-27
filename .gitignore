@@ -140,7 +140,7 @@ natlas/output/
 output/
 natlas/.DS_Store
 natlas/modules/.DS_Store
-.streamlit/
+.streamlit/secrets.toml
 tenants/
 
 # Visual Studio Code

@@ -27,7 +27,7 @@ sudo apt install git build-essentials
     git clone https://github.com/InsightSSG/Net-Manage.git
     ```
 
-1. **Create a Python virtual environment**
+2. **Create a Python virtual environment**
 
     Navigate to the project folder and create a new virtual environment. You can do this with either `venv` or `miniconda`.
 
@@ -43,7 +43,7 @@ sudo apt install git build-essentials
     conda create --name myenv
     ```
 
-1. **Activate the virtual environment**
+3. **Activate the virtual environment**
 
     - For `venv`, use the following command:
 
@@ -57,7 +57,7 @@ sudo apt install git build-essentials
     conda activate myenv
     ```
 
-1. **Install the requirements**
+4. **Install the requirements**
 
     The required Python libraries can be installed using pip:
 
@@ -65,7 +65,7 @@ sudo apt install git build-essentials
     pip install -r requirements.txt
     ```
 
-1. **Run Jupyter Lab**
+5. **Run Jupyter Lab**
 
     Start Jupyter Lab using the following command:
 
@@ -73,7 +73,15 @@ sudo apt install git build-essentials
     jupyter-lab
     ```
 
-1. **Open Net-Manage.ipynb**
+6. **Configure Environment Variables**
+
+    1. For non-Streamlit files:
+        Environment variables are stored in the .env file. Simply rename .env_example to .env. If you do not need to use a variable, leave it empty.
+
+    2. For Streamlit files:
+        Environment variables for Streamlit files are stored in .streamlit/secrets.toml. The formatting is largely the same. Simply re-name '.secrets/secrets_example.tml' to '.secrets/secrets.toml' and enter any variables you need to use.
+
+7. **Open Net-Manage.ipynb**
 
     In the Jupyter Lab interface, navigate to the location of `Net-Manage.ipynb` file and click to open it.
 
