@@ -83,7 +83,7 @@ sudo apt install git build-essentials
 
 7. **Open Net-Manage.ipynb**
 
-    In the Jupyter Lab interface, navigate to the location of `Net-Manage.ipynb` file and click to open it.
+    In the Jupyter Lab interface, navigate to the location of `net-manage.ipynb` file and click to open it.
 
 ## Full Documentation
 
