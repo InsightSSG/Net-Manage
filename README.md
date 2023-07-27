@@ -76,10 +76,10 @@ sudo apt install git build-essentials
 6. **Configure Environment Variables**
 
     1. For non-Streamlit files:
-        Environment variables are stored in the .env file. Simply rename .env_example to .env. If you do not need to use a variable, leave it empty.
+        Environment variables are stored in the .env file. Simply rename `.env_example` to `.env`. If you do not need to use a variable, leave it empty.
 
     2. For Streamlit files:
-        Environment variables for Streamlit files are stored in .streamlit/secrets.toml. The formatting is largely the same. Simply re-name '.secrets/secrets_example.tml' to '.secrets/secrets.toml' and enter any variables you need to use.
+        Environment variables for Streamlit files are stored in `.streamlit/secrets.toml`. The formatting is largely the same. Simply re-name `.secrets/secrets_example.tml` to `.secrets/secrets.toml` and enter any variables you need to use.
 
 7. **Open Net-Manage.ipynb**
 
