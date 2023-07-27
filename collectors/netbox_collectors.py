@@ -78,9 +78,11 @@ def netbox_get_all_cable_attributes(nb_path: str, token: str) -> dict:
 
 def netbox_get_device_attributes(nb_path: str,
                                  token: str,
-                                 device: Optional[str] = None) -> pd.DataFrame:
+                                 device_id: Optional[int] = None,
+                                 device_name: Optional[str] = None) \
+                                    -> pd.DataFrame:
     """
-    Gets the attributes for one or more devices.
+    Gets the attributes for a device by its id or name.
 
     Parameters
     ----------
@@ -89,9 +91,10 @@ def netbox_get_device_attributes(nb_path: str,
         Must be preceded by 'http://' or 'https://'.
     token : str
         The API token to use for authentication.
-    device: Optional[str], Default None
-        The name of the device for which to retrieve attributes. If one is not
-        provided, then attributes for all devices will be returned.
+    device_id: Optional[int], Default None
+        The id of the device for which to retrieve attributes.
+    device_name: Optional[str], Default None
+        The name of the device for which to retrieve attributes.
 
     Returns
     -------
@@ -111,25 +114,24 @@ def netbox_get_device_attributes(nb_path: str,
     # Create the netbox handler.
     nb = create_netbox_handler(nb_path, token)
 
-    # Query the Netbox API for all devices.
-    devices = nb.dcim.devices.all()
-    devices_list = list(devices)
+    # If both device id and name are provided, raise an error
+    if device_id and device_name:
+        raise ValueError(
+            "Please provide either a device id or device name, not both")
 
-    df_data = list()
+    if device_id:
+        device = nb.dcim.devices.get(device_id)
+    elif device_name:
+        device = nb.dcim.devices.get(name=device_name)
+    else:
+        raise ValueError("Please provide either a device id or device name")
 
-    # Get the attributes for the device(s), add them to 'df_data', then create
-    # and return a DataFrame.
-    if devices_list and device:
-        for item in devices_list:
-            if item['name'] == device:
-                device_attributes = vars(item)
-                df_data.append(device_attributes)
-                break
-    elif devices_list:
-        for _device in devices_list:
-            df_data.append(vars(_device))
-
-    df = pd.DataFrame(df_data)
+    # Return the attributes for the device
+    if device:
+        device_attributes = vars(device)
+        df = pd.DataFrame([device_attributes])
+    else:
+        df = pd.DataFrame()
 
     return df
 
@@ -161,9 +163,10 @@ def netbox_get_all_device_ids(nb_url: str, token: str) -> list:
 
 def netbox_get_device_interfaces(nb_url: str,
                                  token: str,
-                                 device_id: str) -> dict:
+                                 device_id: str = None,
+                                 device_name: str = None) -> dict:
     """
-    Retrieves all the interfaces for a device by its device ID.
+    Retrieves all the interfaces for a device by its device ID or device name.
 
     Parameters
     ----------
@@ -173,6 +176,8 @@ def netbox_get_device_interfaces(nb_url: str,
         The API token for the NetBox instance.
     device_id : str
         The ID of the device for which to retrieve the interfaces.
+    device_name : str
+        The name of the device for which to retrieve the interfaces.
 
     Returns
     -------
@@ -181,7 +186,12 @@ def netbox_get_device_interfaces(nb_url: str,
         the interface details.
     """
     nb = pynetbox.api(url=nb_url, token=token)
-    device_interfaces = nb.dcim.interfaces.filter(device_id=device_id)
+
+    # Use device ID or device name based on what's provided
+    filter_param = {'device_id': device_id} if device_id \
+        else {'device': device_name}
+
+    device_interfaces = nb.dcim.interfaces.filter(**filter_param)
 
     interfaces_dict = {}
 
