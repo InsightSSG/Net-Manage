@@ -12,6 +12,13 @@ Net-Manage is a Python-based project that serves as a framework for other applic
 
 Here's a quick guide to get you started:
 
+1. **Install Git and build-essentials**
+
+```sudo apt update
+sudo apt upgrade
+sudo apt install git build-essentials
+```
+
 1. **Clone the repository**
 
     Using git, you can clone the repository to your local machine:
@@ -20,7 +27,7 @@ Here's a quick guide to get you started:
     git clone https://github.com/InsightSSG/Net-Manage.git
     ```
 
-2. **Create a Python virtual environment**
+1. **Create a Python virtual environment**
 
     Navigate to the project folder and create a new virtual environment. You can do this with either `venv` or `miniconda`.
 
@@ -36,7 +43,7 @@ Here's a quick guide to get you started:
     conda create --name myenv
     ```
 
-3. **Activate the virtual environment**
+1. **Activate the virtual environment**
 
     - For `venv`, use the following command:
 
@@ -50,7 +57,7 @@ Here's a quick guide to get you started:
     conda activate myenv
     ```
 
-4. **Install the requirements**
+1. **Install the requirements**
 
     The required Python libraries can be installed using pip:
 
@@ -58,7 +65,7 @@ Here's a quick guide to get you started:
     pip install -r requirements.txt
     ```
 
-5. **Run Jupyter Lab**
+1. **Run Jupyter Lab**
 
     Start Jupyter Lab using the following command:
 
@@ -66,7 +73,7 @@ Here's a quick guide to get you started:
     jupyter-lab
     ```
 
-6. **Open Net-Manage.ipynb**
+1. **Open Net-Manage.ipynb**
 
     In the Jupyter Lab interface, navigate to the location of `Net-Manage.ipynb` file and click to open it.
 
