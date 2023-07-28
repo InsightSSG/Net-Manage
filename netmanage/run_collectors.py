@@ -502,6 +502,14 @@ def collect(ansible_os: str,
                                                       meraki_networks,
                                                       timestamp)
 
+    if collector == 'security_rules':
+        if ansible_os == 'paloaltonetworks.panos':
+            result = pac.get_security_rules(palo_alto_username,
+                                            palo_alto_password,
+                                            hostgroup,
+                                            netmanage_path,
+                                            private_data_dir)
+                 
     if collector == 'netbox_get_ipam_prefixes':
         result = nbc.netbox_get_ipam_prefixes(netbox_url, netbox_token)
 
