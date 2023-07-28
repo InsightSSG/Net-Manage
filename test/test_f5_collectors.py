@@ -324,7 +324,6 @@ def main():
     host_group = os.environ.get('HOST_GROUP')
     nm_path = os.environ.get('NM_PATH')
     play_path = os.environ.get('PLAY_PATH')
-    print('nm_path:', nm_path, 'play_path:', play_path)
     private_data_dir = os.environ.get('PRIVATE_DATA_DIR')
 
     # Execute tests
