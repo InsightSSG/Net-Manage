@@ -1,14 +1,10 @@
 #!/usr/bin/env python3
 
 import os
-import sys
-
-
-# Change to the Net-Manage repository so imports will work
-nm_path = os.environ.get('NM_PATH')
-os.chdir(f'{nm_path}/test')
-sys.path.append('..')
+from dotenv import load_dotenv
 from netmanage.collectors import cisco_ios_collectors as collectors  # noqa
+
+load_dotenv()
 
 
 def test_get_arp_table(username,
@@ -109,7 +105,7 @@ def main():
     host_group_all = os.environ.get('IOS_HOST_GROUP_ALL')
     host_group_l2 = os.environ.get('IOS_L2_HOST_GROUP')
     # host_group_l3 = os.environ.get('IOS_L3_HOST_GROUP')
-    # nm_path = os.environ.get('NM_PATH')
+    nm_path = os.environ.get('NM_PATH')
     play_path = os.environ.get('PLAY_PATH')
     private_data_dir = os.environ.get('PRIVATE_DATA_DIR')
 
