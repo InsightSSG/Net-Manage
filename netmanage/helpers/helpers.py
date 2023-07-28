@@ -538,7 +538,7 @@ def define_collectors(hostgroup: str) -> Dict[str, Any]:
                   'all_interfaces': ['paloaltonetworks.panos'],
                   'logical_interfaces': ['paloaltonetworks.panos'],
                   'physical_interfaces': ['paloaltonetworks.panos'],
-                  'get_security_rules': ['paloaltonetworks.panos'],
+                  'security_rules': ['paloaltonetworks.panos'],
                   'port_channel_data': ['cisco.nxos.nxos'],
                   'vpc_state': ['cisco.nxos.nxos'],
                   'vrfs': ['cisco.ios.ios', 'cisco.nxos.nxos']}
