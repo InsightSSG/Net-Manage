@@ -509,7 +509,7 @@ def collect(ansible_os: str,
                                             hostgroup,
                                             netmanage_path,
                                             private_data_dir)
-                 
+
     if collector == 'netbox_get_ipam_prefixes':
         result = nbc.netbox_get_ipam_prefixes(netbox_url, netbox_token)
 
