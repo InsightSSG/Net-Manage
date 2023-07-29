@@ -8,7 +8,7 @@ It primarily focuses on collecting data and integrating disparate systems. It is
 
 1. Ubuntu 20.04
 2. Python 3.8 - 3.10
-3. build-essentials
+3. build-essential
 
 ## Quick Start
 
@@ -18,7 +18,7 @@ Here's a quick guide to get you started:
 
 ```sudo apt update
 sudo apt upgrade
-sudo apt install git build-essentials
+sudo apt install git build-essential -y
 ```
 
 1. **Clone the repository**
