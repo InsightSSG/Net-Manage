@@ -1,18 +1,16 @@
 import netmanage.netbox_collectors as nbc
-from typing import Optional
+from typing import Optional, Dict, Any
 from pynetbox import api, RequestError
 
 
-def update_prefix(
-    token: str,
-    url: str,
-    _id: int,
-    prefix: Optional[str] = None,
-    description: Optional[str] = None,
-    site: Optional[str] = None,
-    tenant: Optional[str] = None,
-    vrf: Optional[str] = None,
-    ):
+def update_prefix(token: str,
+                  url: str,
+                  _id: int,
+                  prefix: Optional[str] = None,
+                  description: Optional[str] = None,
+                  site: Optional[str] = None,
+                  tenant: Optional[str] = None,
+                  vrf: Optional[str] = None):
     """
     Add a new prefix to Netbox IPAM.
 
@@ -56,7 +54,8 @@ def update_prefix(
     """
 
     if not _id:
-        raise TypeError("The netbox id of the object being updated must be included")
+        raise TypeError(
+            "The netbox id of the object being updated must be included")
 
     nb = api(url, token=token)
 
@@ -90,29 +89,31 @@ def update_prefix(
     except RequestError as e:
         print(f"[{_id}]: {str(e)}")
 
-def update_site(token: str,
-             url: str,
-             _id: int,
-             name: Optional[str] = None,
-             slug: Optional[str] = None,
-             status: Optional[str] = None,
-             latitude: Optional[float] = None,
-             longitude: Optional[float] = None,
-             physical_address: Optional[str] = None,
-             shipping_address: Optional[str] = None,
-             tenant_id: Optional[str] = None,
-             tenant_name: Optional[str] = None,
-             timezone: Optional[str] = None,
-             meraki_organization_id: Optional[int] = None,
-             meraki_network_id: Optional[str] = None,
-             meraki_product_types: Optional[str] = None,
-             meraki_tags: Optional[str] = None,
-             meraki_enrollement_string: Optional[str] = None,
-             meraki_configTemplateId: Optional[str] = None,
-             meraki_isBoundToConfigTemplate: Optional[bool] = None,
-             meraki_notes: Optional[str] = None,
-             meraki_site_url: Optional[str] = None,
-             ) -> Dict[str, Any]:
+
+def update_site(
+    token: str,
+    url: str,
+    _id: int,
+    name: Optional[str] = None,
+    slug: Optional[str] = None,
+    status: Optional[str] = None,
+    latitude: Optional[float] = None,
+    longitude: Optional[float] = None,
+    physical_address: Optional[str] = None,
+    shipping_address: Optional[str] = None,
+    tenant_id: Optional[str] = None,
+    tenant_name: Optional[str] = None,
+    timezone: Optional[str] = None,
+    meraki_organization_id: Optional[int] = None,
+    meraki_network_id: Optional[str] = None,
+    meraki_product_types: Optional[str] = None,
+    meraki_tags: Optional[str] = None,
+    meraki_enrollement_string: Optional[str] = None,
+    meraki_configTemplateId: Optional[str] = None,
+    meraki_isBoundToConfigTemplate: Optional[bool] = None,
+    meraki_notes: Optional[str] = None,
+    meraki_site_url: Optional[str] = None,
+) -> Dict[str, Any]:
     """
     Create a new site in Netbox with custom Meraki fields.
 
@@ -174,13 +175,11 @@ def update_site(token: str,
     # Initialize pynetbox API and site payload
 
     if not _id:
-        raise TypeError("The netbox id of the object being updated must be included")
+        raise TypeError(
+            "The netbox id of the object being updated must be included")
 
-    api = api(url=url, token=token)
-    site = {"id": _id,
-        "name": name,
-            "slug": slug,
-            "status": status}
+    nb = api(url=url, token=token)
+    site = {"id": _id, "name": name, "slug": slug, "status": status}
 
     # Check which optional fields are passed and add them to the site payload
     # as appropriate.
@@ -217,14 +216,16 @@ def update_site(token: str,
     if meraki_tags:
         site["custom_fields__meraki_tags"] = meraki_tags
     if meraki_enrollement_string:
-        site["custom_fields__meraki_enrollment_string"] = \
-            meraki_enrollement_string
+        site[
+            "custom_fields__meraki_enrollment_string"
+            ] = meraki_enrollement_string
     if meraki_configTemplateId:
-        site["custom_fields__meraki_configTemplateId"] = \
-            meraki_configTemplateId
+        site[
+            "custom_fields__meraki_configTemplateId"] = meraki_configTemplateId
     if meraki_isBoundToConfigTemplate is not None:
-        site["custom_fields__meraki_isBoundToConfigTemplate"] = \
-            meraki_isBoundToConfigTemplate
+        site[
+            "custom_fields__meraki_isBoundToConfigTemplate"
+            ] = meraki_isBoundToConfigTemplate
     if meraki_notes:
         site["custom_fields__meraki_notes"] = meraki_notes
     if meraki_site_url:
@@ -232,6 +233,6 @@ def update_site(token: str,
 
     # Send the API request to add the site and return the response
     try:
-        return api.dcim.sites.update(site)
+        return nb.dcim.sites.update(site)
     except RequestError as e:
         print(f"[{_id}]: {str(e)}")
