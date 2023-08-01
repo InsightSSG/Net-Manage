@@ -12,7 +12,7 @@ def update_prefix(
     site: Optional[str] = None,
     tenant: Optional[str] = None,
     vrf: Optional[str] = None,
-):
+    ):
     """
     Add a new prefix to Netbox IPAM.
 
@@ -88,14 +88,14 @@ def update_prefix(
     try:
         nb.ipam.prefixes.update(data)
     except RequestError as e:
-        print(f"[{prefix}]: {str(e)}")
+        print(f"[{_id}]: {str(e)}")
 
 def update_site(token: str,
              url: str,
              _id: int,
-             name: str,
-             slug: str,
-             status: str,
+             name: Optional[str] = None,
+             slug: Optional[str] = None,
+             status: Optional[str] = None,
              latitude: Optional[float] = None,
              longitude: Optional[float] = None,
              physical_address: Optional[str] = None,
@@ -118,53 +118,53 @@ def update_site(token: str,
 
     Parameters
     ----------
-    token : str
+    token: str
         API token for authentication.
-    url : str
+    url: str
         Url of Netbox instance.
     _id: int
         The netbox id of the object being updated must be included
-    name (str):
+    name: Optional[str], Default None
         The name of the site.
-    slug (str):
+    slug: Optional[str], Default None
         The slug for the site.
-    status (str):
+    status: Optional[str], Default None
         The status of the site. Valid statuses are 'planned', 'staging',
         'active', 'decommissioning', 'retired'.
-    latitude (float, optional):
+    latitude: (float, optional), Default None
         The latitude of the site. Defaults to None.
-    longitude (float, optional):
+    longitude: (float, optional), Default None
         The longitude of the site. Defaults to None.
-    physical_address (str, optional):
+    physical_address: Optional[str], Default None
         The physical address for the site. Defaults to None.
-    shipping_address (str, optional):
+    shipping_address: Optional[str], Default None
         The shipping address for the site. Defaults to None.
-    tenant_id (str, optional):
+    tenant_id: Optional[str], Default None
         The numeric ID of the tenant. Defaults to None.
-    tenant_name (str, optional):
+    tenant_name: Optional[str], Default None
         The name of the tenant. Defaults to None.
-    timezone (str, optional):
+    timezone: Optional[str], Default None
         The time zone for the site. Valid options are found here:
         https://en.wikipedia.org/wiki/List_of_tz_database_time_zones.
-    meraki_organization_id (int, optional):
+    meraki_organization_id: (int, optional), Default None
         The Meraki organization ID associated with the site. Defaults to None.
-    meraki_network_id (str, optional):
+    meraki_network_id: Optional[str], Default None
         The Meraki network ID associated with the site. Defaults to None.
-    meraki_product_types (str, optional):
+    meraki_product_types: Optional[str], Default None
         The Meraki product types for the site. Defaults to None.
-    meraki_tags (str, optional):
+    meraki_tags: Optional[str], Default None
         The Meraki tags for the site. Defaults to None.
-    meraki_enrollement_string (str, optional):
+    meraki_enrollement_string: Optional[str], Default None
         The Meraki enrollment string for the site. Defaults to None.
-    meraki_configTemplateId (str, optional):
+    meraki_configTemplateId: Optional[str], Default None
         The Meraki config template ID for the site. Defaults to None.
-    meraki_isBoundToConfigTemplate (bool, optional):
+    meraki_isBoundToConfigTemplate: (bool, optional), Default None
         Whether the site is bound to a Meraki config template. Defaults to
         None.
-    meraki_notes (str, optional):
+    meraki_notes: Optional[str], Default None
         Any notes related to the Meraki configuration for the site. Defaults
         to None.
-    meraki_site_url (str, optional):
+    meraki_site_url: Optional[str], Default None
         The URL associated with the site. Defaults to None.
 
     Returns:
@@ -231,4 +231,7 @@ def update_site(token: str,
         site["custom_fields__url"] = meraki_site_url
 
     # Send the API request to add the site and return the response
-    return api.dcim.sites.update(site)
+    try:
+        return api.dcim.sites.update(site)
+    except RequestError as e:
+        print(f"[{_id}]: {str(e)}")
