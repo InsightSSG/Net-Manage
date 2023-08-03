@@ -14,7 +14,7 @@ Here's a quick guide to get you started:
 
 1. **Install Git and build-essentials**
 
-```sudo apt update
+```sudo apt updat
 sudo apt upgrade
 sudo apt install git build-essentials
 ```
