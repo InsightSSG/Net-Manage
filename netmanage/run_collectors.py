@@ -858,4 +858,3 @@ def arg_parser(args: argparse.Namespace) -> dict:
         password,
         private_data_dir,
     )
-
