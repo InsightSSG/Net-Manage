@@ -2,7 +2,7 @@
 
 import pynetbox
 from typing import Dict, List, Optional, Any
-from collectors import netbox_collectors as nbc
+from netmanage.collectors import netbox_collectors as nbc
 
 
 from pynetbox import api

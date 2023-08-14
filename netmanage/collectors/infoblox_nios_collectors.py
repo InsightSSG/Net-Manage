@@ -2,7 +2,7 @@
 
 import ipaddress as ip
 import pandas as pd
-from helpers import helpers as hp
+from netmanage.helpers import helpers as hp
 from infoblox_client import connector
 
 

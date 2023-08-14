@@ -5,7 +5,7 @@
 """
 
 import pandas as pd
-from collectors import netbox_collectors as nbc
+from netmanage.collectors import netbox_collectors as nbc
 
 
 def get_prefix_custom_field_states(nb_path: str,

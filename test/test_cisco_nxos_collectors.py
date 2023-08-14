@@ -7,7 +7,7 @@ import sys
 nm_path = os.environ.get('NM_PATH')
 os.chdir(f'{nm_path}/test')
 sys.path.append('..')
-from collectors import cisco_nxos_collectors as collectors  # noqa
+from netmanage.collectors import cisco_nxos_collectors as collectors  # noqa
 
 
 def test_get_arp_table(username,
