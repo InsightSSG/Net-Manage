@@ -140,7 +140,12 @@ def get_network_appliance_vlans(ansible_os: str,
                                 orgs: list = [],
                                 replace_table: bool = False) -> pd.DataFrame:
     '''
-    Get the appliance VLANs for a list of networks or organizations.
+    Get the appliance VLANs for a list of networks or organizations. If
+    networks are not provided, the list of orgs will be used. If both are
+    provided, the networks will be used and the orgs will be ignored. If
+    neither are provided, the function will return all appliance VLANs for all
+    appliances in all organizations the user has access to (this could take a
+    while).
 
     Parameters
     ----------
@@ -215,36 +220,40 @@ def get_network_appliance_vlans(ansible_os: str,
                                          orgs=orgs)
     >>> print(df)
     '''
-
-    # If 'networks' and 'orgs' are empty, then gracefully exit the function.
-    if not networks and not orgs:
-        return pd.DataFrame()
-
     # If 'networks' is empty and 'orgs' is not, get all applicable networks in
     # the orgs.
-    if orgs and not networks:
-        joined_orgs = [f'"{_}"' for _ in orgs]
-        joined_orgs = ', '.join(joined_orgs)
-
-        con = sl.connect(db_path)
-
+    if not networks:
         # Get the last timestamp in the MERAKI_ORG_NETWORKS table.
         query = '''SELECT distinct timestamp
         FROM meraki_org_networks
         ORDER BY timestamp desc
         LIMIT 1
         '''
+
+        con = sl.connect(db_path)
         result = pd.read_sql(query, con)
         ts = result['timestamp'].to_list().pop()
 
-        # Get the unique network IDs for the most recent timestamp.
-        query = f'''SELECT distinct id
-        FROM meraki_org_networks
-        WHERE productTypes like "%appliance%"
-            AND timestamp = "{ts}"
-            AND organizationId IN ({joined_orgs})'''
-        result = pd.read_sql(query, con)
-        networks = result['id'].to_list()
+        if orgs:
+            joined_orgs = [f'"{_}"' for _ in orgs]
+            joined_orgs = ', '.join(joined_orgs)
+
+            # Get the unique network IDs for the most recent timestamp.
+            query = f'''SELECT distinct id
+            FROM meraki_org_networks
+            WHERE productTypes like "%appliance%"
+                AND timestamp = "{ts}"
+                AND organizationId IN ({joined_orgs})'''
+            result = pd.read_sql(query, con)
+            networks = result['id'].to_list()
+        else:
+            # Get the unique network IDs for the most recent timestamp.
+            query = f'''SELECT distinct id
+            FROM meraki_org_networks
+            WHERE productTypes like "%appliance%"
+                AND timestamp = "{ts}"'''
+            result = pd.read_sql(query, con)
+            networks = result['id'].to_list()
 
     # Get the appliance vlans for each network. Note: if 'orgs' and 'networks'
     # are both non-empty, then 'orgs' is ignored. The list of networks takes
