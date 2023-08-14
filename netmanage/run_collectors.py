@@ -856,11 +856,13 @@ def arg_parser(args: argparse.Namespace) -> tuple:
     # Set the database path
     db = f'{out_dir}/{args.database}'
 
-    return (collectors,
-            db,
-            hostgroups,
-            netmanage_path,
-            out_dir,
-            username,
-            password,
-            private_data_dir)
+    return (
+        collectors,
+        db,
+        hostgroups,
+        netmanage_path,
+        out_dir,
+        username,
+        password,
+        private_data_dir,
+    )
