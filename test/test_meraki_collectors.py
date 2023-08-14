@@ -14,7 +14,7 @@ netmanage_path = os.path.expanduser(
     os.environ['netmanage_path'].strip('/'))
 os.chdir(f'{netmanage_path}/test')
 sys.path.append('..')
-from collectors import run_collectors as rc  # noqa
+import netmanage.run_collectors as rc  # noqa
 from netmanage.collectors import meraki_collectors as mc  # noqa
 
 
