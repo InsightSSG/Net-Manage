@@ -808,7 +808,7 @@ def create_parser() -> argparse.Namespace:
     return args
 
 
-def arg_parser(args: argparse.Namespace) -> dict:
+def arg_parser(args: argparse.Namespace) -> tuple:
     '''
     Extract system args and assign variable names.
 
@@ -819,8 +819,16 @@ def arg_parser(args: argparse.Namespace) -> dict:
 
     Returns
     -------
-    vars_dict : dict
-        A dictionary containing arg variables.
+    tuple
+        A tuple containing:
+        - collectors: List of collectors
+        - db: Database path
+        - hostgroups: List of hostgroups
+        - netmanage_path: Path for netmanage
+        - out_dir: Output directory path
+        - username: Username for authentication
+        - password: Password for authentication
+        - private_data_dir: Private data directory path
     '''
     # Set the collectors
     collectors = [c.strip() for c in args.collectors.split(',')]
@@ -848,5 +856,11 @@ def arg_parser(args: argparse.Namespace) -> dict:
     # Set the database path
     db = f'{out_dir}/{args.database}'
 
-    return collectors, db, hostgroups, netmanage_path, out_dir, username, \
-        password, private_data_dir
+    return (collectors,
+            db,
+            hostgroups,
+            netmanage_path,
+            out_dir,
+            username,
+            password,
+            private_data_dir)
