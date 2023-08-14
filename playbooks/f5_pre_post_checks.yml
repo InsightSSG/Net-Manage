@@ -77,7 +77,7 @@
     - name: get number of VIPs
       f5networks.f5_modules.bigip_command:
         commands:
-          # - list ltm virtual /*/* | grep -c "ltm virtual"
+          # - list ltm virtual recursive /*/* | grep -c "ltm virtual"
           - "{{ total_vips }}"
         provider:
           user: "{{ user }}"
@@ -107,7 +107,7 @@
     - name: get number of available VIPs
       f5networks.f5_modules.bigip_command:
         commands:
-          - "{{ available_vips | default('show ltm virtual /*/* | grep Availability | grep -c available') }}"
+          - "{{ available_vips | default('show ltm virtual recursive /*/* | grep Availability | grep -c available') }}"
         provider:
           user: "{{ user }}"
           server: "{{ ansible_host }}"
@@ -135,7 +135,7 @@
     - name: get number of active pool members
       f5networks.f5_modules.bigip_command:
         commands:
-          # - show ltm pool /*/* | grep "Current Active Members"
+          # - show ltm pool recursive /*/* | grep "Current Active Members"
           - "{{ active_pool_members }}"
         provider:
           user: "{{ user }}"
@@ -196,7 +196,7 @@
     #   f5networks.f5_modules.bigip_command:
     #     commands:
     #       # - show sys mac-address | grep "mac-address"
-    #       # - "{{ get_irules | default('list ltm rule /*/*') }}"
+    #       # - "{{ get_irules | default('list ltm rule recursive /*/*') }}"
     #       - "{{ get_irules }}"
     #     provider:
     #       user: "{{ user }}"

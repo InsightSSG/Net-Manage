@@ -361,7 +361,7 @@ def get_self_ips(username: str,
     extravars = {&#39;username&#39;: username,
                  &#39;password&#39;: password,
                  &#39;host_group&#39;: host_group,
-                 &#39;command&#39;: &#39;list net self /*/*&#39;}
+                 &#39;command&#39;: &#39;list net self recursive /*/*&#39;}
 
     if not validate_certs:
         extravars[&#39;validate_certs&#39;] = &#39;no&#39;
@@ -1535,7 +1535,7 @@ def get_vlans(username: str,
     extravars = {&#39;username&#39;: username,
                  &#39;password&#39;: password,
                  &#39;host_group&#39;: host_group,
-                 &#39;command&#39;: &#39;list net vlan /*/*&#39;}
+                 &#39;command&#39;: &#39;list net vlan recursive /*/*&#39;}
 
     if not validate_certs:
         extravars[&#39;validate_certs&#39;] = &#39;no&#39;
@@ -3044,7 +3044,7 @@ can take several minutes on large ARP tables.</dd>
     extravars = {&#39;username&#39;: username,
                  &#39;password&#39;: password,
                  &#39;host_group&#39;: host_group,
-                 &#39;command&#39;: &#39;list net self /*/*&#39;}
+                 &#39;command&#39;: &#39;list net self recursive /*/*&#39;}
 
     if not validate_certs:
         extravars[&#39;validate_certs&#39;] = &#39;no&#39;
@@ -3641,7 +3641,7 @@ to False.</dd>
     extravars = {&#39;username&#39;: username,
                  &#39;password&#39;: password,
                  &#39;host_group&#39;: host_group,
-                 &#39;command&#39;: &#39;list net vlan /*/*&#39;}
+                 &#39;command&#39;: &#39;list net vlan recursive /*/*&#39;}
 
     if not validate_certs:
         extravars[&#39;validate_certs&#39;] = &#39;no&#39;

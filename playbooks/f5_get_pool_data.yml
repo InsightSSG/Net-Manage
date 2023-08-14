@@ -6,7 +6,7 @@
     - name: get F5 pool and pool member data {{host_group}}
       f5networks.f5_modules.bigip_command:
         commands:
-          - list ltm pool /*/* members | grep "{\|address" | grep -v "fqdn"
+          - list ltm pool recursive /*/* members | grep "{\|address" | grep -v "fqdn"
         provider:
           user: "{{ username }}"
           server: "{{ ansible_host }}"
