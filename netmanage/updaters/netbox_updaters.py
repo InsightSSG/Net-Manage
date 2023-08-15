@@ -73,7 +73,7 @@ def update_prefix(
     vrf: Optional[str] = None,
 ):
     """
-    Add a new prefix to Netbox IPAM.
+    Update a prefix in Netbox IPAM.
 
     Parameters
     ----------
@@ -186,7 +186,7 @@ def update_device(
     comments: str = str(),
 ) -> None:
     """
-    Add a new device to NetBox.
+    Update a device in NetBox.
 
     Parameters
     ----------
@@ -329,7 +329,7 @@ def update_device(
     # Remove any keys that do not have values.
     device = {k: v for k, v in device.items() if v}
 
-    # Add the device to NetBox
+    # Update the device in NetBox
     try:
         nb.dcim.devices.update(device)
     except Exception as e:
@@ -419,7 +419,7 @@ def update_device_type(
     tags: List[str] = list(),
 ):
     """
-    Add a device type to NetBox.
+    Update a device type in NetBox.
 
     Parameters
     ----------
@@ -491,7 +491,7 @@ def update_device_type(
         print(f"[{_id}]: {str(e)}")
 
 
-def add_vrf(
+def update_vrf(
     token: str,
     url: str,
     _id: int,
@@ -501,7 +501,7 @@ def add_vrf(
     enforce_unique: Optional[bool] = True,
 ):
     """
-    Add a new VRF to Netbox.
+    Update a VRF in Netbox.
 
     Parameters
     ----------
@@ -584,7 +584,7 @@ def update_site(
     meraki_site_url: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
-    Create a new site in Netbox with custom Meraki fields.
+    Update a site in Netbox with custom Meraki fields.
 
     Parameters
     ----------
