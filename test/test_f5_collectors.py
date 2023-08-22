@@ -54,7 +54,8 @@ def test_get_self_ips(username,
                                  validate_certs=False)
 
     expected = ['device', 'address', 'allow-service',
-                'traffic-group', 'vlan', 'name']
+                'traffic-group', 'vlan', 'name',
+                'subnet', 'network_ip', 'broadcast_ip']
 
     assert df.columns.to_list() == expected
 
