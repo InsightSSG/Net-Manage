@@ -21,7 +21,7 @@ def gather_facts(runner: dict) -> dict:
         is the requested facts.
     """
 
-    if runner is None or len(list(runner)) == 0:
+    if runner is None or runner.events is None:
         raise ValueError('The input is None or empty')
 
     # Parse the output, store it in 'facts', and return it
@@ -79,6 +79,9 @@ def get_vrfs(runner: dict) -> pd.DataFrame:
         A DataFrame containing VRF information, with columns ["device", "name",
         "vrf_id", "default_rd", "default_vpn_id"].
     """
+
+    if runner is None or runner.events is None:
+        raise ValueError('The input is None or empty')
 
     # Parse the output, create the DataFrame and return it.
     data = []
@@ -385,48 +388,22 @@ def ios_get_cam_table(username: str,
     return df_cam
 
 
-def ios_get_cdp_neighbors(username: str,
-                          password: str,
-                          host_group: str,
-                          play_path: str,
-                          private_data_dir: str,
-                          interface: str = '') -> pd.DataFrame:
+def ios_get_cdp_neighbors(runner: dict) -> pd.DataFrame:
     '''
     Get the CDP neighbors for a Cisco IOS device.
 
     Parameters
     ----------
-    username : str
-        The username to login to devices.
-    password : str
-        The password to login to devices.
-    host_group : str
-        The inventory host group.
-    play_path : str
-        The path to the playbooks directory.
-    private_data_dir : str
-        The path to the Ansible private data directory.
-    interface : str, optional
-        The interface to get the neighbor entry for. If not specified, it will
-        get all neighbors.
+    runner : dict
+        An Ansible runner genrator
 
     Returns
     -------
     df_cdp : pd.DataFrame
         A DataFrame containing the CDP neighbors.
     '''
-    cmd = 'show cdp neighbor detail | include Device ID|Interface'
-    extravars = {'username': username,
-                 'password': password,
-                 'host_group': host_group,
-                 'commands': cmd}
-
-    # Execute the command
-    playbook = f'{play_path}/cisco_ios_run_commands.yml'
-    runner = ansible_runner.run(private_data_dir=private_data_dir,
-                                playbook=playbook,
-                                extravars=extravars,
-                                suppress_env_files=True)
+    if runner is None or runner.events is None:
+        raise ValueError('The input is None or empty')
 
     # Parse the results
     cdp_data = list()
@@ -517,47 +494,23 @@ def ios_get_interface_descriptions(username: str,
     return df_desc
 
 
-def ios_get_interface_ips(username: str,
-                          password: str,
-                          host_group: str,
-                          play_path: str,
-                          private_data_dir: str) -> pd.DataFrame:
+def ios_get_interface_ips(runner: dict) -> pd.DataFrame:
     '''
     Get the IP addresses assigned to interfaces.
 
     Parameters
     ----------
-    username : str
-        The username to login to devices.
-    password : str
-        The password to login to devices.
-    host_group : str
-        The inventory host group.
-    play_path : str
-        The path to the playbooks directory.
-    private_data_dir : str
-        The path to the Ansible private data directory.
+    runner : dict
+        An Ansible runner genrator
 
     Returns
     -------
     df : pd.DataFrame
         A DataFrame containing the interfaces and IP addresses.
     '''
-    cmd = ['show ip interface',
-           '|',
-           'include line protocol|Internet address is|VPN Routing']
-    cmd = ' '.join(cmd)
-    extravars = {'username': username,
-                 'password': password,
-                 'host_group': host_group,
-                 'commands': cmd}
 
-    # Execute the command
-    playbook = f'{play_path}/cisco_ios_run_commands.yml'
-    runner = ansible_runner.run(private_data_dir=private_data_dir,
-                                playbook=playbook,
-                                extravars=extravars,
-                                suppress_env_files=True)
+    if runner is None or runner.events is None:
+        raise ValueError('The input is None or empty')
 
     # Parse the results
     df_data = list()

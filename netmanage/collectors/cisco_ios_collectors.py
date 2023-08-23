@@ -4,7 +4,7 @@ import ansible_runner
 import pandas as pd
 
 from netmanage.helpers import helpers as hp
-from netmanage import cisco_ios_parsers as parser
+from netmanage.parsers import cisco_ios_parsers as parser
 
 def gather_facts(username: str,
                  password: str,
@@ -492,28 +492,7 @@ def ios_get_cdp_neighbors(username: str,
                                 extravars=extravars,
                                 suppress_env_files=True)
 
-    # Parse the results
-    cdp_data = list()
-    for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
-
-            device = event_data['remote_addr']
-
-            output = event_data['res']['stdout'][0].split('\n')
-            pos = 1  # Used to account for multiple connections to same device
-            for line in output:
-                if 'Device ID' in line:
-                    remote_device = line.split('(')[0].split()[2].split('.')[0]
-                    local_inf = output[pos].split()[1].strip(',')
-                    remote_inf = output[pos].split()[-1]
-                    row = [device, local_inf, remote_device, remote_inf]
-                    cdp_data.append(row)
-                pos += 1
-    # Create a dataframe from cdp_data and return the results
-    cols = ['Device', 'Local Inf', 'Neighbor', 'Remote Inf']
-    df_cdp = pd.DataFrame(data=cdp_data, columns=cols)
-    return df_cdp
+    return parser.ios_get_cdp_neighbors(runner)
 
 
 def ios_get_interface_descriptions(username: str,
@@ -623,43 +602,7 @@ def ios_get_interface_ips(username: str,
                                 extravars=extravars,
                                 suppress_env_files=True)
 
-    # Parse the results
-    df_data = list()
-    for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
-
-            device = event_data['remote_addr']
-
-            output = event_data['res']['stdout'][0].split('\n')
-            output.reverse()  # Reverse the output to make it easier to iterate
-            counter = 0
-            for line in output:
-                if 'Internet address' in line:
-                    pos = counter
-                    if 'VPN Routing/Forwarding' in output[pos-1]:
-                        vrf = output[pos-1].split()[-1].strip('"')
-                    else:
-                        vrf = 'None'
-                    ip = line.split()[-1]
-                    inf = output[pos+1].split()[0]
-                    row = [device, inf, ip, vrf]
-                    df_data.append(row)
-                counter += 1
-
-    # Create a dataframe from df_data and return it
-    df_data.reverse()
-    cols = ['device', 'interface', 'ip', 'vrf']
-    df = pd.DataFrame(data=df_data, columns=cols)
-
-    # Add the subnets, network IPs, and broadcast IPs.
-    addresses = df['ip'].to_list()
-    result = hp.generate_subnet_details(addresses)
-    df['subnet'] = result['subnet']
-    df['network_ip'] = result['network_ip']
-    df['broadcast_ip'] = result['broadcast_ip']
-
-    return df
+    return parser.ios_get_interface_ips(runner)
 
 
 def ios_get_vlan_db(username: str,
