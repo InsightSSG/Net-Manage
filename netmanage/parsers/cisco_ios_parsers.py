@@ -22,7 +22,7 @@ def gather_facts(runner: dict) -> dict:
     """
 
     if runner is None or len(list(runner)) == 0:
-        raise ValueError('Incorrect state. Choose "merged" or "replaced".')
+        raise ValueError('The input is None or empty')
 
     # Parse the output, store it in 'facts', and return it
     facts = dict()
@@ -39,38 +39,22 @@ def gather_facts(runner: dict) -> dict:
     return facts
 
 
-def get_config(username: str,
-               password: str,
-               host_group: str,
-               play_path: str,
-               private_data_dir: str) -> pd.DataFrame:
+def get_config(facts: dict) -> pd.DataFrame:
     """Gets the config on Cisco IOS devices.
 
     Parameters
     ----------
-    username : str
-        The username to use for authentication.
-    password : str
-        The password to use for authentication.
-    host_group : str
-        The host group for which to gather configs.
-    play_path : str
-        The path to playbooks in Ansible.
-    private_data_dir : str
-        The path to private data directories in Ansible.
+    facts : dict
+        A dictionary where each key is a device in the host_group and the value
+        is the requested facts.
 
     Returns
     -------
     df : pandas.DataFrame
         A DataFrame containing the device configurations.
     """
-    gather_info = {'subset': ['config']}
-    facts = gather_facts(username,
-                         password,
-                         host_group,
-                         play_path,
-                         private_data_dir,
-                         gather_info)
+    if facts is None or len(list(facts)) == 0:
+        raise ValueError('The input is None or empty')
 
     configs = dict()
     for key, value in facts.items():
@@ -81,25 +65,13 @@ def get_config(username: str,
     return df
 
 
-def get_vrfs(username: str,
-             password: str,
-             host_group: str,
-             play_path: str,
-             private_data_dir: str) -> pd.DataFrame:
+def get_vrfs(runner: dict) -> pd.DataFrame:
     """Retrieve VRF information and return it as a DataFrame.
 
     Parameters
     ----------
-    username : str
-        The username to use for authentication.
-    password : str
-        The password to use for authentication.
-    host_group : str
-        The host group to query for VRF information.
-    play_path : str
-        The path to playbooks in Ansible.
-    private_data_dir : str
-        The path to private data directories in Ansible.
+    runner : dict
+        An Ansible runner genrator
 
     Returns
     -------
@@ -107,18 +79,6 @@ def get_vrfs(username: str,
         A DataFrame containing VRF information, with columns ["device", "name",
         "vrf_id", "default_rd", "default_vpn_id"].
     """
-    cmd = 'show vrf detail | include VRF Id'
-    extravars = {'username': username,
-                 'password': password,
-                 'host_group': host_group,
-                 'commands': cmd}
-
-    # Execute the pre-checks
-    playbook = f'{play_path}/cisco_ios_run_commands.yml'
-    runner = ansible_runner.run(private_data_dir=private_data_dir,
-                                playbook=playbook,
-                                extravars=extravars,
-                                suppress_env_files=True)
 
     # Parse the output, create the DataFrame and return it.
     data = []

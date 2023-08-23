@@ -136,13 +136,7 @@ def get_config(username: str,
                          private_data_dir,
                          gather_info)
 
-    configs = dict()
-    for key, value in facts.items():
-        configs[key] = value['ansible_net_config']
-
-    df = pd.DataFrame(list(configs.items()), columns=['device', 'config'])
-
-    return df
+    return parser.get_config(facts)
 
 
 def get_vrfs(username: str,
@@ -184,41 +178,7 @@ def get_vrfs(username: str,
                                 extravars=extravars,
                                 suppress_env_files=True)
 
-    # Parse the output, create the DataFrame and return it.
-    data = []
-
-    for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
-
-            device = event_data['remote_addr']
-
-            output = event_data['res']['stdout'][0]
-            for line in output.strip().split("\n"):
-                # Split each line into its name, vrf_id, default_rd, and
-                # default_vpn_id components
-                name_start = line.find("VRF ") + len("VRF ")
-                name_end = line.find(" (VRF Id =")
-                name = line[name_start:name_end].strip()
-
-                vrf_id_start = line.find("VRF Id = ") + len("VRF Id = ")
-                vrf_id_end = line.find(");")
-                vrf_id = line[vrf_id_start:vrf_id_end].strip()
-
-                default_rd = "not set" if "<not set>" in line else None
-                default_vpn_id = "not set" if "<not set>" in line else None
-
-                data.append([device, name, vrf_id, default_rd, default_vpn_id])
-
-    # Convert the data to a DataFrame with the appropriate columns
-    df = pd.DataFrame(
-        data, columns=["device",
-                       "name",
-                       "vrf_id",
-                       "default_rd",
-                       "default_vpn_id"])
-
-    return df
+    return parser.get_vrfs(runner)
 
 
 def ios_find_uplink_by_ip(username: str,
