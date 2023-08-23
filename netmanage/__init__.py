@@ -9,6 +9,7 @@ from netmanage.collectors import meraki_collectors  # noqa
 from netmanage.collectors import netbox_collectors  # noqa
 from netmanage.collectors import palo_alto_collectors  # noqa
 from netmanage.collectors import solarwinds_collectors  # noqa
+from netmanage.parsers import cisco_ios_parsers  # noqa
 from netmanage.setup import select_hostgroups  # noqa
 from netmanage.writers import cisco_nxos_writers  # noqa
 from netmanage.writers import netbox_writers  # noqa
@@ -20,6 +21,7 @@ __all__ = [
     "select_hostgroups",
     "cisco_asa_collectors",
     "cisco_ios_collectors",
+    "cisco_ios_parsers",
     "cisco_nxos_collectors",
     "collectors",
     "dnac_collectors",

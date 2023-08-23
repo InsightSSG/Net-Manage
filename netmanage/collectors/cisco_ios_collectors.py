@@ -4,7 +4,7 @@ import ansible_runner
 import pandas as pd
 
 from netmanage.helpers import helpers as hp
-
+from netmanage import cisco_ios_parsers as parser
 
 def gather_facts(username: str,
                  password: str,
@@ -100,19 +100,7 @@ def gather_facts(username: str,
                                 extravars=extravars,
                                 suppress_env_files=True)
 
-    # Parse the output, store it in 'facts', and return it
-    facts = dict()
-
-    for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
-
-            device = event_data['remote_addr']
-            output = event_data['res']['ansible_facts']
-
-            facts[device] = output
-
-    return facts
+    return parser.gather_facts(runner)
 
 
 def get_config(username: str,
