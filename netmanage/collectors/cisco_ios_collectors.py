@@ -249,37 +249,8 @@ def ios_find_uplink_by_ip(username: str,
                                    play_path,
                                    private_data_dir)
 
-    # Remove the sub-interfaces from df_ip
-    local_infs = df_ip['Interface'].to_list()
-    local_infs = [inf.split('.')[0] for inf in local_infs]
-    df_ip['Interface'] = local_infs
-
-    # Attempt to find the neighbors for the interfaces that have IPs
-    df_data = list()
-
-    for idx, row in df_ip.iterrows():
-        device = row['Device']
-        inf = row['Interface']
-        neighbor_row = df_cdp.loc[(df_cdp['Device'] == device) &
-                                  (df_cdp['Local Inf'] == inf)]
-        remote_device = list(neighbor_row['Neighbor'].values)
-        if remote_device:
-            remote_device = remote_device[0]
-            remote_inf = list(neighbor_row['Remote Inf'].values)[0]
-        else:
-            remote_device = 'unknown'
-            remote_inf = 'unknown'
-        mgmt_ip = row['IP']
-        df_data.append([device, mgmt_ip, inf, remote_device, remote_inf])
-    # Create a DataFrame and return it
-    cols = ['Device',
-            'IP',
-            'Local Interface',
-            'Remote Device',
-            'Remote Interface']
-    df_combined = pd.DataFrame(data=df_data, columns=cols)
-
-    return df_combined
+    # Parse results into df
+    return parser.ios_find_uplink_by_ip(df_ip, df_cdp)
 
 
 def ios_get_arp_table(username: str,
@@ -324,42 +295,8 @@ def ios_get_arp_table(username: str,
                                 extravars=extravars,
                                 suppress_env_files=True)
 
-    # Create the column headers. I do not like to hard code these, but they
-    # should be modified from Cisco's format before being stored in a
-    # database. I suppose it is not strictly necessary to do so, but
-    # "Age (min)" and "Hardware Addr" do not make for good column headers.
-    columns = ['device',
-               'protocol',
-               'address',
-               'age',
-               'mac',
-               'inf_type',
-               'interface']
-
-    # Parse the output and add it to 'data'
-    df_data = list()
-    for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
-
-            device = event_data['remote_addr']
-
-            output = event_data['res']['stdout'][0].split('\n')
-
-            for line in output[1:]:
-                row = [device] + line.split()
-                df_data.append(row)
-
-    # Create the DataFrame
-    df_arp = pd.DataFrame(data=df_data, columns=columns)
-
-    # Get the vendor OUIs
-    df_vendors = hp.find_mac_vendors(df_arp['mac'], nm_path)
-
-    # Add the vendor OUIs to df_cam as a column, and return the dataframe.
-    df_arp['vendor'] = df_vendors['vendor']
-
-    return df_arp
+    # Parse results into df
+    return parser.ios_get_arp_table(runner)
 
 
 def ios_get_cam_table(username: str,
@@ -410,43 +347,8 @@ def ios_get_cam_table(username: str,
                                 extravars=extravars,
                                 suppress_env_files=True)
 
-    # Create the column headers. I do not like to hard code these, but they
-    # should be modified from Cisco's format before being stored in a
-    # database. I suppose it is not strictly necessary to do so, but
-    # "Mac Address" and "Type" do not make good column headers.
-    columns = ['device',
-               'vlan',
-               'mac',
-               'inf_type',
-               'ports']
-
-    # Parse the output and add it to 'data'
-    df_data = list()
-    for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
-
-            device = event_data['remote_addr']
-
-            output = event_data['res']['stdout'][0].split('\n')
-            # columns = list(filter(None, output[0].split('  ')))
-            # columns.insert(0, 'device')
-            # columns = [_.strip() for _ in columns]
-
-            for line in output[2:-1]:
-                row = [device] + line.split()
-                df_data.append(row)
-
-    # Create the DataFrame
-    df_cam = pd.DataFrame(data=df_data, columns=columns)
-
-    # Get the vendor OUIs
-    df_vendors = hp.find_mac_vendors(df_cam['mac'], nm_path)
-
-    # Add the vendor OUIs to df_cam as a column, and return the dataframe.
-    df_cam['vendor'] = df_vendors['vendor']
-
-    return df_cam
+    # Parse results into df
+    return parser.ios_get_cam_table(runner)
 
 
 def ios_get_cdp_neighbors(username: str,
@@ -492,6 +394,7 @@ def ios_get_cdp_neighbors(username: str,
                                 extravars=extravars,
                                 suppress_env_files=True)
 
+    # Parse results into df
     return parser.ios_get_cdp_neighbors(runner)
 
 
@@ -537,27 +440,9 @@ def ios_get_interface_descriptions(username: str,
                                 playbook=playbook,
                                 extravars=extravars,
                                 suppress_env_files=True)
-    # Create a list to store the rows for the dataframe
-    df_data = list()
-    for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
 
-            device = event_data['remote_addr']
-
-            output = event_data['res']['stdout'][0].split('\n')
-            # Get the position of the 'Description' column (we cannot split by
-            # spaces because some interface descriptions have spaces in them).
-            pos = output[0].index('Description')
-            for line in output[1:]:
-                inf = line.split()[0]
-                desc = line[pos:]
-                df_data.append([device, inf, desc])
-
-    # Create the dataframe and return it
-    cols = ['device', 'interface', 'description']
-    df_desc = pd.DataFrame(data=df_data, columns=cols)
-    return df_desc
+    # Parse results into df
+    return parser.ios_get_interface_descriptions(runner)
 
 
 def ios_get_interface_ips(username: str,
@@ -602,6 +487,7 @@ def ios_get_interface_ips(username: str,
                                 extravars=extravars,
                                 suppress_env_files=True)
 
+    # Parse results into df
     return parser.ios_get_interface_ips(runner)
 
 
@@ -644,28 +530,6 @@ def ios_get_vlan_db(username: str,
                                 playbook=playbook,
                                 extravars=extravars,
                                 suppress_env_files=True)
-    # Create a dictionary to store the rows for the dataframe
-    df_data = list()
-    for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
-
-            device = event_data['remote_addr']
-
-            output = event_data['res']['stdout'][0].split('\n')
-
-            # Create the column headers
-            cols = ['device'] + output[0].split()[:3]
-            cols = [_.lower() for _ in cols]
-
-            # Removed wrapped interfaces
-            output = [_ for _ in output[1:] if _[0] != ' ']
-
-            # Add the VLANs to 'df_data'
-            for line in output:
-                row = [device] + line.split()[:3]
-                df_data.append(row)
-
-    # Create the dataframe and return it
-    df = pd.DataFrame(data=df_data, columns=cols)
-    return df
+    
+    # Parse results into df
+    return parser.ios_get_vlan_db(runner)
