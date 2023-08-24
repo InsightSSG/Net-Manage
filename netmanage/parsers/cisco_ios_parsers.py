@@ -21,17 +21,17 @@ def parse_facts(runner: dict) -> dict:
     """
 
     if runner is None or runner.events is None:
-        raise ValueError('The input is None or empty')
+        raise ValueError("The input is None or empty")
 
     # Parse the output, store it in 'facts', and return it
     facts = dict()
 
     for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
+        if event["event"] == "runner_on_ok":
+            event_data = event["event_data"]
 
-            device = event_data['remote_addr']
-            output = event_data['res']['ansible_facts']
+            device = event_data["remote_addr"]
+            output = event_data["res"]["ansible_facts"]
 
             facts[device] = output
 
@@ -54,20 +54,20 @@ def parse_bgp_neighbor_summary(runner: dict) -> pd.DataFrame:
     """
 
     if runner is None or runner.events is None:
-        raise ValueError('The input is None or empty')
+        raise ValueError("The input is None or empty")
 
     # Create a dictionary to store the parsed output.
     df_data = dict()
-    df_data['device'] = list()
+    df_data["device"] = list()
 
     # Parse the output, create the DataFrame and return it.
     for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
+        if event["event"] == "runner_on_ok":
+            event_data = event["event_data"]
 
-            device = event_data['remote_addr']
+            device = event_data["remote_addr"]
 
-            output = event_data['res']['stdout'][0].split('\n')
+            output = event_data["res"]["stdout"][0].split("\n")
 
             # Add the column headers to df_data as keys.
             headers = output[0].split()
@@ -106,13 +106,13 @@ def parse_config(facts: dict) -> pd.DataFrame:
         A DataFrame containing the device configurations.
     """
     if facts is None or len(list(facts)) == 0:
-        raise ValueError('The input is None or empty')
+        raise ValueError("The input is None or empty")
 
     configs = dict()
     for key, value in facts.items():
-        configs[key] = value['ansible_net_config']
+        configs[key] = value["ansible_net_config"]
 
-    df = pd.DataFrame(list(configs.items()), columns=['device', 'config'])
+    df = pd.DataFrame(list(configs.items()), columns=["device", "config"])
 
     return df
 
@@ -133,30 +133,30 @@ def parse_vrfs(runner: dict) -> pd.DataFrame:
     """
 
     if runner is None or runner.events is None:
-        raise ValueError('The input is None or empty')
+        raise ValueError("The input is None or empty")
 
     # Create a dictionary to store the parsed output.
     df_data = dict()
-    df_data['device'] = list()
-    df_data['Name'] = list()
-    df_data['Default RD'] = list()
-    df_data['Protocols'] = list()
-    df_data['Interfaces'] = list()
+    df_data["device"] = list()
+    df_data["Name"] = list()
+    df_data["Default RD"] = list()
+    df_data["Protocols"] = list()
+    df_data["Interfaces"] = list()
 
     # Parse the output, create the DataFrame and return it.
     for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
+        if event["event"] == "runner_on_ok":
+            event_data = event["event_data"]
 
-            device = event_data['remote_addr']
+            device = event_data["remote_addr"]
 
-            output = event_data['res']['stdout'][0].split('\n')
+            output = event_data["res"]["stdout"][0].split("\n")
 
             # Gather the header indexes.
             header = output[0]
-            rd_pos = header.index('Default RD')
-            proto_pos = header.index('Protocols')
-            inf_pos = header.index('Interfaces')
+            rd_pos = header.index("Default RD")
+            proto_pos = header.index("Protocols")
+            inf_pos = header.index("Interfaces")
 
             # Reverse 'output' to make it easier to parse.
             output.reverse()
@@ -164,7 +164,7 @@ def parse_vrfs(runner: dict) -> pd.DataFrame:
             # Parse the output.
             counter = 0
             for line in output:
-                if len(line.split()) > 1 and 'Default RD' not in line:
+                if len(line.split()) > 1 and "Default RD" not in line:
                     interfaces = list()
                     name = line[:rd_pos].strip()
                     default_rd = line[rd_pos:proto_pos].strip()
@@ -172,15 +172,15 @@ def parse_vrfs(runner: dict) -> pd.DataFrame:
                     interfaces.append(line[inf_pos:].strip())
                     pos = counter
                     # Collect additional interfaces for the VRF.
-                    while len(output[pos+1].split()) <= 1:
-                        interfaces.append(output[pos+1].split()[0])
+                    while len(output[pos + 1].split()) <= 1:
+                        interfaces.append(output[pos + 1].split()[0])
                         pos += 1
                     # Add the VRF to df_data.
-                    df_data['device'].append(device)
-                    df_data['Name'].append(name)
-                    df_data['Default RD'].append(default_rd)
-                    df_data['Protocols'].append(protocols)
-                    df_data['Interfaces'].append(interfaces)
+                    df_data["device"].append(device)
+                    df_data["Name"].append(name)
+                    df_data["Default RD"].append(default_rd)
+                    df_data["Protocols"].append(protocols)
+                    df_data["Interfaces"].append(interfaces)
                 counter += 1
 
     # Create the dataframe then reverse it to preserve the original order.
@@ -189,16 +189,16 @@ def parse_vrfs(runner: dict) -> pd.DataFrame:
 
     # Convert the data in the 'Interfaces' column from a list to a
     # space-delimited string.
-    df['Interfaces'] = df['Interfaces'].apply(
-        lambda x: ' '.join(x)).astype(str)
+    df["Interfaces"] = df["Interfaces"].apply(
+        lambda x: " ".join(x)).astype(str)
 
     return df
 
 
-def parse_ios_parse_uplink_by_ip(df_ip: pd.DataFrame,
-                                df_cdp: pd.DataFrame
-                                    ) -> pd.DataFrame:
-    '''
+def parse_ios_parse_uplink_by_ip(
+    df_ip: pd.DataFrame, df_cdp: pd.DataFrame
+) -> pd.DataFrame:
+    """
     Search the hostgroup for a list of subnets (use /32 to search for a
     single IP). Once it finds them, it uses CDP and LLDP (if applicable) to try
     to find the uplink.
@@ -235,43 +235,41 @@ def parse_ios_parse_uplink_by_ip(df_ip: pd.DataFrame,
       - Reverse DNS (in the case of P2P IPs)
       - CAM table
     - Add an option to specify the VRF (low priority).
-    '''
+    """
 
     # Remove the sub-interfaces from df_ip
-    local_infs = df_ip['Interface'].to_list()
-    local_infs = [inf.split('.')[0] for inf in local_infs]
-    df_ip['Interface'] = local_infs
+    local_infs = df_ip["Interface"].to_list()
+    local_infs = [inf.split(".")[0] for inf in local_infs]
+    df_ip["Interface"] = local_infs
 
     # Attempt to find the neighbors for the interfaces that have IPs
     df_data = list()
 
     for idx, row in df_ip.iterrows():
-        device = row['Device']
-        inf = row['Interface']
-        neighbor_row = df_cdp.loc[(df_cdp['Device'] == device) &
-                                  (df_cdp['Local Inf'] == inf)]
-        remote_device = list(neighbor_row['Neighbor'].values)
+        device = row["Device"]
+        inf = row["Interface"]
+        neighbor_row = df_cdp.loc[
+            (df_cdp["Device"] == device) & (df_cdp["Local Inf"] == inf)
+        ]
+        remote_device = list(neighbor_row["Neighbor"].values)
         if remote_device:
             remote_device = remote_device[0]
-            remote_inf = list(neighbor_row['Remote Inf'].values)[0]
+            remote_inf = list(neighbor_row["Remote Inf"].values)[0]
         else:
-            remote_device = 'unknown'
-            remote_inf = 'unknown'
-        mgmt_ip = row['IP']
+            remote_device = "unknown"
+            remote_inf = "unknown"
+        mgmt_ip = row["IP"]
         df_data.append([device, mgmt_ip, inf, remote_device, remote_inf])
     # Create a DataFrame and return it
-    cols = ['Device',
-            'IP',
-            'Local Interface',
-            'Remote Device',
-            'Remote Interface']
+    cols = ["Device", "IP", "Local Interface",
+            "Remote Device", "Remote Interface"]
     df_combined = pd.DataFrame(data=df_data, columns=cols)
 
     return df_combined
 
 
 def ios_parse_arp_table(runner: dict, nm_path: str) -> pd.DataFrame:
-    '''
+    """
     Parses the IOS ARP table and add the vendor OUI.
 
     Parameters
@@ -285,35 +283,30 @@ def ios_parse_arp_table(runner: dict, nm_path: str) -> pd.DataFrame:
     -------
     df_arp : pd.DataFrame
         The ARP table and vendor OUI as a pandas DataFrame.
-    '''
+    """
 
     if nm_path is None:
-        raise ValueError('The input nm_path is None or empty')
+        raise ValueError("The input nm_path is None or empty")
 
     if runner is None or runner.events is None:
-        raise ValueError('The input is None or empty')
+        raise ValueError("The input is None or empty")
 
     # Create the column headers. I do not like to hard code these, but they
     # should be modified from Cisco's format before being stored in a
     # database. I suppose it is not strictly necessary to do so, but
     # "Age (min)" and "Hardware Addr" do not make for good column headers.
-    columns = ['device',
-               'protocol',
-               'address',
-               'age',
-               'mac',
-               'inf_type',
-               'interface']
+    columns = ["device", "protocol", "address",
+               "age", "mac", "inf_type", "interface"]
 
     # Parse the output and add it to 'data'
     df_data = list()
     for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
+        if event["event"] == "runner_on_ok":
+            event_data = event["event_data"]
 
-            device = event_data['remote_addr']
+            device = event_data["remote_addr"]
 
-            output = event_data['res']['stdout'][0].split('\n')
+            output = event_data["res"]["stdout"][0].split("\n")
 
             for line in output[1:]:
                 row = [device] + line.split()
@@ -323,19 +316,16 @@ def ios_parse_arp_table(runner: dict, nm_path: str) -> pd.DataFrame:
     df_arp = pd.DataFrame(data=df_data, columns=columns)
 
     # Parses the vendor OUIs
-    df_vendors = hp.find_mac_vendors(df_arp['mac'], nm_path)
+    df_vendors = hp.find_mac_vendors(df_arp["mac"], nm_path)
 
     # Add the vendor OUIs to df_cam as a column, and return the dataframe.
-    df_arp['vendor'] = df_vendors['vendor']
+    df_arp["vendor"] = df_vendors["vendor"]
 
     return df_arp
 
 
-def ios_parse_cam_table(
-            runner: dict,
-            nm_path: str
-            ) -> pd.DataFrame:
-    '''
+def ios_parse_cam_table(runner: dict, nm_path: str) -> pd.DataFrame:
+    """
     Parses the IOS CAM table and add the vendor OUI.
 
     Parameters
@@ -349,33 +339,29 @@ def ios_parse_cam_table(
     -------
     df_cam : pd.DataFrame
         The CAM table and vendor OUI as a pandas DataFrame.
-    '''
+    """
 
     if nm_path is None:
-        raise ValueError('The input nm_path is None or empty')
+        raise ValueError("The input nm_path is None or empty")
 
     if runner is None or runner.events is None:
-        raise ValueError('The input is None or empty')
+        raise ValueError("The input is None or empty")
 
     # Create the column headers. I do not like to hard code these, but they
     # should be modified from Cisco's format before being stored in a
     # database. I suppose it is not strictly necessary to do so, but
     # "Mac Address" and "Type" do not make good column headers.
-    columns = ['device',
-               'vlan',
-               'mac',
-               'inf_type',
-               'ports']
+    columns = ["device", "vlan", "mac", "inf_type", "ports"]
 
     # Parse the output and add it to 'data'
     df_data = list()
     for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
+        if event["event"] == "runner_on_ok":
+            event_data = event["event_data"]
 
-            device = event_data['remote_addr']
+            device = event_data["remote_addr"]
 
-            output = event_data['res']['stdout'][0].split('\n')
+            output = event_data["res"]["stdout"][0].split("\n")
             # columns = list(filter(None, output[0].split('  ')))
             # columns.insert(0, 'device')
             # columns = [_.strip() for _ in columns]
@@ -388,16 +374,16 @@ def ios_parse_cam_table(
     df_cam = pd.DataFrame(data=df_data, columns=columns)
 
     # Parses the vendor OUIs
-    df_vendors = hp.find_mac_vendors(df_cam['mac'], nm_path)
+    df_vendors = hp.find_mac_vendors(df_cam["mac"], nm_path)
 
     # Add the vendor OUIs to df_cam as a column, and return the dataframe.
-    df_cam['vendor'] = df_vendors['vendor']
+    df_cam["vendor"] = df_vendors["vendor"]
 
     return df_cam
 
 
 def ios_parse_cdp_neighbors(runner: dict) -> pd.DataFrame:
-    '''
+    """
     Parses the CDP neighbors for a Cisco IOS device.
 
     Parameters
@@ -409,36 +395,36 @@ def ios_parse_cdp_neighbors(runner: dict) -> pd.DataFrame:
     -------
     df_cdp : pd.DataFrame
         A DataFrame containing the CDP neighbors.
-    '''
+    """
     if runner is None or runner.events is None:
-        raise ValueError('The input is None or empty')
+        raise ValueError("The input is None or empty")
 
     # Parse the results
     cdp_data = list()
     for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
+        if event["event"] == "runner_on_ok":
+            event_data = event["event_data"]
 
-            device = event_data['remote_addr']
+            device = event_data["remote_addr"]
 
-            output = event_data['res']['stdout'][0].split('\n')
+            output = event_data["res"]["stdout"][0].split("\n")
             pos = 1  # Used to account for multiple connections to same device
             for line in output:
-                if 'Device ID' in line:
-                    remote_device = line.split('(')[0].split()[2].split('.')[0]
-                    local_inf = output[pos].split()[1].strip(',')
+                if "Device ID" in line:
+                    remote_device = line.split("(")[0].split()[2].split(".")[0]
+                    local_inf = output[pos].split()[1].strip(",")
                     remote_inf = output[pos].split()[-1]
                     row = [device, local_inf, remote_device, remote_inf]
                     cdp_data.append(row)
                 pos += 1
     # Create a dataframe from cdp_data and return the results
-    cols = ['Device', 'Local Inf', 'Neighbor', 'Remote Inf']
+    cols = ["Device", "Local Inf", "Neighbor", "Remote Inf"]
     df_cdp = pd.DataFrame(data=cdp_data, columns=cols)
     return df_cdp
 
 
 def ios_parse_interface_descriptions(runner: dict) -> pd.DataFrame:
-    '''
+    """
     Get IOS interface descriptions.
 
     Parameters
@@ -450,33 +436,33 @@ def ios_parse_interface_descriptions(runner: dict) -> pd.DataFrame:
     -------
     df_desc : pd.DataFrame
         A DataFrame containing the interface descriptions.
-    '''
+    """
 
     df_data = list()
     for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
+        if event["event"] == "runner_on_ok":
+            event_data = event["event_data"]
 
-            device = event_data['remote_addr']
+            device = event_data["remote_addr"]
 
-            output = event_data['res']['stdout'][0].split('\n')
+            output = event_data["res"]["stdout"][0].split("\n")
             # Parses the position of the 'Description' column
             # (we cannot split by spaces because some
             # interface descriptions have spaces in them).
-            pos = output[0].index('Description')
+            pos = output[0].index("Description")
             for line in output[1:]:
                 inf = line.split()[0]
                 desc = line[pos:]
                 df_data.append([device, inf, desc])
 
     # Create the dataframe and return it
-    cols = ['device', 'interface', 'description']
+    cols = ["device", "interface", "description"]
     df_desc = pd.DataFrame(data=df_data, columns=cols)
     return df_desc
 
 
 def ios_parse_interface_ips(runner: dict) -> pd.DataFrame:
-    '''
+    """
     Parses the IP addresses assigned to interfaces.
 
     Parameters
@@ -488,52 +474,52 @@ def ios_parse_interface_ips(runner: dict) -> pd.DataFrame:
     -------
     df : pd.DataFrame
         A DataFrame containing the interfaces and IP addresses.
-    '''
+    """
 
     if runner is None or runner.events is None:
-        raise ValueError('The input is None or empty')
+        raise ValueError("The input is None or empty")
 
     # Parse the results
     df_data = list()
     for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
+        if event["event"] == "runner_on_ok":
+            event_data = event["event_data"]
 
-            device = event_data['remote_addr']
+            device = event_data["remote_addr"]
 
-            output = event_data['res']['stdout'][0].split('\n')
+            output = event_data["res"]["stdout"][0].split("\n")
             output.reverse()  # Reverse the output to make it easier to iterate
             counter = 0
             for line in output:
-                if 'Internet address' in line:
+                if "Internet address" in line:
                     pos = counter
-                    if 'VPN Routing/Forwarding' in output[pos-1]:
-                        vrf = output[pos-1].split()[-1].strip('"')
+                    if "VPN Routing/Forwarding" in output[pos - 1]:
+                        vrf = output[pos - 1].split()[-1].strip('"')
                     else:
-                        vrf = 'None'
+                        vrf = "None"
                     ip = line.split()[-1]
-                    inf = output[pos+1].split()[0]
+                    inf = output[pos + 1].split()[0]
                     row = [device, inf, ip, vrf]
                     df_data.append(row)
                 counter += 1
 
     # Create a dataframe from df_data and return it
     df_data.reverse()
-    cols = ['device', 'interface', 'ip', 'vrf']
+    cols = ["device", "interface", "ip", "vrf"]
     df = pd.DataFrame(data=df_data, columns=cols)
 
     # Add the subnets, network IPs, and broadcast IPs.
-    addresses = df['ip'].to_list()
+    addresses = df["ip"].to_list()
     result = hp.generate_subnet_details(addresses)
-    df['subnet'] = result['subnet']
-    df['network_ip'] = result['network_ip']
-    df['broadcast_ip'] = result['broadcast_ip']
+    df["subnet"] = result["subnet"]
+    df["network_ip"] = result["network_ip"]
+    df["broadcast_ip"] = result["broadcast_ip"]
 
     return df
 
 
 def ios_parse_vlan_db(runner: dict) -> pd.DataFrame:
-    '''
+    """
     Parses the VLAN database for Cisco IOS devices.
 
     Parameters
@@ -545,26 +531,26 @@ def ios_parse_vlan_db(runner: dict) -> pd.DataFrame:
     -------
     df : pd.DataFrame
         A DataFrame containing the VLAN database.
-    '''
+    """
 
     if runner is None or runner.events is None:
-        raise ValueError('The input is None or empty')
+        raise ValueError("The input is None or empty")
 
     df_data = list()
     for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
+        if event["event"] == "runner_on_ok":
+            event_data = event["event_data"]
 
-            device = event_data['remote_addr']
+            device = event_data["remote_addr"]
 
-            output = event_data['res']['stdout'][0].split('\n')
+            output = event_data["res"]["stdout"][0].split("\n")
 
             # Create the column headers
-            cols = ['device'] + output[0].split()[:3]
+            cols = ["device"] + output[0].split()[:3]
             cols = [_.lower() for _ in cols]
 
             # Removed wrapped interfaces
-            output = [_ for _ in output[1:] if _[0] != ' ']
+            output = [_ for _ in output[1:] if _[0] != " "]
 
             # Add the VLANs to 'df_data'
             for line in output:

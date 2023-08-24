@@ -8,7 +8,7 @@ from netmanage.helpers import helpers as hp
 
 
 def nxos_diff_running_config(runner: dict) -> pd.DataFrame:
-    '''
+    """
     Parse the running-config diff for NXOS devices.
 
     Parameters
@@ -20,37 +20,36 @@ def nxos_diff_running_config(runner: dict) -> pd.DataFrame:
     -------
     df_diff : pd.DataFrame
         The diff.
-    '''
+    """
 
     if runner is None or runner.events is None:
-        raise ValueError('The input is None or empty')
+        raise ValueError("The input is None or empty")
 
     df_data = list()
 
     for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
+        if event["event"] == "runner_on_ok":
+            event_data = event["event_data"]
 
-            device = event_data['remote_addr']
+            device = event_data["remote_addr"]
 
-            output = event_data['res']['stdout'][0].split('\n')[3:]
+            output = event_data["res"]["stdout"][0].split("\n")[3:]
 
             for line in output:
                 df_data.append([device, line])
 
     # Create the dataframe and return it
-    cols = ['device', 'diff']
+    cols = ["device", "diff"]
     df_diff = pd.DataFrame(data=df_data, columns=cols)
 
     return df_diff
 
 
-def nxos_parse_arp_table(runner: dict,
-                            nm_path: str) -> pd.DataFrame:
-    '''
-    Parse the ARP table for Cisco NXOS devices and retrieve the OUI (vendor) for
-    each MAC address. Optionally, perform a reverse DNS query for hostnames,
-    but note that it may take several minutes for large datasets.
+def nxos_parse_arp_table(runner: dict, nm_path: str) -> pd.DataFrame:
+    """
+    Parse the ARP table for Cisco NXOS devices and retrieve the OUI (vendor)
+    for each MAC address. Optionally, perform a reverse DNS query for,
+    hostnames but note that it may take several minutes for large datasets.
 
     Parameters
     ----------
@@ -63,10 +62,10 @@ def nxos_parse_arp_table(runner: dict,
     -------
     df_arp : pd.DataFrame
         The ARP table as a pandas DataFrame.
-    '''
+    """
 
     if runner is None or runner.events is None:
-        raise ValueError('The input is None or empty')
+        raise ValueError("The input is None or empty")
 
     # Parse the output and add it to 'data'
     df_data = list()
@@ -75,12 +74,12 @@ def nxos_parse_arp_table(runner: dict,
     macs = list()
 
     for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
+        if event["event"] == "runner_on_ok":
+            event_data = event["event_data"]
 
-            device = event_data['remote_addr']
+            device = event_data["remote_addr"]
 
-            output = event_data['res']['stdout'][0].split('\n')
+            output = event_data["res"]["stdout"][0].split("\n")
 
             # Parse the output and add it to 'df_data'
             for line in output[1:]:
@@ -101,11 +100,7 @@ def nxos_parse_arp_table(runner: dict,
                 #     row.append(rdns)
                 df_data.append(row)
 
-    cols = ['device',
-            'ip_address',
-            'age',
-            'mac_address',
-            'interface']
+    cols = ["device", "ip_address", "age", "mac_address", "interface"]
 
     # TODO: Convert this to a standalone function
     # if reverse_dns:
@@ -115,15 +110,13 @@ def nxos_parse_arp_table(runner: dict,
 
     # Find the vendrs and add them to the dataframe
     df_vendors = hp.find_mac_vendors(macs, nm_path)
-    df_arp['vendor'] = df_vendors['vendor']
+    df_arp["vendor"] = df_vendors["vendor"]
 
     return df_arp
 
 
-def nxos_parse_fexes_table(runner: dict,
-                            nm_path: str
-                            ) -> pd.DataFrame:
-    '''
+def nxos_parse_fexes_table(runner: dict, nm_path: str) -> pd.DataFrame:
+    """
     Parse the FEXes for Cisco 5Ks. This function is required for gathering
     interface data on devices with a large number of FEXes, as it helps
     prevent timeouts.
@@ -140,10 +133,10 @@ def nxos_parse_fexes_table(runner: dict,
     df_fexes : pd.DataFrame
         The FEXes of the device. If there are no FEXes, an empty DataFrame
         will be returned.
-    '''
+    """
 
     if runner is None or runner.events is None:
-        raise ValueError('The input is None or empty')
+        raise ValueError("The input is None or empty")
 
     # Parse the output and add it to 'data'
     df_data = list()
@@ -152,12 +145,12 @@ def nxos_parse_fexes_table(runner: dict,
     macs = list()
 
     for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
+        if event["event"] == "runner_on_ok":
+            event_data = event["event_data"]
 
-            device = event_data['remote_addr']
+            device = event_data["remote_addr"]
 
-            output = event_data['res']['stdout'][0].split('\n')
+            output = event_data["res"]["stdout"][0].split("\n")
 
             # Parse the output and add it to 'df_data'
             for line in output[1:]:
@@ -178,11 +171,7 @@ def nxos_parse_fexes_table(runner: dict,
                 #     row.append(rdns)
                 df_data.append(row)
 
-    cols = ['device',
-            'ip_address',
-            'age',
-            'mac_address',
-            'interface']
+    cols = ["device", "ip_address", "age", "mac_address", "interface"]
 
     # TODO: Convert this to a standalone function
     # if reverse_dns:
@@ -192,13 +181,13 @@ def nxos_parse_fexes_table(runner: dict,
 
     # Find the vendrs and add them to the dataframe
     vendors = hp.find_mac_vendors(macs, nm_path)
-    df_arp['vendor'] = vendors
+    df_arp["vendor"] = vendors
 
     return df_arp
 
 
 def nxos_parse_bgp_neighbors(runner: dict) -> pd.DataFrame:
-    '''
+    """
     Parse the BGP neighbors for all VRFs on NXOS devices.
 
     Parameters
@@ -210,45 +199,49 @@ def nxos_parse_bgp_neighbors(runner: dict) -> pd.DataFrame:
     -------
     df_bgp : pd.DataFrame
         The BGP neighbors as a pandas DataFrame.
-    '''
+    """
 
     if runner is None or runner.events is None:
-        raise ValueError('The input is None or empty')
+        raise ValueError("The input is None or empty")
 
     # Necessary to keep from exceeding 80-character line length
     address = ipaddress.ip_address
 
     # Phrase to search for to find the start of VRF neighbors
-    phrase = 'BGP summary information for VRF'
+    phrase = "BGP summary information for VRF"
 
     df_data = list()
 
     for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
-            device = event_data['remote_addr']
-            output = event_data['res']['stdout'][0].split('\n')
+        if event["event"] == "runner_on_ok":
+            event_data = event["event_data"]
+            device = event_data["remote_addr"]
+            output = event_data["res"]["stdout"][0].split("\n")
             for line in output:
                 if phrase in line:
-                    vrf = line.split(',')[0].split()[-1]
-                    pos = output.index(line)+1
+                    vrf = line.split(",")[0].split()[-1]
+                    pos = output.index(line) + 1
                     if pos < len(output):
                         while phrase not in output[pos]:
                             try:
                                 if address(output[pos].split()[0]):
                                     row = output[pos].split()
-                                    df_data.append([device,
-                                                    vrf,
-                                                    row[0],
-                                                    row[1],
-                                                    row[2],
-                                                    row[3],
-                                                    row[4],
-                                                    row[5],
-                                                    row[6],
-                                                    row[7],
-                                                    row[8],
-                                                    row[9]])
+                                    df_data.append(
+                                        [
+                                            device,
+                                            vrf,
+                                            row[0],
+                                            row[1],
+                                            row[2],
+                                            row[3],
+                                            row[4],
+                                            row[5],
+                                            row[6],
+                                            row[7],
+                                            row[8],
+                                            row[9],
+                                        ]
+                                    )
                             except Exception:
                                 pass
                             pos += 1
@@ -256,24 +249,26 @@ def nxos_parse_bgp_neighbors(runner: dict) -> pd.DataFrame:
                                 break
 
     # Create dataframe and return it
-    cols = ['device',
-            'vrf',
-            'neighbor_id',
-            'version',
-            'as',
-            'msg_received',
-            'message_sent',
-            'table_version',
-            'in_q',
-            'out_q',
-            'up_down',
-            'state_pfx_rfx']
+    cols = [
+        "device",
+        "vrf",
+        "neighbor_id",
+        "version",
+        "as",
+        "msg_received",
+        "message_sent",
+        "table_version",
+        "in_q",
+        "out_q",
+        "up_down",
+        "state_pfx_rfx",
+    ]
     df_bgp = pd.DataFrame(data=df_data, columns=cols)
     return df_bgp
 
 
 def nxos_parse_cam_table(runner: dict, nm_path: str) -> pd.DataFrame:
-    '''
+    """
     Parse the CAM table for NXOS devices and add the vendor OUI.
 
     Parameters
@@ -287,14 +282,14 @@ def nxos_parse_cam_table(runner: dict, nm_path: str) -> pd.DataFrame:
     -------
     df_cam : pd.DataFrame
         The CAM table and vendor OUI as a pandas DataFrame.
-    '''
+    """
 
     if runner is None or runner.events is None:
-        raise ValueError('The input is None or empty')
+        raise ValueError("The input is None or empty")
 
     # Define the RegEx pattern for a valid MAC address
     # pattern = '([0-9a-f]{4}\.[0-9a-f]{4}\.[0-9a-f]{4})'
-    pattern = '.*[a-zA-Z0-9]{4}\\.[a-zA-Z0-9]{4}\\.[a-zA-Z0-9]{4}.*'
+    pattern = ".*[a-zA-Z0-9]{4}\\.[a-zA-Z0-9]{4}\\.[a-zA-Z0-9]{4}.*"
 
     # Create a list to store MAC addresses
     addresses = list()
@@ -303,12 +298,12 @@ def nxos_parse_cam_table(runner: dict, nm_path: str) -> pd.DataFrame:
     df_data = list()
 
     for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
+        if event["event"] == "runner_on_ok":
+            event_data = event["event_data"]
 
-            device = event_data['remote_addr']
+            device = event_data["remote_addr"]
 
-            output = event_data['res']['stdout'][0]
+            output = event_data["res"]["stdout"][0]
 
             output = re.findall(pattern, output)
             for line in output:
@@ -318,23 +313,20 @@ def nxos_parse_cam_table(runner: dict, nm_path: str) -> pd.DataFrame:
                 df_data.append([device, interface, mac, vlan])
 
     # Create the dataframe and return it
-    cols = ['device',
-            'interface',
-            'mac',
-            'vlan']
+    cols = ["device", "interface", "mac", "vlan"]
     df_cam = pd.DataFrame(data=df_data, columns=cols)
 
     # Get the OUIs and add them to df_cam
-    addresses = df_cam['mac'].to_list()
+    addresses = df_cam["mac"].to_list()
     df_vendors = hp.find_mac_vendors(addresses, nm_path)
-    df_cam['vendor'] = df_vendors['vendor']
+    df_cam["vendor"] = df_vendors["vendor"]
 
     # Return df_cam
     return df_cam
 
 
 def nxos_parse_hostname(runner: dict) -> pd.DataFrame:
-    '''
+    """
     Parse the hostname for NXOS devices.
 
     Parameters
@@ -346,25 +338,25 @@ def nxos_parse_hostname(runner: dict) -> pd.DataFrame:
     -------
     df_name : pd.DataFrame
         The hostname as a pandas DataFrame.
-    '''
+    """
 
     if runner is None or runner.events is None:
-        raise ValueError('The input is None or empty')
+        raise ValueError("The input is None or empty")
 
     df_data = dict()
-    df_data['device'] = list()
-    df_data['hostname'] = list()
+    df_data["device"] = list()
+    df_data["hostname"] = list()
 
     for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
+        if event["event"] == "runner_on_ok":
+            event_data = event["event_data"]
 
-            device = event_data['remote_addr']
+            device = event_data["remote_addr"]
 
-            output = event_data['res']['stdout'][0]
+            output = event_data["res"]["stdout"][0]
 
-            df_data['device'].append(device)
-            df_data['hostname'].append(output)
+            df_data["device"].append(device)
+            df_data["hostname"].append(output)
 
     # Create the dataframe and return it
     df_name = pd.DataFrame.from_dict(df_data)
@@ -373,7 +365,7 @@ def nxos_parse_hostname(runner: dict) -> pd.DataFrame:
 
 
 def nxos_parse_interface_descriptions(runner: dict) -> pd.DataFrame:
-    '''
+    """
     Parse NXOS interface descriptions.
 
     Parameters
@@ -385,40 +377,40 @@ def nxos_parse_interface_descriptions(runner: dict) -> pd.DataFrame:
     -------
     df_desc : pd.DataFrame
         The interface descriptions as a pandas DataFrame.
-    '''
+    """
 
     if runner is None or runner.events is None:
-        raise ValueError('The input is None or empty')
+        raise ValueError("The input is None or empty")
 
     # Create a list to store the rows for the dataframe
     df_data = list()
     for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
+        if event["event"] == "runner_on_ok":
+            event_data = event["event_data"]
 
-            device = event_data['remote_addr']
+            device = event_data["remote_addr"]
 
-            output = event_data['res']['stdout'][0].split('\n')
+            output = event_data["res"]["stdout"][0].split("\n")
             output = list(filter(None, output))
             # NXOS does not have consistent column widths. Therefore, we must
             # re-index the position of the 'Description' column every time it
             # occurs.
             for _ in output:
-                if ('Port' in _ or 'Interface' in _) and 'Description' in _:
-                    pos = _.index('Description')
+                if ("Port" in _ or "Interface" in _) and "Description" in _:
+                    pos = _.index("Description")
                 else:
                     inf = _.split()[0]
                     desc = _[pos:].strip()
                     df_data.append([device, inf, desc])
 
     # Create the dataframe and return it
-    cols = ['device', 'interface', 'description']
+    cols = ["device", "interface", "description"]
     df_desc = pd.DataFrame(data=df_data, columns=cols)
     return df_desc
 
 
 def nxos_parse_interface_ips(runner: dict) -> pd.DataFrame:
-    '''
+    """
     Parse the IP addresses assigned to interfaces.
 
     Parameters
@@ -431,53 +423,53 @@ def nxos_parse_interface_ips(runner: dict) -> pd.DataFrame:
     df : pd.DataFrame
         A DataFrame containing the interfaces and their corresponding IP
         addresses.
-    '''
+    """
 
     if runner is None or runner.events is None:
-        raise ValueError('The input is None or empty')
+        raise ValueError("The input is None or empty")
 
     # Parse the results
     df_data = list()
     for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
+        if event["event"] == "runner_on_ok":
+            event_data = event["event_data"]
 
-            device = event_data['remote_addr']
+            device = event_data["remote_addr"]
 
-            output = event_data['res']['stdout'][0].split('\n')
+            output = event_data["res"]["stdout"][0].split("\n")
 
             counter = 0
             for line in output:
-                if 'IP Interface Status for VRF' in line:
+                if "IP Interface Status for VRF" in line:
                     vrf = line.split()[-1].strip('"')
 
-                if 'IP address:' in line:
+                if "IP address:" in line:
                     pos = counter
-                    inf = output[pos-1].split(',')[0]
-                    ip = line.split(',')[0].split()[-1]
-                    subnet = line.split(',')[1].split()[2].split('/')[-1]
-                    ip = f'{ip}/{subnet}'
+                    inf = output[pos - 1].split(",")[0]
+                    ip = line.split(",")[0].split()[-1]
+                    subnet = line.split(",")[1].split()[2].split("/")[-1]
+                    ip = f"{ip}/{subnet}"
                     row = [device, inf, ip, vrf]
                     df_data.append(row)
 
                 counter += 1
 
     # Create a dataframe from df_data and return it
-    cols = ['device', 'interface', 'ip', 'vrf']
+    cols = ["device", "interface", "ip", "vrf"]
     df = pd.DataFrame(data=df_data, columns=cols)
 
     # Add the subnets, network IPs, and broadcast IPs.
-    addresses = df['ip'].to_list()
+    addresses = df["ip"].to_list()
     result = hp.generate_subnet_details(addresses)
-    df['subnet'] = result['subnet']
-    df['network_ip'] = result['network_ip']
-    df['broadcast_ip'] = result['broadcast_ip']
+    df["subnet"] = result["subnet"]
+    df["network_ip"] = result["network_ip"]
+    df["broadcast_ip"] = result["broadcast_ip"]
 
     return df
 
 
 def nxos_parse_interface_status(runner: dict) -> pd.DataFrame:
-    '''
+    """
     Parse the interface status for NXOS devices.
 
     Parameters
@@ -489,33 +481,33 @@ def nxos_parse_interface_status(runner: dict) -> pd.DataFrame:
     -------
     df_inf_status : pd.DataFrame
         The interface statuses as a pandas DataFrame.
-    '''
+    """
 
     if runner is None or runner.events is None:
-        raise ValueError('The input is None or empty')
+        raise ValueError("The input is None or empty")
 
     # Parse the output and add it to 'data'
     df_data = list()
 
     for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
+        if event["event"] == "runner_on_ok":
+            event_data = event["event_data"]
 
-            device = event_data['remote_addr']
+            device = event_data["remote_addr"]
 
-            output = event_data['res']['stdout'][0].split('\n')
+            output = event_data["res"]["stdout"][0].split("\n")
             output = list(filter(None, output))
 
             # Get the positions of the header columns (except Port and Name)
             header = output[0]
-            pos_status = header.index('Status')
-            pos_vlan = header.index('Vlan')
-            pos_duplex = header.index('Duplex')
-            pos_speed = header.index('Speed')
-            pos_type = header.index('Type')
+            pos_status = header.index("Status")
+            pos_vlan = header.index("Vlan")
+            pos_duplex = header.index("Duplex")
+            pos_speed = header.index("Speed")
+            pos_type = header.index("Type")
 
             # Remove lines that repeat the header
-            output = [_ for _ in output if 'Port' not in _ and 'type' not in _]
+            output = [_ for _ in output if "Port" not in _ and "type" not in _]
 
             # Parse the output and add it to 'df_data'
             for line in output[1:]:
@@ -530,21 +522,16 @@ def nxos_parse_interface_status(runner: dict) -> pd.DataFrame:
                 df_data.append(row)
 
     # Create the dataframe and return it
-    cols = ['device',
-            'interface',
-            'status',
-            'vlan',
-            'duplex',
-            'speed',
-            'type']
+    cols = ["device", "interface", "status", "vlan", "duplex", "speed", "type"]
 
     df_inf_status = pd.DataFrame(data=df_data, columns=cols)
 
     return df_inf_status
 
 
-def nxos_parse_interface_summary(df_inf: pd.DataFrame) -> pd.DataFrame:
-    '''
+def nxos_parse_interface_summary(df_inf: pd.DataFrame,
+                                 con, ts) -> pd.DataFrame:
+    """
     Parse a summary of the interfaces on a NXOS devices. The summary includes
     the interface status, description, associated MACs, and vendor OUIs.
 
@@ -552,29 +539,33 @@ def nxos_parse_interface_summary(df_inf: pd.DataFrame) -> pd.DataFrame:
     ----------
     df_inf: pd.DataFrame
         DataFrame of the interfaces on a NXOS devices
+    con: db connection
+        db connection
+    ts: timestamp
+        timestamp
 
     Returns
     -------
     df_summary : pd.DataFrame
         The summaries of interfaces on the devices as a pandas DataFrame.
-    '''
+    """
     # Get the interface statuses, descriptions and cam table
 
     if df_inf is None or len(df_inf) == 0:
-        raise ValueError('The input is None or empty')
+        raise ValueError("The input is None or empty")
 
     df_data = dict()
-    df_data['device'] = list()
-    df_data['interface'] = list()
-    df_data['status'] = list()
-    df_data['description'] = list()
-    df_data['vendors'] = list()
-    df_data['macs'] = list()
+    df_data["device"] = list()
+    df_data["interface"] = list()
+    df_data["status"] = list()
+    df_data["description"] = list()
+    df_data["vendors"] = list()
+    df_data["macs"] = list()
 
     for idx, row in df_inf.iterrows():
-        device = row['device']
-        inf = row['interface']
-        status = row['status']
+        device = row["device"]
+        inf = row["interface"]
+        status = row["status"]
 
         query = f'''SELECT mac,vendor
                     FROM nxos_cam_table
@@ -583,18 +574,18 @@ def nxos_parse_interface_summary(df_inf: pd.DataFrame) -> pd.DataFrame:
                        AND interface = "{inf}"'''
         df_macs = pd.read_sql(query, con)
         if len(df_macs) > 0:
-            macs = df_macs['mac'].to_list()
-            macs = '|'.join(macs)
+            macs = df_macs["mac"].to_list()
+            macs = "|".join(macs)
 
             vendors = list()
             for idx, row in df_macs.iterrows():
-                vendor = row['vendor']
+                vendor = row["vendor"]
                 if vendor:
-                    vendor = vendor.replace(',', str())
+                    vendor = vendor.replace(",", str())
                     if vendor not in vendors:
                         vendors.append(vendor)
 
-            vendors = '|'.join(vendors)
+            vendors = "|".join(vendors)
 
             # vendors = str()
             # for idx, row in df_macs.iterrows():
@@ -621,32 +612,29 @@ def nxos_parse_interface_summary(df_inf: pd.DataFrame) -> pd.DataFrame:
                        AND interface = "{inf}"'''
         desc = pd.read_sql(query, con)
         if len(desc) > 0:
-            desc = desc['description'].to_list()[0]
+            desc = desc["description"].to_list()[0]
         else:
             desc = str()
 
-        df_data['device'].append(device)
-        df_data['interface'].append(inf)
-        df_data['status'].append(status)
-        df_data['description'].append(desc)
-        df_data['vendors'].append(vendors)
-        df_data['macs'].append(macs)
+        df_data["device"].append(device)
+        df_data["interface"].append(inf)
+        df_data["status"].append(status)
+        df_data["description"].append(desc)
+        df_data["vendors"].append(vendors)
+        df_data["macs"].append(macs)
 
     con.close()
 
     df_summary = pd.DataFrame.from_dict(df_data)
-    df_summary = df_summary[['device',
-                             'interface',
-                             'status',
-                             'description',
-                             'vendors',
-                             'macs']]
+    df_summary = df_summary[
+        ["device", "interface", "status", "description", "vendors", "macs"]
+    ]
 
     return df_summary
 
 
 def nxos_parse_inventory(runner: dict) -> pd.DataFrame:
-    '''
+    """
     Parse the inventory for NXOS devices.
 
     Parameters
@@ -659,24 +647,24 @@ def nxos_parse_inventory(runner: dict) -> pd.DataFrame:
     df_inventory : pd.DataFrame
         A DataFrame containing the output of the 'show inventory | json'
         command.
-    '''
+    """
 
     if runner is None or runner.events is None:
-        raise ValueError('The input is None or empty')
+        raise ValueError("The input is None or empty")
 
     # Create a list for holding the inventory items
     data = list()
 
     for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
-            device = event_data['remote_addr']
+        if event["event"] == "runner_on_ok":
+            event_data = event["event_data"]
+            device = event_data["remote_addr"]
 
-            output = event_data['res']['stdout'][0]['TABLE_inv']['ROW_inv']
+            output = event_data["res"]["stdout"][0]["TABLE_inv"]["ROW_inv"]
 
             # Add the inventory items to the 'data' list
             for item in output:
-                item['device'] = device
+                item["device"] = device
                 data.append(item)
 
     # Create a dictionary for storing the output
@@ -700,7 +688,7 @@ def nxos_parse_inventory(runner: dict) -> pd.DataFrame:
 
 
 def nxos_parse_logs(runner: dict) -> pd.DataFrame:
-    '''
+    """
     Parse the latest log messages for NXOS devices.
 
     Parameters
@@ -712,33 +700,29 @@ def nxos_parse_logs(runner: dict) -> pd.DataFrame:
     -------
     df_logs : pd.DataFrame
         The latest log messages as a pandas DataFrame.
-    '''
+    """
 
     if runner is None or runner.events is None:
-        raise ValueError('The input is None or empty')
+        raise ValueError("The input is None or empty")
 
     # Parse the output and add it to 'data'
     df_data = list()
 
     for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
+        if event["event"] == "runner_on_ok":
+            event_data = event["event_data"]
 
-            device = event_data['remote_addr']
+            device = event_data["remote_addr"]
 
-            output = event_data['res']['stdout'][0].split('\n')
+            output = event_data["res"]["stdout"][0].split("\n")
 
             for line in output:
                 _time = line[:21].strip()
                 _msg = line[21:].strip()
-                df_data.append([device,
-                                _time,
-                                _msg])
+                df_data.append([device, _time, _msg])
 
     # Create the dataframe and return it
-    cols = ['device',
-            'time',
-            'message']
+    cols = ["device", "time", "message"]
 
     df_logs = pd.DataFrame(data=df_data, columns=cols)
 
@@ -746,9 +730,9 @@ def nxos_parse_logs(runner: dict) -> pd.DataFrame:
 
 
 def nxos_parse_port_channel_data(runner: dict) -> pd.DataFrame:
-    '''
-    Parse port-channel data (output from 'show port-channel database') for Cisco
-    NXOS devices.
+    """
+    Parse port-channel data (output from 'show port-channel database')
+    for Cisco NXOS devices.
 
     Parameters
     ----------
@@ -759,28 +743,30 @@ def nxos_parse_port_channel_data(runner: dict) -> pd.DataFrame:
     -------
     df_po_data : pd.DataFrame
         The port-channel data as a pandas DataFrame.
-    '''
+    """
 
     if runner is None or runner.events is None:
-        raise ValueError('The input is None or empty')
+        raise ValueError("The input is None or empty")
 
     # Define the dataframe columns
-    cols = ['device',
-            'interface',
-            'total_ports',
-            'up_ports',
-            'age',
-            'port_1',
-            'port_2',
-            'port_3',
-            'port_4',
-            'port_5',
-            'port_6',
-            'port_7',
-            'port_8',
-            'first_operational_port',
-            'last_bundled_member',
-            'last_unbundled_member']
+    cols = [
+        "device",
+        "interface",
+        "total_ports",
+        "up_ports",
+        "age",
+        "port_1",
+        "port_2",
+        "port_3",
+        "port_4",
+        "port_5",
+        "port_6",
+        "port_7",
+        "port_8",
+        "first_operational_port",
+        "last_bundled_member",
+        "last_unbundled_member",
+    ]
 
     # Create a dictionary to store the data for creating the dataframe
     df_data = dict()
@@ -789,15 +775,15 @@ def nxos_parse_port_channel_data(runner: dict) -> pd.DataFrame:
 
     # Parse the output and add it to 'data'
     for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
+        if event["event"] == "runner_on_ok":
+            event_data = event["event_data"]
 
-            device = event_data['remote_addr']
+            device = event_data["remote_addr"]
 
-            output = event_data['res']['stdout'][0].split('\n')
+            output = event_data["res"]["stdout"][0].split("\n")
 
             # output.append(str())  # For finding the end of database entries
-            output = [_ for _ in output if _ != 'Legend:']
+            output = [_ for _ in output if _ != "Legend:"]
             output = [_ for _ in output if '"*":' not in _]
 
             # TODO: Re-write this using regex to 1) make it more concise, and
@@ -808,11 +794,11 @@ def nxos_parse_port_channel_data(runner: dict) -> pd.DataFrame:
 
             pos = 0
             for line in output:
-                if line[:12] == 'port-channel':
+                if line[:12] == "port-channel":
                     interface = line
                     entry = [interface, device]
-                    counter = pos+1
-                    while output[counter][:4] == '    ':
+                    counter = pos + 1
+                    while output[counter][:4] == "    ":
                         entry.append(output[counter])
                         counter += 1
                         if counter == len(output):
@@ -838,37 +824,37 @@ def nxos_parse_port_channel_data(runner: dict) -> pd.DataFrame:
                 last_unbundled = str()
                 age = str()
                 for line in entry[2:]:
-                    if 'ports in total' in line:
+                    if "ports in total" in line:
                         total_ports = line.split()[0]
-                        up_ports = line.split(',')[-1].split()[0]
-                    if 'First operational' in line:
+                        up_ports = line.split(",")[-1].split()[0]
+                    if "First operational" in line:
                         first_op_port = line.split()[-1]
-                    if 'Last bundled' in line:
+                    if "Last bundled" in line:
                         last_bundled = line.split()[-1]
-                    if 'Last unbundled' in line:
+                    if "Last unbundled" in line:
                         last_unbundled = line.split()[-1]
-                    if 'Age of the' in line:
+                    if "Age of the" in line:
                         age = line.split()[-1]
-                    if ']' in line:
-                        port = line.split('Ports:')[-1].strip()
+                    if "]" in line:
+                        port = line.split("Ports:")[-1].strip()
                         ports[counter] = port
                         counter += 1
 
                 # Fill in ports list with ports that exist
                 port_num = 1
                 for p in ports:
-                    key = f'port_{str(port_num)}'
+                    key = f"port_{str(port_num)}"
                     df_data[key].append(p)
                     port_num += 1
                 # Add remaining variables to df_data
-                df_data['interface'].append(interface)
-                df_data['device'].append(device)
-                df_data['total_ports'].append(total_ports)
-                df_data['up_ports'].append(up_ports)
-                df_data['age'].append(age)
-                df_data['first_operational_port'].append(first_op_port)
-                df_data['last_bundled_member'].append(last_bundled)
-                df_data['last_unbundled_member'].append(last_unbundled)
+                df_data["interface"].append(interface)
+                df_data["device"].append(device)
+                df_data["total_ports"].append(total_ports)
+                df_data["up_ports"].append(up_ports)
+                df_data["age"].append(age)
+                df_data["first_operational_port"].append(first_op_port)
+                df_data["last_bundled_member"].append(last_bundled)
+                df_data["last_unbundled_member"].append(last_unbundled)
 
     df_po_data = pd.DataFrame.from_dict(df_data)
     # Set dataframe columns to desired order (from 'cols' list)
@@ -878,7 +864,7 @@ def nxos_parse_port_channel_data(runner: dict) -> pd.DataFrame:
 
 
 def nxos_parse_vlan_db(runner: dict) -> pd.DataFrame:
-    '''
+    """
     Parse the VLAN database for NXOS devices.
 
     Parameters
@@ -890,42 +876,34 @@ def nxos_parse_vlan_db(runner: dict) -> pd.DataFrame:
     -------
     df_vlans : pd.DataFrame
         The VLAN database as a pandas DataFrame.
-    '''
+    """
 
     if runner is None or runner.events is None:
-        raise ValueError('The input is None or empty')
+        raise ValueError("The input is None or empty")
 
     # Parse the output and add it to 'data'
     df_data = list()
 
     for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
+        if event["event"] == "runner_on_ok":
+            event_data = event["event_data"]
 
-            device = event_data['remote_addr']
+            device = event_data["remote_addr"]
 
-            output = event_data['res']['stdout'][0].split('\n')
+            output = event_data["res"]["stdout"][0].split("\n")
 
             # Get the position of "Ports" column
-            pos = output[0].index('Ports')
+            pos = output[0].index("Ports")
 
             for line in output[1:]:
                 v_id = line.split()[0]
                 name = line.split()[1]
                 status = line.split()[2]
                 ports = line[pos:].strip()
-                df_data.append([device,
-                                v_id,
-                                name,
-                                status,
-                                ports])
+                df_data.append([device, v_id, name, status, ports])
 
     # Create the dataframe and return it
-    cols = ['device',
-            'id',
-            'name',
-            'status',
-            'ports']
+    cols = ["device", "id", "name", "status", "ports"]
 
     df_vlans = pd.DataFrame(data=df_data, columns=cols)
 
@@ -933,7 +911,7 @@ def nxos_parse_vlan_db(runner: dict) -> pd.DataFrame:
 
 
 def nxos_parse_vpc_state(runner: dict) -> pd.DataFrame:
-    '''
+    """
     Parse the VPC state for NXOS devices.
 
     Parameters
@@ -945,33 +923,33 @@ def nxos_parse_vpc_state(runner: dict) -> pd.DataFrame:
     -------
     df_vpc_state : pd.DataFrame
         The VPC state information as a pandas DataFrame.
-    '''
+    """
 
     if runner is None or runner.events is None:
-        raise ValueError('The input is None or empty')
+        raise ValueError("The input is None or empty")
 
     # Parse the output and add it to 'data'
     data = dict()
 
     for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
-            device = event_data['remote_addr']
-            output = event_data['res']['stdout'][0].split('\n')
+        if event["event"] == "runner_on_ok":
+            event_data = event["event_data"]
+            device = event_data["remote_addr"]
+            output = event_data["res"]["stdout"][0].split("\n")
 
             # Remove empty lines
             output = list(filter(None, output))
             # Remove 'vPC Peer-link status'
-            output = [_ for _ in output if _ != 'vPC Peer-link status']
+            output = [_ for _ in output if _ != "vPC Peer-link status"]
 
             data[device] = dict()
-            data[device]['device'] = device
+            data[device]["device"] = device
             for line in output:
-                col_name = line.split(':')[0].strip()
-                data[device][col_name] = line.split(':')[1].strip()
+                col_name = line.split(":")[0].strip()
+                data[device][col_name] = line.split(":")[1].strip()
 
     df_data = dict()
-    df_data['device'] = list()
+    df_data["device"] = list()
     for key in data:
         for k in data[key]:
             df_data[k] = list()
@@ -986,7 +964,7 @@ def nxos_parse_vpc_state(runner: dict) -> pd.DataFrame:
 
 
 def nxos_parse_vrfs(runner: dict) -> pd.DataFrame:
-    '''
+    """
     Parse the VRFs on Nexus devices.
 
     Parameters
@@ -998,21 +976,21 @@ def nxos_parse_vrfs(runner: dict) -> pd.DataFrame:
     -------
     df_vrfs : pd.DataFrame
         A DataFrame containing the VRFs.
-    '''
+    """
 
     if runner is None or runner.events is None:
-        raise ValueError('The input is None or empty')
+        raise ValueError("The input is None or empty")
 
     # Parse the output and add it to 'data'
     df_data = list()
 
     for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
+        if event["event"] == "runner_on_ok":
+            event_data = event["event_data"]
 
-            device = event_data['remote_addr']
+            device = event_data["remote_addr"]
 
-            output = event_data['res']['stdout'][0].split('\n')
+            output = event_data["res"]["stdout"][0].split("\n")
 
             # Pre-define variables, since not all VRFs contain all parameters
             name = str()
@@ -1025,46 +1003,50 @@ def nxos_parse_vrfs(runner: dict) -> pd.DataFrame:
 
             pos = 0
             for line in output:
-                if 'VRF-Name' in line:
-                    pos = output.index(line)+1
-                    line = line.split(',')
-                    line = [_.split(':')[-1].strip() for _ in line]
+                if "VRF-Name" in line:
+                    pos = output.index(line) + 1
+                    line = line.split(",")
+                    line = [_.split(":")[-1].strip() for _ in line]
                     name = line[0]
                     vrf_id = line[1]
                     state = line[2]
-                    while 'Table-ID' not in output[pos]:
-                        if 'Description:' in output[pos]:
-                            description = output[pos+1].strip()
-                        if 'VPNID' in output[pos]:
-                            vpn_id = output[pos].split(': ')[-1]
-                        if 'RD:' in output[pos]:
+                    while "Table-ID" not in output[pos]:
+                        if "Description:" in output[pos]:
+                            description = output[pos + 1].strip()
+                        if "VPNID" in output[pos]:
+                            vpn_id = output[pos].split(": ")[-1]
+                        if "RD:" in output[pos]:
                             route_domain = output[pos].split()[-1]
-                        if 'Max Routes' in output[pos]:
-                            _ = output[pos].split(': ')
+                        if "Max Routes" in output[pos]:
+                            _ = output[pos].split(": ")
                             max_routes = _[1].split()[0].strip()
                             min_threshold = _[-1]
                         pos += 1
-                    row = [device,
-                           name,
-                           vrf_id,
-                           state,
-                           description,
-                           vpn_id,
-                           route_domain,
-                           max_routes,
-                           min_threshold]
+                    row = [
+                        device,
+                        name,
+                        vrf_id,
+                        state,
+                        description,
+                        vpn_id,
+                        route_domain,
+                        max_routes,
+                        min_threshold,
+                    ]
                     df_data.append(row)
 
     # Create the DataFrame columns
-    cols = ['device',
-            'name',
-            'vrf_id',
-            'state',
-            'description',
-            'vpn_id',
-            'route_domain',
-            'max_routes',
-            'min_threshold']
+    cols = [
+        "device",
+        "name",
+        "vrf_id",
+        "state",
+        "description",
+        "vpn_id",
+        "route_domain",
+        "max_routes",
+        "min_threshold",
+    ]
 
     # Create the dataframe and return it
     df_vrfs = pd.DataFrame(data=df_data, columns=cols)

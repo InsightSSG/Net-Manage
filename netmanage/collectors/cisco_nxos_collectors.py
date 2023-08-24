@@ -4,6 +4,7 @@ import ansible_runner
 import pandas as pd
 import sqlite3 as sl
 
+from netmanage.helpers import helpers as hp
 from netmanage.parsers import cisco_nxos_parsers as parser
 
 
@@ -463,7 +464,7 @@ def nxos_get_interface_summary(db_path: str) -> pd.DataFrame:
                          con)
 
     # Parse results into df
-    return parser.nxos_parse_interface_summary(df_inf)
+    return parser.nxos_parse_interface_summary(df_inf, con, ts)
 
 
 def nxos_get_inventory(username: str,
