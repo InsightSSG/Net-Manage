@@ -6,10 +6,10 @@
     - name: get F5 Pool availability {{host_group}}
       f5networks.f5_modules.bigip_command:
         commands:
-          - show ltm pool /*/* | grep "Ltm::Pool:\|Availability\|State\|Reason\|Ltm::Pool Member:\|IP Address\|Members"
+          - show ltm pool recursive /*/* | grep "Ltm::Pool:\|Availability\|State\|Reason\|Ltm::Pool Member:\|IP Address\|Members"
           # - cd / ; show ltm pool recursive members | grep "Ltm::Pool:\|Availability\|State\|Reason\|Ltm::Pool Member:\|IP Address\|Members"
-          # - show ltm virtual /*/* | grep "Ltm::\|Availability"
-          # - list ltm virtual /*/* | grep "ltm virtual\|pool"
+          # - show ltm virtual recursive /*/* | grep "Ltm::\|Availability"
+          # - list ltm virtual recursive /*/* | grep "ltm virtual\|pool"
         provider:
           user: "{{ username }}"
           server: "{{ ansible_host }}"

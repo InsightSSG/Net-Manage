@@ -333,7 +333,7 @@ def get_self_ips(username: str,
     extravars = {'username': username,
                  'password': password,
                  'host_group': host_group,
-                 'command': 'list net self /*/*'}
+                 'command': 'list net self recursive /*/*'}
 
     if not validate_certs:
         extravars['validate_certs'] = 'no'
@@ -1507,7 +1507,7 @@ def get_vlans(username: str,
     extravars = {'username': username,
                  'password': password,
                  'host_group': host_group,
-                 'command': 'list net vlan /*/*'}
+                 'command': 'list net vlan recursive /*/*'}
 
     if not validate_certs:
         extravars['validate_certs'] = 'no'

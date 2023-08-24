@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
 
 import os
-import sys
-
-# Change to the Net-Manage repository so imports will work
-nm_path = os.environ.get('NM_PATH')
-os.chdir(f'{nm_path}/test')
-sys.path.append('..')
+from dotenv import load_dotenv
 from netmanage.collectors import f5_collectors as collectors  # noqa
+
+load_dotenv()
 
 
 def test_get_arp_table(username,
@@ -57,7 +54,8 @@ def test_get_self_ips(username,
                                  validate_certs=False)
 
     expected = ['device', 'address', 'allow-service',
-                'traffic-group', 'vlan', 'name']
+                'traffic-group', 'vlan', 'name',
+                'subnet', 'network_ip', 'broadcast_ip']
 
     assert df.columns.to_list() == expected
 

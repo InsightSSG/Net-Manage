@@ -533,6 +533,7 @@ def define_collectors(hostgroup: str) -> Dict[str, Any]:
                   'org_devices': ['meraki'],
                   'org_device_statuses': ['meraki'],
                   'org_networks': ['meraki'],
+                  'security_rules': ['paloaltonetworks.panos'],
                   'switch_port_statuses': ['meraki'],
                   'switch_lldp_neighbors': ['meraki'],
                   'switch_port_usages': ['meraki'],

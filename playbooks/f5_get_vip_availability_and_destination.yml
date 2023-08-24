@@ -6,7 +6,7 @@
     - name: get F5 VIP availability and destination for {{host_group}}
       f5networks.f5_modules.bigip_command:
         commands:
-          - show ltm virtual /*/* | grep "Ltm::\|Availability\|State\|Reason\|Destination"
+          - show ltm virtual recursive /*/* | grep "Ltm::\|Availability\|State\|Reason\|Destination"
         provider:
           user: "{{ username }}"
           server: "{{ ansible_host }}"
