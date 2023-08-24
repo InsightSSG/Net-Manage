@@ -3,7 +3,6 @@
 import ansible_runner
 import pandas as pd
 
-from netmanage.helpers import helpers as hp
 from netmanage.parsers import cisco_ios_parsers as parser
 
 
@@ -531,6 +530,6 @@ def ios_get_vlan_db(username: str,
                                 playbook=playbook,
                                 extravars=extravars,
                                 suppress_env_files=True)
-    
+
     # Parse results into df
     return parser.ios_get_vlan_db(runner)

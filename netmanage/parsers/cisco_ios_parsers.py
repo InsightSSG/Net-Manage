@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import ansible_runner
 import pandas as pd
 
 from netmanage.helpers import helpers as hp
@@ -195,7 +194,7 @@ def ios_find_uplink_by_ip(df_ip: pd.DataFrame,
     return df_combined
 
 
-def ios_get_arp_table(runner: dict) -> pd.DataFrame:
+def ios_get_arp_table(runner: dict, nm_path: str) -> pd.DataFrame:
     '''
     Parses the IOS ARP table and add the vendor OUI.
 
@@ -203,12 +202,17 @@ def ios_get_arp_table(runner: dict) -> pd.DataFrame:
     ----------
     runner : dict
         An Ansible runner genrator
+    nm_path : str
+        The path to the Net-Manage repository.
 
     Returns
     -------
     df_arp : pd.DataFrame
         The ARP table and vendor OUI as a pandas DataFrame.
     '''
+
+    if nm_path is None:
+        raise ValueError('The input nm_path is None or empty')
 
     if runner is None or runner.events is None:
         raise ValueError('The input is None or empty')
@@ -251,7 +255,10 @@ def ios_get_arp_table(runner: dict) -> pd.DataFrame:
     return df_arp
 
 
-def ios_get_cam_table(runner: dict) -> pd.DataFrame:
+def ios_get_cam_table(
+            runner: dict,
+            nm_path: str
+            ) -> pd.DataFrame:
     '''
     Parses the IOS CAM table and add the vendor OUI.
 
@@ -259,13 +266,17 @@ def ios_get_cam_table(runner: dict) -> pd.DataFrame:
     ----------
     runner : dict
         An Ansible runner genrator
-
+    nm_path : str
+        The path to the Net-Manage repository.
 
     Returns
     -------
     df_cam : pd.DataFrame
         The CAM table and vendor OUI as a pandas DataFrame.
     '''
+
+    if nm_path is None:
+        raise ValueError('The input nm_path is None or empty')
 
     if runner is None or runner.events is None:
         raise ValueError('The input is None or empty')
