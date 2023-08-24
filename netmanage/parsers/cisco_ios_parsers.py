@@ -384,7 +384,7 @@ def ios_get_interface_descriptions(runner: dict) -> pd.DataFrame:
             device = event_data['remote_addr']
 
             output = event_data['res']['stdout'][0].split('\n')
-            # Parses the position of the 'Description' column 
+            # Parses the position of the 'Description' column
             # (we cannot split by spaces because some
             # interface descriptions have spaces in them).
             pos = output[0].index('Description')
