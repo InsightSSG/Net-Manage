@@ -223,7 +223,7 @@ def get_vrfs(username: str,
                                 suppress_env_files=True)
 
     # Parse results into df
-    return parser.parse_vrf(runner)
+    return parser.parse_vrfs(runner)
 
 
 def ios_find_uplink_by_ip(username: str,
