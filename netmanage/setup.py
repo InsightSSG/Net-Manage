@@ -47,6 +47,8 @@ total_pages = 'all'
 validate_certs = True
 
 # Define several functions that need to be run within Jupyter
+
+
 def create_collectors_df(collector_select: dict,
                          hostgroup_select: dict) -> pd.DataFrame:
     '''
@@ -92,7 +94,7 @@ def create_collectors_df(collector_select: dict,
                 # Pass the list of selected collectors to hp.set_dependencies.
                 # It will add any missing dependencies and return the list.
                 to_run = hp.set_dependencies(to_run)
-                
+
                 # Add the complete list of collectors that the user selected
                 # for this ansible_os and hostgroup to 'df_data'
                 for item in to_run:
@@ -138,7 +140,7 @@ def select_collectors(collector_select, hostgroup_select):
             to_delete.append(key)
     for item in to_delete:
         del collector_select[item]
-                    
+
     # Delete any hostgroups that the user has de-selected
     for key, value in hostgroup_select.items():
         if collector_select.get(key):
@@ -149,6 +151,7 @@ def select_collectors(collector_select, hostgroup_select):
             if to_delete:
                 del collector_select[key]
     return collector_select
+
 
 def select_hostgroups(collector_select: dict,
                       hostgroup_select: dict,
@@ -174,7 +177,7 @@ def select_hostgroups(collector_select: dict,
         A dictionary of collectors to select.
     '''
     # Define and select hostgroups
-    groups = hp.ansible_group_hostgroups_by_os(private_data_dir)    
+    groups = hp.ansible_group_hostgroups_by_os(private_data_dir)
     for key, value in groups.items():
         if not hostgroup_select.get(key):
             hostgroup_select[key] = [widgets.Checkbox(value=False,
