@@ -6,6 +6,7 @@ import pandas as pd
 from netmanage.helpers import helpers as hp
 from netmanage.parsers import cisco_ios_parsers as parser
 
+
 def gather_facts(username: str,
                  password: str,
                  host_group: str,
