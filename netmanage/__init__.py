@@ -2,6 +2,7 @@ from . import run_collectors  # noqa
 from netmanage.collectors import cisco_asa_collectors  # noqa
 from netmanage.collectors import cisco_ios_collectors  # noqa
 from netmanage.collectors import cisco_nxos_collectors  # noqa
+from netmanage.collectors import cisco_nxos_parsers  # noqa
 from netmanage.collectors import dnac_collectors  # noqa
 from netmanage.collectors import f5_collectors  # noqa
 from netmanage.collectors import infoblox_nios_collectors  # noqa
@@ -23,6 +24,7 @@ __all__ = [
     "cisco_ios_collectors",
     "cisco_ios_parsers",
     "cisco_nxos_collectors",
+    "cisco_nxos_parsers",
     "collectors",
     "dnac_collectors",
     "f5_collectors",

@@ -5,6 +5,7 @@ import pandas as pd
 import sqlite3 as sl
 
 from netmanage.helpers import helpers as hp
+from netmanage.parsers import cisco_nxos_parsers as parser
 
 
 def nxos_diff_running_config(username: str,
