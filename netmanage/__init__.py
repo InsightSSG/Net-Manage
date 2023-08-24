@@ -2,7 +2,6 @@ from . import run_collectors  # noqa
 from netmanage.collectors import cisco_asa_collectors  # noqa
 from netmanage.collectors import cisco_ios_collectors  # noqa
 from netmanage.collectors import cisco_nxos_collectors  # noqa
-from netmanage.collectors import cisco_nxos_parsers  # noqa
 from netmanage.collectors import dnac_collectors  # noqa
 from netmanage.collectors import f5_collectors  # noqa
 from netmanage.collectors import infoblox_nios_collectors  # noqa
@@ -11,6 +10,7 @@ from netmanage.collectors import netbox_collectors  # noqa
 from netmanage.collectors import palo_alto_collectors  # noqa
 from netmanage.collectors import solarwinds_collectors  # noqa
 from netmanage.parsers import cisco_ios_parsers  # noqa
+from netmanage.parsers import cisco_nxos_parsers  # noqa
 from netmanage.setup import select_hostgroups  # noqa
 from netmanage.writers import cisco_nxos_writers  # noqa
 from netmanage.writers import netbox_writers  # noqa

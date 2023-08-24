@@ -15,7 +15,7 @@ col_checkboxes, hg_checkboxes = {}, {}
 
 st.set_page_config(layout="wide")
 
-st.title("NetManage Run Collectors")
+st.title("Net-Manage Run Collectors")
 st.header("Select Host Groups")
 with st.spinner("Retrieving select_hostgroups data..."):
     hostgroup_select = select_hostgroups(
