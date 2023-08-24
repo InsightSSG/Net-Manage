@@ -6,7 +6,7 @@
     - name: get F5 VIP summary {{host_group}}
       f5networks.f5_modules.bigip_command:
         commands:
-          - list ltm virtual /*/* | grep "ltm virtual\|pool\|destination"
+          - list ltm virtual recursive /*/* | grep "ltm virtual\|pool\|destination"
         provider:
           user: "{{ username }}"
           server: "{{ ansible_host }}"

@@ -421,7 +421,7 @@ def get_self_ips(username: str,
     extravars = {'username': username,
                  'password': password,
                  'host_group': host_group,
-                 'command': 'list net self /*/*'}
+                 'command': 'list net self recursive /*/*'}
 
     if not validate_certs:
         extravars['validate_certs'] = 'no'
