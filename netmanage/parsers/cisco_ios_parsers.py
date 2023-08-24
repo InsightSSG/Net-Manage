@@ -196,7 +196,7 @@ def parse_vrfs(runner: dict) -> pd.DataFrame:
 
 
 def parse_ios_parse_uplink_by_ip(df_ip: pd.DataFrame,
-                                df_cdp: pd.DataFrame
+                                    df_cdp: pd.DataFrame
                                 ) -> pd.DataFrame:
     '''
     Search the hostgroup for a list of subnets (use /32 to search for a
