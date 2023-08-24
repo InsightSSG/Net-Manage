@@ -46,7 +46,7 @@ def nxos_diff_running_config(runner: dict) -> pd.DataFrame:
 
 
 def nxos_parse_arp_table(runner: dict,
-                        nm_path : str) -> pd.DataFrame:
+                            nm_path: str) -> pd.DataFrame:
     '''
     Parse the ARP table for Cisco NXOS devices and retrieve the OUI (vendor) for
     each MAC address. Optionally, perform a reverse DNS query for hostnames,
@@ -120,7 +120,9 @@ def nxos_parse_arp_table(runner: dict,
     return df_arp
 
 
-def nxos_parse_fexes_table(runner: dict) -> pd.DataFrame:
+def nxos_parse_fexes_table(runner: dict
+                            nm_path: str
+                            ) -> pd.DataFrame:
     '''
     Parse the FEXes for Cisco 5Ks. This function is required for gathering
     interface data on devices with a large number of FEXes, as it helps
@@ -130,6 +132,8 @@ def nxos_parse_fexes_table(runner: dict) -> pd.DataFrame:
     ----------
     runner : dict
         An Ansible runner genrator
+    nm_path : str
+        The path to the Net-Manage repository.
 
     Returns
     -------
