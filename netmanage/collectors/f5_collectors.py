@@ -3,8 +3,11 @@
 import ansible_runner
 import ast
 import pandas as pd
+import requests
 from netmanage import run_collectors as rc
+from netmanage.helpers import f5_helpers as f5h
 from netmanage.helpers import helpers as hp
+from netmanage.parsers import f5_parsers as f5p
 
 
 def build_pool_table(username: str,
@@ -297,6 +300,91 @@ def get_arp_table(username: str,
     # Get the MAC OUIs and add them to `df`
     df_macs = hp.find_mac_vendors(df['HWaddress'], nm_path)
     df['vendor'] = df_macs['vendor']
+
+    return df
+
+
+def get_f5_logs(username: str,
+                password: str,
+                base_url: str,
+                range_str: str = "",
+                lines: int = 500,
+                verify_ssl: bool = True) -> str:
+    """
+    Fetch the logs from an F5 BIG-IP system using the iControl REST API.
+
+    Parameters
+    ----------
+    username : str
+        Username to authenticate with the F5 BIG-IP system.
+    password : str
+        Password to authenticate with the F5 BIG-IP system.
+    base_url : str
+        Base URL of the F5 BIG-IP system's iControl REST API.
+    range_str : str, optional
+        Specifies the date-time range of the logs to fetch in F5's tmsh format.
+        It can be a single date, a date range (e.g., "2023-08-14--2023-08-15"),
+        or a relative period like "now-2d". Defaults to an empty string.
+    lines : int, optional
+        Number of log lines to fetch. Defaults to 500.
+    verify_ssl : bool, optional
+        Whether or not to verify SSL certificates. Defaults to True.
+
+    Returns
+    -------
+    str
+        Raw log data as a string. Returns an empty string if logs couldn't be
+        fetched.
+
+    Raises
+    ------
+    requests.exceptions.HTTPError
+        If there was an HTTP error during the request.
+    """
+    # Parsing the time range
+    times = range_str.split('--')
+    if 'now' in range_str and '-' in range_str:
+        start_time, end_time = f5h.convert_tmsh_time(times[0])
+    else:
+        start_time = f5h.convert_tmsh_time(times[0])
+        end_time = f5h.convert_tmsh_time(times[1],
+                                         True) if len(times) > 1 else ""
+
+    # Forming the endpoint URL
+    endpoint = [f"{base_url}/mgmt/tm/sys/log/ltm/stats?options=lines,{lines}",
+                f"range,{start_time}--{end_time}"]
+    endpoint = ','.join(endpoint)
+
+    response = requests.get(
+        endpoint,
+        auth=(username, password),
+        headers={"Content-Type": "application/json"},
+        verify=verify_ssl
+    )
+
+    response.raise_for_status()
+    try:
+        logs = response.json().get('apiRawValues', {}).get('apiAnonymous', "")
+        success = True
+    except ValueError:
+        logs = "Failed to decode JSON: " + response.text
+        success = False
+
+    # Tokenize the logs, add them to 'df_data', and create a DataFrame.
+    if success:
+        df_data = dict()
+        logs = logs.split('\n')
+        logs = list(filter(None, logs))
+        for msg in logs[1:]:
+            msg = f5p.tokenize_f5_log(msg)
+            for key, value in msg.items():
+                try:
+                    df_data[key].append(value)
+                except KeyError:
+                    df_data[key] = list()
+                    df_data[key].append(value)
+
+    df = pd.DataFrame(df_data)
 
     return df
 
@@ -1139,6 +1227,74 @@ def get_pools_and_members(username: str,
     return df_pools
 
 
+def get_timezone(username: str,
+                 password: str,
+                 host_group: str,
+                 play_path: str,
+                 private_data_dir: str,
+                 validate_certs: bool = True) -> pd.DataFrame:
+    '''
+    Converts a timezone abbreviation (e.g., PDT) to a pytz-recognized
+    timezone (e.g., America/Los_Angeles).
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to the device.
+    host_group : str
+        The Ansible inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    validate_certs : bool, optional
+        Whether to validate SSL certificates. Defaults to True.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A DataFrame containing the device, timestamp, timezone in abbreviated
+        format, and timezone in pytz format.
+    '''
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': ['show sys clock']}
+    if not validate_certs:
+        extravars['validate_certs'] = 'no'
+
+    playbook = f'{play_path}/f5_run_adhoc_command.yml'
+
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    df_data = dict()
+    df_data['device'] = list()
+    df_data['timestamp'] = list()
+    df_data['tz_abbreviation'] = list()
+    df_data['tz_pytz'] = list()
+
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+            device = event_data['remote_addr']
+
+            timestamp = event_data['res']['stdout_lines'][0][-1]
+
+            df_data['device'].append(device)
+            df_data['timestamp'].append(timestamp)
+            df_data['tz_abbreviation'].append(timestamp.split()[-2])
+            df_data['tz_pytz'].append(hp.tz_abbreviation_to_pytz(timestamp))
+
+    df = pd.DataFrame(df_data)
+
+    return df
+
+
 def get_vip_availability(username: str,
                          password: str,
                          host_group: str,
@@ -1504,15 +1660,20 @@ def get_vlans(username: str,
     df : pd.DataFrame
         A Pandas DataFrame containing the VLANs.
     '''
+    commands = [
+        'list net vlan /*/*',
+        'show net vlan /*/*'
+    ]
+
     extravars = {'username': username,
                  'password': password,
                  'host_group': host_group,
-                 'command': 'list net vlan recursive /*/*'}
+                 'commands': commands}
 
     if not validate_certs:
         extravars['validate_certs'] = 'no'
 
-    playbook = f'{play_path}/f5_run_adhoc_command.yml'
+    playbook = f'{play_path}/f5_run_adhoc_commands.yml'
 
     runner = ansible_runner.run(private_data_dir=private_data_dir,
                                 playbook=playbook,
@@ -1530,9 +1691,11 @@ def get_vlans(username: str,
             event_data = event['event_data']
             device = event_data['remote_addr']
             data[device] = list()
-            output = event_data['res']['stdout_lines'][0]
+            outputs = event_data['res']['stdout_lines']
 
-            # Parse the output and add it to `data``
+            # Parse the output of 'list net vlan /*/*' and add it to df_data.
+            output = outputs[0]
+
             counter = 0
             for line in output:
                 if line[:8] == 'net vlan':
@@ -1544,7 +1707,6 @@ def get_vlans(username: str,
                     block.append('}')
 
                     # Convert the block to a dictionary then flatten it.
-                    # pprint(block)
                     block = '\n'.join(block)
                     block = convert_tmsh_output_to_dict(block)
 
@@ -1552,23 +1714,13 @@ def get_vlans(username: str,
                         self_name = key.split()[-1]
                         value['name'] = self_name
 
-                    # Add the device name to `value`, then add `block` to
-                    # `data`.
+                    # Add the device name to `value`, then add the contents of
+                    # 'block' to 'df_data'.
                     value['device'] = device
-                    data[device].append(value)
-
-                    # Add each key in `block` to `df_data`.
-                    for key in value:
-                        if not df_data.get(key):
-                            df_data[key] = list()
+                    data[self_name] = value
+                    break
 
                 counter += 1
-
-    # Iterate over `data`, adding the values to `df_data`.
-    for key, value in data.items():
-        for item in value:
-            for k in df_data:
-                df_data[k].append(item.get(k))
 
     # Create `df`.
     df = pd.DataFrame.from_dict(df_data).astype(str)

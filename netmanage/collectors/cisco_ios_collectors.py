@@ -103,6 +103,80 @@ def gather_facts(username: str,
     return parser.gather_facts(runner)
 
 
+def bgp_neighbor_summary(username: str,
+                         password: str,
+                         host_group: str,
+                         play_path: str,
+                         private_data_dir: str) -> pd.DataFrame:
+    """Gets the BGP neighbor summary for all VRFs.
+
+    Parameters
+    ----------
+    username : str
+        The username to use for authentication.
+    password : str
+        The password to use for authentication.
+    host_group : str
+        The host group to query for VRF information.
+    play_path : str
+        The path to playbooks in Ansible.
+    private_data_dir : str
+        The path to private data directories in Ansible.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A DataFrame containing VRF information, with columns ["device", "name",
+        "vrf_id", "default_rd", "default_vpn_id"].
+    """
+    cmd = 'show ip bgp all summary | begin Neighbor'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute the pre-checks
+    playbook = f'{play_path}/cisco_ios_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Create a dictionary to store the parsed output.
+    df_data = dict()
+    df_data['device'] = list()
+
+    # Parse the output, create the DataFrame and return it.
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout'][0].split('\n')
+
+            # Add the column headers to df_data as keys.
+            headers = output[0].split()
+            for key in headers:
+                if not df_data.get(key):
+                    df_data[key] = list()
+
+            # Convert the output to a nested list and remove the header row.
+            output = [_.split() for _ in output[1:]]
+            # Add the device to each list element.
+            output = [[device] + _ for _ in output]
+
+            # Parse the output and add it to 'df_data'.
+            for line in output:
+                for key, value in zip(df_data.keys(), line):
+                    df_data[key].append(value)
+
+    # Create the dataframe and return it.
+    df = pd.DataFrame(df_data).astype(str)
+
+    return df
+
+
 def get_config(username: str,
                password: str,
                host_group: str,
@@ -165,7 +239,7 @@ def get_vrfs(username: str,
         A DataFrame containing VRF information, with columns ["device", "name",
         "vrf_id", "default_rd", "default_vpn_id"].
     """
-    cmd = 'show vrf detail | include VRF Id'
+    cmd = 'show vrf'
     extravars = {'username': username,
                  'password': password,
                  'host_group': host_group,
@@ -178,7 +252,64 @@ def get_vrfs(username: str,
                                 extravars=extravars,
                                 suppress_env_files=True)
 
-    return parser.get_vrfs(runner)
+    # Create a dictionary to store the parsed output.
+    df_data = dict()
+    df_data['device'] = list()
+    df_data['Name'] = list()
+    df_data['Default RD'] = list()
+    df_data['Protocols'] = list()
+    df_data['Interfaces'] = list()
+
+    # Parse the output, create the DataFrame and return it.
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout'][0].split('\n')
+
+            # Gather the header indexes.
+            header = output[0]
+            rd_pos = header.index('Default RD')
+            proto_pos = header.index('Protocols')
+            inf_pos = header.index('Interfaces')
+
+            # Reverse 'output' to make it easier to parse.
+            output.reverse()
+
+            # Parse the output.
+            counter = 0
+            for line in output:
+                if len(line.split()) > 1 and 'Default RD' not in line:
+                    interfaces = list()
+                    name = line[:rd_pos].strip()
+                    default_rd = line[rd_pos:proto_pos].strip()
+                    protocols = line[proto_pos:inf_pos].strip()
+                    interfaces.append(line[inf_pos:].strip())
+                    pos = counter
+                    # Collect additional interfaces for the VRF.
+                    while len(output[pos+1].split()) <= 1:
+                        interfaces.append(output[pos+1].split()[0])
+                        pos += 1
+                    # Add the VRF to df_data.
+                    df_data['device'].append(device)
+                    df_data['Name'].append(name)
+                    df_data['Default RD'].append(default_rd)
+                    df_data['Protocols'].append(protocols)
+                    df_data['Interfaces'].append(interfaces)
+                counter += 1
+
+    # Create the dataframe then reverse it to preserve the original order.
+    df = pd.DataFrame(df_data)
+    df = df.iloc[::-1].reset_index(drop=True)
+
+    # Convert the data in the 'Interfaces' column from a list to a
+    # space-delimited string.
+    df['Interfaces'] = df['Interfaces'].apply(
+        lambda x: ' '.join(x)).astype(str)
+
+    return df
 
 
 def ios_find_uplink_by_ip(username: str,

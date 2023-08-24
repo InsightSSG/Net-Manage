@@ -87,6 +87,9 @@ def collect(ansible_os: str,
     # Read F5 LTM variables
     f5_ltm_username = os.environ['f5_ltm_username']
     f5_ltm_password = os.environ['f5_ltm_password']
+    # f5_log_range = os.environ['f5_log_range']
+    # f5_log_type = os.environ['f5_log_type']
+    # f5_num_lines = os.environ['f5_num_lines']
 
     # Read Infoblox variables
     infoblox_url = os.environ['infoblox_url']
@@ -168,6 +171,22 @@ def collect(ansible_os: str,
                                               private_data_dir,
                                               validate_certs=validate_certs)
 
+        # Do not uncomment the 'logs' collector until it is updated to use
+        # bash. This is because of a suspected F5 bug that causes the active
+        # unit to sometimes hang when retrieving the logs with a tmsh command
+        # (Ansible) or a REST API call.
+
+        # if collector == 'logs':
+        #     result = f5c.get_log_files(f5_ltm_username,
+        #                                f5_ltm_password,
+        #                                hostgroup,
+        #                                play_path,
+        #                                private_data_dir,
+        #                                log_type=f5_log_type,
+        #                                log_range=f5_log_range,
+        #                                num_lines=f5_num_lines,
+        #                                validate_certs=validate_certs)
+
         if collector == 'node_availability':
             result = f5c.get_node_availability(f5_ltm_username,
                                                f5_ltm_password,
@@ -235,6 +254,14 @@ def collect(ansible_os: str,
                                         play_path,
                                         private_data_dir,
                                         validate_certs=validate_certs)
+
+    if collector == 'bgp_neighbors_summary':
+        if ansible_os == 'cisco.ios.ios':
+            result = cic.bgp_neighbor_summary(ios_devices_username,
+                                              ios_devices_password,
+                                              hostgroup,
+                                              play_path,
+                                              private_data_dir)
 
     if collector == 'devices_inventory':
         if ansible_os == 'cisco.dnac':
