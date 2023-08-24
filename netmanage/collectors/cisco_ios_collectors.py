@@ -296,7 +296,7 @@ def ios_get_arp_table(username: str,
                                 suppress_env_files=True)
 
     # Parse results into df
-    return parser.ios_get_arp_table(runner)
+    return parser.ios_get_arp_table(runner, nm_path)
 
 
 def ios_get_cam_table(username: str,
@@ -348,7 +348,7 @@ def ios_get_cam_table(username: str,
                                 suppress_env_files=True)
 
     # Parse results into df
-    return parser.ios_get_cam_table(runner)
+    return parser.ios_get_cam_table(runner, nm_path)
 
 
 def ios_get_cdp_neighbors(username: str,
