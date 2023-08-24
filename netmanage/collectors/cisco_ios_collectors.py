@@ -100,7 +100,7 @@ def gather_facts(username: str,
                                 extravars=extravars,
                                 suppress_env_files=True)
 
-    return parser.gather_facts(runner)
+    return parser.parse_facts(runner)
 
 
 def bgp_neighbor_summary(username: str,
@@ -142,39 +142,8 @@ def bgp_neighbor_summary(username: str,
                                 extravars=extravars,
                                 suppress_env_files=True)
 
-    # Create a dictionary to store the parsed output.
-    df_data = dict()
-    df_data['device'] = list()
-
-    # Parse the output, create the DataFrame and return it.
-    for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
-
-            device = event_data['remote_addr']
-
-            output = event_data['res']['stdout'][0].split('\n')
-
-            # Add the column headers to df_data as keys.
-            headers = output[0].split()
-            for key in headers:
-                if not df_data.get(key):
-                    df_data[key] = list()
-
-            # Convert the output to a nested list and remove the header row.
-            output = [_.split() for _ in output[1:]]
-            # Add the device to each list element.
-            output = [[device] + _ for _ in output]
-
-            # Parse the output and add it to 'df_data'.
-            for line in output:
-                for key, value in zip(df_data.keys(), line):
-                    df_data[key].append(value)
-
-    # Create the dataframe and return it.
-    df = pd.DataFrame(df_data).astype(str)
-
-    return df
+    # Parse results into df
+    return parser.parse_bgp_neighbor_summary(runner)
 
 
 def get_config(username: str,
@@ -210,7 +179,8 @@ def get_config(username: str,
                          private_data_dir,
                          gather_info)
 
-    return parser.get_config(facts)
+    # Parse results into df
+    return parser.parse_config(facts)
 
 
 def get_vrfs(username: str,
@@ -252,64 +222,8 @@ def get_vrfs(username: str,
                                 extravars=extravars,
                                 suppress_env_files=True)
 
-    # Create a dictionary to store the parsed output.
-    df_data = dict()
-    df_data['device'] = list()
-    df_data['Name'] = list()
-    df_data['Default RD'] = list()
-    df_data['Protocols'] = list()
-    df_data['Interfaces'] = list()
-
-    # Parse the output, create the DataFrame and return it.
-    for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
-
-            device = event_data['remote_addr']
-
-            output = event_data['res']['stdout'][0].split('\n')
-
-            # Gather the header indexes.
-            header = output[0]
-            rd_pos = header.index('Default RD')
-            proto_pos = header.index('Protocols')
-            inf_pos = header.index('Interfaces')
-
-            # Reverse 'output' to make it easier to parse.
-            output.reverse()
-
-            # Parse the output.
-            counter = 0
-            for line in output:
-                if len(line.split()) > 1 and 'Default RD' not in line:
-                    interfaces = list()
-                    name = line[:rd_pos].strip()
-                    default_rd = line[rd_pos:proto_pos].strip()
-                    protocols = line[proto_pos:inf_pos].strip()
-                    interfaces.append(line[inf_pos:].strip())
-                    pos = counter
-                    # Collect additional interfaces for the VRF.
-                    while len(output[pos+1].split()) <= 1:
-                        interfaces.append(output[pos+1].split()[0])
-                        pos += 1
-                    # Add the VRF to df_data.
-                    df_data['device'].append(device)
-                    df_data['Name'].append(name)
-                    df_data['Default RD'].append(default_rd)
-                    df_data['Protocols'].append(protocols)
-                    df_data['Interfaces'].append(interfaces)
-                counter += 1
-
-    # Create the dataframe then reverse it to preserve the original order.
-    df = pd.DataFrame(df_data)
-    df = df.iloc[::-1].reset_index(drop=True)
-
-    # Convert the data in the 'Interfaces' column from a list to a
-    # space-delimited string.
-    df['Interfaces'] = df['Interfaces'].apply(
-        lambda x: ' '.join(x)).astype(str)
-
-    return df
+    # Parse results into df
+    return parser.parse_vrf(runner)
 
 
 def ios_find_uplink_by_ip(username: str,
@@ -381,7 +295,7 @@ def ios_find_uplink_by_ip(username: str,
                                    private_data_dir)
 
     # Parse results into df
-    return parser.ios_find_uplink_by_ip(df_ip, df_cdp)
+    return parser.ios_parse_uplink_by_ip(df_ip, df_cdp)
 
 
 def ios_get_arp_table(username: str,
@@ -427,7 +341,7 @@ def ios_get_arp_table(username: str,
                                 suppress_env_files=True)
 
     # Parse results into df
-    return parser.ios_get_arp_table(runner, nm_path)
+    return parser.ios_parse_arp_table(runner, nm_path)
 
 
 def ios_get_cam_table(username: str,
@@ -479,7 +393,7 @@ def ios_get_cam_table(username: str,
                                 suppress_env_files=True)
 
     # Parse results into df
-    return parser.ios_get_cam_table(runner, nm_path)
+    return parser.ios_parse_cam_table(runner, nm_path)
 
 
 def ios_get_cdp_neighbors(username: str,
@@ -526,7 +440,7 @@ def ios_get_cdp_neighbors(username: str,
                                 suppress_env_files=True)
 
     # Parse results into df
-    return parser.ios_get_cdp_neighbors(runner)
+    return parser.ios_parse_cdp_neighbors(runner)
 
 
 def ios_get_interface_descriptions(username: str,
@@ -573,7 +487,7 @@ def ios_get_interface_descriptions(username: str,
                                 suppress_env_files=True)
 
     # Parse results into df
-    return parser.ios_get_interface_descriptions(runner)
+    return parser.ios_parse_interface_descriptions(runner)
 
 
 def ios_get_interface_ips(username: str,
@@ -619,7 +533,7 @@ def ios_get_interface_ips(username: str,
                                 suppress_env_files=True)
 
     # Parse results into df
-    return parser.ios_get_interface_ips(runner)
+    return parser.ios_parse_interface_ips(runner)
 
 
 def ios_get_vlan_db(username: str,
@@ -663,4 +577,4 @@ def ios_get_vlan_db(username: str,
                                 suppress_env_files=True)
 
     # Parse results into df
-    return parser.ios_get_vlan_db(runner)
+    return parser.ios_parse_vlan_db(runner)
