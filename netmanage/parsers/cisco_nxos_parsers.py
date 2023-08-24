@@ -120,7 +120,7 @@ def nxos_parse_arp_table(runner: dict,
     return df_arp
 
 
-def nxos_parse_fexes_table(runner: dict
+def nxos_parse_fexes_table(runner: dict,
                             nm_path: str
                             ) -> pd.DataFrame:
     '''
