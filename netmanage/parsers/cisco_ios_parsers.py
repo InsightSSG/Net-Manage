@@ -38,6 +38,57 @@ def gather_facts(runner: dict) -> dict:
     return facts
 
 
+def bgp_neighbor_summary(runner: dict) -> pd.DataFrame:
+    """Parses the BGP neighbor summary output and returns it in a DataFrame.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner generator.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A DataFrame containing the BGP neighbor summary.
+    """
+    if runner is None or runner.events is None:
+        raise ValueError('The input is None or empty')
+
+    # Create a dictionary to store the parsed output.
+    df_data = dict()
+    df_data['device'] = list()
+
+    # Parse the output, create the DataFrame and return it.
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout'][0].split('\n')
+
+            # Add the column headers to df_data as keys.
+            headers = output[0].split()
+            for key in headers:
+                if not df_data.get(key):
+                    df_data[key] = list()
+
+            # Convert the output to a nested list and remove the header row.
+            output = [_.split() for _ in output[1:]]
+            # Add the device to each list element.
+            output = [[device] + _ for _ in output]
+
+            # Parse the output and add it to 'df_data'.
+            for line in output:
+                for key, value in zip(df_data.keys(), line):
+                    df_data[key].append(value)
+
+    # Create the dataframe and return it.
+    df = pd.DataFrame(df_data).astype(str)
+
+    return df
+
+
 def get_config(facts: dict) -> pd.DataFrame:
     """Parses the config on Cisco IOS devices.
 
@@ -82,39 +133,62 @@ def get_vrfs(runner: dict) -> pd.DataFrame:
     if runner is None or runner.events is None:
         raise ValueError('The input is None or empty')
 
-    # Parse the output, create the DataFrame and return it.
-    data = []
+    # Create a dictionary to store the parsed output.
+    df_data = dict()
+    df_data['device'] = list()
+    df_data['Name'] = list()
+    df_data['Default RD'] = list()
+    df_data['Protocols'] = list()
+    df_data['Interfaces'] = list()
 
+    # Parse the output, create the DataFrame and return it.
     for event in runner.events:
         if event['event'] == 'runner_on_ok':
             event_data = event['event_data']
 
             device = event_data['remote_addr']
 
-            output = event_data['res']['stdout'][0]
-            for line in output.strip().split("\n"):
-                # Split each line into its name, vrf_id, default_rd, and
-                # default_vpn_id components
-                name_start = line.find("VRF ") + len("VRF ")
-                name_end = line.find(" (VRF Id =")
-                name = line[name_start:name_end].strip()
+            output = event_data['res']['stdout'][0].split('\n')
 
-                vrf_id_start = line.find("VRF Id = ") + len("VRF Id = ")
-                vrf_id_end = line.find(");")
-                vrf_id = line[vrf_id_start:vrf_id_end].strip()
+            # Gather the header indexes.
+            header = output[0]
+            rd_pos = header.index('Default RD')
+            proto_pos = header.index('Protocols')
+            inf_pos = header.index('Interfaces')
 
-                default_rd = "not set" if "<not set>" in line else None
-                default_vpn_id = "not set" if "<not set>" in line else None
+            # Reverse 'output' to make it easier to parse.
+            output.reverse()
 
-                data.append([device, name, vrf_id, default_rd, default_vpn_id])
+            # Parse the output.
+            counter = 0
+            for line in output:
+                if len(line.split()) > 1 and 'Default RD' not in line:
+                    interfaces = list()
+                    name = line[:rd_pos].strip()
+                    default_rd = line[rd_pos:proto_pos].strip()
+                    protocols = line[proto_pos:inf_pos].strip()
+                    interfaces.append(line[inf_pos:].strip())
+                    pos = counter
+                    # Collect additional interfaces for the VRF.
+                    while len(output[pos+1].split()) <= 1:
+                        interfaces.append(output[pos+1].split()[0])
+                        pos += 1
+                    # Add the VRF to df_data.
+                    df_data['device'].append(device)
+                    df_data['Name'].append(name)
+                    df_data['Default RD'].append(default_rd)
+                    df_data['Protocols'].append(protocols)
+                    df_data['Interfaces'].append(interfaces)
+                counter += 1
 
-    # Convert the data to a DataFrame with the appropriate columns
-    df = pd.DataFrame(
-        data, columns=["device",
-                       "name",
-                       "vrf_id",
-                       "default_rd",
-                       "default_vpn_id"])
+    # Create the dataframe then reverse it to preserve the original order.
+    df = pd.DataFrame(df_data)
+    df = df.iloc[::-1].reset_index(drop=True)
+
+    # Convert the data in the 'Interfaces' column from a list to a
+    # space-delimited string.
+    df['Interfaces'] = df['Interfaces'].apply(
+        lambda x: ' '.join(x)).astype(str)
 
     return df
 
@@ -256,9 +330,9 @@ def ios_get_arp_table(runner: dict, nm_path: str) -> pd.DataFrame:
 
 
 def ios_get_cam_table(
-            runner: dict,
-            nm_path: str
-            ) -> pd.DataFrame:
+    runner: dict,
+    nm_path: str
+) -> pd.DataFrame:
     '''
     Parses the IOS CAM table and add the vendor OUI.
 
