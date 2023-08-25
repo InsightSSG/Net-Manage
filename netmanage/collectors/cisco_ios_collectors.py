@@ -100,7 +100,7 @@ def gather_facts(username: str,
                                 extravars=extravars,
                                 suppress_env_files=True)
 
-    return parser.gather_facts(runner)
+    return parser.parse_facts(runner)
 
 
 def bgp_neighbor_summary(username: str,
@@ -141,8 +141,8 @@ def bgp_neighbor_summary(username: str,
                                 extravars=extravars,
                                 suppress_env_files=True)
 
-    # Parse the output, convert it to a DataFrame and return it.
-    return parser.bgp_neighbor_summary(runner)
+    # Parse results into df
+    return parser.parse_bgp_neighbor_summary(runner)
 
 
 def get_config(username: str,
@@ -178,7 +178,8 @@ def get_config(username: str,
                          private_data_dir,
                          gather_info)
 
-    return parser.get_config(facts)
+    # Parse results into df
+    return parser.parse_config(facts)
 
 
 def get_vrfs(username: str,
@@ -220,7 +221,8 @@ def get_vrfs(username: str,
                                 extravars=extravars,
                                 suppress_env_files=True)
 
-    return parser.get_vrfs(runner)
+    # Parse results into df
+    return parser.parse_vrfs(runner)
 
 
 def ios_find_uplink_by_ip(username: str,
@@ -292,7 +294,7 @@ def ios_find_uplink_by_ip(username: str,
                                    private_data_dir)
 
     # Parse results into df
-    return parser.ios_find_uplink_by_ip(df_ip, df_cdp)
+    return parser.ios_parse_uplink_by_ip(df_ip, df_cdp)
 
 
 def ios_get_arp_table(username: str,
@@ -338,7 +340,7 @@ def ios_get_arp_table(username: str,
                                 suppress_env_files=True)
 
     # Parse results into df
-    return parser.ios_get_arp_table(runner, nm_path)
+    return parser.ios_parse_arp_table(runner, nm_path)
 
 
 def ios_get_cam_table(username: str,
@@ -390,7 +392,7 @@ def ios_get_cam_table(username: str,
                                 suppress_env_files=True)
 
     # Parse results into df
-    return parser.ios_get_cam_table(runner, nm_path)
+    return parser.ios_parse_cam_table(runner, nm_path)
 
 
 def ios_get_cdp_neighbors(username: str,
@@ -437,7 +439,7 @@ def ios_get_cdp_neighbors(username: str,
                                 suppress_env_files=True)
 
     # Parse results into df
-    return parser.ios_get_cdp_neighbors(runner)
+    return parser.ios_parse_cdp_neighbors(runner)
 
 
 def ios_get_interface_descriptions(username: str,
@@ -484,7 +486,7 @@ def ios_get_interface_descriptions(username: str,
                                 suppress_env_files=True)
 
     # Parse results into df
-    return parser.ios_get_interface_descriptions(runner)
+    return parser.ios_parse_interface_descriptions(runner)
 
 
 def ios_get_interface_ips(username: str,
@@ -530,7 +532,7 @@ def ios_get_interface_ips(username: str,
                                 suppress_env_files=True)
 
     # Parse results into df
-    return parser.ios_get_interface_ips(runner)
+    return parser.ios_parse_interface_ips(runner)
 
 
 def ios_get_vlan_db(username: str,
@@ -574,4 +576,4 @@ def ios_get_vlan_db(username: str,
                                 suppress_env_files=True)
 
     # Parse results into df
-    return parser.ios_get_vlan_db(runner)
+    return parser.ios_parse_vlan_db(runner)

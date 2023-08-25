@@ -10,6 +10,9 @@ from netmanage.collectors import netbox_collectors  # noqa
 from netmanage.collectors import palo_alto_collectors  # noqa
 from netmanage.collectors import solarwinds_collectors  # noqa
 from netmanage.parsers import cisco_ios_parsers  # noqa
+from netmanage.parsers import cisco_nxos_parsers  # noqa
+from netmanage.parsers import f5_parsers  # noqa
+from netmanage.parsers import palo_alto_parsers  # noqa
 from netmanage.setup import select_hostgroups  # noqa
 from netmanage.writers import cisco_nxos_writers  # noqa
 from netmanage.writers import netbox_writers  # noqa
@@ -23,12 +26,15 @@ __all__ = [
     "cisco_ios_collectors",
     "cisco_ios_parsers",
     "cisco_nxos_collectors",
+    "cisco_nxos_parsers",
     "collectors",
     "dnac_collectors",
     "f5_collectors",
+    "f5_parsers",
     "infoblox_nios_collectors",
     "meraki_collectors",
     "palo_alto_collectors",
+    "palo_alto_parsers",
     "solarwinds_collectors",
     "netbox_collectors",
     "netbox_updaters",

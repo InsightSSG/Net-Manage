@@ -92,7 +92,7 @@ def test_get_vrfs(username: str,
                              play_path,
                              private_data_dir)
 
-    expected = ['device', 'name', 'vrf_id', 'default_rd', 'default_vpn_id']
+    expected = ['device', 'Name', 'Default RD', 'Protocols', 'Interfaces']
 
     assert df.columns.to_list() == expected
 
