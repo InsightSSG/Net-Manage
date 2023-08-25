@@ -126,8 +126,7 @@ def bgp_neighbor_summary(username: str,
     Returns
     -------
     pandas.DataFrame
-        A DataFrame containing VRF information, with columns ["device", "name",
-        "vrf_id", "default_rd", "default_vpn_id"].
+        A DataFrame containing the BGP neighbor summary.
     """
     cmd = 'show ip bgp all summary | begin Neighbor'
     extravars = {'username': username,

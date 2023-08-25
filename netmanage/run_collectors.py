@@ -534,7 +534,7 @@ def collect(ansible_os: str,
             result = pac.get_security_rules(palo_alto_username,
                                             palo_alto_password,
                                             hostgroup,
-                                            netmanage_path,
+                                            play_path,
                                             private_data_dir)
 
     if collector == 'netbox_get_ipam_prefixes':

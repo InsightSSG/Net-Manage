@@ -39,35 +39,33 @@ def parse_facts(runner: dict) -> dict:
 
 
 def parse_bgp_neighbor_summary(runner: dict) -> pd.DataFrame:
-    """Gets the BGP neighbor summary for all VRFs.
+    """Parses the BGP neighbor summary output and returns it in a DataFrame.
 
     Parameters
     ----------
     runner : dict
-        An Ansible runner genrator
+        An Ansible runner generator.
 
     Returns
     -------
-    pandas.DataFrame
-        A DataFrame containing VRF information, with columns ["device", "name",
-        "vrf_id", "default_rd", "default_vpn_id"].
+    df : pd.DataFrame
+        A DataFrame containing the BGP neighbor summary.
     """
-
     if runner is None or runner.events is None:
-        raise ValueError("The input is None or empty")
+        raise ValueError('The input is None or empty')
 
     # Create a dictionary to store the parsed output.
     df_data = dict()
-    df_data["device"] = list()
+    df_data['device'] = list()
 
     # Parse the output, create the DataFrame and return it.
     for event in runner.events:
-        if event["event"] == "runner_on_ok":
-            event_data = event["event_data"]
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
 
-            device = event_data["remote_addr"]
+            device = event_data['remote_addr']
 
-            output = event_data["res"]["stdout"][0].split("\n")
+            output = event_data['res']['stdout'][0].split('\n')
 
             # Add the column headers to df_data as keys.
             headers = output[0].split()
@@ -150,13 +148,13 @@ def parse_vrfs(runner: dict) -> pd.DataFrame:
 
             device = event_data["remote_addr"]
 
-            output = event_data["res"]["stdout"][0].split("\n")
+            output = event_data['res']['stdout'][0].split('\n')
 
             # Gather the header indexes.
             header = output[0]
-            rd_pos = header.index("Default RD")
-            proto_pos = header.index("Protocols")
-            inf_pos = header.index("Interfaces")
+            rd_pos = header.index('Default RD')
+            proto_pos = header.index('Protocols')
+            inf_pos = header.index('Interfaces')
 
             # Reverse 'output' to make it easier to parse.
             output.reverse()
@@ -164,7 +162,7 @@ def parse_vrfs(runner: dict) -> pd.DataFrame:
             # Parse the output.
             counter = 0
             for line in output:
-                if len(line.split()) > 1 and "Default RD" not in line:
+                if len(line.split()) > 1 and 'Default RD' not in line:
                     interfaces = list()
                     name = line[:rd_pos].strip()
                     default_rd = line[rd_pos:proto_pos].strip()
@@ -172,15 +170,15 @@ def parse_vrfs(runner: dict) -> pd.DataFrame:
                     interfaces.append(line[inf_pos:].strip())
                     pos = counter
                     # Collect additional interfaces for the VRF.
-                    while len(output[pos + 1].split()) <= 1:
-                        interfaces.append(output[pos + 1].split()[0])
+                    while len(output[pos+1].split()) <= 1:
+                        interfaces.append(output[pos+1].split()[0])
                         pos += 1
                     # Add the VRF to df_data.
-                    df_data["device"].append(device)
-                    df_data["Name"].append(name)
-                    df_data["Default RD"].append(default_rd)
-                    df_data["Protocols"].append(protocols)
-                    df_data["Interfaces"].append(interfaces)
+                    df_data['device'].append(device)
+                    df_data['Name'].append(name)
+                    df_data['Default RD'].append(default_rd)
+                    df_data['Protocols'].append(protocols)
+                    df_data['Interfaces'].append(interfaces)
                 counter += 1
 
     # Create the dataframe then reverse it to preserve the original order.
@@ -189,15 +187,14 @@ def parse_vrfs(runner: dict) -> pd.DataFrame:
 
     # Convert the data in the 'Interfaces' column from a list to a
     # space-delimited string.
-    df["Interfaces"] = df["Interfaces"].apply(
-        lambda x: " ".join(x)).astype(str)
+    df['Interfaces'] = df['Interfaces'].apply(
+        lambda x: ' '.join(x)).astype(str)
 
     return df
 
 
 def parse_ios_parse_uplink_by_ip(
-    df_ip: pd.DataFrame, df_cdp: pd.DataFrame
-) -> pd.DataFrame:
+        df_ip: pd.DataFrame, df_cdp: pd.DataFrame) -> pd.DataFrame:
     """
     Search the hostgroup for a list of subnets (use /32 to search for a
     single IP). Once it finds them, it uses CDP and LLDP (if applicable) to try
