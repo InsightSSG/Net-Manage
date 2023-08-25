@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 
 import ansible_runner
-import json
 import pandas as pd
-from netmanage.helpers import helpers as hp
 from typing import Dict
 from netmanage.parsers import palo_alto_parsers as parser
 
@@ -233,7 +231,7 @@ def get_arp_table(username: str,
                                  True)
 
     # Parse results into df
-    return parser.parse_arp_table(response)
+    return parser.parse_arp_table(response, nm_path)
 
 
 def get_interface_ips(username: str,

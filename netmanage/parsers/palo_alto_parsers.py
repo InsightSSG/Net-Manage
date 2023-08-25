@@ -3,17 +3,17 @@
 import json
 import pandas as pd
 from netmanage.helpers import helpers as hp
-from typing import Dict
 
 
-def parse_all_interfaces(runner: dict) -> pd.DataFrame:
+def parse_all_interfaces(response: dict) -> pd.DataFrame:
     '''
     Parse all interfaces on Palo Altos.
 
     Parameters
     ----------
-    runner : dict
-        An Ansible runner genrator
+    response : dict
+        A dictionary containing the command output, where the keys are the
+        devices and the value is a dictionary
 
     Returns
     -------
@@ -22,7 +22,7 @@ def parse_all_interfaces(runner: dict) -> pd.DataFrame:
 
     '''
 
-    if runner is None:
+    if response is None:
         raise ValueError("The input is None or empty")
 
     # Create a dictionary to store the formatted cmd output for each device.
@@ -55,14 +55,17 @@ def parse_all_interfaces(runner: dict) -> pd.DataFrame:
     return df
 
 
-def parse_arp_table(runner: dict) -> pd.DataFrame:
+def parse_arp_table(response: dict, nm_path: str) -> pd.DataFrame:
     '''
     Parses the Palo Alto ARP table and adds vendor OUIs.
 
     Parameters
     ----------
-    runner : dict
-        An Ansible runner genrator
+    response : dict
+        A dictionary containing the command output, where the keys are the
+        devices and the value is a dictionary
+    nm_path : str
+        The path to the Net-Manage repository.
 
     Returns
     -------
@@ -76,7 +79,7 @@ def parse_arp_table(runner: dict) -> pd.DataFrame:
         return the ARP table for all interfaces.
     '''
 
-    if runner is None:
+    if response is None:
         raise ValueError("The input is None or empty")
 
     # Create a dictionary to store the data for 'df'
@@ -141,14 +144,15 @@ def parse_interface_ips(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def parse_logical_interfaces(df: pd.DataFrame) -> pd.DataFrame:
+def parse_logical_interfaces(response: pd.DataFrame) -> pd.DataFrame:
     '''
     Parse the logical interfaces on Palo Altos.
 
     Parameters
     ----------
-    df : Pandas Dataframe
-        A pd.DataFrame
+    response : dict
+        A dictionary containing the command output, where the keys are the
+        devices and the value is a dictionary
 
     Returns
     -------
@@ -157,7 +161,7 @@ def parse_logical_interfaces(df: pd.DataFrame) -> pd.DataFrame:
 
     '''
 
-    if df is None:
+    if response is None:
         raise ValueError("The input is None or empty")
 
     # Create a dictionary to store the formatted cmd output for each device.
@@ -190,14 +194,15 @@ def parse_logical_interfaces(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def parse_physical_interfaces(df: pd.DataFrame) -> pd.DataFrame:
+def parse_physical_interfaces(response: dict) -> pd.DataFrame:
     '''
     Parse the physical interfaces on Palo Altos.
 
     Parameters
     ----------
-    df : Pandas Dataframe
-        A pd.DataFrame
+    response : dict
+        A dictionary containing the command output, where the keys are the
+        devices and the value is a dictionary
 
     Returns
     -------
@@ -207,7 +212,7 @@ def parse_physical_interfaces(df: pd.DataFrame) -> pd.DataFrame:
 
     '''
 
-    if df is None:
+    if response is None:
         raise ValueError("The input is None or empty")
 
     # Create a dictionary to store the formatted cmd output for each device.
