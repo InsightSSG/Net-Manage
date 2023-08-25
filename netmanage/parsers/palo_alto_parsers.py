@@ -132,7 +132,7 @@ def parse_interface_ips(df: pd.DataFrame) -> pd.DataFrame:
         raise ValueError("The input is None or empty")
 
     # Filter out interfaces that do not have an IP address.
-    df = df[df['ip'] != 'N/A']
+    df = df[df['ip'] != 'N/A'].copy()
 
     # Add the subnets, network IPs, and broadcast IPs.
     addresses = df['ip'].to_list()
