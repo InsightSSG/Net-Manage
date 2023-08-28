@@ -344,6 +344,15 @@ def collect(ansible_os: str,
                                                 play_path,
                                                 private_data_dir)
 
+    if collector == 'fexes_table':
+        if ansible_os == 'cisco.nxos.nxos':
+            result = cnc.nxos_get_fexes_table(nxos_devices_username,
+                                              nxos_devices_password,
+                                              hostgroup,
+                                              netmanage_path,
+                                              play_path,
+                                              private_data_dir)
+
     if collector == 'interface_description':
         if ansible_os == 'cisco.ios.ios':
             result = cic.ios_get_interface_descriptions(ios_devices_username,

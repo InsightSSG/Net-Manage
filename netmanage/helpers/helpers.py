@@ -1,1928 +1,726 @@
 #!/usr/bin/env python3
 
-'''
-A library of generic helper functions.
-'''
-
 import ansible_runner
-import ast
-import glob
-import ipaddress
-import numpy as np
-import os
 import pandas as pd
-import re
-import requests
 import sqlite3 as sl
-import sys
-import time
-import yaml
-from datetime import datetime as dt
-from getpass import getpass
-from tabulate import tabulate
-from typing import Any, Dict, List, Tuple, Union
+
+from netmanage.parsers import cisco_nxos_parsers as parser
 
 
-def ansible_create_collectors_df(hostgroups: List[str],
-                                 collectors: List[str]) -> pd.DataFrame:
+def nxos_diff_running_config(username: str,
+                             password: str,
+                             host_group: str,
+                             play_path: str,
+                             private_data_dir: str,
+                             nm_path: str,
+                             interface: str = None) -> pd.DataFrame:
     '''
-    Create a DataFrame where the index is the selected collectors and each row
-    contains a comma-delimited string of selected hostgroups.
+    Gets the running-config diff for NXOS devices.
 
     Parameters
     ----------
-    hostgroups : list of str
-        A list of hostgroups, each of which is a comma-delimited string.
-    collectors : list of str
-        A list of one or more collectors, each of which is a comma-delimited
-        string.
-
-    Returns
-    -------
-    df_collectors : pd.DataFrame
-        A DataFrame created from hostgroups and collectors.
-
-    Examples
-    --------
-    >>> hostgroups = ['hostgroup1', 'hostgroup2']
-    >>> collectors = ['collector1', 'collector2']
-    >>> df_collectors = ansible_create_collectors_df(hostgroups, collectors)
-    >>> print(df_collectors)
-    '''
-    df_data = list()
-    for c in collectors:
-        df_data.append([c, ','.join(hostgroups)])
-        df_collectors = pd.DataFrame(data=df_data, columns=['collector',
-                                                            'hostgroups'])
-    df_collectors = df_collectors.set_index('collector')
-
-    return df_collectors
-
-
-def ansible_create_vars_df(hostgroups: List[str],
-                           private_data_dir: str) -> pd.DataFrame:
-    '''
-    Create a DataFrame containing the Ansible variables for each hostgroup.
-
-    This function is designed to be used with the net-manage.ipynb. It reads
-    all the host groups from the 'df_test', gets the Ansible variables for each
-    group from the host file, creates a DataFrame containing the variables,
-    then returns it.
-
-    Parameters
-    ----------
-    hostgroups : list of str
-        A list of hostgroups.
-    private_data_dir : str
-        The path to the Ansible private_data_dir, which is the directory
-        containing the 'inventory' folder. The default is the current folder.
-
-    Returns
-    -------
-    df_vars : pd.DataFrame
-        A DataFrame containing the group variables.
-
-    Examples
-    --------
-    >>> hostgroups = ['group1', 'group2']
-    >>> private_data_dir = '/path/to/private/data/dir'
-    >>> df_vars = ansible_create_vars_df(hostgroups, private_data_dir)
-    >>> print(df_vars)
-    '''
-    host_vars = dict()
-
-    for g in hostgroups:
-        group_vars = ansible_get_host_variables(g, private_data_dir)
-        host_vars[g] = group_vars
-
-    # Create a dictionary to store the variable data for each group
-    df_data = dict()
-    df_data['host_group'] = list()
-
-    # Iterate through the keys for each group in 'host_vars', adding it as a
-    # key to 'df_data'
-    for key, value in host_vars.items():
-        for k in value:
-            if k != 'ansible_user' and k != 'ansible_password':
-                df_data[k] = list()
-
-    # Iterate through 'host_vars', populating 'df_data'
-    for key, value in host_vars.items():
-        df_data['host_group'].append(key)
-        for item in df_data:
-            if item != 'host_group':
-                result = value.get(item)
-                df_data[item].append(result)
-
-    df_vars = pd.DataFrame.from_dict(df_data)
-
-    df_vars = df_vars.set_index('host_group')
-
-    return df_vars
-
-
-def ansible_get_all_hostgroup_os(private_data_dir: str) -> Dict[str, str]:
-    '''
-    Get the Ansible OS for every hostgroup.
-
-    Parameters
-    ----------
-    private_data_dir : str
-        The path to the Ansible private_data_dir. This is the directory
-        containing the 'inventory' folder. The default is the current folder.
-
-    Returns
-    -------
-    groups_os : dict
-        The Ansible OS for all host groups. The keys are host group names and
-        the values are the corresponding Ansible OS.
-
-    Examples
-    --------
-    >>> private_data_dir = '/path/to/private/data/dir'
-    >>> groups_os = ansible_get_all_hostgroup_os(private_data_dir)
-    >>> print(groups_os)
-    '''
-    # Get all group variables
-    groups_vars = ansible_get_all_host_variables(private_data_dir)
-
-    groups_os = dict()
-
-    for key, value in groups_vars.items():
-        group_vars = value.get('vars')
-        if group_vars and group_vars.get('ansible_network_os'):
-            groups_os[key] = value['vars']['ansible_network_os']
-
-    return groups_os
-
-
-def ansible_get_all_host_variables(private_data_dir: str) -> Dict[str, str]:
-    '''
-    Get the Ansible variables for all hostgroups in the inventory.
-
-    Parameters
-    ----------
-    private_data_dir : str
-        The path to the Ansible private_data_dir. This is the directory
-        containing the 'inventory' folder. The default is the current folder.
-
-    Returns
-    -------
-    groups_vars : dict
-        The Ansible variables for all host groups. The keys are host group
-        names and the values are the corresponding Ansible variables.
-
-    Examples
-    --------
-    >>> private_data_dir = '/path/to/private/data/dir'
-    >>> groups_vars = ansible_get_all_host_variables(private_data_dir)
-    >>> print(groups_vars)
-    '''
-    # Read the contents of the playbook into a dictionary
-    with open(f'{private_data_dir}/inventory/hosts') as f:
-        groups_vars = yaml.load(f, Loader=yaml.FullLoader)
-    return groups_vars
-
-
-def check_dir_existence(dir_path: str) -> bool:
-    '''
-    Check whether a directory exists.
-
-    Parameters
-    ----------
-    dir_path : str
-        The path to the directory.
-
-    Returns
-    -------
-    exists : bool
-        A boolean to indicate whether the directory exists.
-
-    Examples
-    --------
-    >>> dir_path = '/path/to/directory'
-    >>> exists = check_dir_existence(dir_path)
-    >>> print(exists)
-    '''
-    exists = False
-    if os.path.exists(dir_path):
-        exists = True
-    return exists
-
-
-def convert_mask_to_cidr(netmask: str) -> str:
-    '''
-    Convert a subnet mask to CIDR notation.
-
-    Parameters
-    ----------
-    netmask : str
-        A subnet mask in xxx.xxx.xxx.xxx format.
-
-    Returns
-    -------
-    cidr : str
-        The number of bits in the subnet mask (CIDR).
-
-    Examples
-    --------
-    >>> netmask = '255.255.255.0'
-    >>> cidr = convert_mask_to_cidr(netmask)
-    >>> print(cidr)
-    '''
-    cidr = sum(bin(int(x)).count('1') for x in netmask.split('.'))
-    return cidr
-
-
-def create_dir(dir_path: str) -> None:
-    '''
-    Create a directory.
-
-    Parameters
-    ----------
-    dir_path : str
-        The path to the directory.
-
-    Returns
-    -------
-    None
-
-    Examples
-    --------
-    >>> dir_path = '/path/to/new/directory'
-    >>> create_dir(dir_path)
-    '''
-    os.mkdir(dir_path)
-
-
-def define_supported_validation_tables() -> List[str]:
-    '''
-    Return a list of tables that are supported for validation.
-
-    Returns
-    -------
-    supported_tables : list
-        A list of supported tables.
-
-    Examples
-    --------
-    >>> supported_tables = define_supported_validation_tables()
-    >>> print(supported_tables)
-    '''
-    supported_tables = dict()
-
-    supported_tables['MERAKI_ORG_DEVICE_STATUSES'] = dict()
-    supported_tables['MERAKI_ORG_DEVICE_STATUSES']['status'] = 'online'
-
-    supported_tables['BIGIP_POOL_AVAILABILITY'] = dict()
-    supported_tables['BIGIP_POOL_AVAILABILITY']['availability'] = 'available'
-
-    supported_tables['BIGIP_POOL_MEMBER_AVAILABILITY'] = dict()
-    supported_tables['BIGIP_POOL_MEMBER_AVAILABILITY']['pool_member_state'] = \
-        'available'
-
-    supported_tables['BIGIP_VIP_AVAILABILITY'] = dict()
-    supported_tables['BIGIP_VIP_AVAILABILITY']['availability'] = 'available'
-
-    return supported_tables
-
-
-def get_database_tables(db_path: str) -> List[str]:
-    '''
-    Get all of the tables out of the database.
-
-    Parameters
-    ----------
-    db_path : str
-        The path to the database.
-
-    Returns
-    -------
-    tables : list
-        A list of tables.
-
-    Examples
-    --------
-    >>> db_path = '/path/to/database'
-    >>> tables = get_database_tables(db_path)
-    >>> print(tables)
-    '''
-    # sqlite_schema used to be named sqlite_master. This method tries the new
-    # name but will fail back to the old name if the user is on an older
-    # version
-    name_old = 'master'
-    name_new = 'schema'
-    con = connect_to_db(db_path)
-    query1 = f'''select name from sqlite_{name_new}
-                 where type = "table" and name not like "sqlite_%"'''
-    query2 = f'''select name from sqlite_{name_old}
-                 where type = "table" and name not like "sqlite_%"'''
-    try:
-        df_tables = pd.read_sql(query1, con)
-    except Exception:
-        df_tables = pd.read_sql(query2, con)
-    tables = df_tables['name'].to_list()
-    return tables
-
-
-def ansible_get_hostgroup() -> str:
-    '''
-    Get the Ansible hostgroup.
-
-    Returns
-    -------
-    hostgroup : str
-        The Ansible hostgroup.
-
-    Examples
-    --------
-    >>> hostgroup = ansible_get_hostgroup()
-    >>> print(hostgroup)
-    '''
-
-    host_group = input('Enter the name of the host group in the hosts file: ')
-    return host_group
-
-
-def ansible_get_host_variables(host_group: str, private_data_dir: str) -> Dict:
-    '''
-    Get the variables for a host or host group in the hosts file.
-
-    Parameters
-    ----------
-    host_group : str
-        The name of the host group.
-    private_data_dir : str
-        The path to the Ansible private_data_dir. This is the path that
-        the 'inventory' folder is in. The default is the current folder.
-
-    Returns
-    -------
-    group_vars : dict
-        The host group variables.
-
-    Examples
-    --------
-    >>> host_group = '<host_group>'
-    >>> private_data_dir = '/path/to/private/data/dir'
-    >>> group_vars = ansible_get_host_variables(host_group, private_data_dir)
-    >>> print(group_vars)
-    '''
-    # Read the contents of the playbook into a dictionary
-    with open(f'{private_data_dir}/inventory/hosts') as f:
-        hosts = yaml.load(f, Loader=yaml.FullLoader)
-
-    group_vars = hosts[host_group]['vars']
-
-    return group_vars
-
-
-def ansible_get_hostgroup_devices(hostgroup: str,
-                                  host_files: List[str],
-                                  quiet: bool = True) -> List[str]:
-    '''
-    Get the devices inside an Ansible inventory hostgroup.
-
-    Parameters
-    ----------
-    hostgroup : str
-        The Ansible hostgroup.
-    host_files : list
-        The path to one or more Ansible host files (e.g., ['inventory/hosts']).
-    quiet : bool, optional
-        Whether to output the entire graph. Defaults to True.
-
-    Returns
-    -------
-    devices : list
-        A list of devices in the hostgroup.
-
-    Examples
-    --------
-    >>> hostgroup = '<hostgroup>'
-    >>> host_files = ['inventory/hosts']
-    >>> devices = ansible_get_hostgroup_devices(hostgroup, host_files)
-    >>> print(devices)
-    '''
-    graph = ansible_runner.interface.get_inventory('graph',
-                                                   host_files,
-                                                   quiet=True)
-    graph = str(graph)
-    for item in graph.split('@'):
-        if hostgroup in item:
-            item = item.split(':')[-1]
-            item = item.split('|--')[1:-1]
-            devices = [i.split('\\')[0] for i in item]
-            break
-    return devices
-
-
-def ansible_group_hostgroups_by_os(private_data_dir: str) \
-        -> Dict[str, List[str]]:
-    '''
-    Finds the ansible_network_os for all hostgroups that have defined it in the
-    variables, then organizes the hostgroups by os.
-
-    For example:
-
-    groups_os['cisco.asa.asa'] = ['asa_group_1']
-    groups_os['cisco.nxos.nxos'] = ['nxos_group_1', 'nxos_group_2']
-
-    Parameters
-    ----------
-    private_data_dir : str
-        The path to the Ansible private_data_dir. This is the path that the
-        'inventory' folder is in. The default is the current folder.
-
-    Returns
-    -------
-    hostgroup_by_os : dict
-        A dictionary containing the hostgroups, grouped by OS.
-
-    Examples
-    --------
-    >>> private_data_dir = '<private_data_dir>'
-    >>> hostgroup_by_os = ansible_group_hostgroups_by_os(private_data_dir)
-    >>> print(hostgroup_by_os)
-    '''
-    # Get the OS for all Ansible hostgroups
-    groups_os = ansible_get_all_hostgroup_os(private_data_dir)
-
-    # Extract the OS and create dict for all hostgroups that have defined it
-    groups_by_os = dict()
-    for key, value in groups_os.items():
-        if not groups_by_os.get(value):
-            groups_by_os[value] = list()
-        groups_by_os[value].append(key)
-    return groups_by_os
-
-
-def define_collectors(hostgroup: str) -> Dict[str, Any]:
-    '''
-    Creates a list of collectors.
-
-    Parameters
-    ----------
-    hostgroup : str
-        The name of the hostgroup.
-
-    Returns
-    -------
-    available : dict
-        The collectors supported by the hostgroup.
-
-    Examples
-    --------
-    >>> hostgroup = '<hostgroup>'
-    >>> available = define_collectors(hostgroup)
-    >>> print(available)
-    '''
-    # TODO: Find a more dynamic way to create this dictionary
-    collectors = {'arp_table': ['bigip',
-                                'cisco.ios.ios',
-                                'cisco.nxos.nxos',
-                                'paloaltonetworks.panos'],
-                  'bgp_neighbors_summary': ['cisco.ios.ios'],
-                  'cam_table': ['cisco.ios.ios', 'cisco.nxos.nxos'],
-                  'config': ['cisco.ios.ios'],
-                  'devices_inventory': ['cisco.dnac'],
-                  'device_cdp_lldp_neighbors': ['meraki'],
-                  'devices_modules': ['cisco.dnac'],
-                  'logs': ['bigip'],
-                  'ncm_serial_numbers': ['solarwinds'],
-                  'network_appliance_vlans': ['meraki'],
-                  'npm_containers': ['solarwinds'],
-                  'npm_group_members': ['solarwinds'],
-                  'npm_group_names': ['solarwinds'],
-                  'npm_node_ids': ['solarwinds'],
-                  'npm_node_ips': ['solarwinds'],
-                  'npm_node_machine_types': ['solarwinds'],
-                  'npm_node_os_versions': ['solarwinds'],
-                  'npm_node_vendors': ['solarwinds'],
-                  'npm_nodes': ['solarwinds'],
-                  'ospf_neighbors': ['cisco.ios.ios'],
-                  'node_availability': ['bigip'],
-                  'pool_availability': ['bigip'],
-                  'pool_member_availability': ['bigip'],
-                  'pool_summary': ['bigip'],
-                  'self_ips': ['bigip'],
-                  'vip_availability': ['bigip'],
-                  'vip_destinations': ['bigip'],
-                  #  'vip_summary': ['bigip'],
-                  'vlans': ['bigip',
-                            'cisco.ios.ios',
-                            'cisco.nxos.nxos',
-                            'infoblox_nios'],
-                  'networks': ['infoblox_nios'],
-                  'network_containers': ['infoblox_nios'],
-                  'networks_parent_containers': ['infoblox_nios'],
-                  'vlan_ranges': ['infoblox_nios'],
-                  'interface_description': ['bigip',
-                                            'cisco.ios.ios',
-                                            'cisco.nxos.nxos'],
-                  'interface_ip_addresses': ['cisco.asa.asa',
-                                             'cisco.ios.ios',
-                                             'cisco.nxos.nxos',
-                                             'paloaltonetworks.panos'],
-                  'interface_status': ['cisco.nxos.nxos'],
-                  'interface_summary': ['bigip', 'cisco.nxos.nxos'],
-                  'inventory_nxos': ['cisco.nxos.nxos'],
-                  'network_clients': ['meraki'],
-                  'network_devices': ['meraki'],
-                  'network_device_statuses': ['meraki'],
-                  'organizations': ['meraki'],
-                  'org_devices': ['meraki'],
-                  'org_device_statuses': ['meraki'],
-                  'org_networks': ['meraki'],
-                  'security_rules': ['paloaltonetworks.panos'],
-                  'switch_port_statuses': ['meraki'],
-                  'switch_lldp_neighbors': ['meraki'],
-                  'switch_port_usages': ['meraki'],
-                  'ipam_prefixes': ['netbox'],
-                  'all_interfaces': ['paloaltonetworks.panos'],
-                  'logical_interfaces': ['paloaltonetworks.panos'],
-                  'physical_interfaces': ['paloaltonetworks.panos'],
-                  'port_channel_data': ['cisco.nxos.nxos'],
-                  'vpc_state': ['cisco.nxos.nxos'],
-                  'vrfs': ['cisco.ios.ios', 'cisco.nxos.nxos']}
-
-    available = list()
-    for key, value in collectors.items():
-        if hostgroup in value:
-            available.append(key)
-    return available
-
-
-def f5_create_authentication_token(device: str,
-                                   username: str,
-                                   password: str,
-                                   loginProviderName: str = 'tmos',
-                                   verify: bool = True) -> str:
-    '''
-    Creates an authentication token to use for F5 REST API calls.
-
-    Parameters
-    ----------
-    device : str
-        The device name or IP address.
     username : str
-        The user's username.
+        The username to login to devices.
     password : str
-        The user's password.
-    loginProviderName : str, optional
-        The value to use for 'loginProviderName'. Defaults to 'tmos'.
-        It should only need to be changed if F5 documentation or support
-        says it is necessary.
-    verify : bool, optional
-        Whether to verify certs. Defaults to 'True'. Should only be set
-        to 'False' if it is a dev environment or the F5 is using
-        self-signed certificates.
-
-    Returns
-    -------
-    token : str
-        The authentication token.
-    '''
-    # Create the URL used for creating the authentication token
-    url = f'{device}/mgmt/shared/authn/login'
-
-    # Request the token
-    content = {'username': username,
-               'password': password,
-               'loginProviderName': loginProviderName}
-    response = requests.post(url, json=content, verify=verify)
-    token = response.json()['token']['token']
-
-    # Sleep for 1.5 seconds. This is required due to F5 bug ID1108181
-    # https://cdn.f5.com/product/bugtracker/ID1108181.html
-    time.sleep(1.5)
-
-    # Return the token
-    return token
-
-
-def find_mac_vendors(macs: List[str], nm_path: str) -> pd.DataFrame:
-    '''
-    Finds the vendor OUI for a list of MAC addresses.
-
-    Parameters
-    ----------
-    macs : list
-        A list containing the MAC addresses for which to find the OUIs.
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    interface : str, optional
+        The interface (defaults to all interfaces).
     nm_path : str
         The path to the Net-Manage repository.
 
     Returns
     -------
-    df : DataFrame
-        A Pandas DataFrame containing two columns. The first is the MAC
-        address, and the second is the corresponding vendor.
-
-    Notes
-    -----
-    There is a Python library to do this, but it is quite slow.
-
-    It might seem inefficient to parse the OUIs from a text file on an
-    as-needed basis. However, testing found that the operation only takes
-    about 250ms, and the size of the resulting dataframe is only
-    approximately 500KB.
-
-    Examples
-    --------
-    >>> import os
-    >>> macs = ['00:50:56:bd:52:79', 'c4:34:6b:b9:99:32']
-    >>> home_dir = os.path.expanduser('~')
-    >>> nm_path = f'{home_dir}/source/repos/InsightSSG/Net-Manage'
-    >>> df = find_mac_vendors(macs, nm_path)
-    >>> print(df.to_dict())
-    {'mac': {0: '00:50:56:bd:52:79', 1: 'c4:34:6b:b9:99:32'},
-    'vendor': {0: 'VMware, Inc.', 1: 'Hewlett Packard'}}
+    df_diff : pd.DataFrame
+        The diff.
     '''
-    # Convert MAC addresses to base 16 by removing special characters.
-    addresses = [''.join(filter(str.isalnum, _)).upper() for _ in macs]
+    cmd = 'show running-config diff'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
 
-    # Create a list to store vendors
-    vendors = list()
+    # Execute the command and parse the output
+    playbook = f'{play_path}/cisco_nxos_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
 
-    # Check if the list of OUIs exists and/or needs to be updated.
-    df_ouis = update_ouis(nm_path)
-
-    # Search df_ouis for the vendor and add it to 'vendors'.
-    for address in addresses:
-        vendor = df_ouis.loc[df_ouis['base'] == address[:6]]['vendor']
-        if len(vendor) >= 1:
-            vendors.append(vendor.squeeze())
-        else:
-            vendors.append('unknown')
-
-    # Create the dataframe.
-    df = pd.DataFrame()
-    df['mac'] = macs
-    df['vendor'] = vendors
-
-    return df
+    # Parse results into df
+    return parser.nxos_diff_running_config(runner)
 
 
-def generate_subnet_details(addresses: List[str],
-                            return_keys: List[str] = ['subnet',
-                                                      'network_ip',
-                                                      'broadcast_ip']) \
-        -> Dict[str, List[str]]:
+def nxos_get_arp_table(username: str,
+                       password: str,
+                       host_group: str,
+                       nm_path: str,
+                       play_path: str,
+                       private_data_dir: str,
+                       reverse_dns: bool = False) -> pd.DataFrame:
     '''
-    Generates the subnet, network, and broadcast IPs for a list of IPs.
+    Get the ARP table for Cisco NXOS devices and retrieve the OUI (vendor) for
+    each MAC address. Optionally, perform a reverse DNS query for hostnames,
+    but note that it may take several minutes for large datasets.
 
     Parameters
     ----------
-    addresses : list of str
-        List of IP addresses in the format {ip}/{subnet_mask_length}.
-    return_keys : list of str, optional
-        List of keys to return. Used for when a table has column names that
-        conflict with the default return_keys of 'subnet', 'network_ip', and
-        'broadcast_ip'. NOTE: The keys should be ordered so that element[0]
-        is for the 'subnet' column, element[1] for 'network_ip', and element[2]
-        for 'broadcast_ip'. Defaults to ['subnet','network_ip','broadcast_ip'].
-
-    Returns
-    -------
-    dict
-        A dictionary with three keys:
-        - 'subnet' : list of str
-            List of subnet in CIDR notation for each IP address in the input
-            list.
-        - 'network_ip' : list of str
-            List of network IP for each IP address in the input list.
-        - 'broadcast_ip' : list of str
-            List of broadcast IP for each IP address in the input list.
-    '''
-    subnet = list()
-    network_ip = list()
-    broadcast_ip = list()
-
-    for ip in addresses:
-        ip_obj = ipaddress.ip_interface(ip)
-        subnet.append(str(ip_obj.network))
-        network_ip.append(str(ip_obj.network.network_address))
-        brd = str(ipaddress.IPv4Address(int(ip_obj.network.broadcast_address)))
-        broadcast_ip.append(brd)
-
-    return {return_keys[0]: subnet,
-            return_keys[1]: network_ip,
-            return_keys[2]: broadcast_ip}
-
-
-def get_creds(prompt: str = '') -> Tuple[str, str]:
-    '''
-    Gets the username and password to use for authentication.
-
-    Parameters
-    ----------
-    prompt : str, optional
-        A one-word description to use inside the prompt. For example, if
-        prompt == 'device', then the user would be presented with the full
-        prompt of 'Enter the username to use for device authentication.' If no
-        prompt is passed to the function, then the generic prompt will be used.
-        Defaults to ''.
-
-    Returns
-    -------
     username : str
-        The username.
+        The username to login to devices.
     password : str
-        The password.
-    '''
-    username = get_username(prompt)
-    password = get_password(prompt)
-    return username, password
-
-
-def ansible_get_hostgroups(inventories: List[str],
-                           quiet: bool = True) -> List[str]:
-    '''
-    Gets the devices inside an Ansible inventory hostgroup.
-
-    Parameters
-    ----------
-    inventories : list of str
-        The path to one or more Ansible host files (e.g.,
-        ['inventory/hosts']).
-    quiet : bool, optional
-        Whether to output the entire graph. Defaults to True.
-
-    Returns
-    -------
-    devices : list of str
-        A list of devices in the hostgroup.
-    '''
-    graph = ansible_runner.interface.get_inventory('graph',
-                                                   inventories,
-                                                   quiet=True)
-    graph = str(graph).strip("('")
-    # graph = list(filter(None, graph))
-    hostgroups = list()
-    graph = list(filter(None, graph.split('@')))
-    # TODO: Write a better parser
-    for item in graph:
-        hostgroup = item.split(':')[0]
-        hostgroups.append(hostgroup)
-    return hostgroups
-
-
-def connect_to_db(db: str) -> sl.Connection:
-    '''
-    Opens a connection to the sqlite database.
-
-    Parameters
-    ----------
-    db : str
-        Path to the database
-
-    Returns
-    -------
-    con : sl.Connection
-        Connection to the database
-    '''
-    try:
-        con = sl.connect(db)
-    except Exception as e:
-        if str(e) == 'unable to open database file':
-            print(f'Cannot connect to db "{db}". Does directory exist?')
-            sys.exit()
-        else:
-            print(f'Caught exception "{str(e)}"')
-            sys.exit()
-    return con
-
-
-def create_sqlite_regexp_function(conn: sl.Connection) -> None:
-    '''
-    Creates a SQLite3 function that allows REGEXP queries. More details can be
-    found at the following URLs:
-    - 'https://tinyurl.com/mwxz2dn8'
-    - 'https://tinyurl.com/ye285mnj'
-
-    Parameters
-    ----------
-    conn : sqlite3.Connection
-        An object for connecting to the sqlite3 database.
-
-    Returns
-    -------
-    None
-    '''
-    # This function is credited to Stack Overflow user 'unutbu':
-    # - https://tinyurl.com/ye285mnj
-    def regexp(expr, item):
-        reg = re.compile(expr)
-        return reg.search(item) is not None
-    conn.create_function('REGEXP', 2, regexp)
-
-
-def get_dir_timestamps(path: str) -> Dict[str, dt]:
-    '''
-    Gets the timestamp for all files and folders in a directory.
-
-    This function is not recursive.
-
-    Parameters
-    ----------
-    path : str
-        The path to search.
-
-    Returns
-    -------
-    result : dict
-        A dictionary for each file or folder, where the key is the file or
-        folder name and the value is a datetime object containing the
-        timestamp.
-
-    Examples
-    --------
-    >>> from pprint import pprint
-    >>> path = '/tmp/test/'
-    >>> result = get_dir_timestamps(path)
-    >>> pprint(result)
-    {'/tmp/test/test.txt': datetime.datetime(2023, 3, 7, 16, 15, 9),
-    '/tmp/test/test2.txt': datetime.datetime(2023, 3, 7, 16, 16, 4)}
-    '''
-    files = glob.glob(f'{path}/*')
-
-    result = dict()
-    for file in files:
-        ts = time.ctime(os.path.getctime(file)).split()
-        ts = ' '.join([ts[1], ts[2], ts[-1], ts[3]])
-        result[file] = dt.strptime(ts, "%b %d %Y %H:%M:%S")
-
-    return result
-
-
-def get_first_last_timestamp(db_path: str,
-                             table: str,
-                             col_name: str) -> pd.DataFrame:
-    '''
-    Gets the first and last timestamp from a database table for each unique
-    entry in a column.
-
-    Parameters
-    ----------
-    db_path : str
-        The path to the database.
-    table : str
-        The table name.
-    col_name : str
-        The column name to search by (e.g., 'device', 'networkId', etc).
-
-    Returns
-    -------
-    df_stamps : DataFrame
-        A DataFrame containing the first and last timestamp for each unique
-        entry in the specified column.
-    '''
-    df_data = dict()
-    df_data[col_name] = list()
-    df_data['first_ts'] = list()
-    df_data['last_ts'] = list()
-
-    # Get the unique entries for col_name (usually a device name, MAC address,
-    # etc). This is necessary since the first timestamp in the table won't
-    # always have all the entries for that table (devices might be added or
-    # removed, ARP tables might change, and so on)
-    con = sl.connect(db_path)
-    query = f'select distinct {col_name} from {table}'
-    df_uniques = pd.read_sql(query, con)
-    uniques = df_uniques[col_name].to_list()
-
-    # Create a dictionary to store the first and last timestamps for col_name.
-    # This will be used to create df_stamps
-    # df_data = dict()
-
-    query = f'select distinct timestamp from {table}'
-    timestamps = pd.read_sql(query, con)['timestamp'].to_list()
-
-    for unique in uniques:
-        stamps = list()
-        for ts in timestamps:
-            query = f'''select timestamp from {table}
-                        where timestamp = "{ts}" and {col_name} = "{unique}"'''
-            for item in pd.read_sql(query, con)['timestamp'].to_list():
-                stamps.append(item)
-        df_data[col_name].append(unique)
-        df_data['first_ts'].append(stamps[0])
-        df_data['last_ts'].append(stamps[-1])
-
-    # This is an alternative way to collect the first and last timestamps for
-    # each col_name. It does not utilize an index (assuming the table has one),
-    # but the speed was about the same. I am leaving it here to do more
-    # testing with in the future.
-
-    # for unique in uniques:
-    #     query = f'''select distinct timestamp from {table}
-    #                 where {col_name} = "{unique}"'''
-    #     df_stamps = pd.read_sql(query, con)
-    #     stamps = df_stamps['timestamp'].to_list()
-    #     df_data[col_name].append(unique)
-    #     df_data['first_ts'].append(stamps[0])
-    #     df_data['last_ts'].append(stamps[-1])
-    con.close()
-
-    df_stamps = pd.DataFrame.from_dict(df_data)
-
-    return df_stamps
-
-
-def get_username(prompt: str = '') -> str:
-    '''
-    Gets the username to use for authentication.
-
-    Parameters
-    ----------
-    prompt : str, optional
-        A one-word description to use inside the prompt. For example, if
-        prompt == 'device', then the user would be presented with the full
-        prompt of 'Enter the username to use for device authentication.' If
-        no prompt is passed to the function, then the generic prompt will be
-        used. Default is an empty string.
-
-    Returns
-    -------
-    username : str
-        The username.
-    '''
-    # Create the full prompt
-    if not prompt:
-        f_prompt = 'Enter the username to use for authentication: '
-    else:
-        f_prompt = f'Enter the username to use for {prompt} authentication: '
-
-    # Get the user's username
-    username = input(f_prompt)
-
-    return username
-
-
-def get_password(prompt: str = '') -> str:
-    '''
-    Gets the password to use for authentication.
-
-    Parameters
-    ----------
-    prompt : str, optional
-        A one-word description to use inside the prompt. For example, if
-        prompt == 'device', then the user would be presented with the full
-        prompt of 'Enter the username to use for device authentication.' If
-        no prompt is passed to the function, then the generic prompt will be
-        used. Default is an empty string.
-
-    Returns
-    -------
-    password : str
-        The password.
-    '''
-    # Create the full prompt
-    if not prompt:
-        f_prompt = 'Enter the password to use for authentication: '
-    else:
-        f_prompt = f'Enter the password to use for {prompt} authentication: '
-
-    # Get the user's password and have them type it twice for verification
-    pass1 = str()
-    pass2 = None
-    while pass1 != pass2:
-        pass1 = getpass(f_prompt)
-        pass2 = getpass('Confirm your password: ')
-        if pass1 != pass2:
-            print('Error: Passwords do not match.')
-    password = pass1
-
-    return password
-
-
-def meraki_get_api_key() -> str:
-    '''
-    Gets the Meraki API key.
-
-    Returns
-    -------
-    api_key : str
-        The user's API key.
-    '''
-    api_key = getpass('Enter your Meraki API key: ')
-    return api_key
-
-
-def move_cols_to_end(df: pd.DataFrame, cols: List[str]) -> pd.DataFrame:
-    '''
-    Moves one or more columns on a dataframe to be the end. For example,
-    if the dataframe columns are ['A', 'C', 'B'], then this function can be
-    used to re-order them to ['A', 'B', 'C'].
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        The Pandas dataframe to re-order.
-    cols : list of str
-        A list of one or more columns to move. If more than one column is
-        specified, they will be added to the end in the order that is in
-        the list.
-
-    Returns
-    -------
-    pd.DataFrame
-        The re-ordered DataFrame.
-    '''
-    for c in cols:
-        df[c] = df.pop(c)
-    return df
-
-
-def read_table(db_path: str, table: str) -> pd.DataFrame:
-    '''
-    Reads all columns for the latest timestamp from a database table.
-
-    Parameters
-    ----------
-    db_path : str
-        The full path to the database.
-    table : str
-        The table name.
-
-    Returns
-    -------
-    df : pd.DataFrame
-        A Pandas dataframe containing the data.
-    '''
-    con = connect_to_db(db_path)
-    df_ts = pd.read_sql(f'select timestamp from {table} limit 1', con)
-    ts = df_ts['timestamp'].to_list()[-1]
-    df = pd.read_sql(f'select * from {table} where timestamp = "{ts}"', con)
-    con.close()
-    return df
-
-
-def set_dependencies(selected: List[str]) -> List[str]:
-    '''
-    Ensures that dependent collectors are added to the selection. For example,
-    collecting 'f5_vip_destinations' requires collecting 'f5_vip_availability'.
-    If a user has selected the former without selecting the latter, then this
-    function adds the latter (in the proper order) to the selection.
-
-    TODO: Currently, all dependencies are within the same hostgroup. By that I
-          mean, F5 collectors are dependent on other F5 collectors, Meraki
-          collectors are dependent on other Meraki collectors, and so on.
-          It is possible that at some point collectors will be dependent on
-          hostgroups that the user did not select. If that happens, this
-          function will need to be modified accordingly.
-
-    Parameters
-    ----------
-    selected : list
-        The list of selected collectors.
-
-    Returns
-    -------
-    selected : list
-        The updated list of selected collectors.
-    '''
-    s = selected
-
-    if 'devices_modules' in s:
-        if 'devices_inventory' in s:
-            pos = s.index('devices_inventory')
-            del s[pos]
-        s.insert(0, 'devices_inventory')
-
-    if 'interface_summary' in s:
-        pos = s.index('interface_summary')
-        if 'cam_table' not in s:
-            s.insert(pos, 'cam_table')
-        if 'interface_description' not in s:
-            s.insert(pos, 'interface_description')
-        if 'interface_status' not in s:
-            s.insert(pos, 'interface_status')
-    if 'get_device_statuses' in s:
-        pos1 = s.index('get_device_statuses')
-        if 'get_organizations' in s:
-            pos2 = s.index('get_organizations')
-            if pos2 > pos1:
-                del s[pos2]
-                s.insert(pos1, 'get_organizations')
-        else:
-            s.insert(pos1, 'get_organizations')
-
-    if 'interface_summary' in s:
-        if 'cam_table' in s:
-            pos = s.index('cam_table')
-            del s[pos]
-        s.insert(0, 'cam_table')
-
-    if 'vip_destinations' in s:
-        if 'vip_availability' in s:
-            pos = s.index('vip_availability')
-            del s[pos]
-        s.insert(0, 'vip_availability')
-
-    if 'infoblox_get_networks_parent_containers' in s:
-        if 'infoblox_get_networks' in s:
-            pos = s.index('infoblox_get_networks')
-            del s[pos]
-        pos = s.insert(0, 'infoblox_get_networks')
-        if 'infoblox_get_network_containers' in s:
-            pos = s.index('infoblox_get_network_containers')
-            del s[pos]
-        pos = s.insert(0, 'infoblox_get_network_containers')
-
-    if 'device_statuses' in s:
-        if 'organizations' in s:
-            pos = s.index('organizations')
-            del s[pos]
-        s.insert(0, 'organizations')
-
-    if 'network_appliance_vlans' in s:
-        if 'org_networks' in s:
-            pos = s.index('org_networks')
-            del s[pos]
-        s.insert(0, 'org_networks')
-
-    if 'network_device_statuses' in s:
-        if 'org_device_statuses' in s:
-            pos = s.index('org_device_statuses')
-            del s[pos]
-        s.insert(0, 'org_device_statuses')
-
-    if 'network_devices' in s:
-        if 'organizations' in s:
-            pos = s.index('organizations')
-            del s[pos]
-        s.insert(0, 'organizations')
-
-    if 'org_devices' in s:
-        if 'organizations' in s:
-            pos = s.index('organizations')
-            del s[pos]
-        s.insert(0, 'organizations')
-
-    if 'org_device_statuses' in s:
-        if 'org_networks' in s:
-            pos = s.index('org_networks')
-            del s[pos]
-        s.insert(0, 'org_networks')
-
-    if 'org_networks' in s:
-        if 'organizations' in s:
-            pos = s.index('organizations')
-            del s[pos]
-        s.insert(0, 'organizations')
-
-    if 'switch_lldp_neighbors' in s:
-        dependencies = ['switch_port_statuses']
-        for d in dependencies:
-            if d in s:
-                pos = s.index(d)
-                del s[pos]
-        for d in dependencies:
-            s.insert(0, d)
-
-    if 'switch_port_usages' in s:
-        if 'switch_port_statuses' in s:
-            pos = s.index('switch_port_statuses')
-            del s[pos]
-        s.insert(0, 'switch_port_statuses')
-
-    if 'switch_port_statuses' in s:
-        if 'org_devices' in s:
-            pos = s.index('org_devices')
-            del s[pos]
-        s.insert(0, 'org_devices')
-        if 'organizations' in s:
-            pos = s.index('organizations')
-            del s[pos]
-        s.insert(0, 'organizations')
-
-    if 'vpn_statuses' in s:
-        if 'organizations' in s:
-            pos = s.index('organizations')
-            del s[pos]
-        s.insert(0, 'organizations')
-
-    # Remove duplicate collectors from 's'
-    non_dups = list()
-    for item in s:
-        if item not in non_dups:
-            non_dups.append(item)
-    s = non_dups
-
-    selected = s
-    return s
-
-
-def set_filepath(filepath: str) -> str:
-    '''
-    Creates a filename with the date and time added to a path the user
-    provides. The function assumes the last "." in a filename is the extension.
-
-    Parameters
-    ----------
-    filepath : str
-        The base filepath. Do not include the date; that will be added
-        dynamically at runtime.
-
-    Returns
-    -------
-    filepath : str
-        The full path to the modified filename.
-    '''
-    # Convert '~' to the user's home folder
-    if '~' in filepath:
-        filepath = filepath.replace('~', os.path.expanduser('~'))
-    # Set the prefix in YYYY-MM-DD_HHmm format
-    prefix = dt.now().strftime("%Y-%m-%d_%H%M")
-    # Extract the base path to the filename
-    filepath = filepath.split('/')
-    filename = filepath[-1]
-    if len(filepath) > 2:
-        filepath = '/'.join(filepath[:-1])
-    else:
-        filepath = filepath[0]
-    # Extract the filename and extension from 'filepath'
-    filename = filename.split('.')
-    extension = filename[-1]
-    if len(filename) > 2:
-        filename = '.'.join(filename[:-1])
-    else:
-        filename = filename[0]
-    # Return the modified filename
-    filepath = f'{filepath}/{prefix}_{filename}.{extension}'
-    return filepath
-
-
-def suppress_extravars(extravars: dict) -> dict:
-    '''
-    ansible_runner.run stores extravars to a file named 'extravars' then saves
-    it to the local drive. The file is unencrypted, so any sensitive data, like
-    usernames and password, are stored in plain text.
-
-    People have complained about this for years. Finally, starting in version
-    2.x, the devs added the 'suppress_env_files' arg. This keeps extravars from
-    being stored locally.
-
-    The sole purpose of this function is to ensure that legacy Ansible-Runner
-    commands add that argument. *All ansible_runner.run args should be passed
-    to this function, no exceptions.*
-
-    If they do not use extravars, then just pass an empty dict.
-    This will ensure the functions are secure if someone adds extravars to them
-    later.
-
-    Parameters
-    ----------
-    extravars : dict
-        A dictionary containing the extravars. If your function does not use
-        it, then pass an empty dict instead.
-
-    Returns
-    -------
-    extravars : dict
-        'extravars' with the 'suppress_env_files' key.
-    '''
-    # TODO: Finish this function. (Note: I thought about adding a check to
-    #       manually delete any files in extravars at beginning and end of
-    #       each run, but users might not want that.)
-
-
-def get_net_manage_path() -> str:
-    '''
-    Set the absolute path to the Net-Manage repository.
-
-    Returns
-    -------
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
     nm_path : str
-        The absolute path to the Net-Manage repository.
-    '''
-    nm_path = input("Enter the absolute path to the Net-Manage repository: ")
-    nm_path = os.path.expanduser(nm_path)
-    return nm_path
-
-
-def set_db_timestamp() -> str:
-    '''
-    Sets a timestamp in the form the database expects.
-
-    Returns
-    -------
-    timestamp : str
-        A timestamp in the YYYY-MM-DD_hhmm format.
-    '''
-    timestamp = dt.now()
-    timestamp = timestamp.strftime('%Y-%m-%d_%H%M')
-    return timestamp
-
-
-def set_vars() -> Tuple[str, str, List[str], str, str, str]:
-    '''
-    Prompts the user for the required variables for running collectors and
-    validators. Several defaults are presented.
-
-    Note: The 'inventories' argument is a list of inventory files. Currently,
-    the function statically defines it as ['private_data_dir/inventory/hosts'].
-    If users want to use different file names or more than one file name,
-    that functionality can be added later.
-
-    Returns
-    -------
-    api_key : str
-        The api key.
-    db_path : str
-        The path to the database.
-    inventories : list of str
-        The list of inventory files.
-    nm_path : str
-        The path to the nm.
-    out_path : str
-        The path for output.
+        The path to the Net-Manage repository.
+    play_path : str
+        The path to the playbooks directory.
     private_data_dir : str
-        The private data directory.
-    '''
-    default_db = f'{str(dt.now()).split()[0]}.db'
-    default_nm_path = '~/source/repos/InsightSSG/Net-Manage/'
-
-    db = input(f'Enter the name of the database: [{default_db}]')
-    nm_path = input(f'Enter path to Net-Manage repository [{default_nm_path}]')
-    private_data_dir = input('Enter the path to the private data directory:')
-
-    npm_server = input('Enter the URL of the Solarwinds NPM server:')
-    npm_username = input('Enter the username for Solarwinds NPM:')
-    npm_password = getpass('Enter the password for Solarwinds NPM:')
-
-    default_out_path = f'{private_data_dir}/output'
-    out_path = input(f'Enter the path to store results: [{default_out_path}]')
-
-    api_key = meraki_get_api_key()
-
-    if not db:
-        db = default_db
-    if not nm_path:
-        nm_path = default_nm_path
-    if not out_path:
-        out_path = default_out_path
-
-    if not npm_server:
-        npm_server = str()
-    if not npm_username:
-        npm_username = str()
-    if not npm_password:
-        npm_password = str()
-
-    db = os.path.expanduser(db)
-    nm_path = os.path.expanduser(nm_path)
-    out_path = os.path.expanduser(out_path)
-    private_data_dir = os.path.expanduser(private_data_dir)
-    db_path = f'{out_path}/{db}'
-
-    # TODO: Add support for a custom inventory file name
-    # TODO: Add support for more than one inventory file (Ansible-Runner
-    #       supports that, but I am not sure how common it is)
-    inventories = [f'{private_data_dir}/inventory/hosts']
-
-    return api_key, db, db_path, inventories, npm_server, npm_username, \
-        npm_password, nm_path, out_path, private_data_dir
-
-
-def get_tests_file() -> str:
-    '''
-    Set the absolute path to the Net-Manage repository.
+        The path to the Ansible private data directory.
+    reverse_dns : bool, optional
+        Whether to perform a reverse DNS lookup. Defaults to False because the
+        operation can be time-consuming for large ARP tables.
 
     Returns
     -------
-    t_path : str
-        The absolute path to the file containing tests to run.
+    df_arp : pd.DataFrame
+        The ARP table as a pandas DataFrame.
     '''
-    t_file = input("Enter the absolute path to the Net-Manage repository: ")
-    t_file = os.path.expanduser(t_file)
-    return t_file
+    cmd = 'show ip arp vrf all | begin "Address         Age"'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute the pre-checks
+    playbook = f'{play_path}/cisco_nxos_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse results into df
+    return parser.nxos_parse_arp_table(runner, nm_path)
 
 
-def get_user_meraki_input() -> Tuple[List[str],
-                                     List[str],
-                                     List[str],
-                                     int,
-                                     int,
-                                     Union[int, str]]:
+def nxos_get_fexes_table(username: str,
+                         password: str,
+                         host_group: str,
+                         nm_path: str,
+                         play_path: str,
+                         private_data_dir: str) -> pd.DataFrame:
     '''
-    Gets and parses user input when they select collectors for Meraki
-    organizations.
-
-    Returns
-    -------
-    orgs : list
-        A list of one or more organizations. Defaults to an empty list.
-    networks : list
-        A list of one or more networks. Defaults to an empty list.
-    macs : list
-        A list of one or more MAC addresses. Partial addresses are accepted.
-        Defaults to an empty list.
-    timespan : int
-        The lookback timespan in seconds. Defaults to 1 day (86400 seconds).
-        If a user has an * between numbers, it will multiply them. It does not
-        perform any other calculation (addition, subtraction, etc).
-    per_page : int
-        The number of results to return per page. Defaults to 10. It is
-        recommended to leave it at 10, as increasing the number of results
-        can reduce performance. However, increasing it might be worth trying
-        when working with large datasets.
-    total_pages : int or str
-        The total number of pages to return. If input is 'all', returns as
-        'all'. Otherwise, converts the input into an integer. Defaults to
-        'all'.
-    '''
-    orgs = input('Enter a comma-delimited list of organizations to query: ')\
-        or list()
-    if orgs:
-        orgs = [_.strip() for _ in orgs.split(',')]
-
-    networks = input('Enter a comma-delimited list of networks to query: ')\
-        or list()
-    if networks:
-        networks = [_.strip() for _ in networks.split(',')]
-
-    macs = input('Enter a comma-delimited list of MAC addresses: ') or list()
-    if macs:
-        macs = [_.strip() for _ in macs.split(',')]
-
-    timespan = input('Enter the lookback timespan in seconds: ') or '86400'
-    timespan = np.prod([int(_) for _ in timespan.split('*')])
-
-    per_page = int(input('Enter the number of results per page: ') or 10)
-
-    total_pages = input('Enter the total number of pages to return: ') or 'all'
-    if total_pages[0].isdigit() or total_pages[0] == '-':
-        total_pages = int(total_pages)
-
-    return orgs, networks, macs, timespan, per_page, total_pages
-
-
-def meraki_check_api_enablement(db_path: str, org: str) -> bool:
-    '''
-    Queries the database to find if API access is enabled.
+    Get the FEXes for Cisco 5Ks. This function is required for gathering
+    interface data on devices with a large number of FEXes, as it helps
+    prevent timeouts.
 
     Parameters
     ----------
-    db_path : str
-        The path to the database to store results.
-    org : str
-        The organization to check API access for.
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
 
     Returns
     -------
-    enabled : bool
-        A boolean indicating whether API access is enabled for the user's API
-        key.
-    '''
-    # enabled = False
-
-    query = ['SELECT timestamp, api from MERAKI_ORGANIZATIONS',
-             f'WHERE id = "{org}"',
-             'ORDER BY timestamp DESC',
-             'limit 1']
-    query = ' '.join(query)
-
-    con = sl.connect(db_path)
-    result = pd.read_sql(query, con)
-    con.close()
-    return ast.literal_eval(result.iloc[0]['api'])['enabled']
-
-    # if result['api'].to_list()[0] == 'True':
-    #     enabled = True
-
-    # return enabled
-
-
-def meraki_map_network_to_organization(network: str, db_path: str) -> str:
-    '''
-    Gets the organization ID for a network.
-
-    Parameters
-    ----------
-    network : str
-        A network ID.
-    db_path : str
-        The path to the database.
-
-    Returns
-    -------
-    org_id : str
-        The organization ID.
-    '''
-    query = f'''SELECT distinct timestamp, organizationId
-                FROM MERAKI_ORG_NETWORKS
-                WHERE id = "{network}"
-                ORDER BY timestamp desc
-                LIMIT 1
-             '''
-    con = sl.connect(db_path)
-    result = pd.read_sql(query, con)
-    con.close()
-
-    org_id = result['organizationId'].to_list()[0]
-
-    return org_id
-
-
-def meraki_parse_organizations(db_path: str,
-                               orgs: list = None,
-                               table: str = None) -> list:
-    '''
-    Parses a list of organizations that are passed to certain Meraki
-    collectors.
-
-    Parameters
-    ----------
-    db_path : str
-        The path to the database to store results.
-    orgs : list, optional
-        One or more organization IDs. If none are specified, then the
-        networks for all orgs will be returned. Defaults to None.
-    table : str, optional
-        The database table to query. Defaults to None.
-
-    Returns
-    -------
-    organizations : list
-        A list of organizations.
-    '''
-    con = sl.connect(db_path)
-    organizations = list()
-    if orgs:
-        for org in orgs:
-            df_orgs = pd.read_sql(f'select distinct id from {table} \
-                where id = "{org}"', con)
-            organizations.append(df_orgs['id'].to_list().pop())
-    else:
-        df_orgs = pd.read_sql(f'select distinct id from {table}', con)
-        for org in df_orgs['id'].to_list():
-            organizations.append(org)
-    con.close()
-
-    return organizations
-
-
-def sql_get_table_schema(db_path: str, table: str) -> pd.DataFrame:
-    '''
-    Gets the schema of a table.
-
-    Parameters
-    ----------
-    db_path : str
-        The path to the database.
-    table : str
-        The table from which to get the schema.
-
-    Returns
-    -------
-    df_schema : pd.DataFrame
-        The table schema. If the table does not exist then an empty dataframe
+    df_fexes : pd.DataFrame
+        The FEXes of the device. If there are no FEXes, an empty DataFrame
         will be returned.
     '''
-    query = f'pragma table_info("{table}")'
+    # Get selected FEX details
+    cmd = 'show fex detail'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
 
-    con = sl.connect(db_path)
-    df_schema = pd.read_sql(query, con)
+    # Execute the command and parse the output
+    playbook = f'{play_path}/cisco_nxos_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
 
-    return df_schema
+    # Parse results into df
+    return parser.nxos_parse_fexes_table(runner)
 
 
-def download_ouis(path: str) -> None:
+def nxos_get_bgp_neighbors(username: str,
+                           password: str,
+                           host_group: str,
+                           nm_path: str,
+                           play_path: str,
+                           private_data_dir: str) -> pd.DataFrame:
     '''
-    Downloads vendor OUIs from https://standards-oui.ieee.org/.
-
-    The results will be stored in a text file located at 'path'.
+    Get the BGP neighbors for all VRFs on NXOS devices.
 
     Parameters
     ----------
-    path : str
-        The full path to the filename to store the results.
-
-    Raises
-    ----------
-    FileNotFoundError
-        If the directory in the path does not exist.
-    IsADirectoryError
-        If a filename was not included in 'path'.
-
-    Examples
-    ----------
-    >>> path = '/tmp/ouis.txt'
-    >>> download_ouis(path)
-    '''
-    url = 'https://standards-oui.ieee.org/'
-    response = requests.get(url, stream=True)
-    with open(path, 'wb') as txt:
-        for chunk in response.iter_content(chunk_size=1024):
-            if chunk:
-                txt.write(chunk)
-
-
-def tabulate_df_head(df: pd.DataFrame) -> None:
-    '''
-    Print the first 5 rows of a DataFrame as a table.
-
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        The DataFrame to print.
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
 
     Returns
     -------
-    None
-        This function does not return anything, it simply prints the table.
+    df_bgp : pd.DataFrame
+        The BGP neighbors as a pandas DataFrame.
     '''
-    table_data = df.head().to_dict('records')
+    cmd = 'show ip bgp summary vrf all'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
 
-    print(tabulate(table_data, headers='keys', tablefmt='psql'))
+    # Execute the command and parse the output
+    playbook = f'{play_path}/cisco_nxos_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
 
-
-def tz_abbreviation_to_pytz(tz_string):
-    """Convert timezone abbreviation to a format recognized by pytz."""
-
-    tz_map = {
-        "ACDT": "Australia/Adelaide",
-        "ACST": "Australia/Darwin",
-        "ACT": "America/Sao_Paulo",  # Ambiguous
-        "ADT": "America/Halifax",
-        "AEDT": "Australia/Sydney",
-        "AEST": "Australia/Brisbane",
-        "AFT": "Asia/Kabul",
-        "AKDT": "America/Juneau",
-        "AKST": "America/Anchorage",
-        "AMST": "America/Campo_Grande",  # Ambiguous
-        "AMT": "America/Boa_Vista",  # Ambiguous
-        "ART": "America/Argentina/Buenos_Aires",
-        "AST": "America/Puerto_Rico",  # Ambiguous
-        "AWST": "Australia/Perth",
-        "AZOST": "Atlantic/Azores",
-        "AZT": "Asia/Baku",
-        "BDT": "Asia/Dhaka",
-        "BIOT": "Indian/Chagos",
-        "BIT": "Pacific/Enderbury",
-        "BOT": "America/La_Paz",
-        "BRST": "America/Sao_Paulo",
-        "BRT": "America/Rio_Branco",
-        "BST": "Europe/London",  # Ambiguous
-        "BTT": "Asia/Thimphu",
-        "CAT": "Africa/Harare",
-        "CCT": "Indian/Cocos",
-        "CDT": "America/Chicago",
-        "CEST": "Europe/Paris",
-        "CET": "Europe/Berlin",
-        "CHADT": "Pacific/Chatham",
-        "CHAST": "Pacific/Chatham",
-        "CLST": "America/Santiago",
-        "CLT": "America/Santiago",
-        "COST": "America/Bogota",
-        "COT": "America/Bogota",
-        "CST": "America/Chicago",  # Ambiguous
-        "CT": "Asia/Shanghai",
-        "CVT": "Atlantic/Cape_Verde",
-        "CWST": "Australia/Eucla",
-        "CXT": "Indian/Christmas",
-        "DAVT": "Antarctica/Davis",
-        "DDUT": "Antarctica/DumontDUrville",
-        "DFT": "Europe/Paris",
-        "EASST": "Pacific/Easter",
-        "EAST": "Pacific/Easter",
-        "EAT": "Africa/Nairobi",
-        "ECT": "Pacific/Galapagos",
-        "EDT": "America/New_York",
-        "EEST": "Europe/Bucharest",
-        "EET": "Europe/Helsinki",
-        "EGST": "America/Scoresbysund",
-        "EGT": "America/Scoresbysund",
-        "EIT": "Asia/Jayapura",
-        "EST": "America/New_York",  # Ambiguous
-        "FET": "Europe/Kaliningrad",
-        "FJT": "Pacific/Fiji",
-        "FKST": "Atlantic/Stanley",
-        "FKT": "Atlantic/Stanley",
-        "FNT": "America/Noronha",
-        "GALT": "Pacific/Galapagos",
-        "GAMT": "Pacific/Gambier",
-        "GET": "Asia/Tbilisi",
-        "GFT": "America/Cayenne",
-        "GILT": "Pacific/Tarawa",
-        "GIT": "Pacific/Gambier",
-        "GMT": "Etc/GMT",
-        "GST": "Asia/Dubai",  # Ambiguous
-        "GYT": "America/Guyana",
-        "HADT": "America/Adak",
-        "HAEC": "Europe/Paris",
-        "HAST": "Pacific/Honolulu",
-        "HKT": "Asia/Hong_Kong",
-        "HMT": "Asia/Kolkata",
-        "HOVT": "Asia/Hovd",
-        "ICT": "Asia/Bangkok",
-        "IDT": "Asia/Jerusalem",
-        "IOT": "Indian/Chagos",
-        "IRDT": "Asia/Tehran",
-        "IRKT": "Asia/Irkutsk",
-        "IRST": "Asia/Tehran",
-        "IST": "Asia/Kolkata",  # Ambiguous
-        "JST": "Asia/Tokyo",
-        "KGT": "Asia/Bishkek",
-        "KOST": "Pacific/Kosrae",
-        "KRAT": "Asia/Krasnoyarsk",
-        "KST": "Asia/Seoul",
-        "LHST": "Australia/Lord_Howe",
-        "LINT": "Pacific/Kiritimati",
-        "MAGT": "Asia/Magadan",
-        "MART": "Pacific/Marquesas",
-        "MAWT": "Antarctica/Mawson",
-        "MDT": "America/Denver",
-        "MEST": "Europe/Paris",
-        "MET": "Europe/Berlin",  # Ambiguous
-        "MHT": "Pacific/Majuro",
-        "MIST": "Antarctica/Macquarie",
-        "MIT": "Pacific/Marquesas",
-        "MMT": "Asia/Yangon",
-        "MSK": "Europe/Moscow",
-        "MST": "America/Denver",  # Ambiguous
-        "MUT": "Indian/Mauritius",
-        "MVT": "Indian/Maldives",
-        "MYT": "Asia/Kuala_Lumpur",
-        "NCT": "Pacific/Noumea",
-        "NDT": "America/St_Johns",
-        "NFT": "Pacific/Norfolk",
-        "NOVT": "Asia/Novosibirsk",
-        "NPT": "Asia/Kathmandu",
-        "NST": "America/St_Johns",  # Ambiguous
-        "NT": "America/St_Johns",
-        "NUT": "Pacific/Niue",
-        "NZDT": "Pacific/Auckland",
-        "NZST": "Pacific/Auckland",
-        "OMST": "Asia/Omsk",
-        "ORAT": "Asia/Oral",
-        "PDT": "America/Los_Angeles",
-        "PET": "America/Lima",
-        "PETT": "Asia/Kamchatka",
-        "PGT": "Pacific/Port_Moresby",
-        "PHOT": "Pacific/Enderbury",
-        "PHT": "Asia/Manila",
-        "PKT": "Asia/Karachi",
-        "PMDT": "America/Miquelon",
-        "PMST": "America/Miquelon",
-        "PONT": "Pacific/Pohnpei",
-        "PST": "America/Los_Angeles",  # Ambiguous
-        "PYST": "America/Asuncion",
-        "PYT": "America/Asuncion",
-        "RET": "Indian/Reunion",
-        "ROTT": "Antarctica/Rothera",
-        "SAKT": "Asia/Sakhalin",
-        "SAMT": "Europe/Samara",
-        "SAST": "Africa/Johannesburg",
-        "SBT": "Pacific/Guadalcanal",
-        "SCT": "Indian/Mahe",
-        "SGT": "Asia/Singapore",
-        "SLT": "Asia/Colombo",
-        "SRET": "Asia/Srednekolymsk",
-        "SRT": "America/Paramaribo",
-        "SST": "Pacific/Pago_Pago",
-        "SYOT": "Antarctica/Syowa",
-        "TAHT": "Pacific/Tahiti",
-        "THA": "Asia/Bangkok",
-        "TFT": "Indian/Kerguelen",
-        "TJT": "Asia/Dushanbe",
-        "TKT": "Pacific/Fakaofo",
-        "TLT": "Asia/Dili",
-        "TMT": "Asia/Ashgabat",
-        "TRT": "Europe/Istanbul",
-        "TVT": "Pacific/Funafuti",
-        "UCT": "Etc/UCT",
-        "ULAT": "Asia/Ulaanbaatar",
-        "USZ1": "Europe/Kaliningrad",
-        "UTC": "Etc/UTC",
-        "UYST": "America/Montevideo",
-        "UYT": "America/Montevideo",
-        "UZT": "Asia/Tashkent",
-        "VET": "America/Caracas",
-        "VLAT": "Asia/Vladivostok",
-        "VOLT": "Europe/Volgograd",
-        "VOST": "Antarctica/Vostok",
-        "VUT": "Pacific/Efate",
-        "WAKT": "Pacific/Wake",
-        "WAST": "Africa/Windhoek",
-        "WAT": "Africa/Lagos",
-        "WEST": "Europe/Lisbon",
-        "WET": "Europe/Lisbon",
-        "WIT": "Asia/Jakarta",
-        "WST": "Pacific/Apia",
-        "YAKT": "Asia/Yakutsk",
-        "YEKT": "Asia/Yekaterinburg",
-        "Z": "Etc/UTC",
-    }
-
-    # Extract the timezone abbreviation using regex
-    match = re.search(r'\b([A-Z]{3,5})\b', tz_string)
-    if match:
-        tz_abbreviation = match.group(1)
-        # Return None if abbreviation not in the map
-        return tz_map.get(tz_abbreviation, None)
-
-    return None
+    # Parse results into df
+    return parser.nxos_parse_bgp_neighbors(runner)
 
 
-def update_ouis(nm_path: str) -> pd.DataFrame:
+def nxos_get_cam_table(username: str,
+                       password: str,
+                       host_group: str,
+                       nm_path: str,
+                       play_path: str,
+                       private_data_dir: str,
+                       interface: str = None) -> pd.DataFrame:
     '''
-    Download or update vendor OUIs and save them to a file.
-
-    The data is pulled from https://standards-oui.ieee.org/ and saved to a
-    text file named 'ouis.txt'. If 'ouis.txt' does not exist or is more
-    than one week old, then it will be downloaded.
+    Get the CAM table for NXOS devices and add the vendor OUI.
 
     Parameters
     ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    interface : str, optional
+        The interface (defaults to all interfaces).
+
+    Returns
+    -------
+    df_cam : pd.DataFrame
+        The CAM table and vendor OUI as a pandas DataFrame.
+    '''
+    if interface:
+        cmd = f'show mac address-table interface {interface}'
+    else:
+        cmd = 'show mac address-table'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute the pre-checks
+    playbook = f'{play_path}/cisco_nxos_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse results into df
+    return parser.nxos_parse_cam_table(runner, nm_path)
+
+
+def nxos_get_hostname(username: str,
+                      password: str,
+                      host_group: str,
+                      play_path: str,
+                      private_data_dir: str,
+                      nm_path: str,
+                      interface: str = None) -> pd.DataFrame:
+    '''
+    Get the hostname for NXOS devices.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    interface : str, optional
+        The interface (defaults to all interfaces).
     nm_path : str
         The path to the Net-Manage repository.
 
-    Notes
-    ----------
-    There is a Python library to do this, but it is quite slow.
+    Returns
+    -------
+    df_name : pd.DataFrame
+        The hostname as a pandas DataFrame.
+    '''
+    cmd = 'show hostname'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
 
-    It might seem inefficient to parse the OUIs from a text file on an
-    as-needed basis. However, testing found that the operation only takes
-    about 250ms, and the size of the resulting dataframe is only
-    approximately 500KB.
+    # Execute the command and parse the output
+    playbook = f'{play_path}/cisco_nxos_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse results into df
+    return parser.nxos_parse_hostname(runner)
+
+
+def nxos_get_interface_descriptions(username: str,
+                                    password: str,
+                                    host_group: str,
+                                    play_path: str,
+                                    private_data_dir: str,
+                                    interface: str = None) -> pd.DataFrame:
+    '''
+    Get NXOS interface descriptions.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    interface : str, optional
+        The interface (defaults to all interfaces).
 
     Returns
+    -------
+    df_desc : pd.DataFrame
+        The interface descriptions as a pandas DataFrame.
+    '''
+    # Get the interface descriptions and add them to df_cam
+    cmd = 'show interface description | grep -v "\\-\\-\\-\\-"'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute 'show interface description' and parse the results
+    playbook = f'{play_path}/cisco_nxos_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+    # Parse results into df
+    return parser.nxos_parse_interface_descriptions(runner)
+
+
+def nxos_get_interface_ips(username: str,
+                           password: str,
+                           host_group: str,
+                           play_path: str,
+                           private_data_dir: str) -> pd.DataFrame:
+    '''
+    Get the IP addresses assigned to interfaces.
+
+    Parameters
     ----------
-    df : DataFrame
-        A Pandas DataFrame containing two columns. The first is the MAC
-        address base in base16 format, and the second is the corresponding
-        vendor OUI.
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
 
-    Examples
+    Returns
+    -------
+    df : pd.DataFrame
+        A DataFrame containing the interfaces and their corresponding IP
+        addresses.
+    '''
+    grep = 'Interface status:\\|IP address:\\|IP Interface Status for VRF'
+    cmd = f'show ip interface vrf all | grep "{grep}"'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute the command
+    playbook = f'{play_path}/cisco_nxos_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse results into df
+    return parser.nxos_parse_interface_ips(runner)
+
+
+def nxos_get_interface_status(username: str,
+                              password: str,
+                              host_group: str,
+                              play_path: str,
+                              private_data_dir: str) -> pd.DataFrame:
+    '''
+    Get the interface status for NXOS devices.
+
+    Parameters
     ----------
-    >>> df = update_ouis(nm_path)
-    >>> print(df[:2].to_dict())
-    {'mac_base': {0: '002272', 1: '00D0EF'},
-    'vendor_oui': {0: 'American Micro-Fuel Device Corp.', 1: 'IGT'}}
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+
+    Returns
+    -------
+    df_inf_status : pd.DataFrame
+        The interface statuses as a pandas DataFrame.
     '''
-    # Check if 'ouis.txt' exists in 'nm_path', and, if so, get the timestamp.
-    files = get_dir_timestamps(nm_path)
+    cmd = 'show interface status | grep -v "\\-\\-\\-"'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
 
-    # Check if 'ouis.txt' needs to be downloaded.
-    download = False
-    if f'{nm_path}/ouis.txt' not in files:
-        download = True
-    else:
-        delta = (dt.now().date() - files[f'{nm_path}/ouis.txt'].date()).days
-        if delta > 7:
-            download = True
+    # Execute the pre-checks
+    playbook = f'{play_path}/cisco_nxos_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
 
-    # Download 'ouis.txt', if applicable.
-    if download:
-        download_ouis(f'{nm_path}/ouis.txt')
-
-    # Read 'ouis.txt' and extract the base16 and vendor combinations.
-    with open(f'{nm_path}/ouis.txt', 'r') as txt:
-        data = txt.read()
-    pattern = '.*base 16.*'
-    data = re.findall(pattern, data)
-    data = [[_.split()[0], _.split('\t')[-1]] for _ in data]
-    df = pd.DataFrame(data=data, columns=['base', 'vendor'])
-
-    return df
+    # Parse results into df
+    return parser.nxos_parse_interface_status(runner)
 
 
-def validate_table(table: str, db_path: str, diff_col: List[str]) -> None:
+def nxos_get_interface_summary(db_path: str) -> pd.DataFrame:
     '''
-    Validates a table, based on the columns that the user passes to the
-    function.
+    Get a summary of the interfaces on a NXOS devices. The summary includes
+    the interface status, description, associated MACs, and vendor OUIs.
 
-    Args:
-        table : str
-            The table to validate.
-        db_path : str
-            The path to the database.
-        diff_col : list of str
-            The column to diff. It should contain two items:
-            - item1: The column to diff (e.g., 'status').
-            - item2: The expected state (e.g., 'online').
+    Parameters
+    ----------
+    db_path : str
+        The path to the database.
+
+    Returns
+    -------
+    df_summary : pd.DataFrame
+        The summaries of interfaces on the devices as a pandas DataFrame.
     '''
-    # Get the first and last timestamps from the table
+    # Get the interface statuses, descriptions and cam table
     con = sl.connect(db_path)
-    query = f'select distinct timestamp from {table}'
-    df_stamps = pd.read_sql(query, con)
-    stamps = df_stamps['timestamp'].to_list()
-    first_ts = stamps[0]
-    last_ts = stamps[-1]
+    table = 'nxos_interface_status'
+    df_ts = pd.read_sql(f'select distinct timestamp from {table}', con)
+    ts = df_ts['timestamp'].to_list()[-1]
+    df_inf = pd.read_sql(f'select * from {table} where timestamp = "{ts}"',
+                         con)
 
-    # Execute the queries and diff the results
-    query1 = f'{diff_col[0]} = "{diff_col[1]}" and timestamp = "{first_ts}"'
-    query2 = f'{diff_col[0]} = "{diff_col[1]}" and timestamp = "{last_ts}"'
-    query = f'''select *
-                from {table}
-                where {query1}
-                except
-                select *
-                from {table}
-                where {query2}
-                '''
-    df_diff = pd.read_sql(query, con)
-    return df_diff
+    # Parse results into df
+    return parser.nxos_parse_interface_summary(df_inf, con, ts)
+
+
+def nxos_get_inventory(username: str,
+                       password: str,
+                       host_group: str,
+                       play_path: str,
+                       private_data_dir: str) -> pd.DataFrame:
+    '''
+    Get the inventory for NXOS devices.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+
+    Returns
+    -------
+    df_inventory : pd.DataFrame
+        A DataFrame containing the output of the 'show inventory | json'
+        command.
+    '''
+    # Create the playbook variables
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group}
+    playbook = f'{play_path}/cisco_nxos_get_inventory.yml'
+
+    # Execute the playbook
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse results into df
+    return parser.nxos_parse_inventory(runner)
+
+
+def nxos_get_logs(username: str,
+                  password: str,
+                  host_group: str,
+                  play_path: str,
+                  private_data_dir: str) -> pd.DataFrame:
+    '''
+    Get the latest log messages for NXOS devices.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+
+    Returns
+    -------
+    df_logs : pd.DataFrame
+        The latest log messages as a pandas DataFrame.
+    '''
+    cmd = 'show logging last 999'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute the pre-checks
+    playbook = f'{play_path}/cisco_nxos_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse results into df
+    return parser.nxos_parse_logs(runner)
+
+
+def nxos_get_port_channel_data(username: str,
+                               password: str,
+                               host_group: str,
+                               play_path: str,
+                               private_data_dir: str) -> pd.DataFrame:
+    '''
+    Get port-channel data (output from 'show port-channel database') for Cisco
+    NXOS devices.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+
+    Returns
+    -------
+    df_po_data : pd.DataFrame
+        The port-channel data as a pandas DataFrame.
+    '''
+    cmd = 'show port-channel database'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute the pre-checks
+    playbook = f'{play_path}/cisco_nxos_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse results into df
+    return parser.nxos_parse_port_channel_data(runner)
+
+
+def nxos_get_vlan_db(username: str,
+                     password: str,
+                     host_group: str,
+                     play_path: str,
+                     private_data_dir: str) -> pd.DataFrame:
+    '''
+    Get the VLAN database for NXOS devices.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+
+    Returns
+    -------
+    df_vlans : pd.DataFrame
+        The VLAN database as a pandas DataFrame.
+    '''
+    cmd = 'show vlan brief | grep "Status    Ports\\|active\\|suspend\\|shut"'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'ansible_command_timeout': '240',
+                 'commands': cmd}
+
+    # Execute the pre-checks
+    playbook = f'{play_path}/cisco_nxos_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse results into df
+    return parser.nxos_parse_vlan_db(runner)
+
+
+def nxos_get_vpc_state(username: str,
+                       password: str,
+                       host_group: str,
+                       play_path: str,
+                       private_data_dir: str) -> pd.DataFrame:
+    '''
+    Get the VPC state for NXOS devices.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+
+    Returns
+    -------
+    df_vpc_state : pd.DataFrame
+        The VPC state information as a pandas DataFrame.
+    '''
+    cmd = 'show vpc brief | begin "vPC domain id" | end "vPC Peer-link status"'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute the pre-checks
+    playbook = f'{play_path}/cisco_nxos_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse results into df
+    return parser.nxos_parse_vpc_state(runner)
+
+
+def nxos_get_vrfs(username: str,
+                  password: str,
+                  host_group: str,
+                  play_path: str,
+                  private_data_dir: str) -> pd.DataFrame:
+    '''
+    Get the VRFs on Nexus devices.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+
+    Returns
+    -------
+    df_vrfs : pd.DataFrame
+        A DataFrame containing the VRFs.
+    '''
+    cmd = 'show vrf detail'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute the pre-checks
+    playbook = f'{play_path}/cisco_nxos_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse results into df
+    return parser.nxos_parse_vrfs(runner)
