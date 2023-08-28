@@ -44,8 +44,7 @@ parser.add_argument('-o', '--offset', type=int,
 # Parse the arguments
 args = parser.parse_args()
 
-# Use parsed arguments if provided, else use defaults
-print(args.ip_addresses)
+# Use parsed arguments if provided, else use defaults.
 ip_addresses_to_test = [_.strip() for _ in args.ip_addresses.split(',')] \
     if args.ip_addresses else [
     "66.119.107.6", "10.10.100.10/25", "172.21.243.18 255.255.255.0"]
