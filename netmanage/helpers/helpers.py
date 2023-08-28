@@ -666,10 +666,10 @@ def find_mac_vendors(macs: List[str], nm_path: str) -> pd.DataFrame:
 def generate_subnet_details(addresses: List[str],
                             return_keys: List[str] = ['subnet',
                                                       'network_ip',
-                                                      'broadcast_ip']) \
+                                                      'broadcast_ip',
+                                                      'subnet_mask']) \
         -> Dict[str, List[str]]:
-    '''
-    Generates the subnet, network, and broadcast IPs for a list of IPs.
+    '''Generates the subnet, network, and broadcast IPs for a list of IPs.
 
     Parameters
     ----------
@@ -677,15 +677,17 @@ def generate_subnet_details(addresses: List[str],
         List of IP addresses in the format {ip}/{subnet_mask_length}.
     return_keys : list of str, optional
         List of keys to return. Used for when a table has column names that
-        conflict with the default return_keys of 'subnet', 'network_ip', and
-        'broadcast_ip'. NOTE: The keys should be ordered so that element[0]
-        is for the 'subnet' column, element[1] for 'network_ip', and element[2]
-        for 'broadcast_ip'. Defaults to ['subnet','network_ip','broadcast_ip'].
+        conflict with the default return_keys of 'subnet', 'network_ip',
+        'broadcast_ip', and 'subnet_mask'. Defaults to ['subnet','network_ip',
+        'broadcast_ip', 'subnet_mask'].
+        NOTE: The keys should be ordered so that element[0] is for the 'subnet'
+              column, element[1] for 'network_ip', element[2] for
+              'broadcast_ip', and element[3] for 'subnet_mask'.
 
     Returns
     -------
     dict
-        A dictionary with three keys:
+        A dictionary with four keys:
         - 'subnet' : list of str
             List of subnet in CIDR notation for each IP address in the input
             list.
@@ -693,10 +695,13 @@ def generate_subnet_details(addresses: List[str],
             List of network IP for each IP address in the input list.
         - 'broadcast_ip' : list of str
             List of broadcast IP for each IP address in the input list.
+        - 'subnet_mask' : list of str
+            List of subnet masks for each IP address in the input list.
     '''
     subnet = list()
     network_ip = list()
     broadcast_ip = list()
+    subnet_mask = list()
 
     for ip in addresses:
         ip_obj = ipaddress.ip_interface(ip)
@@ -704,10 +709,14 @@ def generate_subnet_details(addresses: List[str],
         network_ip.append(str(ip_obj.network.network_address))
         brd = str(ipaddress.IPv4Address(int(ip_obj.network.broadcast_address)))
         broadcast_ip.append(brd)
+        mask = str(ip_obj.netmask)
+        subnet_mask.append(mask)
 
-    return {return_keys[0]: subnet,
-            return_keys[1]: network_ip,
-            return_keys[2]: broadcast_ip}
+    return {
+        return_keys[0]: subnet_mask,
+        return_keys[1]: network_ip,
+        return_keys[2]: broadcast_ip,
+    }
 
 
 def get_creds(prompt: str = '') -> Tuple[str, str]:

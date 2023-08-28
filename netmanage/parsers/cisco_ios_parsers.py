@@ -580,7 +580,10 @@ def ios_parse_interface_ips(runner: dict) -> pd.DataFrame:
     df = pd.DataFrame(data=df_data, columns=cols)
 
     # Add the subnets, network IPs, and broadcast IPs.
-    addresses = df["ip"].to_list()
+    addresses = df['ip'].to_list()
+
+    df['ip'] = [_.split('/')[0] for _ in df['ip'].to_list()]
+
     result = hp.generate_subnet_details(addresses)
     df["subnet"] = result["subnet"]
     df["network_ip"] = result["network_ip"]
