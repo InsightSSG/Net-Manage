@@ -115,6 +115,80 @@ def parse_config(facts: dict) -> pd.DataFrame:
     return df
 
 
+def parse_ospf_neighbors(runner: dict) -> pd.DataFrame:
+    """Parses the OSPF neighbors output and returns it in a DataFrame.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner generator.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A DataFrame containing the OSPF neighbors.
+    """
+    if runner is None or runner.events is None:
+        raise ValueError('The input is None or empty')
+
+    # Create the column headers.
+    cols = ['neighbor',
+            'neighbor_address',
+            'interface_id',
+            'area',
+            'interface',
+            'priority',
+            'state',
+            'state_changes',
+            'dead_timer',
+            'state_timer'
+            ]
+
+    # Create a dictionary to store the parsed output.
+    df_data = dict()
+    df_data['device'] = list()
+    for col in cols:
+        df_data[col] = list()
+
+    # Parse the output, create the DataFrame and return it.
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout'][0].split('\n')
+
+            for line in output:
+                if 'interface address' in line:
+                    df_data['device'].append(device)
+                    if len(line.split(',')) == 3:
+                        df_data['interface_id'].append(line.split()[-1])
+                    else:
+                        df_data['interface_id'].append('')
+                    line = line.split()
+                    df_data['neighbor'].append(line[1].strip(','))
+                    df_data['neighbor_address'].append(line[4].strip(','))
+                if 'area' in line:
+                    line = line.split()
+                    df_data['area'].append(line[3])
+                    df_data['interface'].append(line[-1])
+                if 'priority' in line:
+                    line = line.split()
+                    df_data['priority'].append(line[3].strip(','))
+                    df_data['state'].append(line[6].strip(','))
+                    df_data['state_changes'].append(line[-3])
+                if 'Dead timer' in line:
+                    df_data['dead_timer'].append(line.split()[-1])
+                if 'for' in line:
+                    df_data['state_timer'].append(line.split()[-1])
+
+    # Create the dataframe and return it.
+    df = pd.DataFrame(df_data).astype(str)
+
+    return df
+
+
 def parse_vrfs(runner: dict) -> pd.DataFrame:
     """Retrieve VRF information and return it as a DataFrame.
 
