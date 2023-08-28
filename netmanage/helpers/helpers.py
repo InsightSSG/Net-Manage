@@ -500,6 +500,7 @@ def define_collectors(hostgroup: str) -> Dict[str, Any]:
                   'npm_node_os_versions': ['solarwinds'],
                   'npm_node_vendors': ['solarwinds'],
                   'npm_nodes': ['solarwinds'],
+                  'ospf_neighbors': ['cisco.ios.ios'],
                   'node_availability': ['bigip'],
                   'pool_availability': ['bigip'],
                   'pool_member_availability': ['bigip'],

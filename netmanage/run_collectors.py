@@ -512,6 +512,14 @@ def collect(ansible_os: str,
                                                 orgs=meraki_organizations,
                                                 use_db=True)
 
+    if collector == 'ospf_neighbors':
+        if ansible_os == 'cisco.ios.ios':
+            result = cic.ospf_neighbors(ios_devices_username,
+                                        ios_devices_password,
+                                        hostgroup,
+                                        play_path,
+                                        private_data_dir)
+
     if collector == 'switch_lldp_neighbors':
         if ansible_os == 'meraki':
             result = mc.meraki_get_switch_lldp_neighbors(database_full_path)
