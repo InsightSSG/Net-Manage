@@ -204,14 +204,15 @@ def test_module(ip_addresses=["66.119.107.6",
     ----------
     ip_addresses : list, optional
         A list of IP addresses (with or without CIDR or subnet mask) to
-Returns
--------
-None
 
-Prints
-------
-str
-    Validation results for each IP address tested.
+    Returns
+    -------
+    None
+
+    Prints
+    ------
+    str
+        Validation results for each IP address tested.
 """
     for value in ip_addresses:
         is_valid = False
@@ -237,7 +238,7 @@ str
         output = [f"Original: {value},",
                   f"Transformed: {transformed_value},",
                   f"Reversed: {reversed_value},",
-                  f"Valid: {is_valid},"]
+                  f"Valid: {is_valid}"]
         output = ' '.join(output)
         print(output)
 
