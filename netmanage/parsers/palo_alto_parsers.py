@@ -141,6 +141,17 @@ def parse_interface_ips(df: pd.DataFrame) -> pd.DataFrame:
     df['network_ip'] = result['network_ip']
     df['broadcast_ip'] = result['broadcast_ip']
 
+    # Split the 'ip' column to separate the IP and the CIDR notation
+    df['cidr'] = df['ip'].str.split('/').str[1]
+    df['ip'] = df['ip'].str.split('/').str[0]
+
+    # Rearrange the columns to place 'cidr' column to the right of 'ip' column.
+    cols = df.columns.tolist()
+    ip_index = cols.index('ip')
+    cols.insert(ip_index + 1, cols.pop(cols.index('cidr')))
+    df = df[cols]
+    df.columns
+
     return df
 
 
