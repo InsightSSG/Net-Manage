@@ -150,7 +150,6 @@ def parse_interface_ips(df: pd.DataFrame) -> pd.DataFrame:
     ip_index = cols.index('ip')
     cols.insert(ip_index + 1, cols.pop(cols.index('cidr')))
     df = df[cols]
-    df.columns
 
     return df
 
