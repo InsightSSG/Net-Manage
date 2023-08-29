@@ -520,6 +520,13 @@ def collect(ansible_os: str,
                                         play_path,
                                         private_data_dir)
 
+        if ansible_os == 'paloaltonetworks.panos':
+            result = pac.ospf_neighbors(palo_alto_username,
+                                        palo_alto_password,
+                                        hostgroup,
+                                        netmanage_path,
+                                        private_data_dir)
+
     if collector == 'switch_lldp_neighbors':
         if ansible_os == 'meraki':
             result = mc.meraki_get_switch_lldp_neighbors(database_full_path)

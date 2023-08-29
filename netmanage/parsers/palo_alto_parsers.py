@@ -204,6 +204,63 @@ def parse_logical_interfaces(response: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def parse_ospf_neighbors(response: dict) -> pd.DataFrame:
+    '''
+    Parse OSPF neighbors for Palo Alto firewalls.
+
+    Parameters
+    ----------
+    response : dict
+        A dictionary containing the command output, where the keys are the
+        devices and the value is a dictionary
+
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame containing the logical interfaces.
+    '''
+    if response is None:
+        raise ValueError("The input is None or empty")
+
+    # Create a dictionary to store the formatted cmd output for each device.
+    result = dict()
+
+    # Parse 'response', adding the cmd output for each device to 'result'.
+    for device, event in response.items():
+        output = json.loads(event['event_data']['res']['stdout'])
+        if output['response']['result'].get('entry'):
+            output = output['response']['result']['entry']
+            result[device] = output
+
+    # Use the data in 'result' to populate 'df_data', which will be used to
+    # create the dataframe.
+    df_data = dict()
+    df_data['device'] = list()
+    for device in result:
+        # If there is only one neighbor, then the Palo Alto API returns a
+        # dictionary.
+        if isinstance(result[device], dict):
+            df_data['device'].append(device)
+            for key, value in result[device].items():
+                if not df_data.get(key):
+                    df_data[key] = list()
+                df_data[key].append(value)
+        # If there is more than one neighbor, then the Palo Alto API returns a
+        # list.
+        else:
+            for item in result[device]:
+                df_data['device'].append(device)
+                for key, value in item.items():
+                    if not df_data.get(key):
+                        df_data[key] = list()
+                    df_data[key].append(value)
+
+    # Create the dataframe.
+    df = pd.DataFrame.from_dict(df_data).astype(str)
+
+    return df
+
+
 def parse_physical_interfaces(response: dict) -> pd.DataFrame:
     '''
     Parse the physical interfaces on Palo Altos.
