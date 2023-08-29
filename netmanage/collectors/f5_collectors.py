@@ -502,7 +502,7 @@ def get_self_ips(username: str,
     df['network_ip'] = result['network_ip']
     df['broadcast_ip'] = result['broadcast_ip']
 
-    # Rearrange the columns to place 'cidr' column to the right of 'address' column.
+    # Place 'cidr' column to the right of 'address' column.
     cols = df.columns.tolist()
     ip_index = cols.index('address')
     cols.insert(ip_index + 1, cols.pop(cols.index('cidr')))
