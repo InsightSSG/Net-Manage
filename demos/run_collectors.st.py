@@ -42,11 +42,15 @@ if collector_select:
         cols = st.columns(3)  # Create the first 3 columns
 
         for idx, key in enumerate(collector_select[dev]):
-            if idx % 3 == 0 and idx != 0:  # If we've filled 3 columns, create a new row
+            if (
+                idx % 3 == 0 and idx != 0
+            ):  # If we've filled 3 columns, create a new row
                 cols = st.columns(3)
                 current_col = 0
 
-            col_checkboxes[f"{dev}_{key.description}"] = cols[current_col].checkbox(
+            col_checkboxes[f"{dev}_{key.description}"] = cols[
+                current_col
+            ].checkbox(
                 f"{key.description}", True, key=f"{dev}_{key.description}"
             )
             collector_select[dev][idx].value = col_checkboxes[
@@ -74,5 +78,6 @@ if selected_cols:
 
             st.write(
                 f"\nRESULT: {ansible_os.upper()} "
-                f"{collector.upper()} COLLECTOR\n")
+                f"{collector.upper()} COLLECTOR\n"
+            )
             st.write(result)
