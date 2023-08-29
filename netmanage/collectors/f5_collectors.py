@@ -493,10 +493,20 @@ def get_self_ips(username: str,
 
     # Add the subnets, network IPs, and broadcast IPs.
     addresses = df['address'].to_list()
+
+    df['cidr'] = [_.split('/')[-1] for _ in df['address'].to_list()]
+    df['address'] = [_.split('/')[0] for _ in df['address'].to_list()]
+
     result = hp.generate_subnet_details(addresses)
     df['subnet'] = result['subnet']
     df['network_ip'] = result['network_ip']
     df['broadcast_ip'] = result['broadcast_ip']
+
+    # Rearrange the columns to place 'cidr' column to the right of 'address' column.
+    cols = df.columns.tolist()
+    ip_index = cols.index('address')
+    cols.insert(ip_index + 1, cols.pop(cols.index('cidr')))
+    df = df[cols]
 
     return df
 
