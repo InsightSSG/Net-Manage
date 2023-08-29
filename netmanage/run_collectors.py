@@ -255,6 +255,14 @@ def collect(ansible_os: str,
                                         private_data_dir,
                                         validate_certs=validate_certs)
 
+    if collector == 'bgp_neighbors':
+        if ansible_os == 'paloaltonetworks.panos':
+            result = pac.bgp_neighbors(palo_alto_username,
+                                       palo_alto_password,
+                                       hostgroup,
+                                       netmanage_path,
+                                       private_data_dir)
+
     if collector == 'bgp_neighbors_summary':
         if ansible_os == 'cisco.ios.ios':
             result = cic.bgp_neighbor_summary(ios_devices_username,
