@@ -37,14 +37,23 @@ if collector_select:
     st.subheader("Select Collectors to run")
     for dev in list(collector_select):
         st.subheader(dev)
-        cols = st.columns(len(collector_select[dev]))
+
+        current_col = 0
+        cols = st.columns(3)  # Create the first 3 columns
+
         for idx, key in enumerate(collector_select[dev]):
-            col_checkboxes[f"{dev}_{key.description}"] = cols[idx].checkbox(
+            if idx % 3 == 0 and idx != 0:  # If we've filled 3 columns, create a new row
+                cols = st.columns(3)
+                current_col = 0
+
+            col_checkboxes[f"{dev}_{key.description}"] = cols[current_col].checkbox(
                 f"{key.description}", True, key=f"{dev}_{key.description}"
             )
             collector_select[dev][idx].value = col_checkboxes[
                 f"{dev}_{key.description}"
             ]
+
+            current_col += 1
 
 if True in col_checkboxes.values():
     selected_cols = st.button("Run Selected Collectors", key="col_checkboxes")
@@ -53,8 +62,6 @@ else:
 
 if selected_cols:
     df_collectors = create_collectors_df(collector_select, hostgroup_select)
-
-    # st.dataframe(df_collectors)
 
     for idx, row in df_collectors.iterrows():
         with st.spinner(f'Running Collector {row["collector"].upper()}...'):
