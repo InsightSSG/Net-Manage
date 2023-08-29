@@ -263,6 +263,13 @@ def collect(ansible_os: str,
                                               play_path,
                                               private_data_dir)
 
+        if ansible_os == 'cisco.nxos.nxos':
+            result = cnc.bgp_neighbor_summary(ios_devices_username,
+                                              ios_devices_password,
+                                              hostgroup,
+                                              play_path,
+                                              private_data_dir)
+
     if collector == 'devices_inventory':
         if ansible_os == 'cisco.dnac':
             result = dnc.devices_inventory(dnac_url,
