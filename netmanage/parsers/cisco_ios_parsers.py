@@ -225,10 +225,16 @@ def parse_vrfs(runner: dict) -> pd.DataFrame:
             output = event_data['res']['stdout'][0].split('\n')
 
             # Gather the header indexes.
-            header = output[0]
-            rd_pos = header.index('Default RD')
-            proto_pos = header.index('Protocols')
-            inf_pos = header.index('Interfaces')
+            try:
+                header = output[0]
+                rd_pos = header.index('Default RD')
+                proto_pos = header.index('Protocols')
+                inf_pos = header.index('Interfaces')
+            except Exception as e:
+                if str(e) == 'substring not found':  # Raised if no VRFs.
+                    pass
+                else:
+                    print(f'{device}: {str(e)}')
 
             # Reverse 'output' to make it easier to parse.
             output.reverse()
