@@ -68,9 +68,12 @@ def parse_bgp_neighbors(runner):
             neighbors = text.split("BGP neighbor is")[1:]
 
             for neighbor in neighbors:
+                local_host_search = re.search(
+                    r"Local host: (\d+\.\d+\.\d+\.\d+)", neighbor)
+                local_host = local_host_search.group(1) \
+                    if local_host_search else None
                 bgp_neighbor = re.search(
                     r"(\d+\.\d+\.\d+\.\d+)", neighbor).group(1)
-                # vrf = re.search(r"vrf (\w+)", neighbor).group(1)
                 vrf_search = re.search(r"vrf (\w+)", neighbor)
                 vrf = vrf_search.group(1) if vrf_search else None
                 local_as_search = re.search(r"local AS (\d+)", neighbor)
@@ -94,6 +97,7 @@ def parse_bgp_neighbors(runner):
                     1) if bgp_state_timer_search else None
 
                 rows.append([device,
+                             local_host,
                              bgp_neighbor,
                              vrf,
                              local_as,
@@ -106,6 +110,7 @@ def parse_bgp_neighbors(runner):
 
     # Create DataFrame
     df = pd.DataFrame(rows, columns=["device",
+                                     "local_host",
                                      "bgp_neighbor",
                                      "vrf",
                                      "local_as",
