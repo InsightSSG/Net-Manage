@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import pandas as pd
+import re
 
 from netmanage.helpers import helpers as hp
 
@@ -38,12 +39,12 @@ def parse_facts(runner: dict) -> dict:
     return facts
 
 
-def parse_bgp_neighbor_summary(runner: dict) -> pd.DataFrame:
+def parse_bgp_neighbors(runner):
     """Parses the BGP neighbor summary output and returns it in a DataFrame.
 
     Parameters
     ----------
-    runner : dict
+    runner : generator
         An Ansible runner generator.
 
     Returns
@@ -54,37 +55,66 @@ def parse_bgp_neighbor_summary(runner: dict) -> pd.DataFrame:
     if runner is None or runner.events is None:
         raise ValueError('The input is None or empty')
 
-    # Create a dictionary to store the parsed output.
-    df_data = dict()
-    df_data['device'] = list()
+    rows = list()
 
-    # Parse the output, create the DataFrame and return it.
     for event in runner.events:
         if event['event'] == 'runner_on_ok':
             event_data = event['event_data']
 
             device = event_data['remote_addr']
 
-            output = event_data['res']['stdout'][0].split('\n')
+            text = event_data['res']['stdout'][0]
 
-            # Add the column headers to df_data as keys.
-            headers = output[0].split()
-            for key in headers:
-                if not df_data.get(key):
-                    df_data[key] = list()
+            neighbors = text.split("BGP neighbor is")[1:]
 
-            # Convert the output to a nested list and remove the header row.
-            output = [_.split() for _ in output[1:]]
-            # Add the device to each list element.
-            output = [[device] + _ for _ in output]
+            for neighbor in neighbors:
+                bgp_neighbor = re.search(
+                    r"(\d+\.\d+\.\d+\.\d+)", neighbor).group(1)
+                # vrf = re.search(r"vrf (\w+)", neighbor).group(1)
+                vrf_search = re.search(r"vrf (\w+)", neighbor)
+                vrf = vrf_search.group(1) if vrf_search else None
+                local_as_search = re.search(r"local AS (\d+)", neighbor)
+                local_as = int(local_as_search.group(1)) \
+                    if local_as_search else None
+                remote_as = int(
+                    re.search(r"remote AS (\d+)", neighbor).group(1))
+                peer_group_search = re.search(
+                    r"Member of peer-group ([\w+-]+)", neighbor)
+                peer_group = peer_group_search.group(
+                    1) if peer_group_search else None
+                bgp_version = int(
+                    re.search(r"BGP version (\d+)", neighbor).group(1))
+                neighbor_id = re.search(
+                    r"remote router ID (\d+\.\d+\.\d+\.\d+)", neighbor).\
+                    group(1)
+                bgp_state = re.search(r"BGP state = (\w+)", neighbor).group(1)
+                bgp_state_timer_search = re.search(
+                    r"BGP state = \w+, (.+)", neighbor)
+                bgp_state_timer = bgp_state_timer_search.group(
+                    1) if bgp_state_timer_search else None
 
-            # Parse the output and add it to 'df_data'.
-            for line in output:
-                for key, value in zip(df_data.keys(), line):
-                    df_data[key].append(value)
+                rows.append([device,
+                             bgp_neighbor,
+                             vrf,
+                             local_as,
+                             remote_as,
+                             peer_group,
+                             bgp_version,
+                             neighbor_id,
+                             bgp_state,
+                             bgp_state_timer])
 
-    # Create the dataframe and return it.
-    df = pd.DataFrame(df_data).astype(str)
+    # Create DataFrame
+    df = pd.DataFrame(rows, columns=["device",
+                                     "bgp_neighbor",
+                                     "vrf",
+                                     "local_as",
+                                     "remote_as",
+                                     "peer_group",
+                                     "bgp_version",
+                                     "neighbor_id",
+                                     "bgp_state",
+                                     "bgp_state_timer"])
 
     return df
 
