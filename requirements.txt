@@ -19,6 +19,7 @@ pip
 infoblox-client
 meraki
 pynetbox
+python-dotenv
 python3-nmap
 xmltodict
 streamlit
