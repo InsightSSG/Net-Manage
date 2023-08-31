@@ -105,14 +105,11 @@ def test_get_vrfs(ios_devices_username: str,
 
 def main():
     # Read environment variables.
-    database_name = os.environ['database_name']
     database_path = os.path.expanduser(os.environ['database_path'])
     netmanage_path = os.path.expanduser(
-        os.environ['netmanage_path'].strip('/'))
+        os.environ['netmanage_path'].rstrip('/'))
     private_data_dir = os.path.expanduser(
         os.environ['private_data_directory'])
-    # validate_certs = ast.literal_eval(os.environ['validate_certs'])
-    # database_method = os.environ['database_method']
 
     ios_devices_username = os.environ['ios_devices_username']
     ios_devices_password = os.environ['ios_devices_password']
@@ -126,7 +123,7 @@ def main():
     play_path = netmanage_path + '/playbooks'
 
     # Define the host group to test against.
-    host_group = 'mgmt'
+    host_group = 'pod1'
 
     # Execute tests
     test_get_arp_table(ios_devices_username,

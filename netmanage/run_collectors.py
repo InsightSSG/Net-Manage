@@ -59,7 +59,7 @@ def collect(ansible_os: str,
     database_name = os.environ['database_name']
     database_path = os.path.expanduser(os.environ['database_path'])
     netmanage_path = os.path.expanduser(
-        os.environ['netmanage_path'].strip('/'))
+        os.environ['netmanage_path'].rstrip('/'))
     private_data_dir = os.path.expanduser(
         os.environ['private_data_directory'])
     validate_certs = ast.literal_eval(os.environ['validate_certs'])
