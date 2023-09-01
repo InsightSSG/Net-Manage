@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import ast
 import os
 import sys
 from dotenv import load_dotenv
