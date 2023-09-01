@@ -3,6 +3,7 @@
 import os
 from dotenv import load_dotenv
 from netmanage.collectors import cisco_nxos_collectors as collectors  # noqa
+from netmanage.helpers import helpers as hp  # noqa
 
 load_dotenv()
 
@@ -11,7 +12,7 @@ def test_get_arp_table(
     username,
     password,
     host_group,
-    nm_path,
+    netmanage_path,
     play_path,
     private_data_dir,
     reverse_dns=False,
@@ -21,7 +22,7 @@ def test_get_arp_table(
         username,
         password,
         host_group,
-        nm_path,
+        netmanage_path,
         play_path,
         private_data_dir,
         reverse_dns=False,
@@ -45,7 +46,7 @@ def test_get_cam_table(
     username,
     password,
     host_group,
-    nm_path,
+    netmanage_path,
     play_path,
     private_data_dir,
     interface=None,
@@ -55,7 +56,7 @@ def test_get_cam_table(
         username,
         password,
         host_group,
-        nm_path,
+        netmanage_path,
         play_path,
         private_data_dir,
         interface=None,
@@ -254,11 +255,11 @@ def test_nxos_get_vrfs(
 
 
 def test_nxos_get_bgp_neighbors(
-    username, password, host_group, nm_path, play_path, private_data_dir
+    username, password, host_group, netmanage_path, play_path, private_data_dir
 ):
     """Test the 'nxos_get_bgp_neighbors' collector."""
     df = collectors.nxos_get_bgp_neighbors(
-        username, password, host_group, nm_path, play_path, private_data_dir
+        username, password, host_group, netmanage_path, play_path, private_data_dir
     )
 
     expected = [
@@ -282,11 +283,11 @@ def test_nxos_get_bgp_neighbors(
 
 
 def test_get_fexes_table(
-    username, password, host_group, nm_path, play_path, private_data_dir
+    username, password, host_group, netmanage_path, play_path, private_data_dir
 ):
     """Test the 'nxos_get_fexes_table' collector."""
     df_fexes = collectors.nxos_get_fexes_table(
-        username, password, host_group, nm_path, play_path, private_data_dir
+        username, password, host_group, netmanage_path, play_path, private_data_dir
     )
 
     expected = [
@@ -304,19 +305,31 @@ def test_get_fexes_table(
 
 
 def main():
-    username = os.environ.get('USERNAME')
-    password = os.environ.get('PASSWORD')
-    host_group_all = os.environ.get('NXOS_HOST_GROUP_ALL')
-    nm_path = os.environ.get('NM_PATH')
-    play_path = os.environ.get('PLAY_PATH')
-    private_data_dir = os.environ.get('PRIVATE_DATA_DIR')
+    username = os.environ.get('ios_devices_username')
+    password = os.environ.get('ios_devices_password')
+    database_path = os.path.expanduser(os.environ['database_path'])
+    netmanage_path = os.path.expanduser(
+        os.environ['netmanage_path'].rstrip('/'))
+    private_data_dir = os.path.expanduser(
+        os.environ['private_data_directory'])
+    
+    # Create the output folder if it does not already exist.
+    exists = hp.check_dir_existence(database_path)
+    if not exists:
+        hp.create_dir(database_path)
+
+    # Define additional variables
+    play_path = netmanage_path + '/playbooks'
+
+    # Define the host group to test against.
+    host_group = os.environ.get('nxos_host_group')
 
     # Execute tests
     test_get_arp_table(
         username,
         password,
-        host_group_all,
-        nm_path,
+        host_group,
+        netmanage_path,
         play_path,
         private_data_dir,
         reverse_dns=False
@@ -325,8 +338,8 @@ def main():
     test_get_cam_table(
         username,
         password,
-        host_group_all,
-        nm_path,
+        host_group,
+        netmanage_path,
         play_path,
         private_data_dir,
         interface=None
@@ -335,50 +348,50 @@ def main():
     test_get_interface_descriptions(
         username,
         password,
-        host_group_all,
+        host_group,
         play_path,
         private_data_dir,
         interface=None
     )
 
     test_nxos_get_interface_ips(
-        username, password, host_group_all, play_path, private_data_dir
+        username, password, host_group, play_path, private_data_dir
     )
 
     test_nxos_get_interface_status(
-        username, password, host_group_all, play_path, private_data_dir
+        username, password, host_group, play_path, private_data_dir
     )
 
     test_nxos_get_inventory(
-        username, password, host_group_all, play_path, private_data_dir
+        username, password, host_group, play_path, private_data_dir
     )
 
     test_nxos_get_port_channel_data(
-        username, password, host_group_all, play_path, private_data_dir
+        username, password, host_group, play_path, private_data_dir
     )
 
     test_nxos_get_vlan_db(
-        username, password, host_group_all, play_path, private_data_dir
+        username, password, host_group, play_path, private_data_dir
     )
 
     test_nxos_get_vpc_state(
-        username, password, host_group_all, play_path, private_data_dir
+        username, password, host_group, play_path, private_data_dir
     )
 
     test_nxos_get_vrfs(
-        username, password, host_group_all, play_path, private_data_dir
+        username, password, host_group, play_path, private_data_dir
     )
 
     test_nxos_get_bgp_neighbors(
-        username, password, host_group_all, nm_path, play_path,
+        username, password, host_group, netmanage_path, play_path,
         private_data_dir
     )
 
     test_get_fexes_table(
         username,
         password,
-        host_group_all,
-        nm_path,
+        host_group,
+        netmanage_path,
         play_path,
         private_data_dir
     )
