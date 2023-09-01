@@ -122,7 +122,7 @@ def main():
     play_path = netmanage_path + '/playbooks'
 
     # Define the host group to test against.
-    host_group = 'ios'
+    host_group = 'ios'  # TODO: This should be an environment variable.
 
     # Execute tests
     test_get_arp_table(ios_devices_username,
