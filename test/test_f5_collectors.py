@@ -329,7 +329,7 @@ def main():
         os.environ['netmanage_path'].rstrip('/'))
     private_data_dir = os.path.expanduser(
         os.environ['private_data_directory'])
-    
+
     # Create the output folder if it does not already exist.
     exists = hp.check_dir_existence(database_path)
     if not exists:
