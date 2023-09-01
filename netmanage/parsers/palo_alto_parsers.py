@@ -93,6 +93,8 @@ def parse_arp_table(response: dict, nm_path: str) -> pd.DataFrame:
         if not output['response']['result'].get('error'):
             if output['response']['result'].get('entries'):
                 arp_table = output['response']['result']['entries']['entry']
+                if isinstance(arp_table, dict):
+                    arp_table = [arp_table]
                 for item in arp_table:
                     df_data['device'].append(device)
                     for key, value in item.items():
