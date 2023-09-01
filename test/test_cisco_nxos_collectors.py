@@ -259,7 +259,8 @@ def test_nxos_get_bgp_neighbors(
 ):
     """Test the 'nxos_get_bgp_neighbors' collector."""
     df = collectors.nxos_get_bgp_neighbors(
-        username, password, host_group, netmanage_path, play_path, private_data_dir
+        username, password, host_group, netmanage_path, play_path,
+        private_data_dir
     )
 
     expected = [
@@ -287,7 +288,8 @@ def test_get_fexes_table(
 ):
     """Test the 'nxos_get_fexes_table' collector."""
     df_fexes = collectors.nxos_get_fexes_table(
-        username, password, host_group, netmanage_path, play_path, private_data_dir
+        username, password, host_group, netmanage_path, play_path,
+        private_data_dir
     )
 
     expected = [
@@ -312,7 +314,7 @@ def main():
         os.environ['netmanage_path'].rstrip('/'))
     private_data_dir = os.path.expanduser(
         os.environ['private_data_directory'])
-    
+
     # Create the output folder if it does not already exist.
     exists = hp.check_dir_existence(database_path)
     if not exists:
