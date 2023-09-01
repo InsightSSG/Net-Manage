@@ -68,6 +68,7 @@ def test_get_all_interfaces(username,
                 'addr']
     assert set(df_all.columns.to_list()) == set(expected)
 
+
 def test_get_arp_table(username,
                        password,
                        host_group,
