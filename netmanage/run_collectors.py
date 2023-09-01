@@ -263,6 +263,13 @@ def collect(ansible_os: str,
                                               play_path,
                                               private_data_dir)
 
+        if ansible_os == 'cisco.nxos.nxos':
+            result = cnc.nxos_bgp_neighbor_summary(nxos_devices_username,
+                                                   nxos_devices_password,
+                                                   hostgroup,
+                                                   play_path,
+                                                   private_data_dir)
+
     if collector == 'devices_inventory':
         if ansible_os == 'cisco.dnac':
             result = dnc.devices_inventory(dnac_url,
@@ -343,6 +350,15 @@ def collect(ansible_os: str,
                                                 netmanage_path,
                                                 play_path,
                                                 private_data_dir)
+
+    if collector == 'fexes_table':
+        if ansible_os == 'cisco.nxos.nxos':
+            result = cnc.nxos_get_fexes_table(nxos_devices_username,
+                                              nxos_devices_password,
+                                              hostgroup,
+                                              netmanage_path,
+                                              play_path,
+                                              private_data_dir)
 
     if collector == 'interface_description':
         if ansible_os == 'cisco.ios.ios':
