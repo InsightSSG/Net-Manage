@@ -323,7 +323,6 @@ def test_get_vlans(username,
 def main():
     username = os.environ.get('f5_ltm_username')
     password = os.environ.get('f5_ltm_password')
-    host_group = os.environ.get('f5_host_group')
     database_path = os.path.expanduser(os.environ['database_path'])
     netmanage_path = os.path.expanduser(
         os.environ['netmanage_path'].rstrip('/'))
@@ -339,7 +338,7 @@ def main():
     play_path = netmanage_path + '/playbooks'
 
     # Define the host group to test against.
-    host_group = os.environ.get('nxos_host_group')
+    host_group = os.environ.get('f5_host_group')
 
     # Execute tests
     test_get_arp_table(username,
