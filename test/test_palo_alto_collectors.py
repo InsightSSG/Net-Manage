@@ -153,6 +153,7 @@ def main():
     username = os.environ.get('palo_alto_username')
     password = os.environ.get('palo_alto_password')
     host_group = os.environ.get('palo_host_group')
+    netmanage_path = os.environ.get('netmanage_path')
     private_data_dir = os.environ.get('private_data_directory')
 
     # Execute tests
