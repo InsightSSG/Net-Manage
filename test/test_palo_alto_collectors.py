@@ -6,8 +6,6 @@ from dotenv import load_dotenv
 
 # Change to the Net-Manage repository so imports will work
 load_dotenv()
-netmanage_path = os.environ['netmanage_path']
-os.chdir(f'{netmanage_path}/test')
 sys.path.append('..')
 from netmanage.collectors import palo_alto_collectors  # noqa
 
