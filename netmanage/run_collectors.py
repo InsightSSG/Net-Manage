@@ -265,11 +265,11 @@ def collect(ansible_os: str,
 
         if ansible_os == 'cisco.nxos.nxos':
             result = cnc.nxos_get_bgp_neighbors(nxos_devices_username,
-                                                   nxos_devices_password,
-                                                   hostgroup,
-                                                   netmanage_path,
-                                                   play_path,
-                                                   private_data_dir)
+                                                nxos_devices_password,
+                                                hostgroup,
+                                                netmanage_path,
+                                                play_path,
+                                                private_data_dir)
 
     if collector == 'devices_inventory':
         if ansible_os == 'cisco.dnac':
