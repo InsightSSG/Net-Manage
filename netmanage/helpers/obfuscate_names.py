@@ -6,10 +6,14 @@ import os # Only for Testing - Used to check and delete output DB during testing
 import re
 
 
-def consistent_hash(s: str) -> str:
+def consistent_hash(s: str, length: int) -> str:
     m = hashlib.md5()
     m.update(s.encode('utf-8'))
-    return m.hexdigest()[:8]
+    hashed = m.hexdigest()[:length]
+    # pad with zeros if length is greater than hash length
+    while len(hashed) < length:
+        hashed += "0"
+    return hashed
 
 
 def consistent_transform(s: str, ignores: list = [], prefix: str = '') -> str:
@@ -19,17 +23,25 @@ def consistent_transform(s: str, ignores: list = [], prefix: str = '') -> str:
     # Convert all ignore words to lowercase for case-insensitive comparison
     ignores = [ignore.lower() for ignore in ignores]
 
+    # Split by non-word characters (preserving the non-word characters for reassembly)
     words = re.split(r'(\W+)', s)
     transformed_words = []
     transformed_flag = False  # Indicates whether any part of the string was transformed
 
     for word in words:
+        # Extract trailing digits from each word
+        match = re.search(r'(\D+)(\d+)$', word)
+        if match:
+            main_part, digits = match.groups()
+        else:
+            main_part, digits = word, ''
+
         # Convert the word to lowercase for a case-insensitive comparison
-        if word.lower() in ignores or word.isdigit() or not word.isalnum():
+        if main_part.lower() in ignores or main_part.replace("_", "").isdigit():
             transformed_words.append(word)
         else:
-            hash_value = consistent_hash(word)
-            transformed_word = hash_value
+            hash_value = consistent_hash(main_part, len(main_part))
+            transformed_word = f"{hash_value}{digits}"
             transformed_words.append(transformed_word)
             transformed_flag = True  # At least one word has been transformed
 
@@ -60,7 +72,7 @@ def obfuscate_db_data(source_db_path: str, dest_db_path: str):
     dest_cursor = dest_conn.cursor()
 
     columns_to_rename = {
-        'device': {'ignores': ['switch', 'sw', 'rtr', 'router', 'fw', 'firewall'], 'prefix': 'dev-'},
+        'device': {'ignores': ['switch', 'sw', 'rtr', 'router', 'fw', 'firewall', 'local'], 'prefix': 'dev-'},
         'Vlan': {'ignores': ['routed', 'trunk'], 'prefix': 'Vlan-'},
         'vlan': {'ignores': ['routed', 'trunk'], 'prefix': 'vlan-'},
         'nameif': {
