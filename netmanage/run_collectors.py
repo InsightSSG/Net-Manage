@@ -351,6 +351,21 @@ def collect(ansible_os: str,
                                                 play_path,
                                                 private_data_dir)
 
+    if collector == 'hardware_inventory':
+        if ansible_os == 'cisco.ios.ios':
+            result = cic.inventory(ios_devices_username,
+                                   ios_devices_password,
+                                   hostgroup,
+                                   play_path,
+                                   private_data_dir)
+
+        if ansible_os == 'cisco.nxos.nxos':
+            result = cnc.nxos_get_inventory(nxos_devices_username,
+                                            nxos_devices_password,
+                                            hostgroup,
+                                            play_path,
+                                            private_data_dir)
+
     if collector == 'interface_description':
         if ansible_os == 'cisco.ios.ios':
             result = cic.ios_get_interface_descriptions(ios_devices_username,
@@ -452,13 +467,6 @@ def collect(ansible_os: str,
                                                hostgroup,
                                                play_path,
                                                private_data_dir)
-
-    if collector == 'inventory_nxos':
-        result = cnc.nxos_get_inventory(nxos_devices_username,
-                                        nxos_devices_password,
-                                        hostgroup,
-                                        play_path,
-                                        private_data_dir)
 
     if collector == 'network_appliance_vlans':
         if ansible_os == 'meraki':
