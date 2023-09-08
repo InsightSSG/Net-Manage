@@ -101,6 +101,47 @@ def run_adhoc_command(username: str,
     return result
 
 
+def inventory(username: str,
+              password: str,
+              host_group: str,
+              nm_path: str,
+              private_data_dir: str) -> pd.DataFrame:
+    '''
+    Gets partial hardware inventory on Palo Alto firewalls.
+
+    Parameters
+    ----------
+    username : str
+        The user's username.
+    password : str
+        The user's password.
+    host_group : str
+        The name of the Ansible inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    private_data_dir : str
+        The path to the Ansible private data directory
+
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame containing the hardware inventory.
+    '''
+    cmd = 'show system info'
+    cmd_is_xml = False
+
+    response = run_adhoc_command(username,
+                                 password,
+                                 host_group,
+                                 nm_path,
+                                 private_data_dir,
+                                 cmd,
+                                 cmd_is_xml)
+
+    # Parse results into df
+    return parser.parse_inventory(response)
+
+
 def bgp_neighbors(username: str,
                   password: str,
                   host_group: str,

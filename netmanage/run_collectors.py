@@ -381,6 +381,13 @@ def collect(ansible_os: str,
                                    private_data_dir,
                                    validate_certs=validate_certs)
 
+        if ansible_os == 'paloaltonetworks.panos':
+            result = pac.inventory(palo_alto_username,
+                                   palo_alto_password,
+                                   hostgroup,
+                                   netmanage_path,
+                                   private_data_dir)
+
     if collector == 'interface_description':
         if ansible_os == 'cisco.ios.ios':
             result = cic.ios_get_interface_descriptions(ios_devices_username,
