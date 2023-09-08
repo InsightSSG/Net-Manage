@@ -373,6 +373,14 @@ def collect(ansible_os: str,
                                             play_path,
                                             private_data_dir)
 
+        if ansible_os == 'bigip':
+            result = f5c.inventory(f5_ltm_username,
+                                   f5_ltm_password,
+                                   hostgroup,
+                                   play_path,
+                                   private_data_dir,
+                                   validate_certs=validate_certs)
+
     if collector == 'interface_description':
         if ansible_os == 'cisco.ios.ios':
             result = cic.ios_get_interface_descriptions(ios_devices_username,
