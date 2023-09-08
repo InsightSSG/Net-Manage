@@ -352,6 +352,13 @@ def collect(ansible_os: str,
                                                 private_data_dir)
 
     if collector == 'hardware_inventory':
+        if ansible_os == 'cisco.asa.asa':
+            result = cac.inventory(asa_devices_username,
+                                   asa_devices_password,
+                                   hostgroup,
+                                   play_path,
+                                   private_data_dir)
+
         if ansible_os == 'cisco.ios.ios':
             result = cic.inventory(ios_devices_username,
                                    ios_devices_password,
