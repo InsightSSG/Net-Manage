@@ -15,7 +15,7 @@ def test_inventory(username: str,
                    password: str,
                    host_group: str,
                    play_path: str,
-                   private_data_dir: str) -> pd.DataFrame:
+                   private_data_dir: str):
     """
     Tests the hardware inventory collector for Cisco ASAs.
     """
