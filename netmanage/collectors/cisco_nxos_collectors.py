@@ -161,7 +161,6 @@ def nxos_get_fexes_table(username: str,
 def nxos_get_bgp_neighbors(username: str,
                            password: str,
                            host_group: str,
-                           nm_path: str,
                            play_path: str,
                            private_data_dir: str) -> pd.DataFrame:
     '''
@@ -175,8 +174,6 @@ def nxos_get_bgp_neighbors(username: str,
         The password to login to devices.
     host_group : str
         The inventory host group.
-    nm_path : str
-        The path to the Net-Manage repository.
     play_path : str
         The path to the playbooks directory.
     private_data_dir : str

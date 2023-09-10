@@ -206,28 +206,18 @@ def test_nxos_get_vpc_state(
         username, password, host_group, play_path, private_data_dir
     )
 
+    # The exact columns returned can vary depending on the model, NXOS code
+    # version, and/or whether it is running layer 3 VPC. So, we will only
+    # select a subset of columns to verify.
     expected = [
         "device",
         "vPC domain id",
         "Peer status",
         "vPC keep-alive status",
-        "Configuration consistency status",
-        "Per-vlan consistency status",
-        "Type-2 consistency status",
-        "vPC role",
-        "Number of vPCs configured",
-        "Peer Gateway",
-        "Dual-active excluded VLANs",
-        "Graceful Consistency Check",
-        "Auto-recovery status",
-        "Delay-restore status",
-        "Delay-restore SVI status",
-        "Delay-restore Orphan-port status",
-        "Operational Layer3 Peer-router",
-        "Virtual-peerlink mode",
     ]
 
-    assert df.columns.to_list() == expected
+    for col in expected:
+        assert col in df.columns.to_list()
 
     assert len(df) >= 1
 
@@ -295,14 +285,30 @@ def test_get_fexes_table(
         private_data_dir
     )
 
-    expected = [
-        "device",
-        "ip_address",
-        "age",
-        "mac_address",
-        "interface",
-        "vendor",
-    ]
+    expected = ['device',
+                'fex',
+                'description',
+                'state',
+                'fex_version',
+                'switch_version',
+                'fex_interim_version',
+                'switch_interim_version',
+                'extender_serial',
+                'extender_model',
+                'part_no',
+                'card_id',
+                'mac_addr',
+                'num_macs',
+                'module_sw_gen',
+                'switch_sw_gen',
+                'post_level',
+                'pinning_mode',
+                'max_links',
+                'fabric_port_for_control_traffic',
+                'fcoe_admin',
+                'fcoe_oper',
+                'fcoe_fex_aa_configured',
+                'fabric_interface_state']
 
     assert df_fexes.columns.to_list() == expected
 

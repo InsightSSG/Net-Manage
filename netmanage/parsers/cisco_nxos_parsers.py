@@ -130,60 +130,98 @@ def nxos_parse_fexes_table(runner: dict, nm_path: str) -> pd.DataFrame:
 
     Returns
     -------
-    df_fexes : pd.DataFrame
+    df : pd.DataFrame
         The FEXes of the device. If there are no FEXes, an empty DataFrame
         will be returned.
     """
+    # Define regular expressions to match each line
+    regex_patterns = {
+        'fex': r'FEX: (\d+)',
+        'description': r'Description: ([\w-]+)',
+        'state': r'state: (\w+)',
+        'fex_version': r'FEX version: ([\d\.\(\)N]+)',
+        'switch_version': r'Switch version: ([\d\.\(\)N]+)',
+        'fex_interim_version': r'FEX Interim version: ([\d\.\(\)N]+)',
+        'switch_interim_version': r'Switch Interim version: ([\d\.\(\)N]+)',
+        'extender_serial': r'Extender Serial: (\w+)',
+        'extender_model': r'Extender Model: ([\w-]+)',
+        'part_no': r'Part No: ([\w-]+)',
+        'card_id': r'Card Id: (\d+)',
+        'mac_addr': r'Mac Addr: ([\w:]+)',
+        'num_macs': r'Num Macs: (\d+)',
+        'module_sw_gen': r'Module Sw Gen: (\d+)',
+        'switch_sw_gen': r'Switch Sw Gen: (\d+)',
+        'post_level': r'Post level: (\w+)',
+        'pinning_mode': r'Pinning-mode: (\w+)',
+        'max_links': r'Max-links: (\d+)',
+        'fabric_port_for_control_traffic':
+        r'Fabric port for control traffic: (\w+/\d+)',
+        'fcoe_admin': r'FCoE Admin: (\w+)',
+        'fcoe_oper': r'FCoE Oper: (\w+)',
+        'fcoe_fex_aa_configured': r'FCoE FEX AA Configured: (\w+)'
+    }
+
+    # Updated regex pattern to handle multiple 'Fabric interface state' values
+    fabric_interface_pattern = \
+        r'Fabric interface state:(.+?)(?=Fex Port|Logs|$)'
 
     if runner is None or runner.events is None:
         raise ValueError("The input is None or empty")
 
-    # Parse the output and add it to 'data'
-    df_data = list()
+    # Create a dictionary to store FEX data from devices.
+    device_fexes = dict()
 
-    # Create a list of mac addresses (used for querying the vendor)
-    macs = list()
+    df = pd.DataFrame()
 
     for event in runner.events:
         if event["event"] == "runner_on_ok":
             event_data = event["event_data"]
 
             device = event_data["remote_addr"]
+            device_fexes[device] = list()
 
-            output = event_data["res"]["stdout"][0].split("\n")
+            data = event_data["res"]["stdout"][0]
 
-            # Parse the output and add it to 'df_data'
-            for line in output[1:]:
-                line = line.split()
-                address = line[0]
-                age = line[1]
-                mac = line[2]
-                inf = line[3]
-                macs.append(mac)
-                row = [device, address, age, mac, inf]
-                # Perform a reverse DNS lookup if requested
-                # TODO: Convert this to a standalone function
-                # if reverse_dns:
-                #     try:
-                #         rdns = socket.getnameinfo((address, 0), 0)[0]
-                #     except Exception:
-                #         rdns = 'unknown'
-                #     row.append(rdns)
-                df_data.append(row)
+            # Split the data into chunks for each FEX
+            fex_chunks = [f"FEX:{chunk}" for chunk in re.split(
+                r'FEX:', data) if chunk.strip() != ""]
 
-    cols = ["device", "ip_address", "age", "mac_address", "interface"]
+            all_parsed_data = []
 
-    # TODO: Convert this to a standalone function
-    # if reverse_dns:
-    #     cols.append('reverse_dns')
+            for chunk in fex_chunks:
+                # Parse the main data of each FEX
+                parsed_data = {}
+                for key, pattern in regex_patterns.items():
+                    match = re.search(pattern, chunk)
+                    if match:
+                        parsed_data[key] = match.group(1)
+                    else:
+                        parsed_data[key] = None
 
-    df_arp = pd.DataFrame(data=df_data, columns=cols)
+                # Extract fabric interface state
+                fabric_interface_state_match = re.search(
+                    fabric_interface_pattern, chunk, re.DOTALL)
+                if fabric_interface_state_match:
+                    parsed_data['fabric_interface_state'] = \
+                        fabric_interface_state_match.group(
+                        1).strip().replace("\n", "; ")
+                else:
+                    parsed_data['fabric_interface_state'] = None
 
-    # Find the vendrs and add them to the dataframe
-    vendors = hp.find_mac_vendors(macs, nm_path)
-    df_arp["vendor"] = vendors["vendor"]
+                all_parsed_data.append(parsed_data)
 
-    return df_arp
+            # Convert to dataframe
+            df_multi_fex = pd.DataFrame(all_parsed_data)
+            df_multi_fex['device'] = device
+
+            # Reorder the columns to make 'device' the first column
+            column_order = ['device'] + \
+                [col for col in df_multi_fex if col != 'device']
+            df_multi_fex = df_multi_fex[column_order]
+
+            df = pd.concat([df_multi_fex, df], ignore_index=True)
+
+    return df
 
 
 def nxos_parse_bgp_neighbors(runner: dict) -> pd.DataFrame:
