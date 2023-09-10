@@ -54,6 +54,7 @@ def test_get_vrfs(ios_devices_username: str,
 def main():
     # Read environment variables.
     database_path = os.path.expanduser(os.environ['database_path'])
+    host_group = os.environ.get('asa_host_group')
     netmanage_path = os.path.expanduser(
         os.environ['netmanage_path'].rstrip('/'))
     private_data_dir = os.path.expanduser(
@@ -70,14 +71,10 @@ def main():
     # Define additional variables
     play_path = netmanage_path + '/playbooks'
 
-    # Define the host group to test against.
-    host_group = 'ios'  # TODO: This should be an environment variable.
-
     # Execute tests
     test_inventory(asa_devices_username,
                    asa_devices_password,
                    host_group,
-                   netmanage_path,
                    play_path,
                    private_data_dir)
 
