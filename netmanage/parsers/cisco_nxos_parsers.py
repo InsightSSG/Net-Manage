@@ -181,7 +181,7 @@ def nxos_parse_fexes_table(runner: dict, nm_path: str) -> pd.DataFrame:
 
     # Find the vendrs and add them to the dataframe
     vendors = hp.find_mac_vendors(macs, nm_path)
-    df_arp["vendor"] = vendors
+    df_arp["vendor"] = vendors["vendor"]
 
     return df_arp
 

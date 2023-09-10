@@ -155,7 +155,7 @@ def nxos_get_fexes_table(username: str,
                                 suppress_env_files=True)
 
     # Parse results into df
-    return parser.nxos_parse_fexes_table(runner)
+    return parser.nxos_parse_fexes_table(runner, nm_path)
 
 
 def nxos_get_bgp_neighbors(username: str,

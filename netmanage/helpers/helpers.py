@@ -494,6 +494,7 @@ def define_collectors(hostgroup: str) -> Dict[str, Any]:
                                          'cisco.ios.ios',
                                          'cisco.nxos.nxos',
                                          'paloaltonetworks.panos'],
+                  'fexes_table': ['cisco.nxos.nxos'],
                   'logs': ['bigip'],
                   'ncm_serial_numbers': ['solarwinds'],
                   'network_appliance_vlans': ['meraki'],
