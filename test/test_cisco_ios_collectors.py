@@ -82,6 +82,33 @@ def test_get_interface_descriptions(ios_devices_username,
     assert len(df_desc) >= 1
 
 
+def test_ios_get_interface_ips(ios_devices_username,
+                               ios_devices_password,
+                               host_group,
+                               play_path,
+                               private_data_dir):
+    """Test the 'ios_get_interface_descriptions' collector.
+    """
+    df = collectors.ios_get_interface_ips(ios_devices_username,
+                                          ios_devices_password,
+                                          host_group,
+                                          play_path,
+                                          private_data_dir)
+
+    expected = ['device',
+                'interface',
+                'ip',
+                'cidr',
+                'vrf',
+                'subnet',
+                'network_ip',
+                'broadcast_ip']
+
+    assert df.columns.to_list() == expected
+
+    assert len(df) >= 1
+
+
 def test_get_vrfs(ios_devices_username: str,
                   ios_devices_password: str,
                   host_group: str,
@@ -169,6 +196,12 @@ def main():
                                     play_path,
                                     private_data_dir,
                                     interface=None)
+
+    test_ios_get_interface_ips(ios_devices_username,
+                               ios_devices_password,
+                               host_group,
+                               play_path,
+                               private_data_dir)
 
     test_get_vrfs(ios_devices_username,
                   ios_devices_password,

@@ -609,7 +609,7 @@ def ios_parse_interface_ips(runner: dict) -> pd.DataFrame:
                         vrf = output[pos - 1].split()[-1].strip('"')
                     else:
                         vrf = "None"
-                    ip = line.split()[-1]
+                    ip = line.split()[-1].split('/')[0]
                     inf = output[pos + 1].split()[0]
                     row = [device, inf, ip, vrf]
                     df_data.append(row)
@@ -621,14 +621,23 @@ def ios_parse_interface_ips(runner: dict) -> pd.DataFrame:
     df = pd.DataFrame(data=df_data, columns=cols)
 
     # Add the subnets, network IPs, and broadcast IPs.
-    addresses = df['ip'].to_list()
-
-    df['ip'] = [_.split('/')[0] for _ in df['ip'].to_list()]
-
+    addresses = df["ip"].to_list()
     result = hp.generate_subnet_details(addresses)
     df["subnet"] = result["subnet"]
     df["network_ip"] = result["network_ip"]
     df["broadcast_ip"] = result["broadcast_ip"]
+
+    # Add a column containing the CIDR notation.
+    cidrs = hp.subnet_mask_to_cidr(df["subnet"].to_list())
+    df['cidr'] = cidrs
+    df = df[['device',
+             'interface',
+             'ip',
+             'cidr',
+             'vrf',
+             'subnet',
+             'network_ip',
+             'broadcast_ip']]
 
     return df
 

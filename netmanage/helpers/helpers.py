@@ -1636,6 +1636,27 @@ def download_ouis(path: str) -> None:
                 txt.write(chunk)
 
 
+def subnet_mask_to_cidr(masks: list) -> list:
+    """Convert a list of subnet masks to CIDR notation.
+
+    Parameters
+    ----------
+    masks : list
+        A list of subnet masks.
+
+    Returns
+    -------
+    cidrs : list
+        A list of subnet masks converted to CIDR notation.
+
+    """
+    cidrs = list()
+    for mask in masks:
+        cidr = ipaddress.ip_network(f"0.0.0.0/{mask}")
+        cidrs.append(cidr.prefixlen)
+    return cidrs
+
+
 def tabulate_df_head(df: pd.DataFrame) -> None:
     '''
     Print the first 5 rows of a DataFrame as a table.
