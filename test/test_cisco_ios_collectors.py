@@ -102,9 +102,35 @@ def test_get_vrfs(ios_devices_username: str,
     assert len(df) >= 1
 
 
+def test_inventory(ios_devices_username,
+                   ios_devices_password,
+                   host_group,
+                   play_path,
+                   private_data_dir,
+                   interface=None):
+    """Test the 'ios_inventory' collector."""
+    df = collectors.inventory(ios_devices_username,
+                              ios_devices_password,
+                              host_group,
+                              play_path,
+                              private_data_dir)
+
+    expected = ['device',
+                'name',
+                'description',
+                'pid',
+                'vid',
+                'serial']
+
+    assert df.columns.to_list() == expected
+
+    assert len(df) >= 1
+
+
 def main():
     # Read environment variables.
     database_path = os.path.expanduser(os.environ['database_path'])
+    host_group = os.environ.get('ios_host_group')
     netmanage_path = os.path.expanduser(
         os.environ['netmanage_path'].rstrip('/'))
     private_data_dir = os.path.expanduser(
@@ -120,9 +146,6 @@ def main():
 
     # Define additional variables
     play_path = netmanage_path + '/playbooks'
-
-    # Define the host group to test against.
-    host_group = 'ios'  # TODO: This should be an environment variable.
 
     # Execute tests
     test_get_arp_table(ios_devices_username,
@@ -152,6 +175,12 @@ def main():
                   host_group,
                   play_path,
                   private_data_dir)
+
+    test_inventory(ios_devices_username,
+                   ios_devices_password,
+                   host_group,
+                   play_path,
+                   private_data_dir)
 
 
 if __name__ == '__main__':
