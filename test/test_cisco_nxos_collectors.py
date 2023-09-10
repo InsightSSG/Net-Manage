@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
 import os
+import sys
 from dotenv import load_dotenv
+sys.path.append('.')
 from netmanage.collectors import cisco_nxos_collectors as collectors  # noqa
 from netmanage.helpers import helpers as hp  # noqa
 
@@ -99,6 +101,7 @@ def test_nxos_get_interface_ips(
         "device",
         "interface",
         "ip",
+        "cidr",
         "vrf",
         "subnet",
         "network_ip",
@@ -310,6 +313,7 @@ def main():
     username = os.environ.get('ios_devices_username')
     password = os.environ.get('ios_devices_password')
     database_path = os.path.expanduser(os.environ['database_path'])
+    host_group = os.environ.get('nxos_host_group')
     netmanage_path = os.path.expanduser(
         os.environ['netmanage_path'].rstrip('/'))
     private_data_dir = os.path.expanduser(
@@ -322,9 +326,6 @@ def main():
 
     # Define additional variables
     play_path = netmanage_path + '/playbooks'
-
-    # Define the host group to test against.
-    host_group = os.environ.get('nxos_host_group')
 
     # Execute tests
     test_get_arp_table(

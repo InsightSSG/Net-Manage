@@ -468,6 +468,18 @@ def nxos_parse_interface_ips(runner: dict) -> pd.DataFrame:
     df["network_ip"] = result["network_ip"]
     df["broadcast_ip"] = result["broadcast_ip"]
 
+    # Add a column containing the CIDR notation.
+    cidrs = hp.subnet_mask_to_cidr(df["subnet"].to_list())
+    df['cidr'] = cidrs
+    df = df[['device',
+             'interface',
+             'ip',
+             'cidr',
+             'vrf',
+             'subnet',
+             'network_ip',
+             'broadcast_ip']]
+
     return df
 
 
