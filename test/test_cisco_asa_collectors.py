@@ -30,20 +30,26 @@ def test_inventory(username: str,
     assert len(df) >= 1
 
 
-def test_get_vrfs(ios_devices_username: str,
-                  ios_devices_password: str,
-                  host_group: str,
-                  play_path: str,
-                  private_data_dir: str):
-    """Test the 'get_vrfs' collector.
+def test_get_interface_ips(username: str,
+                           password: str,
+                           host_group: str,
+                           play_path: str,
+                           private_data_dir: str):
     """
-    df = collectors.get_vrfs(ios_devices_username,
-                             ios_devices_password,
-                             host_group,
-                             play_path,
-                             private_data_dir)
-
-    expected = ['device', 'Name', 'Default RD', 'Protocols', 'Interfaces']
+    Tests the interface IPs collector for Cisco ASAs.
+    """
+    df = collectors.get_interface_ips(username,
+                                      password,
+                                      host_group,
+                                      play_path,
+                                      private_data_dir)
+    expected = ['device',
+                'interface',
+                'ip',
+                'nameif',
+                'subnet',
+                'network_ip',
+                'broadcast_ip']
 
     assert df.columns.to_list() == expected
 
@@ -76,6 +82,12 @@ def main():
                    host_group,
                    play_path,
                    private_data_dir)
+
+    test_get_interface_ips(asa_devices_username,
+                           asa_devices_password,
+                           host_group,
+                           play_path,
+                           private_data_dir)
 
 
 if __name__ == '__main__':
