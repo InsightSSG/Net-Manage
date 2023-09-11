@@ -29,51 +29,75 @@ import re
 import string
 import random
 
-# Define a dictionary that sets rules for renaming columns
-# Keys are column names
-# values are dictionaries that specify 'ignores' and 'prefix'
-columns_to_rename = {
-    'device': {
-        'ignores': ['switch', 'sw', 'rtr', 'router', 'fw', 'firewall',
-                    'local'],
-        'prefix': 'dev-'},
-    'Vlan': {'ignores': ['routed', 'trunk'], 'prefix': 'Vlan-'},
-    'vlan': {'ignores': ['routed', 'trunk'], 'prefix': 'vlan-'},
-    'nameif': {
-        'ignores': ['management', 'inside', 'outside', 'link', 'dmz', 'pci',
-                    'ext', 'mgt', 'mgmt', 'int', 'vpn'],
-        'prefix': 'iface-'},
-    'description': {
-        'ignores': ['sw', 'switch', 'rtr', 'router'], 'prefix': 'desc-'},
-    'notes': {'ignores': ['sw', 'switch', 'rtr', 'router'], 'prefix': 'note-'},
-    'desc': {'ignores': ['sw', 'switch', 'rtr', 'router'], 'prefix': 'dsc-'},
-    'partition': {'ignores': [], 'prefix': 'part-'},
-    'node': {'ignores': [], 'prefix': 'node-'},
-    'name': {'ignores': [], 'prefix': 'name-'},
-    'pool': {'ignores': ['Server', 'srvr', 'svr'], 'prefix': 'pool-'},
-    'pool_name': {'ignores': [], 'prefix': 'pname-'},
-    'pool_member': {'ignores': [], 'prefix': 'pmem-'},
-    'vip': {'ignores': [], 'prefix': 'vip-'},
-    'peer_group': {'ignores': [], 'prefix': 'AS'},
-    'vrf': {
-        'ignores': ['internet', 'dr', 'mgmt', 'management', 'mgt', 'default',
-                    'wan'],
-        'prefix': 'vrf-'},
-    'serial': {'ignores': [], 'prefix': 'srl-'},
-    'serialnum': {'ignores': [], 'prefix': 'snum-'},
-    'networkId': {'ignores': [], 'prefix': 'netId-'},
-    'address': {'ignores': [], 'prefix': 'addr-'},
-    'url': {'ignores': [], 'prefix': 'url-'},
-    'tags': {'ignores': [], 'prefix': 'tag-'},
-    'orgId': {'ignores': [], 'prefix': 'org-'},
-    'id': {'ignores': [], 'prefix': 'id-'},
-}
 
-# Define mapping for columns to skip based on table name.
-# Table/Column pairs listed here will be skipped when obscuring data.
-skip_columns_for_tables = {
-    'IOS_HARDWARE_INVENTORY': ['name', 'description']
-}
+def get_columns_to_rename():
+    # Define a dictionary that sets rules for renaming columns
+    # Keys are column names
+    # values are dictionaries that specify 'ignores' and 'prefix'
+    return {
+        'device': {
+            'ignores': ['switch', 'sw', 'rtr', 'router', 'fw', 'firewall',
+                        'local'],
+            'prefix': 'dev-'},
+        'Vlan': {'ignores': ['routed', 'trunk'], 'prefix': 'Vlan-'},
+        'vlan': {'ignores': ['routed', 'trunk'], 'prefix': 'vlan-'},
+        'nameif': {
+            'ignores': ['management', 'inside', 'outside', 'link', 'dmz', 'pci',
+                        'ext', 'mgt', 'mgmt', 'int', 'vpn'],
+            'prefix': 'iface-'},
+        'description': {
+            'ignores': ['sw', 'switch', 'rtr', 'router'], 'prefix': 'desc-'},
+        'notes': {'ignores': ['sw', 'switch', 'rtr', 'router'], 'prefix': 'note-'},
+        'desc': {'ignores': ['sw', 'switch', 'rtr', 'router'], 'prefix': 'dsc-'},
+        'partition': {'ignores': [], 'prefix': 'part-'},
+        'node': {'ignores': [], 'prefix': 'node-'},
+        'name': {'ignores': [], 'prefix': 'name-'},
+        'pool': {'ignores': ['Server', 'srvr', 'svr'], 'prefix': 'pool-'},
+        'pool_name': {'ignores': [], 'prefix': 'pname-'},
+        'pool_member': {'ignores': [], 'prefix': 'pmem-'},
+        'vip': {'ignores': [], 'prefix': 'vip-'},
+        'peer_group': {'ignores': [], 'prefix': 'AS'},
+        'vrf': {
+            'ignores': ['internet', 'dr', 'mgmt', 'management', 'mgt', 'default',
+                        'wan'],
+            'prefix': 'vrf-'},
+        'serial': {'ignores': [], 'prefix': 'srl-'},
+        'serialnum': {'ignores': [], 'prefix': 'snum-'},
+        'networkId': {'ignores': [], 'prefix': 'netId-'},
+        'address': {'ignores': [], 'prefix': 'addr-'},
+        'url': {'ignores': [], 'prefix': 'url-'},
+        'tags': {'ignores': [], 'prefix': 'tag-'},
+        'orgId': {'ignores': [], 'prefix': 'org-'},
+        'id': {'ignores': [], 'prefix': 'id-'},
+        'zone': {'ignores': ['management', 'inside', 'outside', 'link', 'dmz',
+                            'pci', 'ext', 'mgt', 'mgmt', 'int', 'vpn'],
+                 'prefix': 'zone-'},
+        'fwd': {'ignores': ['management', 'inside', 'outside', 'link', 'dmz',
+                            'pci', 'ext', 'mgt', 'mgmt', 'int', 'vpn'],
+                'prefix': 'fwd-'},
+        'peer-group': {'ignores': [], 'prefix': 'pgrp-'},
+        'hostname': {'ignores': ['management', 'inside', 'outside', 'link', 'dmz',
+                            'pci', 'ext', 'mgt', 'mgmt', 'int', 'vpn'],
+                     'prefix': 'hstname-'},
+        'devicename': {
+            'ignores': ['switch', 'sw', 'rtr', 'router', 'fw', 'firewall',
+                        'local', 'vm'],
+            'prefix': 'devn-'},
+        'virtual-router': {
+            'ignores': ['management', 'inside', 'outside', 'link', 'dmz',
+                        'pci', 'ext', 'mgt', 'mgmt', 'int', 'vpn'],
+            'prefix': 'vrtr-'},
+    }
+
+
+def get_columns_to_skip():
+    # Define mapping for columns to skip based on table name.
+    # Table/Column pairs listed here will be skipped when obscuring data.
+    return {
+        'IOS_HARDWARE_INVENTORY': ['name', 'description'],
+        'PANOS_ALL_INTERFACES': ['name']
+    }
+
 
 # Create a random mapping and its reverse
 chars = string.ascii_letters  # Only letters are included
@@ -203,6 +227,9 @@ def obfuscate_db_data(source_db_path: str, dest_db_path: str):
     dest_conn = sqlite3.connect(dest_db_path)
     dest_cursor = dest_conn.cursor()
 
+    columns_to_rename = get_columns_to_rename()
+    skip_columns_for_tables = get_columns_to_skip()
+
     # Create and populate the mapping table
     dest_cursor.execute(
         "CREATE TABLE IF NOT EXISTS char_map (original TEXT, mapped TEXT);")
@@ -269,6 +296,9 @@ def reverse_db_data(source_db_path: str, dest_db_path: str):
 
     dest_conn = sqlite3.connect(dest_db_path)
     dest_cursor = dest_conn.cursor()
+
+    columns_to_rename = get_columns_to_rename()
+    skip_columns_for_tables = get_columns_to_skip()
 
     source_cursor.execute("SELECT original, mapped FROM char_map;")
     char_map_data = source_cursor.fetchall()
