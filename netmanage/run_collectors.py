@@ -684,6 +684,13 @@ def collect(ansible_os: str,
                                                     play_path,
                                                     private_data_dir)
 
+    if collector == 'appliance_uplink_statuses':
+        if ansible_os == 'meraki':
+            result = mc.meraki_get_org_appliance_uplink_statuses(
+                meraki_api_key,
+                database_full_path,
+                meraki_organizations)
+
     if collector == 'vpc_state':
         if ansible_os == 'cisco.nxos.nxos':
             result = cnc.nxos_get_vpc_state(nxos_devices_username,

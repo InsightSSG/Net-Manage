@@ -514,6 +514,7 @@ def define_collectors(hostgroup: str) -> Dict[str, Any]:
                   'pool_member_availability': ['bigip'],
                   'pool_summary': ['bigip'],
                   'self_ips': ['bigip'],
+                  'appliance_uplink_statuses': ['meraki'],
                   'vip_availability': ['bigip'],
                   'vip_destinations': ['bigip'],
                   #  'vip_summary': ['bigip'],

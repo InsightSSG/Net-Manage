@@ -701,91 +701,36 @@ def meraki_get_org_appliance_uplink_statuses(api_key: str,
             results.append(uplinks)
 
     # Combine the uplinks from the orgs into a single list.
-    results = [_ for uplink in results for _ in uplink]
+    data = [_ for uplink in results for _ in uplink]
 
-    ####
-    df_data = dict()
-    for key in results[0]:
-        if key != 'uplinks' and key != 'highAvailability':
-            df_data[key] = list()
+    df_data = list()
 
-    # Add keys to df_data.
-    max_uplinks = 0
-    uplink_keys_base = list()
-    for item in results:
-        if len(item['uplinks']) > max_uplinks:
-            max_uplinks = len(item['uplinks'])
-        for _ in item:
-            # Add the nested keys for the uplinks.
-            if _ == 'uplinks':
-                for _item in item[_]:
-                    for k, v in _item.items():
-                        if k not in uplink_keys_base:
-                            uplink_keys_base.append(k)
-            # Add the nested keys for highAvailability
-            elif _ == 'highAvailability':
-                for k, v in item[_].items():
-                    df_data[f'highAvailability_{k}'] = list()
-            # Add the remaining keys.
-            else:
-                df_data[_] = list()
-
-    # Create keys in df_data for the uplinks.
-    for i in range(1, max_uplinks+1):
-        for key in uplink_keys_base:
-            df_data[f'wan{str(i)}_{key}'] = list()
-
-    ####
-
-    for result in results:
-        uplinks = list()
-        for key, value in result.items():
-            # Add nested uplinks to df_data.
-            if key == 'uplinks':
-                counter = 0
-                for item in value:
-                    base = f'wan{str(counter+1)}'
-                    for k, v in item.items():
-                        df_data[f'{base}_{k}'].append(v)
-                    counter += 1
-                # If the number of uplinks is < than max_uplinks, then pad df_data.
-                if counter < max_uplinks:
-                    for i in range(0, max_uplinks-counter):
-                        base = f'wan{str(counter+1)}'
-
-                        counter += 1
-            # Add nested highAvailability to df_data.
-            elif key == 'highAvailability':
-                base = f'highAvailability'
-                for k, v in value.items():
-                    df_data[f'{base}_{k}'].append(v)
-            # Add the remaining keys to df_data.
-            else:
-                df_data[key].append(value)
-        break
-    df_data
-
-    # Get all of the keys from devices in 'data', and add them as a key to
-    # 'df_data'. The value of the key in 'df_data' will be a list.
     for item in data:
-        for key in item:
-            if not df_data.get(key) and key != 'orgId':
-                df_data[key] = list()
+        row = {}
+        row['networkId'] = item['networkId']
+        row['serial'] = item['serial']
+        row['model'] = item['model']
+        row['highAvailability'] = item['highAvailability']['role']
+        row['lastReportedAt'] = item['lastReportedAt']
+        row['uplinks'] = len(item['uplinks'])
 
-    # Iterate over the devices, adding the data for each device to 'df_data'
-    for item in data:
-        for key in df_data:
-            df_data[key].append(item.get(key))
+        for uplink in item['uplinks']:
+            prefix = 'wan1' if uplink['interface'] == 'wan1' else 'wan2'
+            row[f'{prefix}_interface'] = uplink['interface']
+            row[f'{prefix}_status'] = uplink['status']
+            row[f'{prefix}_ip'] = uplink['ip']
+            row[f'{prefix}_gateway'] = uplink['gateway']
+            row[f'{prefix}_publicIp'] = uplink['publicIp']
+            row[f'{prefix}_primaryDns'] = uplink.get('primaryDns', None)
+            row[f'{prefix}_secondaryDns'] = uplink.get('secondaryDns', None)
+            row[f'{prefix}_ipAssignedBy'] = uplink['ipAssignedBy']
 
-    # Create and return the dataframe
-    df_devices = pd.DataFrame.from_dict(df_data)
+        df_data.append(row)
 
-    # Convert all data to a string. This is because Pandas incorrectly detects
-    # the data type for latitude / longitude, which causes the table insertion
-    # to fail.
-    df_devices = df_devices.astype(str)
+    # Convert the list of dictionaries to a DataFrame and return it.
+    df = pd.DataFrame(df_data)
 
-    return df_devices
+    return df
 
 
 def meraki_get_org_devices(api_key: str,
