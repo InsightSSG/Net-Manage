@@ -1,0 +1,2611 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>parsers.cisco_nxos_parsers API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>parsers.cisco_nxos_parsers</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">#!/usr/bin/env python3
+
+import ipaddress
+import pandas as pd
+import re
+
+from netmanage.helpers import helpers as hp
+
+
+def nxos_diff_running_config(runner: dict) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse the running-config diff for NXOS devices.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    df_diff : pd.DataFrame
+        The diff.
+    &#34;&#34;&#34;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    df_data = list()
+
+    for event in runner.events:
+        if event[&#34;event&#34;] == &#34;runner_on_ok&#34;:
+            event_data = event[&#34;event_data&#34;]
+
+            device = event_data[&#34;remote_addr&#34;]
+
+            output = event_data[&#34;res&#34;][&#34;stdout&#34;][0].split(&#34;\n&#34;)[3:]
+
+            for line in output:
+                df_data.append([device, line])
+
+    # Create the dataframe and return it
+    cols = [&#34;device&#34;, &#34;diff&#34;]
+    df_diff = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_diff
+
+
+def nxos_parse_arp_table(runner: dict, nm_path: str) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse the ARP table for Cisco NXOS devices and retrieve the OUI (vendor)
+    for each MAC address. Optionally, perform a reverse DNS query for,
+    hostnames but note that it may take several minutes for large datasets.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+    nm_path : str
+        The path to the Net-Manage repository.
+
+    Returns
+    -------
+    df_arp : pd.DataFrame
+        The ARP table as a pandas DataFrame.
+    &#34;&#34;&#34;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Parse the output and add it to &#39;data&#39;
+    df_data = list()
+
+    # Create a list of mac addresses (used for querying the vendor)
+    macs = list()
+
+    for event in runner.events:
+        if event[&#34;event&#34;] == &#34;runner_on_ok&#34;:
+            event_data = event[&#34;event_data&#34;]
+
+            device = event_data[&#34;remote_addr&#34;]
+
+            output = event_data[&#34;res&#34;][&#34;stdout&#34;][0].split(&#34;\n&#34;)
+
+            # Parse the output and add it to &#39;df_data&#39;
+            for line in output[1:]:
+                line = line.split()
+                address = line[0]
+                age = line[1]
+                mac = line[2]
+                inf = line[3]
+                macs.append(mac)
+                row = [device, address, age, mac, inf]
+                # Perform a reverse DNS lookup if requested
+                # TODO: Convert this to a standalone function
+                # if reverse_dns:
+                #     try:
+                #         rdns = socket.getnameinfo((address, 0), 0)[0]
+                #     except Exception:
+                #         rdns = &#39;unknown&#39;
+                #     row.append(rdns)
+                df_data.append(row)
+
+    cols = [&#34;device&#34;, &#34;ip_address&#34;, &#34;age&#34;, &#34;mac_address&#34;, &#34;interface&#34;]
+
+    # TODO: Convert this to a standalone function
+    # if reverse_dns:
+    #     cols.append(&#39;reverse_dns&#39;)
+
+    df_arp = pd.DataFrame(data=df_data, columns=cols)
+
+    # Find the vendrs and add them to the dataframe
+    df_vendors = hp.find_mac_vendors(macs, nm_path)
+    df_arp[&#34;vendor&#34;] = df_vendors[&#34;vendor&#34;]
+
+    return df_arp
+
+
+def nxos_parse_fexes_table(runner: dict, nm_path: str) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse the FEXes for Cisco 5Ks. This function is required for gathering
+    interface data on devices with a large number of FEXes, as it helps
+    prevent timeouts.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+    nm_path : str
+        The path to the Net-Manage repository.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        The FEXes of the device. If there are no FEXes, an empty DataFrame
+        will be returned.
+    &#34;&#34;&#34;
+    # Define regular expressions to match each line
+    regex_patterns = {
+        &#39;fex&#39;: r&#39;FEX: (\d+)&#39;,
+        &#39;description&#39;: r&#39;Description: ([\w-]+)&#39;,
+        &#39;state&#39;: r&#39;state: (\w+)&#39;,
+        &#39;fex_version&#39;: r&#39;FEX version: ([\d\.\(\)N]+)&#39;,
+        &#39;switch_version&#39;: r&#39;Switch version: ([\d\.\(\)N]+)&#39;,
+        &#39;fex_interim_version&#39;: r&#39;FEX Interim version: ([\d\.\(\)N]+)&#39;,
+        &#39;switch_interim_version&#39;: r&#39;Switch Interim version: ([\d\.\(\)N]+)&#39;,
+        &#39;extender_serial&#39;: r&#39;Extender Serial: (\w+)&#39;,
+        &#39;extender_model&#39;: r&#39;Extender Model: ([\w-]+)&#39;,
+        &#39;part_no&#39;: r&#39;Part No: ([\w-]+)&#39;,
+        &#39;card_id&#39;: r&#39;Card Id: (\d+)&#39;,
+        &#39;mac_addr&#39;: r&#39;Mac Addr: ([\w:]+)&#39;,
+        &#39;num_macs&#39;: r&#39;Num Macs: (\d+)&#39;,
+        &#39;module_sw_gen&#39;: r&#39;Module Sw Gen: (\d+)&#39;,
+        &#39;switch_sw_gen&#39;: r&#39;Switch Sw Gen: (\d+)&#39;,
+        &#39;post_level&#39;: r&#39;Post level: (\w+)&#39;,
+        &#39;pinning_mode&#39;: r&#39;Pinning-mode: (\w+)&#39;,
+        &#39;max_links&#39;: r&#39;Max-links: (\d+)&#39;,
+        &#39;fabric_port_for_control_traffic&#39;:
+        r&#39;Fabric port for control traffic: (\w+/\d+)&#39;,
+        &#39;fcoe_admin&#39;: r&#39;FCoE Admin: (\w+)&#39;,
+        &#39;fcoe_oper&#39;: r&#39;FCoE Oper: (\w+)&#39;,
+        &#39;fcoe_fex_aa_configured&#39;: r&#39;FCoE FEX AA Configured: (\w+)&#39;
+    }
+
+    # Updated regex pattern to handle multiple &#39;Fabric interface state&#39; values
+    fabric_interface_pattern = \
+        r&#39;Fabric interface state:(.+?)(?=Fex Port|Logs|$)&#39;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Create a dictionary to store FEX data from devices.
+    device_fexes = dict()
+
+    df = pd.DataFrame()
+
+    for event in runner.events:
+        if event[&#34;event&#34;] == &#34;runner_on_ok&#34;:
+            event_data = event[&#34;event_data&#34;]
+
+            device = event_data[&#34;remote_addr&#34;]
+            device_fexes[device] = list()
+
+            data = event_data[&#34;res&#34;][&#34;stdout&#34;][0]
+
+            # Split the data into chunks for each FEX
+            fex_chunks = [f&#34;FEX:{chunk}&#34; for chunk in re.split(
+                r&#39;FEX:&#39;, data) if chunk.strip() != &#34;&#34;]
+
+            all_parsed_data = []
+
+            for chunk in fex_chunks:
+                # Parse the main data of each FEX
+                parsed_data = {}
+                for key, pattern in regex_patterns.items():
+                    match = re.search(pattern, chunk)
+                    if match:
+                        parsed_data[key] = match.group(1)
+                    else:
+                        parsed_data[key] = None
+
+                # Extract fabric interface state
+                fabric_interface_state_match = re.search(
+                    fabric_interface_pattern, chunk, re.DOTALL)
+                if fabric_interface_state_match:
+                    parsed_data[&#39;fabric_interface_state&#39;] = \
+                        fabric_interface_state_match.group(
+                        1).strip().replace(&#34;\n&#34;, &#34;; &#34;)
+                else:
+                    parsed_data[&#39;fabric_interface_state&#39;] = None
+
+                all_parsed_data.append(parsed_data)
+
+            # Convert to dataframe
+            df_multi_fex = pd.DataFrame(all_parsed_data)
+            df_multi_fex[&#39;device&#39;] = device
+
+            # Reorder the columns to make &#39;device&#39; the first column
+            column_order = [&#39;device&#39;] + \
+                [col for col in df_multi_fex if col != &#39;device&#39;]
+            df_multi_fex = df_multi_fex[column_order]
+
+            df = pd.concat([df_multi_fex, df], ignore_index=True)
+
+    return df
+
+
+def nxos_parse_bgp_neighbors(runner: dict) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse the BGP neighbors for all VRFs on NXOS devices.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    df_bgp : pd.DataFrame
+        The BGP neighbors as a pandas DataFrame.
+    &#34;&#34;&#34;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Necessary to keep from exceeding 80-character line length
+    address = ipaddress.ip_address
+
+    # Phrase to search for to find the start of VRF neighbors
+    phrase = &#34;BGP summary information for VRF&#34;
+
+    df_data = list()
+
+    for event in runner.events:
+        if event[&#34;event&#34;] == &#34;runner_on_ok&#34;:
+            event_data = event[&#34;event_data&#34;]
+            device = event_data[&#34;remote_addr&#34;]
+            output = event_data[&#34;res&#34;][&#34;stdout&#34;][0].split(&#34;\n&#34;)
+            for line in output:
+                if phrase in line:
+                    vrf = line.split(&#34;,&#34;)[0].split()[-1]
+                    pos = output.index(line) + 1
+                    if pos &lt; len(output):
+                        while phrase not in output[pos]:
+                            try:
+                                if address(output[pos].split()[0]):
+                                    row = output[pos].split()
+                                    df_data.append(
+                                        [
+                                            device,
+                                            vrf,
+                                            row[0],
+                                            row[1],
+                                            row[2],
+                                            row[3],
+                                            row[4],
+                                            row[5],
+                                            row[6],
+                                            row[7],
+                                            row[8],
+                                            row[9],
+                                        ]
+                                    )
+                            except Exception:
+                                pass
+                            pos += 1
+                            if pos == len(output):
+                                break
+
+    # Create dataframe and return it
+    cols = [
+        &#34;device&#34;,
+        &#34;vrf&#34;,
+        &#34;neighbor_id&#34;,
+        &#34;version&#34;,
+        &#34;as&#34;,
+        &#34;msg_received&#34;,
+        &#34;message_sent&#34;,
+        &#34;table_version&#34;,
+        &#34;in_q&#34;,
+        &#34;out_q&#34;,
+        &#34;up_down&#34;,
+        &#34;state_pfx_rfx&#34;,
+    ]
+    df_bgp = pd.DataFrame(data=df_data, columns=cols)
+    return df_bgp
+
+
+def nxos_parse_cam_table(runner: dict, nm_path: str) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse the CAM table for NXOS devices and add the vendor OUI.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+    nm_path : str
+        The path to the Net-Manage repository.
+
+    Returns
+    -------
+    df_cam : pd.DataFrame
+        The CAM table and vendor OUI as a pandas DataFrame.
+    &#34;&#34;&#34;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Define the RegEx pattern for a valid MAC address
+    # pattern = &#39;([0-9a-f]{4}\.[0-9a-f]{4}\.[0-9a-f]{4})&#39;
+    pattern = &#34;.*[a-zA-Z0-9]{4}\\.[a-zA-Z0-9]{4}\\.[a-zA-Z0-9]{4}.*&#34;
+
+    # Create a list to store MAC addresses
+    addresses = list()
+
+    # Parse the output and add it to &#39;data&#39;
+    df_data = list()
+
+    for event in runner.events:
+        if event[&#34;event&#34;] == &#34;runner_on_ok&#34;:
+            event_data = event[&#34;event_data&#34;]
+
+            device = event_data[&#34;remote_addr&#34;]
+
+            output = event_data[&#34;res&#34;][&#34;stdout&#34;][0]
+
+            output = re.findall(pattern, output)
+            for line in output:
+                mac = line.split()[2]
+                interface = line.split()[-1]
+                vlan = line.split()[1]
+                df_data.append([device, interface, mac, vlan])
+
+    # Create the dataframe and return it
+    cols = [&#34;device&#34;, &#34;interface&#34;, &#34;mac&#34;, &#34;vlan&#34;]
+    df_cam = pd.DataFrame(data=df_data, columns=cols)
+
+    # Get the OUIs and add them to df_cam
+    addresses = df_cam[&#34;mac&#34;].to_list()
+    df_vendors = hp.find_mac_vendors(addresses, nm_path)
+    df_cam[&#34;vendor&#34;] = df_vendors[&#34;vendor&#34;]
+
+    # Return df_cam
+    return df_cam
+
+
+def nxos_parse_hostname(runner: dict) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse the hostname for NXOS devices.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    df_name : pd.DataFrame
+        The hostname as a pandas DataFrame.
+    &#34;&#34;&#34;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    df_data = dict()
+    df_data[&#34;device&#34;] = list()
+    df_data[&#34;hostname&#34;] = list()
+
+    for event in runner.events:
+        if event[&#34;event&#34;] == &#34;runner_on_ok&#34;:
+            event_data = event[&#34;event_data&#34;]
+
+            device = event_data[&#34;remote_addr&#34;]
+
+            output = event_data[&#34;res&#34;][&#34;stdout&#34;][0]
+
+            df_data[&#34;device&#34;].append(device)
+            df_data[&#34;hostname&#34;].append(output)
+
+    # Create the dataframe and return it
+    df_name = pd.DataFrame.from_dict(df_data)
+
+    return df_name
+
+
+def nxos_parse_interface_descriptions(runner: dict) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse NXOS interface descriptions.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    df_desc : pd.DataFrame
+        The interface descriptions as a pandas DataFrame.
+    &#34;&#34;&#34;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Create a list to store the rows for the dataframe
+    df_data = list()
+    for event in runner.events:
+        if event[&#34;event&#34;] == &#34;runner_on_ok&#34;:
+            event_data = event[&#34;event_data&#34;]
+
+            device = event_data[&#34;remote_addr&#34;]
+
+            output = event_data[&#34;res&#34;][&#34;stdout&#34;][0].split(&#34;\n&#34;)
+            output = list(filter(None, output))
+            # NXOS does not have consistent column widths. Therefore, we must
+            # re-index the position of the &#39;Description&#39; column every time it
+            # occurs.
+            for _ in output:
+                if (&#34;Port&#34; in _ or &#34;Interface&#34; in _) and &#34;Description&#34; in _:
+                    pos = _.index(&#34;Description&#34;)
+                else:
+                    inf = _.split()[0]
+                    desc = _[pos:].strip()
+                    df_data.append([device, inf, desc])
+
+    # Create the dataframe and return it
+    cols = [&#34;device&#34;, &#34;interface&#34;, &#34;description&#34;]
+    df_desc = pd.DataFrame(data=df_data, columns=cols)
+    return df_desc
+
+
+def nxos_parse_interface_ips(runner: dict) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse the IP addresses assigned to interfaces.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A DataFrame containing the interfaces and their corresponding IP
+        addresses.
+    &#34;&#34;&#34;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Parse the results
+    df_data = list()
+    for event in runner.events:
+        if event[&#34;event&#34;] == &#34;runner_on_ok&#34;:
+            event_data = event[&#34;event_data&#34;]
+
+            device = event_data[&#34;remote_addr&#34;]
+
+            output = event_data[&#34;res&#34;][&#34;stdout&#34;][0].split(&#34;\n&#34;)
+
+            counter = 0
+            for line in output:
+                if &#34;IP Interface Status for VRF&#34; in line:
+                    vrf = line.split()[-1].strip(&#39;&#34;&#39;)
+
+                if &#34;IP address:&#34; in line:
+                    pos = counter
+                    inf = output[pos - 1].split(&#34;,&#34;)[0]
+                    ip = line.split(&#34;,&#34;)[0].split()[-1]
+                    subnet = line.split(&#34;,&#34;)[1].split()[2].split(&#34;/&#34;)[-1]
+                    ip = f&#34;{ip}/{subnet}&#34;
+                    row = [device, inf, ip, vrf]
+                    df_data.append(row)
+
+                counter += 1
+
+    # Create a dataframe from df_data and return it
+    cols = [&#34;device&#34;, &#34;interface&#34;, &#34;ip&#34;, &#34;vrf&#34;]
+    df = pd.DataFrame(data=df_data, columns=cols)
+
+    # Add the subnets, network IPs, and broadcast IPs.
+    addresses = df[&#34;ip&#34;].to_list()
+
+    df[&#39;ip&#39;] = [_.split(&#39;/&#39;)[0] for _ in df[&#39;ip&#39;].to_list()]
+
+    result = hp.generate_subnet_details(addresses)
+    df[&#34;subnet&#34;] = result[&#34;subnet&#34;]
+    df[&#34;network_ip&#34;] = result[&#34;network_ip&#34;]
+    df[&#34;broadcast_ip&#34;] = result[&#34;broadcast_ip&#34;]
+
+    # Add a column containing the CIDR notation.
+    cidrs = hp.subnet_mask_to_cidr(df[&#34;subnet&#34;].to_list())
+    df[&#39;cidr&#39;] = cidrs
+    df = df[[&#39;device&#39;,
+             &#39;interface&#39;,
+             &#39;ip&#39;,
+             &#39;cidr&#39;,
+             &#39;vrf&#39;,
+             &#39;subnet&#39;,
+             &#39;network_ip&#39;,
+             &#39;broadcast_ip&#39;]]
+
+    return df
+
+
+def nxos_parse_interface_status(runner: dict) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse the interface status for NXOS devices.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    df_inf_status : pd.DataFrame
+        The interface statuses as a pandas DataFrame.
+    &#34;&#34;&#34;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Parse the output and add it to &#39;data&#39;
+    df_data = list()
+
+    for event in runner.events:
+        if event[&#34;event&#34;] == &#34;runner_on_ok&#34;:
+            event_data = event[&#34;event_data&#34;]
+
+            device = event_data[&#34;remote_addr&#34;]
+
+            output = event_data[&#34;res&#34;][&#34;stdout&#34;][0].split(&#34;\n&#34;)
+            output = list(filter(None, output))
+
+            # Get the positions of the header columns (except Port and Name)
+            header = output[0]
+            pos_status = header.index(&#34;Status&#34;)
+            pos_vlan = header.index(&#34;Vlan&#34;)
+            pos_duplex = header.index(&#34;Duplex&#34;)
+            pos_speed = header.index(&#34;Speed&#34;)
+            pos_type = header.index(&#34;Type&#34;)
+
+            # Remove lines that repeat the header
+            output = [_ for _ in output if &#34;Port&#34; not in _ and &#34;type&#34; not in _]
+
+            # Parse the output and add it to &#39;df_data&#39;
+            for line in output[1:]:
+                inf = line.split()[0]
+                status = line[pos_status:pos_vlan]
+                vlan = line[pos_vlan:pos_duplex]
+                duplex = line[pos_duplex:pos_speed]
+                speed = line[pos_speed:pos_type]
+                inf_type = line[pos_type:]
+                row = [device, inf, status, vlan, duplex, speed, inf_type]
+                row = [_.strip() for _ in row]
+                df_data.append(row)
+
+    # Create the dataframe and return it
+    cols = [&#34;device&#34;, &#34;interface&#34;, &#34;status&#34;, &#34;vlan&#34;, &#34;duplex&#34;, &#34;speed&#34;, &#34;type&#34;]
+
+    df_inf_status = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_inf_status
+
+
+def nxos_parse_interface_summary(df_inf: pd.DataFrame,
+                                 con, ts) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse a summary of the interfaces on a NXOS devices. The summary includes
+    the interface status, description, associated MACs, and vendor OUIs.
+
+    Parameters
+    ----------
+    df_inf: pd.DataFrame
+        DataFrame of the interfaces on a NXOS devices
+    con: db connection
+        db connection
+    ts: timestamp
+        timestamp
+
+    Returns
+    -------
+    df_summary : pd.DataFrame
+        The summaries of interfaces on the devices as a pandas DataFrame.
+    &#34;&#34;&#34;
+    # Get the interface statuses, descriptions and cam table
+
+    if df_inf is None or len(df_inf) == 0:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    df_data = dict()
+    df_data[&#34;device&#34;] = list()
+    df_data[&#34;interface&#34;] = list()
+    df_data[&#34;status&#34;] = list()
+    df_data[&#34;description&#34;] = list()
+    df_data[&#34;vendors&#34;] = list()
+    df_data[&#34;macs&#34;] = list()
+
+    for idx, row in df_inf.iterrows():
+        device = row[&#34;device&#34;]
+        inf = row[&#34;interface&#34;]
+        status = row[&#34;status&#34;]
+
+        query = f&#39;&#39;&#39;SELECT mac,vendor
+                    FROM nxos_cam_table
+                    WHERE timestamp = &#34;{ts}&#34;
+                       AND device = &#34;{device}&#34;
+                       AND interface = &#34;{inf}&#34;&#39;&#39;&#39;
+        df_macs = pd.read_sql(query, con)
+        if len(df_macs) &gt; 0:
+            macs = df_macs[&#34;mac&#34;].to_list()
+            macs = &#34;|&#34;.join(macs)
+
+            vendors = list()
+            for idx, row in df_macs.iterrows():
+                vendor = row[&#34;vendor&#34;]
+                if vendor:
+                    vendor = vendor.replace(&#34;,&#34;, str())
+                    if vendor not in vendors:
+                        vendors.append(vendor)
+
+            vendors = &#34;|&#34;.join(vendors)
+
+            # vendors = str()
+            # for idx, row in df_macs.iterrows():
+            #     vendor = row[&#39;vendor&#39;]
+            #     if len(vendors) == 0:
+            #         if vendor:
+            #             vendors = vendor
+            #     elif vendor:
+            #         if not vendors:
+            #             vendors = vendor
+            #         else:
+            #             vendors = vendors + f&#39; {vendor}&#39;
+            #     else:
+            #         pass
+
+        else:
+            macs = str()
+            vendors = str()
+
+        query = f&#39;&#39;&#39;SELECT description
+                    FROM nxos_interface_description
+                    WHERE timestamp = &#34;{ts}&#34;
+                       AND device = &#34;{device}&#34;
+                       AND interface = &#34;{inf}&#34;&#39;&#39;&#39;
+        desc = pd.read_sql(query, con)
+        if len(desc) &gt; 0:
+            desc = desc[&#34;description&#34;].to_list()[0]
+        else:
+            desc = str()
+
+        df_data[&#34;device&#34;].append(device)
+        df_data[&#34;interface&#34;].append(inf)
+        df_data[&#34;status&#34;].append(status)
+        df_data[&#34;description&#34;].append(desc)
+        df_data[&#34;vendors&#34;].append(vendors)
+        df_data[&#34;macs&#34;].append(macs)
+
+    con.close()
+
+    df_summary = pd.DataFrame.from_dict(df_data)
+    df_summary = df_summary[
+        [&#34;device&#34;, &#34;interface&#34;, &#34;status&#34;, &#34;description&#34;, &#34;vendors&#34;, &#34;macs&#34;]
+    ]
+
+    return df_summary
+
+
+def nxos_parse_inventory(runner: dict) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse the inventory for NXOS devices.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    df_inventory : pd.DataFrame
+        A DataFrame containing the output of the &#39;show inventory | json&#39;
+        command.
+    &#34;&#34;&#34;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Create a list for holding the inventory items
+    data = list()
+
+    for event in runner.events:
+        if event[&#34;event&#34;] == &#34;runner_on_ok&#34;:
+            event_data = event[&#34;event_data&#34;]
+            device = event_data[&#34;remote_addr&#34;]
+
+            output = event_data[&#34;res&#34;][&#34;stdout&#34;][0][&#34;TABLE_inv&#34;][&#34;ROW_inv&#34;]
+
+            # Add the inventory items to the &#39;data&#39; list
+            for item in output:
+                item[&#34;device&#34;] = device
+                data.append(item)
+
+    # Create a dictionary for storing the output
+    df_data = dict()
+
+    # Create the dictionary keys
+    for item in data:
+        for key in item:
+            if not df_data.get(key):
+                df_data[key] = list()
+
+    # Add the inventory items to &#39;df_data&#39;
+    for item in data:
+        for key in df_data:
+            df_data[key].append(item.get(key))
+
+    # Create and return the dataframe
+    df_inventory = pd.DataFrame.from_dict(df_data)
+
+    return df_inventory
+
+
+def nxos_parse_logs(runner: dict) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse the latest log messages for NXOS devices.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    df_logs : pd.DataFrame
+        The latest log messages as a pandas DataFrame.
+    &#34;&#34;&#34;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Parse the output and add it to &#39;data&#39;
+    df_data = list()
+
+    for event in runner.events:
+        if event[&#34;event&#34;] == &#34;runner_on_ok&#34;:
+            event_data = event[&#34;event_data&#34;]
+
+            device = event_data[&#34;remote_addr&#34;]
+
+            output = event_data[&#34;res&#34;][&#34;stdout&#34;][0].split(&#34;\n&#34;)
+
+            for line in output:
+                _time = line[:21].strip()
+                _msg = line[21:].strip()
+                df_data.append([device, _time, _msg])
+
+    # Create the dataframe and return it
+    cols = [&#34;device&#34;, &#34;time&#34;, &#34;message&#34;]
+
+    df_logs = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_logs
+
+
+def nxos_parse_port_channel_data(runner: dict) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse port-channel data (output from &#39;show port-channel database&#39;)
+    for Cisco NXOS devices.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    df_po_data : pd.DataFrame
+        The port-channel data as a pandas DataFrame.
+    &#34;&#34;&#34;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Define the dataframe columns
+    cols = [
+        &#34;device&#34;,
+        &#34;interface&#34;,
+        &#34;total_ports&#34;,
+        &#34;up_ports&#34;,
+        &#34;age&#34;,
+        &#34;port_1&#34;,
+        &#34;port_2&#34;,
+        &#34;port_3&#34;,
+        &#34;port_4&#34;,
+        &#34;port_5&#34;,
+        &#34;port_6&#34;,
+        &#34;port_7&#34;,
+        &#34;port_8&#34;,
+        &#34;first_operational_port&#34;,
+        &#34;last_bundled_member&#34;,
+        &#34;last_unbundled_member&#34;,
+    ]
+
+    # Create a dictionary to store the data for creating the dataframe
+    df_data = dict()
+    for c in cols:
+        df_data[c] = list()
+
+    # Parse the output and add it to &#39;data&#39;
+    for event in runner.events:
+        if event[&#34;event&#34;] == &#34;runner_on_ok&#34;:
+            event_data = event[&#34;event_data&#34;]
+
+            device = event_data[&#34;remote_addr&#34;]
+
+            output = event_data[&#34;res&#34;][&#34;stdout&#34;][0].split(&#34;\n&#34;)
+
+            # output.append(str())  # For finding the end of database entries
+            output = [_ for _ in output if _ != &#34;Legend:&#34;]
+            output = [_ for _ in output if &#39;&#34;*&#34;:&#39; not in _]
+
+            # TODO: Re-write this using regex to 1) make it more concise, and
+            # 2) avoid iterating over &#39;output&#39; twice
+
+            # Create a list to store database entries
+            entries = list()
+
+            pos = 0
+            for line in output:
+                if line[:12] == &#34;port-channel&#34;:
+                    interface = line
+                    entry = [interface, device]
+                    counter = pos + 1
+                    while output[counter][:4] == &#34;    &#34;:
+                        entry.append(output[counter])
+                        counter += 1
+                        if counter == len(output):
+                            break
+                    entries.append(entry)
+                pos += 1
+
+            for entry in entries:
+                entry = [_.strip() for _ in entry]
+                interface = entry[0]
+                device = entry[1]
+                # Create a counter for tracking port numbers
+                counter = 0
+                # Create an 8-element list of empty strings for ports
+                ports = list()
+                for i in range(1, 9):
+                    ports.append(str())
+                # Define empty strings for vars that might not exist
+                total_ports = str()
+                up_ports = str()
+                first_op_port = str()
+                last_bundled = str()
+                last_unbundled = str()
+                age = str()
+                for line in entry[2:]:
+                    if &#34;ports in total&#34; in line:
+                        total_ports = line.split()[0]
+                        up_ports = line.split(&#34;,&#34;)[-1].split()[0]
+                    if &#34;First operational&#34; in line:
+                        first_op_port = line.split()[-1]
+                    if &#34;Last bundled&#34; in line:
+                        last_bundled = line.split()[-1]
+                    if &#34;Last unbundled&#34; in line:
+                        last_unbundled = line.split()[-1]
+                    if &#34;Age of the&#34; in line:
+                        age = line.split()[-1]
+                    if &#34;]&#34; in line:
+                        port = line.split(&#34;Ports:&#34;)[-1].strip()
+                        ports[counter] = port
+                        counter += 1
+
+                # Fill in ports list with ports that exist
+                port_num = 1
+                for p in ports:
+                    key = f&#34;port_{str(port_num)}&#34;
+                    df_data[key].append(p)
+                    port_num += 1
+                # Add remaining variables to df_data
+                df_data[&#34;interface&#34;].append(interface)
+                df_data[&#34;device&#34;].append(device)
+                df_data[&#34;total_ports&#34;].append(total_ports)
+                df_data[&#34;up_ports&#34;].append(up_ports)
+                df_data[&#34;age&#34;].append(age)
+                df_data[&#34;first_operational_port&#34;].append(first_op_port)
+                df_data[&#34;last_bundled_member&#34;].append(last_bundled)
+                df_data[&#34;last_unbundled_member&#34;].append(last_unbundled)
+
+    df_po_data = pd.DataFrame.from_dict(df_data)
+    # Set dataframe columns to desired order (from &#39;cols&#39; list)
+    df_po_data = df_po_data[cols]
+
+    return df_po_data
+
+
+def nxos_parse_vlan_db(runner: dict) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse the VLAN database for NXOS devices.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    df_vlans : pd.DataFrame
+        The VLAN database as a pandas DataFrame.
+    &#34;&#34;&#34;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Parse the output and add it to &#39;data&#39;
+    df_data = list()
+
+    for event in runner.events:
+        if event[&#34;event&#34;] == &#34;runner_on_ok&#34;:
+            event_data = event[&#34;event_data&#34;]
+
+            device = event_data[&#34;remote_addr&#34;]
+
+            output = event_data[&#34;res&#34;][&#34;stdout&#34;][0].split(&#34;\n&#34;)
+
+            # Get the position of &#34;Ports&#34; column
+            pos = output[0].index(&#34;Ports&#34;)
+
+            for line in output[1:]:
+                v_id = line.split()[0]
+                name = line.split()[1]
+                status = line.split()[2]
+                ports = line[pos:].strip()
+                df_data.append([device, v_id, name, status, ports])
+
+    # Create the dataframe and return it
+    cols = [&#34;device&#34;, &#34;id&#34;, &#34;name&#34;, &#34;status&#34;, &#34;ports&#34;]
+
+    df_vlans = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_vlans
+
+
+def nxos_parse_vpc_state(runner: dict) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse the VPC state for NXOS devices.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    df_vpc_state : pd.DataFrame
+        The VPC state information as a pandas DataFrame.
+    &#34;&#34;&#34;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Parse the output and add it to &#39;data&#39;
+    data = dict()
+
+    for event in runner.events:
+        if event[&#34;event&#34;] == &#34;runner_on_ok&#34;:
+            event_data = event[&#34;event_data&#34;]
+            device = event_data[&#34;remote_addr&#34;]
+            output = event_data[&#34;res&#34;][&#34;stdout&#34;][0].split(&#34;\n&#34;)
+
+            # Remove empty lines
+            output = list(filter(None, output))
+            # Remove &#39;vPC Peer-link status&#39;
+            output = [_ for _ in output if _ != &#34;vPC Peer-link status&#34;]
+
+            data[device] = dict()
+            data[device][&#34;device&#34;] = device
+            for line in output:
+                col_name = line.split(&#34;:&#34;)[0].strip()
+                data[device][col_name] = line.split(&#34;:&#34;)[1].strip()
+
+    df_data = dict()
+    df_data[&#34;device&#34;] = list()
+    for key in data:
+        for k in data[key]:
+            df_data[k] = list()
+
+    for device in data:
+        for key in df_data:
+            df_data[key].append(data[device].get(key))
+
+    df_vpc_state = pd.DataFrame.from_dict(df_data)
+
+    return df_vpc_state
+
+
+def nxos_parse_vrfs(runner: dict) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse the VRFs on Nexus devices.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    df_vrfs : pd.DataFrame
+        A DataFrame containing the VRFs.
+    &#34;&#34;&#34;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Parse the output and add it to &#39;data&#39;
+    df_data = list()
+
+    for event in runner.events:
+        if event[&#34;event&#34;] == &#34;runner_on_ok&#34;:
+            event_data = event[&#34;event_data&#34;]
+
+            device = event_data[&#34;remote_addr&#34;]
+
+            output = event_data[&#34;res&#34;][&#34;stdout&#34;][0].split(&#34;\n&#34;)
+
+            # Pre-define variables, since not all VRFs contain all parameters
+            name = str()
+            vrf_id = str()
+            state = str()
+            description = str()
+            vpn_id = str()
+            route_domain = str()
+            max_routes = str()
+
+            pos = 0
+            for line in output:
+                if &#34;VRF-Name&#34; in line:
+                    pos = output.index(line) + 1
+                    line = line.split(&#34;,&#34;)
+                    line = [_.split(&#34;:&#34;)[-1].strip() for _ in line]
+                    name = line[0]
+                    vrf_id = line[1]
+                    state = line[2]
+                    while &#34;Table-ID&#34; not in output[pos]:
+                        if &#34;Description:&#34; in output[pos]:
+                            description = output[pos + 1].strip()
+                        if &#34;VPNID&#34; in output[pos]:
+                            vpn_id = output[pos].split(&#34;: &#34;)[-1]
+                        if &#34;RD:&#34; in output[pos]:
+                            route_domain = output[pos].split()[-1]
+                        if &#34;Max Routes&#34; in output[pos]:
+                            _ = output[pos].split(&#34;: &#34;)
+                            max_routes = _[1].split()[0].strip()
+                            min_threshold = _[-1]
+                        pos += 1
+                    row = [
+                        device,
+                        name,
+                        vrf_id,
+                        state,
+                        description,
+                        vpn_id,
+                        route_domain,
+                        max_routes,
+                        min_threshold,
+                    ]
+                    df_data.append(row)
+
+    # Create the DataFrame columns
+    cols = [
+        &#34;device&#34;,
+        &#34;name&#34;,
+        &#34;vrf_id&#34;,
+        &#34;state&#34;,
+        &#34;description&#34;,
+        &#34;vpn_id&#34;,
+        &#34;route_domain&#34;,
+        &#34;max_routes&#34;,
+        &#34;min_threshold&#34;,
+    ]
+
+    # Create the dataframe and return it
+    df_vrfs = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_vrfs</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="parsers.cisco_nxos_parsers.nxos_diff_running_config"><code class="name flex">
+<span>def <span class="ident">nxos_diff_running_config</span></span>(<span>runner: dict) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse the running-config diff for NXOS devices.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>runner</code></strong> :&ensp;<code>dict</code></dt>
+<dd>An Ansible runner genrator</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df_diff</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>The diff.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def nxos_diff_running_config(runner: dict) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse the running-config diff for NXOS devices.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    df_diff : pd.DataFrame
+        The diff.
+    &#34;&#34;&#34;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    df_data = list()
+
+    for event in runner.events:
+        if event[&#34;event&#34;] == &#34;runner_on_ok&#34;:
+            event_data = event[&#34;event_data&#34;]
+
+            device = event_data[&#34;remote_addr&#34;]
+
+            output = event_data[&#34;res&#34;][&#34;stdout&#34;][0].split(&#34;\n&#34;)[3:]
+
+            for line in output:
+                df_data.append([device, line])
+
+    # Create the dataframe and return it
+    cols = [&#34;device&#34;, &#34;diff&#34;]
+    df_diff = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_diff</code></pre>
+</details>
+</dd>
+<dt id="parsers.cisco_nxos_parsers.nxos_parse_arp_table"><code class="name flex">
+<span>def <span class="ident">nxos_parse_arp_table</span></span>(<span>runner: dict, nm_path: str) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse the ARP table for Cisco NXOS devices and retrieve the OUI (vendor)
+for each MAC address. Optionally, perform a reverse DNS query for,
+hostnames but note that it may take several minutes for large datasets.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>runner</code></strong> :&ensp;<code>dict</code></dt>
+<dd>An Ansible runner genrator</dd>
+<dt><strong><code>nm_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Net-Manage repository.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df_arp</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>The ARP table as a pandas DataFrame.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def nxos_parse_arp_table(runner: dict, nm_path: str) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse the ARP table for Cisco NXOS devices and retrieve the OUI (vendor)
+    for each MAC address. Optionally, perform a reverse DNS query for,
+    hostnames but note that it may take several minutes for large datasets.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+    nm_path : str
+        The path to the Net-Manage repository.
+
+    Returns
+    -------
+    df_arp : pd.DataFrame
+        The ARP table as a pandas DataFrame.
+    &#34;&#34;&#34;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Parse the output and add it to &#39;data&#39;
+    df_data = list()
+
+    # Create a list of mac addresses (used for querying the vendor)
+    macs = list()
+
+    for event in runner.events:
+        if event[&#34;event&#34;] == &#34;runner_on_ok&#34;:
+            event_data = event[&#34;event_data&#34;]
+
+            device = event_data[&#34;remote_addr&#34;]
+
+            output = event_data[&#34;res&#34;][&#34;stdout&#34;][0].split(&#34;\n&#34;)
+
+            # Parse the output and add it to &#39;df_data&#39;
+            for line in output[1:]:
+                line = line.split()
+                address = line[0]
+                age = line[1]
+                mac = line[2]
+                inf = line[3]
+                macs.append(mac)
+                row = [device, address, age, mac, inf]
+                # Perform a reverse DNS lookup if requested
+                # TODO: Convert this to a standalone function
+                # if reverse_dns:
+                #     try:
+                #         rdns = socket.getnameinfo((address, 0), 0)[0]
+                #     except Exception:
+                #         rdns = &#39;unknown&#39;
+                #     row.append(rdns)
+                df_data.append(row)
+
+    cols = [&#34;device&#34;, &#34;ip_address&#34;, &#34;age&#34;, &#34;mac_address&#34;, &#34;interface&#34;]
+
+    # TODO: Convert this to a standalone function
+    # if reverse_dns:
+    #     cols.append(&#39;reverse_dns&#39;)
+
+    df_arp = pd.DataFrame(data=df_data, columns=cols)
+
+    # Find the vendrs and add them to the dataframe
+    df_vendors = hp.find_mac_vendors(macs, nm_path)
+    df_arp[&#34;vendor&#34;] = df_vendors[&#34;vendor&#34;]
+
+    return df_arp</code></pre>
+</details>
+</dd>
+<dt id="parsers.cisco_nxos_parsers.nxos_parse_bgp_neighbors"><code class="name flex">
+<span>def <span class="ident">nxos_parse_bgp_neighbors</span></span>(<span>runner: dict) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse the BGP neighbors for all VRFs on NXOS devices.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>runner</code></strong> :&ensp;<code>dict</code></dt>
+<dd>An Ansible runner genrator</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df_bgp</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>The BGP neighbors as a pandas DataFrame.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def nxos_parse_bgp_neighbors(runner: dict) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse the BGP neighbors for all VRFs on NXOS devices.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    df_bgp : pd.DataFrame
+        The BGP neighbors as a pandas DataFrame.
+    &#34;&#34;&#34;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Necessary to keep from exceeding 80-character line length
+    address = ipaddress.ip_address
+
+    # Phrase to search for to find the start of VRF neighbors
+    phrase = &#34;BGP summary information for VRF&#34;
+
+    df_data = list()
+
+    for event in runner.events:
+        if event[&#34;event&#34;] == &#34;runner_on_ok&#34;:
+            event_data = event[&#34;event_data&#34;]
+            device = event_data[&#34;remote_addr&#34;]
+            output = event_data[&#34;res&#34;][&#34;stdout&#34;][0].split(&#34;\n&#34;)
+            for line in output:
+                if phrase in line:
+                    vrf = line.split(&#34;,&#34;)[0].split()[-1]
+                    pos = output.index(line) + 1
+                    if pos &lt; len(output):
+                        while phrase not in output[pos]:
+                            try:
+                                if address(output[pos].split()[0]):
+                                    row = output[pos].split()
+                                    df_data.append(
+                                        [
+                                            device,
+                                            vrf,
+                                            row[0],
+                                            row[1],
+                                            row[2],
+                                            row[3],
+                                            row[4],
+                                            row[5],
+                                            row[6],
+                                            row[7],
+                                            row[8],
+                                            row[9],
+                                        ]
+                                    )
+                            except Exception:
+                                pass
+                            pos += 1
+                            if pos == len(output):
+                                break
+
+    # Create dataframe and return it
+    cols = [
+        &#34;device&#34;,
+        &#34;vrf&#34;,
+        &#34;neighbor_id&#34;,
+        &#34;version&#34;,
+        &#34;as&#34;,
+        &#34;msg_received&#34;,
+        &#34;message_sent&#34;,
+        &#34;table_version&#34;,
+        &#34;in_q&#34;,
+        &#34;out_q&#34;,
+        &#34;up_down&#34;,
+        &#34;state_pfx_rfx&#34;,
+    ]
+    df_bgp = pd.DataFrame(data=df_data, columns=cols)
+    return df_bgp</code></pre>
+</details>
+</dd>
+<dt id="parsers.cisco_nxos_parsers.nxos_parse_cam_table"><code class="name flex">
+<span>def <span class="ident">nxos_parse_cam_table</span></span>(<span>runner: dict, nm_path: str) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse the CAM table for NXOS devices and add the vendor OUI.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>runner</code></strong> :&ensp;<code>dict</code></dt>
+<dd>An Ansible runner genrator</dd>
+<dt><strong><code>nm_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Net-Manage repository.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df_cam</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>The CAM table and vendor OUI as a pandas DataFrame.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def nxos_parse_cam_table(runner: dict, nm_path: str) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse the CAM table for NXOS devices and add the vendor OUI.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+    nm_path : str
+        The path to the Net-Manage repository.
+
+    Returns
+    -------
+    df_cam : pd.DataFrame
+        The CAM table and vendor OUI as a pandas DataFrame.
+    &#34;&#34;&#34;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Define the RegEx pattern for a valid MAC address
+    # pattern = &#39;([0-9a-f]{4}\.[0-9a-f]{4}\.[0-9a-f]{4})&#39;
+    pattern = &#34;.*[a-zA-Z0-9]{4}\\.[a-zA-Z0-9]{4}\\.[a-zA-Z0-9]{4}.*&#34;
+
+    # Create a list to store MAC addresses
+    addresses = list()
+
+    # Parse the output and add it to &#39;data&#39;
+    df_data = list()
+
+    for event in runner.events:
+        if event[&#34;event&#34;] == &#34;runner_on_ok&#34;:
+            event_data = event[&#34;event_data&#34;]
+
+            device = event_data[&#34;remote_addr&#34;]
+
+            output = event_data[&#34;res&#34;][&#34;stdout&#34;][0]
+
+            output = re.findall(pattern, output)
+            for line in output:
+                mac = line.split()[2]
+                interface = line.split()[-1]
+                vlan = line.split()[1]
+                df_data.append([device, interface, mac, vlan])
+
+    # Create the dataframe and return it
+    cols = [&#34;device&#34;, &#34;interface&#34;, &#34;mac&#34;, &#34;vlan&#34;]
+    df_cam = pd.DataFrame(data=df_data, columns=cols)
+
+    # Get the OUIs and add them to df_cam
+    addresses = df_cam[&#34;mac&#34;].to_list()
+    df_vendors = hp.find_mac_vendors(addresses, nm_path)
+    df_cam[&#34;vendor&#34;] = df_vendors[&#34;vendor&#34;]
+
+    # Return df_cam
+    return df_cam</code></pre>
+</details>
+</dd>
+<dt id="parsers.cisco_nxos_parsers.nxos_parse_fexes_table"><code class="name flex">
+<span>def <span class="ident">nxos_parse_fexes_table</span></span>(<span>runner: dict, nm_path: str) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse the FEXes for Cisco 5Ks. This function is required for gathering
+interface data on devices with a large number of FEXes, as it helps
+prevent timeouts.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>runner</code></strong> :&ensp;<code>dict</code></dt>
+<dd>An Ansible runner genrator</dd>
+<dt><strong><code>nm_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Net-Manage repository.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>The FEXes of the device. If there are no FEXes, an empty DataFrame
+will be returned.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def nxos_parse_fexes_table(runner: dict, nm_path: str) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse the FEXes for Cisco 5Ks. This function is required for gathering
+    interface data on devices with a large number of FEXes, as it helps
+    prevent timeouts.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+    nm_path : str
+        The path to the Net-Manage repository.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        The FEXes of the device. If there are no FEXes, an empty DataFrame
+        will be returned.
+    &#34;&#34;&#34;
+    # Define regular expressions to match each line
+    regex_patterns = {
+        &#39;fex&#39;: r&#39;FEX: (\d+)&#39;,
+        &#39;description&#39;: r&#39;Description: ([\w-]+)&#39;,
+        &#39;state&#39;: r&#39;state: (\w+)&#39;,
+        &#39;fex_version&#39;: r&#39;FEX version: ([\d\.\(\)N]+)&#39;,
+        &#39;switch_version&#39;: r&#39;Switch version: ([\d\.\(\)N]+)&#39;,
+        &#39;fex_interim_version&#39;: r&#39;FEX Interim version: ([\d\.\(\)N]+)&#39;,
+        &#39;switch_interim_version&#39;: r&#39;Switch Interim version: ([\d\.\(\)N]+)&#39;,
+        &#39;extender_serial&#39;: r&#39;Extender Serial: (\w+)&#39;,
+        &#39;extender_model&#39;: r&#39;Extender Model: ([\w-]+)&#39;,
+        &#39;part_no&#39;: r&#39;Part No: ([\w-]+)&#39;,
+        &#39;card_id&#39;: r&#39;Card Id: (\d+)&#39;,
+        &#39;mac_addr&#39;: r&#39;Mac Addr: ([\w:]+)&#39;,
+        &#39;num_macs&#39;: r&#39;Num Macs: (\d+)&#39;,
+        &#39;module_sw_gen&#39;: r&#39;Module Sw Gen: (\d+)&#39;,
+        &#39;switch_sw_gen&#39;: r&#39;Switch Sw Gen: (\d+)&#39;,
+        &#39;post_level&#39;: r&#39;Post level: (\w+)&#39;,
+        &#39;pinning_mode&#39;: r&#39;Pinning-mode: (\w+)&#39;,
+        &#39;max_links&#39;: r&#39;Max-links: (\d+)&#39;,
+        &#39;fabric_port_for_control_traffic&#39;:
+        r&#39;Fabric port for control traffic: (\w+/\d+)&#39;,
+        &#39;fcoe_admin&#39;: r&#39;FCoE Admin: (\w+)&#39;,
+        &#39;fcoe_oper&#39;: r&#39;FCoE Oper: (\w+)&#39;,
+        &#39;fcoe_fex_aa_configured&#39;: r&#39;FCoE FEX AA Configured: (\w+)&#39;
+    }
+
+    # Updated regex pattern to handle multiple &#39;Fabric interface state&#39; values
+    fabric_interface_pattern = \
+        r&#39;Fabric interface state:(.+?)(?=Fex Port|Logs|$)&#39;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Create a dictionary to store FEX data from devices.
+    device_fexes = dict()
+
+    df = pd.DataFrame()
+
+    for event in runner.events:
+        if event[&#34;event&#34;] == &#34;runner_on_ok&#34;:
+            event_data = event[&#34;event_data&#34;]
+
+            device = event_data[&#34;remote_addr&#34;]
+            device_fexes[device] = list()
+
+            data = event_data[&#34;res&#34;][&#34;stdout&#34;][0]
+
+            # Split the data into chunks for each FEX
+            fex_chunks = [f&#34;FEX:{chunk}&#34; for chunk in re.split(
+                r&#39;FEX:&#39;, data) if chunk.strip() != &#34;&#34;]
+
+            all_parsed_data = []
+
+            for chunk in fex_chunks:
+                # Parse the main data of each FEX
+                parsed_data = {}
+                for key, pattern in regex_patterns.items():
+                    match = re.search(pattern, chunk)
+                    if match:
+                        parsed_data[key] = match.group(1)
+                    else:
+                        parsed_data[key] = None
+
+                # Extract fabric interface state
+                fabric_interface_state_match = re.search(
+                    fabric_interface_pattern, chunk, re.DOTALL)
+                if fabric_interface_state_match:
+                    parsed_data[&#39;fabric_interface_state&#39;] = \
+                        fabric_interface_state_match.group(
+                        1).strip().replace(&#34;\n&#34;, &#34;; &#34;)
+                else:
+                    parsed_data[&#39;fabric_interface_state&#39;] = None
+
+                all_parsed_data.append(parsed_data)
+
+            # Convert to dataframe
+            df_multi_fex = pd.DataFrame(all_parsed_data)
+            df_multi_fex[&#39;device&#39;] = device
+
+            # Reorder the columns to make &#39;device&#39; the first column
+            column_order = [&#39;device&#39;] + \
+                [col for col in df_multi_fex if col != &#39;device&#39;]
+            df_multi_fex = df_multi_fex[column_order]
+
+            df = pd.concat([df_multi_fex, df], ignore_index=True)
+
+    return df</code></pre>
+</details>
+</dd>
+<dt id="parsers.cisco_nxos_parsers.nxos_parse_hostname"><code class="name flex">
+<span>def <span class="ident">nxos_parse_hostname</span></span>(<span>runner: dict) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse the hostname for NXOS devices.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>runner</code></strong> :&ensp;<code>dict</code></dt>
+<dd>An Ansible runner genrator</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df_name</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>The hostname as a pandas DataFrame.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def nxos_parse_hostname(runner: dict) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse the hostname for NXOS devices.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    df_name : pd.DataFrame
+        The hostname as a pandas DataFrame.
+    &#34;&#34;&#34;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    df_data = dict()
+    df_data[&#34;device&#34;] = list()
+    df_data[&#34;hostname&#34;] = list()
+
+    for event in runner.events:
+        if event[&#34;event&#34;] == &#34;runner_on_ok&#34;:
+            event_data = event[&#34;event_data&#34;]
+
+            device = event_data[&#34;remote_addr&#34;]
+
+            output = event_data[&#34;res&#34;][&#34;stdout&#34;][0]
+
+            df_data[&#34;device&#34;].append(device)
+            df_data[&#34;hostname&#34;].append(output)
+
+    # Create the dataframe and return it
+    df_name = pd.DataFrame.from_dict(df_data)
+
+    return df_name</code></pre>
+</details>
+</dd>
+<dt id="parsers.cisco_nxos_parsers.nxos_parse_interface_descriptions"><code class="name flex">
+<span>def <span class="ident">nxos_parse_interface_descriptions</span></span>(<span>runner: dict) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse NXOS interface descriptions.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>runner</code></strong> :&ensp;<code>dict</code></dt>
+<dd>An Ansible runner genrator</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df_desc</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>The interface descriptions as a pandas DataFrame.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def nxos_parse_interface_descriptions(runner: dict) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse NXOS interface descriptions.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    df_desc : pd.DataFrame
+        The interface descriptions as a pandas DataFrame.
+    &#34;&#34;&#34;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Create a list to store the rows for the dataframe
+    df_data = list()
+    for event in runner.events:
+        if event[&#34;event&#34;] == &#34;runner_on_ok&#34;:
+            event_data = event[&#34;event_data&#34;]
+
+            device = event_data[&#34;remote_addr&#34;]
+
+            output = event_data[&#34;res&#34;][&#34;stdout&#34;][0].split(&#34;\n&#34;)
+            output = list(filter(None, output))
+            # NXOS does not have consistent column widths. Therefore, we must
+            # re-index the position of the &#39;Description&#39; column every time it
+            # occurs.
+            for _ in output:
+                if (&#34;Port&#34; in _ or &#34;Interface&#34; in _) and &#34;Description&#34; in _:
+                    pos = _.index(&#34;Description&#34;)
+                else:
+                    inf = _.split()[0]
+                    desc = _[pos:].strip()
+                    df_data.append([device, inf, desc])
+
+    # Create the dataframe and return it
+    cols = [&#34;device&#34;, &#34;interface&#34;, &#34;description&#34;]
+    df_desc = pd.DataFrame(data=df_data, columns=cols)
+    return df_desc</code></pre>
+</details>
+</dd>
+<dt id="parsers.cisco_nxos_parsers.nxos_parse_interface_ips"><code class="name flex">
+<span>def <span class="ident">nxos_parse_interface_ips</span></span>(<span>runner: dict) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse the IP addresses assigned to interfaces.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>runner</code></strong> :&ensp;<code>dict</code></dt>
+<dd>An Ansible runner genrator</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>A DataFrame containing the interfaces and their corresponding IP
+addresses.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def nxos_parse_interface_ips(runner: dict) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse the IP addresses assigned to interfaces.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A DataFrame containing the interfaces and their corresponding IP
+        addresses.
+    &#34;&#34;&#34;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Parse the results
+    df_data = list()
+    for event in runner.events:
+        if event[&#34;event&#34;] == &#34;runner_on_ok&#34;:
+            event_data = event[&#34;event_data&#34;]
+
+            device = event_data[&#34;remote_addr&#34;]
+
+            output = event_data[&#34;res&#34;][&#34;stdout&#34;][0].split(&#34;\n&#34;)
+
+            counter = 0
+            for line in output:
+                if &#34;IP Interface Status for VRF&#34; in line:
+                    vrf = line.split()[-1].strip(&#39;&#34;&#39;)
+
+                if &#34;IP address:&#34; in line:
+                    pos = counter
+                    inf = output[pos - 1].split(&#34;,&#34;)[0]
+                    ip = line.split(&#34;,&#34;)[0].split()[-1]
+                    subnet = line.split(&#34;,&#34;)[1].split()[2].split(&#34;/&#34;)[-1]
+                    ip = f&#34;{ip}/{subnet}&#34;
+                    row = [device, inf, ip, vrf]
+                    df_data.append(row)
+
+                counter += 1
+
+    # Create a dataframe from df_data and return it
+    cols = [&#34;device&#34;, &#34;interface&#34;, &#34;ip&#34;, &#34;vrf&#34;]
+    df = pd.DataFrame(data=df_data, columns=cols)
+
+    # Add the subnets, network IPs, and broadcast IPs.
+    addresses = df[&#34;ip&#34;].to_list()
+
+    df[&#39;ip&#39;] = [_.split(&#39;/&#39;)[0] for _ in df[&#39;ip&#39;].to_list()]
+
+    result = hp.generate_subnet_details(addresses)
+    df[&#34;subnet&#34;] = result[&#34;subnet&#34;]
+    df[&#34;network_ip&#34;] = result[&#34;network_ip&#34;]
+    df[&#34;broadcast_ip&#34;] = result[&#34;broadcast_ip&#34;]
+
+    # Add a column containing the CIDR notation.
+    cidrs = hp.subnet_mask_to_cidr(df[&#34;subnet&#34;].to_list())
+    df[&#39;cidr&#39;] = cidrs
+    df = df[[&#39;device&#39;,
+             &#39;interface&#39;,
+             &#39;ip&#39;,
+             &#39;cidr&#39;,
+             &#39;vrf&#39;,
+             &#39;subnet&#39;,
+             &#39;network_ip&#39;,
+             &#39;broadcast_ip&#39;]]
+
+    return df</code></pre>
+</details>
+</dd>
+<dt id="parsers.cisco_nxos_parsers.nxos_parse_interface_status"><code class="name flex">
+<span>def <span class="ident">nxos_parse_interface_status</span></span>(<span>runner: dict) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse the interface status for NXOS devices.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>runner</code></strong> :&ensp;<code>dict</code></dt>
+<dd>An Ansible runner genrator</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df_inf_status</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>The interface statuses as a pandas DataFrame.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def nxos_parse_interface_status(runner: dict) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse the interface status for NXOS devices.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    df_inf_status : pd.DataFrame
+        The interface statuses as a pandas DataFrame.
+    &#34;&#34;&#34;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Parse the output and add it to &#39;data&#39;
+    df_data = list()
+
+    for event in runner.events:
+        if event[&#34;event&#34;] == &#34;runner_on_ok&#34;:
+            event_data = event[&#34;event_data&#34;]
+
+            device = event_data[&#34;remote_addr&#34;]
+
+            output = event_data[&#34;res&#34;][&#34;stdout&#34;][0].split(&#34;\n&#34;)
+            output = list(filter(None, output))
+
+            # Get the positions of the header columns (except Port and Name)
+            header = output[0]
+            pos_status = header.index(&#34;Status&#34;)
+            pos_vlan = header.index(&#34;Vlan&#34;)
+            pos_duplex = header.index(&#34;Duplex&#34;)
+            pos_speed = header.index(&#34;Speed&#34;)
+            pos_type = header.index(&#34;Type&#34;)
+
+            # Remove lines that repeat the header
+            output = [_ for _ in output if &#34;Port&#34; not in _ and &#34;type&#34; not in _]
+
+            # Parse the output and add it to &#39;df_data&#39;
+            for line in output[1:]:
+                inf = line.split()[0]
+                status = line[pos_status:pos_vlan]
+                vlan = line[pos_vlan:pos_duplex]
+                duplex = line[pos_duplex:pos_speed]
+                speed = line[pos_speed:pos_type]
+                inf_type = line[pos_type:]
+                row = [device, inf, status, vlan, duplex, speed, inf_type]
+                row = [_.strip() for _ in row]
+                df_data.append(row)
+
+    # Create the dataframe and return it
+    cols = [&#34;device&#34;, &#34;interface&#34;, &#34;status&#34;, &#34;vlan&#34;, &#34;duplex&#34;, &#34;speed&#34;, &#34;type&#34;]
+
+    df_inf_status = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_inf_status</code></pre>
+</details>
+</dd>
+<dt id="parsers.cisco_nxos_parsers.nxos_parse_interface_summary"><code class="name flex">
+<span>def <span class="ident">nxos_parse_interface_summary</span></span>(<span>df_inf: pandas.core.frame.DataFrame, con, ts) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse a summary of the interfaces on a NXOS devices. The summary includes
+the interface status, description, associated MACs, and vendor OUIs.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>df_inf</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>DataFrame of the interfaces on a NXOS devices</dd>
+<dt><strong><code>con</code></strong> :&ensp;<code>db connection</code></dt>
+<dd>db connection</dd>
+<dt><strong><code>ts</code></strong> :&ensp;<code>timestamp</code></dt>
+<dd>timestamp</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df_summary</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>The summaries of interfaces on the devices as a pandas DataFrame.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def nxos_parse_interface_summary(df_inf: pd.DataFrame,
+                                 con, ts) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse a summary of the interfaces on a NXOS devices. The summary includes
+    the interface status, description, associated MACs, and vendor OUIs.
+
+    Parameters
+    ----------
+    df_inf: pd.DataFrame
+        DataFrame of the interfaces on a NXOS devices
+    con: db connection
+        db connection
+    ts: timestamp
+        timestamp
+
+    Returns
+    -------
+    df_summary : pd.DataFrame
+        The summaries of interfaces on the devices as a pandas DataFrame.
+    &#34;&#34;&#34;
+    # Get the interface statuses, descriptions and cam table
+
+    if df_inf is None or len(df_inf) == 0:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    df_data = dict()
+    df_data[&#34;device&#34;] = list()
+    df_data[&#34;interface&#34;] = list()
+    df_data[&#34;status&#34;] = list()
+    df_data[&#34;description&#34;] = list()
+    df_data[&#34;vendors&#34;] = list()
+    df_data[&#34;macs&#34;] = list()
+
+    for idx, row in df_inf.iterrows():
+        device = row[&#34;device&#34;]
+        inf = row[&#34;interface&#34;]
+        status = row[&#34;status&#34;]
+
+        query = f&#39;&#39;&#39;SELECT mac,vendor
+                    FROM nxos_cam_table
+                    WHERE timestamp = &#34;{ts}&#34;
+                       AND device = &#34;{device}&#34;
+                       AND interface = &#34;{inf}&#34;&#39;&#39;&#39;
+        df_macs = pd.read_sql(query, con)
+        if len(df_macs) &gt; 0:
+            macs = df_macs[&#34;mac&#34;].to_list()
+            macs = &#34;|&#34;.join(macs)
+
+            vendors = list()
+            for idx, row in df_macs.iterrows():
+                vendor = row[&#34;vendor&#34;]
+                if vendor:
+                    vendor = vendor.replace(&#34;,&#34;, str())
+                    if vendor not in vendors:
+                        vendors.append(vendor)
+
+            vendors = &#34;|&#34;.join(vendors)
+
+            # vendors = str()
+            # for idx, row in df_macs.iterrows():
+            #     vendor = row[&#39;vendor&#39;]
+            #     if len(vendors) == 0:
+            #         if vendor:
+            #             vendors = vendor
+            #     elif vendor:
+            #         if not vendors:
+            #             vendors = vendor
+            #         else:
+            #             vendors = vendors + f&#39; {vendor}&#39;
+            #     else:
+            #         pass
+
+        else:
+            macs = str()
+            vendors = str()
+
+        query = f&#39;&#39;&#39;SELECT description
+                    FROM nxos_interface_description
+                    WHERE timestamp = &#34;{ts}&#34;
+                       AND device = &#34;{device}&#34;
+                       AND interface = &#34;{inf}&#34;&#39;&#39;&#39;
+        desc = pd.read_sql(query, con)
+        if len(desc) &gt; 0:
+            desc = desc[&#34;description&#34;].to_list()[0]
+        else:
+            desc = str()
+
+        df_data[&#34;device&#34;].append(device)
+        df_data[&#34;interface&#34;].append(inf)
+        df_data[&#34;status&#34;].append(status)
+        df_data[&#34;description&#34;].append(desc)
+        df_data[&#34;vendors&#34;].append(vendors)
+        df_data[&#34;macs&#34;].append(macs)
+
+    con.close()
+
+    df_summary = pd.DataFrame.from_dict(df_data)
+    df_summary = df_summary[
+        [&#34;device&#34;, &#34;interface&#34;, &#34;status&#34;, &#34;description&#34;, &#34;vendors&#34;, &#34;macs&#34;]
+    ]
+
+    return df_summary</code></pre>
+</details>
+</dd>
+<dt id="parsers.cisco_nxos_parsers.nxos_parse_inventory"><code class="name flex">
+<span>def <span class="ident">nxos_parse_inventory</span></span>(<span>runner: dict) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse the inventory for NXOS devices.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>runner</code></strong> :&ensp;<code>dict</code></dt>
+<dd>An Ansible runner genrator</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df_inventory</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>A DataFrame containing the output of the 'show inventory | json'
+command.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def nxos_parse_inventory(runner: dict) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse the inventory for NXOS devices.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    df_inventory : pd.DataFrame
+        A DataFrame containing the output of the &#39;show inventory | json&#39;
+        command.
+    &#34;&#34;&#34;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Create a list for holding the inventory items
+    data = list()
+
+    for event in runner.events:
+        if event[&#34;event&#34;] == &#34;runner_on_ok&#34;:
+            event_data = event[&#34;event_data&#34;]
+            device = event_data[&#34;remote_addr&#34;]
+
+            output = event_data[&#34;res&#34;][&#34;stdout&#34;][0][&#34;TABLE_inv&#34;][&#34;ROW_inv&#34;]
+
+            # Add the inventory items to the &#39;data&#39; list
+            for item in output:
+                item[&#34;device&#34;] = device
+                data.append(item)
+
+    # Create a dictionary for storing the output
+    df_data = dict()
+
+    # Create the dictionary keys
+    for item in data:
+        for key in item:
+            if not df_data.get(key):
+                df_data[key] = list()
+
+    # Add the inventory items to &#39;df_data&#39;
+    for item in data:
+        for key in df_data:
+            df_data[key].append(item.get(key))
+
+    # Create and return the dataframe
+    df_inventory = pd.DataFrame.from_dict(df_data)
+
+    return df_inventory</code></pre>
+</details>
+</dd>
+<dt id="parsers.cisco_nxos_parsers.nxos_parse_logs"><code class="name flex">
+<span>def <span class="ident">nxos_parse_logs</span></span>(<span>runner: dict) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse the latest log messages for NXOS devices.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>runner</code></strong> :&ensp;<code>dict</code></dt>
+<dd>An Ansible runner genrator</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df_logs</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>The latest log messages as a pandas DataFrame.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def nxos_parse_logs(runner: dict) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse the latest log messages for NXOS devices.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    df_logs : pd.DataFrame
+        The latest log messages as a pandas DataFrame.
+    &#34;&#34;&#34;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Parse the output and add it to &#39;data&#39;
+    df_data = list()
+
+    for event in runner.events:
+        if event[&#34;event&#34;] == &#34;runner_on_ok&#34;:
+            event_data = event[&#34;event_data&#34;]
+
+            device = event_data[&#34;remote_addr&#34;]
+
+            output = event_data[&#34;res&#34;][&#34;stdout&#34;][0].split(&#34;\n&#34;)
+
+            for line in output:
+                _time = line[:21].strip()
+                _msg = line[21:].strip()
+                df_data.append([device, _time, _msg])
+
+    # Create the dataframe and return it
+    cols = [&#34;device&#34;, &#34;time&#34;, &#34;message&#34;]
+
+    df_logs = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_logs</code></pre>
+</details>
+</dd>
+<dt id="parsers.cisco_nxos_parsers.nxos_parse_port_channel_data"><code class="name flex">
+<span>def <span class="ident">nxos_parse_port_channel_data</span></span>(<span>runner: dict) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse port-channel data (output from 'show port-channel database')
+for Cisco NXOS devices.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>runner</code></strong> :&ensp;<code>dict</code></dt>
+<dd>An Ansible runner genrator</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df_po_data</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>The port-channel data as a pandas DataFrame.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def nxos_parse_port_channel_data(runner: dict) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse port-channel data (output from &#39;show port-channel database&#39;)
+    for Cisco NXOS devices.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    df_po_data : pd.DataFrame
+        The port-channel data as a pandas DataFrame.
+    &#34;&#34;&#34;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Define the dataframe columns
+    cols = [
+        &#34;device&#34;,
+        &#34;interface&#34;,
+        &#34;total_ports&#34;,
+        &#34;up_ports&#34;,
+        &#34;age&#34;,
+        &#34;port_1&#34;,
+        &#34;port_2&#34;,
+        &#34;port_3&#34;,
+        &#34;port_4&#34;,
+        &#34;port_5&#34;,
+        &#34;port_6&#34;,
+        &#34;port_7&#34;,
+        &#34;port_8&#34;,
+        &#34;first_operational_port&#34;,
+        &#34;last_bundled_member&#34;,
+        &#34;last_unbundled_member&#34;,
+    ]
+
+    # Create a dictionary to store the data for creating the dataframe
+    df_data = dict()
+    for c in cols:
+        df_data[c] = list()
+
+    # Parse the output and add it to &#39;data&#39;
+    for event in runner.events:
+        if event[&#34;event&#34;] == &#34;runner_on_ok&#34;:
+            event_data = event[&#34;event_data&#34;]
+
+            device = event_data[&#34;remote_addr&#34;]
+
+            output = event_data[&#34;res&#34;][&#34;stdout&#34;][0].split(&#34;\n&#34;)
+
+            # output.append(str())  # For finding the end of database entries
+            output = [_ for _ in output if _ != &#34;Legend:&#34;]
+            output = [_ for _ in output if &#39;&#34;*&#34;:&#39; not in _]
+
+            # TODO: Re-write this using regex to 1) make it more concise, and
+            # 2) avoid iterating over &#39;output&#39; twice
+
+            # Create a list to store database entries
+            entries = list()
+
+            pos = 0
+            for line in output:
+                if line[:12] == &#34;port-channel&#34;:
+                    interface = line
+                    entry = [interface, device]
+                    counter = pos + 1
+                    while output[counter][:4] == &#34;    &#34;:
+                        entry.append(output[counter])
+                        counter += 1
+                        if counter == len(output):
+                            break
+                    entries.append(entry)
+                pos += 1
+
+            for entry in entries:
+                entry = [_.strip() for _ in entry]
+                interface = entry[0]
+                device = entry[1]
+                # Create a counter for tracking port numbers
+                counter = 0
+                # Create an 8-element list of empty strings for ports
+                ports = list()
+                for i in range(1, 9):
+                    ports.append(str())
+                # Define empty strings for vars that might not exist
+                total_ports = str()
+                up_ports = str()
+                first_op_port = str()
+                last_bundled = str()
+                last_unbundled = str()
+                age = str()
+                for line in entry[2:]:
+                    if &#34;ports in total&#34; in line:
+                        total_ports = line.split()[0]
+                        up_ports = line.split(&#34;,&#34;)[-1].split()[0]
+                    if &#34;First operational&#34; in line:
+                        first_op_port = line.split()[-1]
+                    if &#34;Last bundled&#34; in line:
+                        last_bundled = line.split()[-1]
+                    if &#34;Last unbundled&#34; in line:
+                        last_unbundled = line.split()[-1]
+                    if &#34;Age of the&#34; in line:
+                        age = line.split()[-1]
+                    if &#34;]&#34; in line:
+                        port = line.split(&#34;Ports:&#34;)[-1].strip()
+                        ports[counter] = port
+                        counter += 1
+
+                # Fill in ports list with ports that exist
+                port_num = 1
+                for p in ports:
+                    key = f&#34;port_{str(port_num)}&#34;
+                    df_data[key].append(p)
+                    port_num += 1
+                # Add remaining variables to df_data
+                df_data[&#34;interface&#34;].append(interface)
+                df_data[&#34;device&#34;].append(device)
+                df_data[&#34;total_ports&#34;].append(total_ports)
+                df_data[&#34;up_ports&#34;].append(up_ports)
+                df_data[&#34;age&#34;].append(age)
+                df_data[&#34;first_operational_port&#34;].append(first_op_port)
+                df_data[&#34;last_bundled_member&#34;].append(last_bundled)
+                df_data[&#34;last_unbundled_member&#34;].append(last_unbundled)
+
+    df_po_data = pd.DataFrame.from_dict(df_data)
+    # Set dataframe columns to desired order (from &#39;cols&#39; list)
+    df_po_data = df_po_data[cols]
+
+    return df_po_data</code></pre>
+</details>
+</dd>
+<dt id="parsers.cisco_nxos_parsers.nxos_parse_vlan_db"><code class="name flex">
+<span>def <span class="ident">nxos_parse_vlan_db</span></span>(<span>runner: dict) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse the VLAN database for NXOS devices.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>runner</code></strong> :&ensp;<code>dict</code></dt>
+<dd>An Ansible runner genrator</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df_vlans</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>The VLAN database as a pandas DataFrame.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def nxos_parse_vlan_db(runner: dict) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse the VLAN database for NXOS devices.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    df_vlans : pd.DataFrame
+        The VLAN database as a pandas DataFrame.
+    &#34;&#34;&#34;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Parse the output and add it to &#39;data&#39;
+    df_data = list()
+
+    for event in runner.events:
+        if event[&#34;event&#34;] == &#34;runner_on_ok&#34;:
+            event_data = event[&#34;event_data&#34;]
+
+            device = event_data[&#34;remote_addr&#34;]
+
+            output = event_data[&#34;res&#34;][&#34;stdout&#34;][0].split(&#34;\n&#34;)
+
+            # Get the position of &#34;Ports&#34; column
+            pos = output[0].index(&#34;Ports&#34;)
+
+            for line in output[1:]:
+                v_id = line.split()[0]
+                name = line.split()[1]
+                status = line.split()[2]
+                ports = line[pos:].strip()
+                df_data.append([device, v_id, name, status, ports])
+
+    # Create the dataframe and return it
+    cols = [&#34;device&#34;, &#34;id&#34;, &#34;name&#34;, &#34;status&#34;, &#34;ports&#34;]
+
+    df_vlans = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_vlans</code></pre>
+</details>
+</dd>
+<dt id="parsers.cisco_nxos_parsers.nxos_parse_vpc_state"><code class="name flex">
+<span>def <span class="ident">nxos_parse_vpc_state</span></span>(<span>runner: dict) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse the VPC state for NXOS devices.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>runner</code></strong> :&ensp;<code>dict</code></dt>
+<dd>An Ansible runner genrator</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df_vpc_state</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>The VPC state information as a pandas DataFrame.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def nxos_parse_vpc_state(runner: dict) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse the VPC state for NXOS devices.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    df_vpc_state : pd.DataFrame
+        The VPC state information as a pandas DataFrame.
+    &#34;&#34;&#34;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Parse the output and add it to &#39;data&#39;
+    data = dict()
+
+    for event in runner.events:
+        if event[&#34;event&#34;] == &#34;runner_on_ok&#34;:
+            event_data = event[&#34;event_data&#34;]
+            device = event_data[&#34;remote_addr&#34;]
+            output = event_data[&#34;res&#34;][&#34;stdout&#34;][0].split(&#34;\n&#34;)
+
+            # Remove empty lines
+            output = list(filter(None, output))
+            # Remove &#39;vPC Peer-link status&#39;
+            output = [_ for _ in output if _ != &#34;vPC Peer-link status&#34;]
+
+            data[device] = dict()
+            data[device][&#34;device&#34;] = device
+            for line in output:
+                col_name = line.split(&#34;:&#34;)[0].strip()
+                data[device][col_name] = line.split(&#34;:&#34;)[1].strip()
+
+    df_data = dict()
+    df_data[&#34;device&#34;] = list()
+    for key in data:
+        for k in data[key]:
+            df_data[k] = list()
+
+    for device in data:
+        for key in df_data:
+            df_data[key].append(data[device].get(key))
+
+    df_vpc_state = pd.DataFrame.from_dict(df_data)
+
+    return df_vpc_state</code></pre>
+</details>
+</dd>
+<dt id="parsers.cisco_nxos_parsers.nxos_parse_vrfs"><code class="name flex">
+<span>def <span class="ident">nxos_parse_vrfs</span></span>(<span>runner: dict) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse the VRFs on Nexus devices.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>runner</code></strong> :&ensp;<code>dict</code></dt>
+<dd>An Ansible runner genrator</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df_vrfs</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>A DataFrame containing the VRFs.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def nxos_parse_vrfs(runner: dict) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Parse the VRFs on Nexus devices.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    df_vrfs : pd.DataFrame
+        A DataFrame containing the VRFs.
+    &#34;&#34;&#34;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Parse the output and add it to &#39;data&#39;
+    df_data = list()
+
+    for event in runner.events:
+        if event[&#34;event&#34;] == &#34;runner_on_ok&#34;:
+            event_data = event[&#34;event_data&#34;]
+
+            device = event_data[&#34;remote_addr&#34;]
+
+            output = event_data[&#34;res&#34;][&#34;stdout&#34;][0].split(&#34;\n&#34;)
+
+            # Pre-define variables, since not all VRFs contain all parameters
+            name = str()
+            vrf_id = str()
+            state = str()
+            description = str()
+            vpn_id = str()
+            route_domain = str()
+            max_routes = str()
+
+            pos = 0
+            for line in output:
+                if &#34;VRF-Name&#34; in line:
+                    pos = output.index(line) + 1
+                    line = line.split(&#34;,&#34;)
+                    line = [_.split(&#34;:&#34;)[-1].strip() for _ in line]
+                    name = line[0]
+                    vrf_id = line[1]
+                    state = line[2]
+                    while &#34;Table-ID&#34; not in output[pos]:
+                        if &#34;Description:&#34; in output[pos]:
+                            description = output[pos + 1].strip()
+                        if &#34;VPNID&#34; in output[pos]:
+                            vpn_id = output[pos].split(&#34;: &#34;)[-1]
+                        if &#34;RD:&#34; in output[pos]:
+                            route_domain = output[pos].split()[-1]
+                        if &#34;Max Routes&#34; in output[pos]:
+                            _ = output[pos].split(&#34;: &#34;)
+                            max_routes = _[1].split()[0].strip()
+                            min_threshold = _[-1]
+                        pos += 1
+                    row = [
+                        device,
+                        name,
+                        vrf_id,
+                        state,
+                        description,
+                        vpn_id,
+                        route_domain,
+                        max_routes,
+                        min_threshold,
+                    ]
+                    df_data.append(row)
+
+    # Create the DataFrame columns
+    cols = [
+        &#34;device&#34;,
+        &#34;name&#34;,
+        &#34;vrf_id&#34;,
+        &#34;state&#34;,
+        &#34;description&#34;,
+        &#34;vpn_id&#34;,
+        &#34;route_domain&#34;,
+        &#34;max_routes&#34;,
+        &#34;min_threshold&#34;,
+    ]
+
+    # Create the dataframe and return it
+    df_vrfs = pd.DataFrame(data=df_data, columns=cols)
+
+    return df_vrfs</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="parsers" href="index.html">parsers</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="parsers.cisco_nxos_parsers.nxos_diff_running_config" href="#parsers.cisco_nxos_parsers.nxos_diff_running_config">nxos_diff_running_config</a></code></li>
+<li><code><a title="parsers.cisco_nxos_parsers.nxos_parse_arp_table" href="#parsers.cisco_nxos_parsers.nxos_parse_arp_table">nxos_parse_arp_table</a></code></li>
+<li><code><a title="parsers.cisco_nxos_parsers.nxos_parse_bgp_neighbors" href="#parsers.cisco_nxos_parsers.nxos_parse_bgp_neighbors">nxos_parse_bgp_neighbors</a></code></li>
+<li><code><a title="parsers.cisco_nxos_parsers.nxos_parse_cam_table" href="#parsers.cisco_nxos_parsers.nxos_parse_cam_table">nxos_parse_cam_table</a></code></li>
+<li><code><a title="parsers.cisco_nxos_parsers.nxos_parse_fexes_table" href="#parsers.cisco_nxos_parsers.nxos_parse_fexes_table">nxos_parse_fexes_table</a></code></li>
+<li><code><a title="parsers.cisco_nxos_parsers.nxos_parse_hostname" href="#parsers.cisco_nxos_parsers.nxos_parse_hostname">nxos_parse_hostname</a></code></li>
+<li><code><a title="parsers.cisco_nxos_parsers.nxos_parse_interface_descriptions" href="#parsers.cisco_nxos_parsers.nxos_parse_interface_descriptions">nxos_parse_interface_descriptions</a></code></li>
+<li><code><a title="parsers.cisco_nxos_parsers.nxos_parse_interface_ips" href="#parsers.cisco_nxos_parsers.nxos_parse_interface_ips">nxos_parse_interface_ips</a></code></li>
+<li><code><a title="parsers.cisco_nxos_parsers.nxos_parse_interface_status" href="#parsers.cisco_nxos_parsers.nxos_parse_interface_status">nxos_parse_interface_status</a></code></li>
+<li><code><a title="parsers.cisco_nxos_parsers.nxos_parse_interface_summary" href="#parsers.cisco_nxos_parsers.nxos_parse_interface_summary">nxos_parse_interface_summary</a></code></li>
+<li><code><a title="parsers.cisco_nxos_parsers.nxos_parse_inventory" href="#parsers.cisco_nxos_parsers.nxos_parse_inventory">nxos_parse_inventory</a></code></li>
+<li><code><a title="parsers.cisco_nxos_parsers.nxos_parse_logs" href="#parsers.cisco_nxos_parsers.nxos_parse_logs">nxos_parse_logs</a></code></li>
+<li><code><a title="parsers.cisco_nxos_parsers.nxos_parse_port_channel_data" href="#parsers.cisco_nxos_parsers.nxos_parse_port_channel_data">nxos_parse_port_channel_data</a></code></li>
+<li><code><a title="parsers.cisco_nxos_parsers.nxos_parse_vlan_db" href="#parsers.cisco_nxos_parsers.nxos_parse_vlan_db">nxos_parse_vlan_db</a></code></li>
+<li><code><a title="parsers.cisco_nxos_parsers.nxos_parse_vpc_state" href="#parsers.cisco_nxos_parsers.nxos_parse_vpc_state">nxos_parse_vpc_state</a></code></li>
+<li><code><a title="parsers.cisco_nxos_parsers.nxos_parse_vrfs" href="#parsers.cisco_nxos_parsers.nxos_parse_vrfs">nxos_parse_vrfs</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

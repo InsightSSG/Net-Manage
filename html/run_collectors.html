@@ -35,7 +35,7 @@ Define collectors and map them to the correct function in colletors.py.
 
 import argparse
 import ast
-import asyncio
+# import asyncio  # Temporarily disabled; does not work inside iPython.
 import datetime as dt
 import os
 import pandas as pd
@@ -88,7 +88,7 @@ def collect(ansible_os: str,
     database_name = os.environ[&#39;database_name&#39;]
     database_path = os.path.expanduser(os.environ[&#39;database_path&#39;])
     netmanage_path = os.path.expanduser(
-        os.environ[&#39;netmanage_path&#39;].strip(&#39;/&#39;))
+        os.environ[&#39;netmanage_path&#39;].rstrip(&#39;/&#39;))
     private_data_dir = os.path.expanduser(
         os.environ[&#39;private_data_directory&#39;])
     validate_certs = ast.literal_eval(os.environ[&#39;validate_certs&#39;])
@@ -116,6 +116,9 @@ def collect(ansible_os: str,
     # Read F5 LTM variables
     f5_ltm_username = os.environ[&#39;f5_ltm_username&#39;]
     f5_ltm_password = os.environ[&#39;f5_ltm_password&#39;]
+    # f5_log_range = os.environ[&#39;f5_log_range&#39;]
+    # f5_log_type = os.environ[&#39;f5_log_type&#39;]
+    # f5_num_lines = os.environ[&#39;f5_num_lines&#39;]
 
     # Read Infoblox variables
     infoblox_url = os.environ[&#39;infoblox_url&#39;]
@@ -129,13 +132,18 @@ def collect(ansible_os: str,
         None, os.environ[&#39;meraki_networks&#39;].split(&#39;,&#39;)))
     meraki_organizations = list(filter(
         None, os.environ[&#39;meraki_organizations&#39;].split(&#39;,&#39;)))
-    meraki_macs = os.environ[&#39;meraki_macs&#39;]
-    meraki_lookback = os.environ[&#39;meraki_lookback_timespan&#39;]
-    meraki_per_page = os.environ[&#39;meraki_per_page&#39;]
+    meraki_serials = list(filter(
+        None, os.environ[&#39;meraki_serials&#39;].split(&#39;,&#39;)))
+    meraki_serials = [_.strip() for _ in meraki_serials]
     try:
         meraki_tp = int(os.environ[&#39;meraki_total_pages&#39;])
     except ValueError:
         meraki_tp = -1
+    # These 3 variables are temporarily commented out until we re-enable the
+    # asyncio collectors.
+    # meraki_macs = os.environ[&#39;meraki_macs&#39;]
+    # meraki_lookback = os.environ[&#39;meraki_lookback_timespan&#39;]
+    # meraki_per_page = os.environ[&#39;meraki_per_page&#39;]
 
     # Read Netbox variables
     netbox_url = os.environ[&#39;netbox_url&#39;]
@@ -193,6 +201,22 @@ def collect(ansible_os: str,
                                               play_path,
                                               private_data_dir,
                                               validate_certs=validate_certs)
+
+        # Do not uncomment the &#39;logs&#39; collector until it is updated to use
+        # bash. This is because of a suspected F5 bug that causes the active
+        # unit to sometimes hang when retrieving the logs with a tmsh command
+        # (Ansible) or a REST API call.
+
+        # if collector == &#39;logs&#39;:
+        #     result = f5c.get_log_files(f5_ltm_username,
+        #                                f5_ltm_password,
+        #                                hostgroup,
+        #                                play_path,
+        #                                private_data_dir,
+        #                                log_type=f5_log_type,
+        #                                log_range=f5_log_range,
+        #                                num_lines=f5_num_lines,
+        #                                validate_certs=validate_certs)
 
         if collector == &#39;node_availability&#39;:
             result = f5c.get_node_availability(f5_ltm_username,
@@ -262,6 +286,29 @@ def collect(ansible_os: str,
                                         private_data_dir,
                                         validate_certs=validate_certs)
 
+    if collector == &#39;bgp_neighbors&#39;:
+        if ansible_os == &#39;cisco.ios.ios&#39;:
+            result = cic.bgp_neighbors(ios_devices_username,
+                                       ios_devices_password,
+                                       hostgroup,
+                                       play_path,
+                                       private_data_dir)
+
+        if ansible_os == &#39;paloaltonetworks.panos&#39;:
+            result = pac.bgp_neighbors(palo_alto_username,
+                                       palo_alto_password,
+                                       hostgroup,
+                                       netmanage_path,
+                                       private_data_dir)
+
+        if ansible_os == &#39;cisco.nxos.nxos&#39;:
+            result = cnc.nxos_get_bgp_neighbors(nxos_devices_username,
+                                                nxos_devices_password,
+                                                hostgroup,
+                                                netmanage_path,
+                                                play_path,
+                                                private_data_dir)
+
     if collector == &#39;devices_inventory&#39;:
         if ansible_os == &#39;cisco.dnac&#39;:
             result = dnc.devices_inventory(dnac_url,
@@ -269,6 +316,15 @@ def collect(ansible_os: str,
                                            dnac_password,
                                            platform_ids=dnac_platform_ids,
                                            verify=validate_certs)
+
+    # This needs to be implemented differently, because asyncio.run does not
+    # work when run inside iPython (including Jupyter).
+    # if collector == &#39;device_cdp_lldp_neighbors&#39;:
+    #     if ansible_os == &#39;meraki&#39;:
+    #         result = asyncio.run(
+    #             mc.meraki_get_device_cdp_lldp_neighbors(meraki_api_key,
+    #                                                     database_full_path,
+    #                                                     meraki_serials))
 
     if collector == &#39;devices_modules&#39;:
         if ansible_os == &#39;cisco.dnac&#39;:
@@ -335,6 +391,52 @@ def collect(ansible_os: str,
                                                 netmanage_path,
                                                 play_path,
                                                 private_data_dir)
+
+    if collector == &#39;hardware_inventory&#39;:
+        if ansible_os == &#39;cisco.asa.asa&#39;:
+            result = cac.inventory(asa_devices_username,
+                                   asa_devices_password,
+                                   hostgroup,
+                                   play_path,
+                                   private_data_dir)
+
+        if ansible_os == &#39;cisco.ios.ios&#39;:
+            result = cic.inventory(ios_devices_username,
+                                   ios_devices_password,
+                                   hostgroup,
+                                   play_path,
+                                   private_data_dir)
+
+        if ansible_os == &#39;cisco.nxos.nxos&#39;:
+            result = cnc.nxos_get_inventory(nxos_devices_username,
+                                            nxos_devices_password,
+                                            hostgroup,
+                                            play_path,
+                                            private_data_dir)
+
+        if ansible_os == &#39;bigip&#39;:
+            result = f5c.inventory(f5_ltm_username,
+                                   f5_ltm_password,
+                                   hostgroup,
+                                   play_path,
+                                   private_data_dir,
+                                   validate_certs=validate_certs)
+
+        if ansible_os == &#39;paloaltonetworks.panos&#39;:
+            result = pac.inventory(palo_alto_username,
+                                   palo_alto_password,
+                                   hostgroup,
+                                   netmanage_path,
+                                   private_data_dir)
+
+    if collector == &#39;fexes_table&#39;:
+        if ansible_os == &#39;cisco.nxos.nxos&#39;:
+            result = cnc.nxos_get_fexes_table(nxos_devices_username,
+                                              nxos_devices_password,
+                                              hostgroup,
+                                              netmanage_path,
+                                              play_path,
+                                              private_data_dir)
 
     if collector == &#39;interface_description&#39;:
         if ansible_os == &#39;cisco.ios.ios&#39;:
@@ -438,13 +540,6 @@ def collect(ansible_os: str,
                                                play_path,
                                                private_data_dir)
 
-    if collector == &#39;inventory_nxos&#39;:
-        result = cnc.nxos_get_inventory(nxos_devices_username,
-                                        nxos_devices_password,
-                                        hostgroup,
-                                        play_path,
-                                        private_data_dir)
-
     if collector == &#39;network_appliance_vlans&#39;:
         if ansible_os == &#39;meraki&#39;:
             mc.get_network_appliance_vlans(ansible_os,
@@ -455,16 +550,18 @@ def collect(ansible_os: str,
                                            networks=meraki_networks,
                                            orgs=meraki_organizations)
 
-    if collector == &#39;network_clients&#39;:
-        if ansible_os == &#39;meraki&#39;:
-            result = asyncio.run(
-                mc.meraki_get_network_clients(meraki_api_key,
-                                              networks=meraki_networks,
-                                              macs=meraki_macs,
-                                              orgs=meraki_organizations,
-                                              per_page=meraki_per_page,
-                                              timespan=meraki_lookback,
-                                              total_pages=meraki_tp))
+    # This needs to be implemented differently, because asyncio.run does not
+    # work when run inside iPython (including Jupyter).
+    # if collector == &#39;network_clients&#39;:
+    #     if ansible_os == &#39;meraki&#39;:
+    #         result = asyncio.run(
+    #             mc.meraki_get_network_clients(meraki_api_key,
+    #                                           networks=meraki_networks,
+    #                                           macs=meraki_macs,
+    #                                           orgs=meraki_organizations,
+    #                                           per_page=meraki_per_page,
+    #                                           timespan=meraki_lookback,
+    #                                           total_pages=meraki_tp))
 
     if collector == &#39;network_devices&#39;:
         if ansible_os == &#39;meraki&#39;:
@@ -504,6 +601,21 @@ def collect(ansible_os: str,
                                                 orgs=meraki_organizations,
                                                 use_db=True)
 
+    if collector == &#39;ospf_neighbors&#39;:
+        if ansible_os == &#39;cisco.ios.ios&#39;:
+            result = cic.ospf_neighbors(ios_devices_username,
+                                        ios_devices_password,
+                                        hostgroup,
+                                        play_path,
+                                        private_data_dir)
+
+        if ansible_os == &#39;paloaltonetworks.panos&#39;:
+            result = pac.ospf_neighbors(palo_alto_username,
+                                        palo_alto_password,
+                                        hostgroup,
+                                        netmanage_path,
+                                        private_data_dir)
+
     if collector == &#39;switch_lldp_neighbors&#39;:
         if ansible_os == &#39;meraki&#39;:
             result = mc.meraki_get_switch_lldp_neighbors(database_full_path)
@@ -520,6 +632,14 @@ def collect(ansible_os: str,
                                                       database_full_path,
                                                       meraki_networks,
                                                       timestamp)
+
+    if collector == &#39;security_rules&#39;:
+        if ansible_os == &#39;paloaltonetworks.panos&#39;:
+            result = pac.get_security_rules(palo_alto_username,
+                                            palo_alto_password,
+                                            hostgroup,
+                                            play_path,
+                                            private_data_dir)
 
     if collector == &#39;netbox_get_ipam_prefixes&#39;:
         result = nbc.netbox_get_ipam_prefixes(netbox_url, netbox_token)
@@ -598,6 +718,13 @@ def collect(ansible_os: str,
                                                     hostgroup,
                                                     play_path,
                                                     private_data_dir)
+
+    if collector == &#39;appliance_uplink_statuses&#39;:
+        if ansible_os == &#39;meraki&#39;:
+            result = mc.meraki_get_org_appliance_uplink_statuses(
+                meraki_api_key,
+                database_full_path,
+                meraki_organizations)
 
     if collector == &#39;vpc_state&#39;:
         if ansible_os == &#39;cisco.nxos.nxos&#39;:
@@ -827,7 +954,7 @@ def create_parser() -&gt; argparse.Namespace:
     return args
 
 
-def arg_parser(args: argparse.Namespace) -&gt; dict:
+def arg_parser(args: argparse.Namespace) -&gt; tuple:
     &#39;&#39;&#39;
     Extract system args and assign variable names.
 
@@ -838,8 +965,16 @@ def arg_parser(args: argparse.Namespace) -&gt; dict:
 
     Returns
     -------
-    vars_dict : dict
-        A dictionary containing arg variables.
+    tuple
+        A tuple containing:
+        - collectors: List of collectors
+        - db: Database path
+        - hostgroups: List of hostgroups
+        - netmanage_path: Path for netmanage
+        - out_dir: Output directory path
+        - username: Username for authentication
+        - password: Password for authentication
+        - private_data_dir: Private data directory path
     &#39;&#39;&#39;
     # Set the collectors
     collectors = [c.strip() for c in args.collectors.split(&#39;,&#39;)]
@@ -867,8 +1002,16 @@ def arg_parser(args: argparse.Namespace) -&gt; dict:
     # Set the database path
     db = f&#39;{out_dir}/{args.database}&#39;
 
-    return collectors, db, hostgroups, netmanage_path, out_dir, username,\
-        password, private_data_dir</code></pre>
+    return (
+        collectors,
+        db,
+        hostgroups,
+        netmanage_path,
+        out_dir,
+        username,
+        password,
+        private_data_dir,
+    )</code></pre>
 </details>
 </section>
 <section>
@@ -1018,7 +1161,7 @@ indexing the SQLite database table.</dd>
 </details>
 </dd>
 <dt id="run_collectors.arg_parser"><code class="name flex">
-<span>def <span class="ident">arg_parser</span></span>(<span>args: argparse.Namespace) ‑> dict</span>
+<span>def <span class="ident">arg_parser</span></span>(<span>args: argparse.Namespace) ‑> tuple</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Extract system args and assign variable names.</p>
@@ -1029,14 +1172,22 @@ indexing the SQLite database table.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>vars_dict</code></strong> :&ensp;<code>dict</code></dt>
-<dd>A dictionary containing arg variables.</dd>
+<dt><code>tuple</code></dt>
+<dd>A tuple containing:
+- collectors: List of collectors
+- db: Database path
+- hostgroups: List of hostgroups
+- netmanage_path: Path for netmanage
+- out_dir: Output directory path
+- username: Username for authentication
+- password: Password for authentication
+- private_data_dir: Private data directory path</dd>
 </dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def arg_parser(args: argparse.Namespace) -&gt; dict:
+<pre><code class="python">def arg_parser(args: argparse.Namespace) -&gt; tuple:
     &#39;&#39;&#39;
     Extract system args and assign variable names.
 
@@ -1047,8 +1198,16 @@ indexing the SQLite database table.</dd>
 
     Returns
     -------
-    vars_dict : dict
-        A dictionary containing arg variables.
+    tuple
+        A tuple containing:
+        - collectors: List of collectors
+        - db: Database path
+        - hostgroups: List of hostgroups
+        - netmanage_path: Path for netmanage
+        - out_dir: Output directory path
+        - username: Username for authentication
+        - password: Password for authentication
+        - private_data_dir: Private data directory path
     &#39;&#39;&#39;
     # Set the collectors
     collectors = [c.strip() for c in args.collectors.split(&#39;,&#39;)]
@@ -1076,8 +1235,16 @@ indexing the SQLite database table.</dd>
     # Set the database path
     db = f&#39;{out_dir}/{args.database}&#39;
 
-    return collectors, db, hostgroups, netmanage_path, out_dir, username,\
-        password, private_data_dir</code></pre>
+    return (
+        collectors,
+        db,
+        hostgroups,
+        netmanage_path,
+        out_dir,
+        username,
+        password,
+        private_data_dir,
+    )</code></pre>
 </details>
 </dd>
 <dt id="run_collectors.collect"><code class="name flex">
@@ -1132,7 +1299,7 @@ indexing the SQLite database table.</dd>
     database_name = os.environ[&#39;database_name&#39;]
     database_path = os.path.expanduser(os.environ[&#39;database_path&#39;])
     netmanage_path = os.path.expanduser(
-        os.environ[&#39;netmanage_path&#39;].strip(&#39;/&#39;))
+        os.environ[&#39;netmanage_path&#39;].rstrip(&#39;/&#39;))
     private_data_dir = os.path.expanduser(
         os.environ[&#39;private_data_directory&#39;])
     validate_certs = ast.literal_eval(os.environ[&#39;validate_certs&#39;])
@@ -1160,6 +1327,9 @@ indexing the SQLite database table.</dd>
     # Read F5 LTM variables
     f5_ltm_username = os.environ[&#39;f5_ltm_username&#39;]
     f5_ltm_password = os.environ[&#39;f5_ltm_password&#39;]
+    # f5_log_range = os.environ[&#39;f5_log_range&#39;]
+    # f5_log_type = os.environ[&#39;f5_log_type&#39;]
+    # f5_num_lines = os.environ[&#39;f5_num_lines&#39;]
 
     # Read Infoblox variables
     infoblox_url = os.environ[&#39;infoblox_url&#39;]
@@ -1173,13 +1343,18 @@ indexing the SQLite database table.</dd>
         None, os.environ[&#39;meraki_networks&#39;].split(&#39;,&#39;)))
     meraki_organizations = list(filter(
         None, os.environ[&#39;meraki_organizations&#39;].split(&#39;,&#39;)))
-    meraki_macs = os.environ[&#39;meraki_macs&#39;]
-    meraki_lookback = os.environ[&#39;meraki_lookback_timespan&#39;]
-    meraki_per_page = os.environ[&#39;meraki_per_page&#39;]
+    meraki_serials = list(filter(
+        None, os.environ[&#39;meraki_serials&#39;].split(&#39;,&#39;)))
+    meraki_serials = [_.strip() for _ in meraki_serials]
     try:
         meraki_tp = int(os.environ[&#39;meraki_total_pages&#39;])
     except ValueError:
         meraki_tp = -1
+    # These 3 variables are temporarily commented out until we re-enable the
+    # asyncio collectors.
+    # meraki_macs = os.environ[&#39;meraki_macs&#39;]
+    # meraki_lookback = os.environ[&#39;meraki_lookback_timespan&#39;]
+    # meraki_per_page = os.environ[&#39;meraki_per_page&#39;]
 
     # Read Netbox variables
     netbox_url = os.environ[&#39;netbox_url&#39;]
@@ -1237,6 +1412,22 @@ indexing the SQLite database table.</dd>
                                               play_path,
                                               private_data_dir,
                                               validate_certs=validate_certs)
+
+        # Do not uncomment the &#39;logs&#39; collector until it is updated to use
+        # bash. This is because of a suspected F5 bug that causes the active
+        # unit to sometimes hang when retrieving the logs with a tmsh command
+        # (Ansible) or a REST API call.
+
+        # if collector == &#39;logs&#39;:
+        #     result = f5c.get_log_files(f5_ltm_username,
+        #                                f5_ltm_password,
+        #                                hostgroup,
+        #                                play_path,
+        #                                private_data_dir,
+        #                                log_type=f5_log_type,
+        #                                log_range=f5_log_range,
+        #                                num_lines=f5_num_lines,
+        #                                validate_certs=validate_certs)
 
         if collector == &#39;node_availability&#39;:
             result = f5c.get_node_availability(f5_ltm_username,
@@ -1306,6 +1497,29 @@ indexing the SQLite database table.</dd>
                                         private_data_dir,
                                         validate_certs=validate_certs)
 
+    if collector == &#39;bgp_neighbors&#39;:
+        if ansible_os == &#39;cisco.ios.ios&#39;:
+            result = cic.bgp_neighbors(ios_devices_username,
+                                       ios_devices_password,
+                                       hostgroup,
+                                       play_path,
+                                       private_data_dir)
+
+        if ansible_os == &#39;paloaltonetworks.panos&#39;:
+            result = pac.bgp_neighbors(palo_alto_username,
+                                       palo_alto_password,
+                                       hostgroup,
+                                       netmanage_path,
+                                       private_data_dir)
+
+        if ansible_os == &#39;cisco.nxos.nxos&#39;:
+            result = cnc.nxos_get_bgp_neighbors(nxos_devices_username,
+                                                nxos_devices_password,
+                                                hostgroup,
+                                                netmanage_path,
+                                                play_path,
+                                                private_data_dir)
+
     if collector == &#39;devices_inventory&#39;:
         if ansible_os == &#39;cisco.dnac&#39;:
             result = dnc.devices_inventory(dnac_url,
@@ -1313,6 +1527,15 @@ indexing the SQLite database table.</dd>
                                            dnac_password,
                                            platform_ids=dnac_platform_ids,
                                            verify=validate_certs)
+
+    # This needs to be implemented differently, because asyncio.run does not
+    # work when run inside iPython (including Jupyter).
+    # if collector == &#39;device_cdp_lldp_neighbors&#39;:
+    #     if ansible_os == &#39;meraki&#39;:
+    #         result = asyncio.run(
+    #             mc.meraki_get_device_cdp_lldp_neighbors(meraki_api_key,
+    #                                                     database_full_path,
+    #                                                     meraki_serials))
 
     if collector == &#39;devices_modules&#39;:
         if ansible_os == &#39;cisco.dnac&#39;:
@@ -1379,6 +1602,52 @@ indexing the SQLite database table.</dd>
                                                 netmanage_path,
                                                 play_path,
                                                 private_data_dir)
+
+    if collector == &#39;hardware_inventory&#39;:
+        if ansible_os == &#39;cisco.asa.asa&#39;:
+            result = cac.inventory(asa_devices_username,
+                                   asa_devices_password,
+                                   hostgroup,
+                                   play_path,
+                                   private_data_dir)
+
+        if ansible_os == &#39;cisco.ios.ios&#39;:
+            result = cic.inventory(ios_devices_username,
+                                   ios_devices_password,
+                                   hostgroup,
+                                   play_path,
+                                   private_data_dir)
+
+        if ansible_os == &#39;cisco.nxos.nxos&#39;:
+            result = cnc.nxos_get_inventory(nxos_devices_username,
+                                            nxos_devices_password,
+                                            hostgroup,
+                                            play_path,
+                                            private_data_dir)
+
+        if ansible_os == &#39;bigip&#39;:
+            result = f5c.inventory(f5_ltm_username,
+                                   f5_ltm_password,
+                                   hostgroup,
+                                   play_path,
+                                   private_data_dir,
+                                   validate_certs=validate_certs)
+
+        if ansible_os == &#39;paloaltonetworks.panos&#39;:
+            result = pac.inventory(palo_alto_username,
+                                   palo_alto_password,
+                                   hostgroup,
+                                   netmanage_path,
+                                   private_data_dir)
+
+    if collector == &#39;fexes_table&#39;:
+        if ansible_os == &#39;cisco.nxos.nxos&#39;:
+            result = cnc.nxos_get_fexes_table(nxos_devices_username,
+                                              nxos_devices_password,
+                                              hostgroup,
+                                              netmanage_path,
+                                              play_path,
+                                              private_data_dir)
 
     if collector == &#39;interface_description&#39;:
         if ansible_os == &#39;cisco.ios.ios&#39;:
@@ -1482,13 +1751,6 @@ indexing the SQLite database table.</dd>
                                                play_path,
                                                private_data_dir)
 
-    if collector == &#39;inventory_nxos&#39;:
-        result = cnc.nxos_get_inventory(nxos_devices_username,
-                                        nxos_devices_password,
-                                        hostgroup,
-                                        play_path,
-                                        private_data_dir)
-
     if collector == &#39;network_appliance_vlans&#39;:
         if ansible_os == &#39;meraki&#39;:
             mc.get_network_appliance_vlans(ansible_os,
@@ -1499,16 +1761,18 @@ indexing the SQLite database table.</dd>
                                            networks=meraki_networks,
                                            orgs=meraki_organizations)
 
-    if collector == &#39;network_clients&#39;:
-        if ansible_os == &#39;meraki&#39;:
-            result = asyncio.run(
-                mc.meraki_get_network_clients(meraki_api_key,
-                                              networks=meraki_networks,
-                                              macs=meraki_macs,
-                                              orgs=meraki_organizations,
-                                              per_page=meraki_per_page,
-                                              timespan=meraki_lookback,
-                                              total_pages=meraki_tp))
+    # This needs to be implemented differently, because asyncio.run does not
+    # work when run inside iPython (including Jupyter).
+    # if collector == &#39;network_clients&#39;:
+    #     if ansible_os == &#39;meraki&#39;:
+    #         result = asyncio.run(
+    #             mc.meraki_get_network_clients(meraki_api_key,
+    #                                           networks=meraki_networks,
+    #                                           macs=meraki_macs,
+    #                                           orgs=meraki_organizations,
+    #                                           per_page=meraki_per_page,
+    #                                           timespan=meraki_lookback,
+    #                                           total_pages=meraki_tp))
 
     if collector == &#39;network_devices&#39;:
         if ansible_os == &#39;meraki&#39;:
@@ -1548,6 +1812,21 @@ indexing the SQLite database table.</dd>
                                                 orgs=meraki_organizations,
                                                 use_db=True)
 
+    if collector == &#39;ospf_neighbors&#39;:
+        if ansible_os == &#39;cisco.ios.ios&#39;:
+            result = cic.ospf_neighbors(ios_devices_username,
+                                        ios_devices_password,
+                                        hostgroup,
+                                        play_path,
+                                        private_data_dir)
+
+        if ansible_os == &#39;paloaltonetworks.panos&#39;:
+            result = pac.ospf_neighbors(palo_alto_username,
+                                        palo_alto_password,
+                                        hostgroup,
+                                        netmanage_path,
+                                        private_data_dir)
+
     if collector == &#39;switch_lldp_neighbors&#39;:
         if ansible_os == &#39;meraki&#39;:
             result = mc.meraki_get_switch_lldp_neighbors(database_full_path)
@@ -1564,6 +1843,14 @@ indexing the SQLite database table.</dd>
                                                       database_full_path,
                                                       meraki_networks,
                                                       timestamp)
+
+    if collector == &#39;security_rules&#39;:
+        if ansible_os == &#39;paloaltonetworks.panos&#39;:
+            result = pac.get_security_rules(palo_alto_username,
+                                            palo_alto_password,
+                                            hostgroup,
+                                            play_path,
+                                            private_data_dir)
 
     if collector == &#39;netbox_get_ipam_prefixes&#39;:
         result = nbc.netbox_get_ipam_prefixes(netbox_url, netbox_token)
@@ -1642,6 +1929,13 @@ indexing the SQLite database table.</dd>
                                                     hostgroup,
                                                     play_path,
                                                     private_data_dir)
+
+    if collector == &#39;appliance_uplink_statuses&#39;:
+        if ansible_os == &#39;meraki&#39;:
+            result = mc.meraki_get_org_appliance_uplink_statuses(
+                meraki_api_key,
+                database_full_path,
+                meraki_organizations)
 
     if collector == &#39;vpc_state&#39;:
         if ansible_os == &#39;cisco.nxos.nxos&#39;:

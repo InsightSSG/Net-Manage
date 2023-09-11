@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>helpers API documentation</title>
+<title>helpers.f5_helpers API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,38 +19,139 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Package <code>helpers</code></h1>
+<h1 class="title">Module <code>helpers.f5_helpers</code></h1>
 </header>
 <section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import re
+from datetime import datetime, timedelta
+from typing import Tuple, Union
+
+
+def convert_tmsh_time(tmsh_time: str, adjust_end_date=False) -&gt; \
+        Union[str, Tuple[str, str]]:
+    &#34;&#34;&#34;
+    Convert F5&#39;s tmsh format time to ISO 8601 format time.
+
+    For inputs like &#39;now-2d&#39;, this function returns a tuple containing start
+    and end times in ISO 8601 format. If a single date or datetime is provided,
+    it returns a string representation of that date or datetime in ISO 8601
+    format.
+
+    Parameters
+    ----------
+    tmsh_time : str
+        Time in F5&#39;s tmsh format.
+    adjust_end_date : bool, optional
+        If True, adjusts the end date by adding an extra day. Useful when
+        specifying date ranges. Defaults to False.
+
+    Returns
+    -------
+    Union[str, Tuple[str, str]]
+        Either a single date-time string or a tuple containing start and end
+        date-times.
+    &#34;&#34;&#34;
+    if &#39;now&#39; in tmsh_time:
+        end_time = datetime.utcnow()
+        match = re.search(r&#39;-(\d+)d&#39;, tmsh_time)
+        if match:
+            days = int(match.group(1))
+            start_time = end_time - timedelta(days=days)
+            return (start_time.strftime(&#39;%Y-%m-%dT%H:%M:%SZ&#39;),
+                    end_time.strftime(&#39;%Y-%m-%dT%H:%M:%SZ&#39;))
+        else:
+            return end_time.strftime(&#39;%Y-%m-%dT%H:%M:%SZ&#39;)
+    elif re.match(r&#39;^\d{4}-\d{2}-\d{2}$&#39;, tmsh_time):  # if &#39;YYYY-MM-DD&#39; format
+        end_time = datetime.strptime(tmsh_time, &#39;%Y-%m-%d&#39;)
+        if adjust_end_date:
+            end_time += timedelta(days=1)
+    else:
+        end_time = datetime.strptime(tmsh_time, &#39;%Y-%m-%dT%H:%M:%SZ&#39;)
+    return end_time.strftime(&#39;%Y-%m-%dT%H:%M:%SZ&#39;)</code></pre>
+</details>
 </section>
 <section>
-<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt><code class="name"><a title="helpers.f5_helpers" href="f5_helpers.html">helpers.f5_helpers</a></code></dt>
+<dt id="helpers.f5_helpers.convert_tmsh_time"><code class="name flex">
+<span>def <span class="ident">convert_tmsh_time</span></span>(<span>tmsh_time: str, adjust_end_date=False) ‑> Union[str, Tuple[str, str]]</span>
+</code></dt>
 <dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="helpers.helpers" href="helpers.html">helpers.helpers</a></code></dt>
-<dd>
-<div class="desc"><p>A library of generic helper functions.</p></div>
-</dd>
-<dt><code class="name"><a title="helpers.netbox_helpers" href="netbox_helpers.html">helpers.netbox_helpers</a></code></dt>
-<dd>
-<div class="desc"><p>A collection of helper functions for Netbox operations.</p></div>
-</dd>
-<dt><code class="name"><a title="helpers.obfuscate_addresses" href="obfuscate_addresses.html">helpers.obfuscate_addresses</a></code></dt>
-<dd>
-<div class="desc"><p>IP and Subnet Transformation Module …</p></div>
-</dd>
-<dt><code class="name"><a title="helpers.report_helpers" href="report_helpers.html">helpers.report_helpers</a></code></dt>
-<dd>
-<div class="desc"><p>Helpers specifically for running reports scripts.</p></div>
+<div class="desc"><p>Convert F5's tmsh format time to ISO 8601 format time.</p>
+<p>For inputs like 'now-2d', this function returns a tuple containing start
+and end times in ISO 8601 format. If a single date or datetime is provided,
+it returns a string representation of that date or datetime in ISO 8601
+format.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>tmsh_time</code></strong> :&ensp;<code>str</code></dt>
+<dd>Time in F5's tmsh format.</dd>
+<dt><strong><code>adjust_end_date</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>If True, adjusts the end date by adding an extra day. Useful when
+specifying date ranges. Defaults to False.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Union[str, Tuple[str, str]]</code></dt>
+<dd>Either a single date-time string or a tuple containing start and end
+date-times.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def convert_tmsh_time(tmsh_time: str, adjust_end_date=False) -&gt; \
+        Union[str, Tuple[str, str]]:
+    &#34;&#34;&#34;
+    Convert F5&#39;s tmsh format time to ISO 8601 format time.
+
+    For inputs like &#39;now-2d&#39;, this function returns a tuple containing start
+    and end times in ISO 8601 format. If a single date or datetime is provided,
+    it returns a string representation of that date or datetime in ISO 8601
+    format.
+
+    Parameters
+    ----------
+    tmsh_time : str
+        Time in F5&#39;s tmsh format.
+    adjust_end_date : bool, optional
+        If True, adjusts the end date by adding an extra day. Useful when
+        specifying date ranges. Defaults to False.
+
+    Returns
+    -------
+    Union[str, Tuple[str, str]]
+        Either a single date-time string or a tuple containing start and end
+        date-times.
+    &#34;&#34;&#34;
+    if &#39;now&#39; in tmsh_time:
+        end_time = datetime.utcnow()
+        match = re.search(r&#39;-(\d+)d&#39;, tmsh_time)
+        if match:
+            days = int(match.group(1))
+            start_time = end_time - timedelta(days=days)
+            return (start_time.strftime(&#39;%Y-%m-%dT%H:%M:%SZ&#39;),
+                    end_time.strftime(&#39;%Y-%m-%dT%H:%M:%SZ&#39;))
+        else:
+            return end_time.strftime(&#39;%Y-%m-%dT%H:%M:%SZ&#39;)
+    elif re.match(r&#39;^\d{4}-\d{2}-\d{2}$&#39;, tmsh_time):  # if &#39;YYYY-MM-DD&#39; format
+        end_time = datetime.strptime(tmsh_time, &#39;%Y-%m-%d&#39;)
+        if adjust_end_date:
+            end_time += timedelta(days=1)
+    else:
+        end_time = datetime.strptime(tmsh_time, &#39;%Y-%m-%dT%H:%M:%SZ&#39;)
+    return end_time.strftime(&#39;%Y-%m-%dT%H:%M:%SZ&#39;)</code></pre>
+</details>
 </dd>
 </dl>
-</section>
-<section>
-</section>
-<section>
 </section>
 <section>
 </section>
@@ -61,13 +162,14 @@
 <ul></ul>
 </div>
 <ul id="index">
-<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<li><h3>Super-module</h3>
 <ul>
-<li><code><a title="helpers.f5_helpers" href="f5_helpers.html">helpers.f5_helpers</a></code></li>
-<li><code><a title="helpers.helpers" href="helpers.html">helpers.helpers</a></code></li>
-<li><code><a title="helpers.netbox_helpers" href="netbox_helpers.html">helpers.netbox_helpers</a></code></li>
-<li><code><a title="helpers.obfuscate_addresses" href="obfuscate_addresses.html">helpers.obfuscate_addresses</a></code></li>
-<li><code><a title="helpers.report_helpers" href="report_helpers.html">helpers.report_helpers</a></code></li>
+<li><code><a title="helpers" href="index.html">helpers</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="helpers.f5_helpers.convert_tmsh_time" href="#helpers.f5_helpers.convert_tmsh_time">convert_tmsh_time</a></code></li>
 </ul>
 </li>
 </ul>

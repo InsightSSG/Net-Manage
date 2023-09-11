@@ -107,8 +107,24 @@ For a comprehensive guide on the usage and functionalities of Net-Manage, refer 
 
 - **[Helpers](./html/helpers/index.html)**
   - [Helpers](./html/helpers/helpers.html)
+  - [F5 Helpers](./html/helpers/f5_helpers.html)
   - [Netbox Helpers](./html/helpers/netbox_helpers.html)
+  - [Obfuscate Addresses](./html/helpers/obfuscate_addresses.html)
   - [Report Helpers](./html/helpers/report_helpers.html)
+
+- **[Parsers](./html/parsers/index.html)**
+  - [Cisco ASA Parsers](./html/parsers/cisco_asa_parsers.html)
+  - [Cisco IOS Parsers](./html/parsers/cisco_ios_parsers.html)
+  - [Cisco NXOS Parsers](./html/parsers/cisco_nxos_parsers.html)
+  - [F5 Parsers](./html/parsers/f5_parsers.html)
+  - [Palo Alto Parsers](./html/parsers/palo_alto_parsers.html)
+
+- **[Updaters](./html/updaters/index.html)**
+  - [Netbox Updaters](./html/updaters/netbox_updaters.html)
+
+- **[Writers](./html/writers/index.html)**
+  - [Cisco NXOS Writers](./html/writers/cisco_nxos_writers.html)
+  - [Netbox Writers](./html/writers/netbox_writers.html)
 
 - **[Run Collectors](./html/run_collectors.html)**
 - **[Setup](./html/setup.html)**
