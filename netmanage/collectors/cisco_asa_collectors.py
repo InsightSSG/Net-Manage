@@ -3,7 +3,7 @@
 import ansible_runner
 import pandas as pd
 
-from netmanage.helpers import helpers as hp
+from netmanage.parsers import cisco_asa_parsers as parser
 
 
 def get_interface_ips(username: str,
@@ -46,54 +46,48 @@ def get_interface_ips(username: str,
                                 extravars=extravars,
                                 suppress_env_files=True)
 
-    # Parse the results
-    df_data = list()
-    for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
+    # Parse results into df
+    return parser.asa_parse_interface_ips(runner)
 
-            device = event_data['remote_addr']
 
-            output = event_data['res']['stdout'][0].split('\n')
+def inventory(username: str,
+              password: str,
+              host_group: str,
+              play_path: str,
+              private_data_dir: str) -> pd.DataFrame:
+    '''
+    Get the inventory for Cisco IOS and IOS-XE devices.
 
-            output = [_.strip('\t') for _ in output]
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
 
-            output = [_ for _ in output if _.split()[0] == 'Interface' or
-                      ' '.join(_.split()[:2]) == 'IP address']
+    Returns
+    -------
+    df : pd.DataFrame
+        A DataFrame containing the interfaces and IP addresses.
+    '''
+    cmd = 'show inventory'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
 
-            counter = 0
-            for line in output:
-                counter += 1
-                line = line.split(',')
-                if line[0].split()[0] == 'Interface' and \
-                        '"' in line[0].split()[-1]:
-                    inf = line[0].split()[1]
-                    nameif = line[0].split()[2].strip('"')
+    # Execute the command
+    playbook = f'{play_path}/cisco_ios_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
 
-                    _line = output[counter]
-                    if 'unassigned' in _line:
-                        ip = 'unassigned'
-                        netmask = 'unassigned'
-                    else:
-                        ip = _line.split(',')[0].split()[-1]
-                        netmask = _line.split(',')[-1].split()[-1]
-                        cidr = hp.convert_mask_to_cidr(netmask)
-                        ip = f'{ip}/{cidr}'
-
-                    row = [device, inf, ip, nameif]
-                    df_data.append(row)
-    # Create a dataframe from df_data and return it
-    cols = ['device', 'interface', 'ip', 'nameif']
-    df = pd.DataFrame(data=df_data, columns=cols)
-
-    # Filter out interfaces that do not have an IP address.
-    df = df[df['ip'] != 'unassigned']
-
-    # Add the subnets, network IPs, and broadcast IPs.
-    addresses = df['ip'].to_list()
-    result = hp.generate_subnet_details(addresses)
-    df['subnet'] = result['subnet']
-    df['network_ip'] = result['network_ip']
-    df['broadcast_ip'] = result['broadcast_ip']
-
-    return df
+    # Parse results into df
+    return parser.asa_parse_inventory(runner)

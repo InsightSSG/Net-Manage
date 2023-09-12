@@ -31,24 +31,29 @@ Example:
 import argparse
 import ipaddress
 
-# Set up argument parser
-parser = argparse.ArgumentParser(
-    description='Tokenize IP addresses and subnets while retaining format.')
-parser.add_argument('-i', '--ip_addresses',  # nargs='+',
-                    help='''Comma-delimited list of IP addresses (with or
-                            without CIDR or subnet mask) to be tested, wrapped
-                            in quotes.''')
-parser.add_argument('-o', '--offset', type=int,
-                    help='Offset used for transformations.')
 
-# Parse the arguments
-args = parser.parse_args()
+def parse_args():
+    """Setup argument parser."""
+    parser = argparse.ArgumentParser(description='''Tokenize IP addresses and
+                                                    subnets while retaining
+                                                    format.''')
+    parser.add_argument('-i', '--ip_addresses',  # nargs='+',
+                        help='''Comma-delimited list of IP addresses (with or
+                                without CIDR or subnet mask) to be tested,
+                                wrapped in quotes.''')
+    parser.add_argument('-o', '--offset', type=int,
+                        help='Offset used for transformations.')
 
-# Use parsed arguments if provided, else use defaults.
-ip_addresses_to_test = [_.strip() for _ in args.ip_addresses.split(',')] \
-    if args.ip_addresses else [
-    "66.119.107.6", "10.10.100.10/25", "172.21.243.18 255.255.255.0"]
-offset_to_use = args.offset if args.offset else 98765432
+    # Parse the arguments
+    args = parser.parse_args()
+
+    # Use parsed arguments if provided, else use defaults.
+    ip_addresses_to_test = [_.strip() for _ in args.ip_addresses.split(',')] \
+        if args.ip_addresses else [
+        "66.119.107.6", "10.10.100.10/25", "172.21.243.18 255.255.255.0"]
+    offset_to_use = args.offset if args.offset else 98765432
+
+    return ip_addresses_to_test, offset_to_use
 
 
 def ip_to_int(ip: str) -> int:
@@ -212,7 +217,8 @@ def test_module(ip_addresses=["66.119.107.6",
     ------
     str
         Validation results for each IP address tested.
-"""
+    """
+    ip_addresses, offset = parse_args()
     for value in ip_addresses:
         is_valid = False
         if "/" in value:
@@ -244,4 +250,4 @@ def test_module(ip_addresses=["66.119.107.6",
 
 # Call the test_module function with the specified or default parameters
 if __name__ == '__main__':
-    test_module(ip_addresses=ip_addresses_to_test, offset=offset_to_use)
+    test_module()

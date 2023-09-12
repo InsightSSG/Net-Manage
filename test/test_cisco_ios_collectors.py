@@ -1,24 +1,27 @@
 #!/usr/bin/env python3
 
 import os
+import sys
 from dotenv import load_dotenv
+sys.path.append('.')
 from netmanage.collectors import cisco_ios_collectors as collectors  # noqa
+from netmanage.helpers import helpers as hp  # noqa
 
 load_dotenv()
 
 
-def test_get_arp_table(username,
-                       password,
+def test_get_arp_table(ios_devices_username,
+                       ios_devices_password,
                        host_group,
-                       nm_path,
+                       netmanage_path,
                        play_path,
                        private_data_dir):
     """Test the 'ios_get_arp_table' collector.
     """
-    df_arp = collectors.ios_get_arp_table(username,
-                                          password,
+    df_arp = collectors.ios_get_arp_table(ios_devices_username,
+                                          ios_devices_password,
                                           host_group,
-                                          nm_path,
+                                          netmanage_path,
                                           play_path,
                                           private_data_dir)
 
@@ -35,19 +38,19 @@ def test_get_arp_table(username,
     assert len(df_arp) >= 1
 
 
-def test_get_cam_table(username,
-                       password,
+def test_get_cam_table(ios_devices_username,
+                       ios_devices_password,
                        host_group,
-                       nm_path,
+                       netmanage_path,
                        play_path,
                        private_data_dir,
                        interface=None):
     """Test the 'ios_get_cam_table' collector.
     """
-    df_cam = collectors.ios_get_cam_table(username,
-                                          password,
+    df_cam = collectors.ios_get_cam_table(ios_devices_username,
+                                          ios_devices_password,
                                           host_group,
-                                          nm_path,
+                                          netmanage_path,
                                           play_path,
                                           private_data_dir,
                                           interface=None)
@@ -58,16 +61,16 @@ def test_get_cam_table(username,
     assert len(df_cam) >= 1
 
 
-def test_get_interface_descriptions(username,
-                                    password,
+def test_get_interface_descriptions(ios_devices_username,
+                                    ios_devices_password,
                                     host_group,
                                     play_path,
                                     private_data_dir,
                                     interface=None):
     """Test the 'ios_get_interface_descriptions' collector.
     """
-    df_desc = collectors.ios_get_interface_descriptions(username,
-                                                        password,
+    df_desc = collectors.ios_get_interface_descriptions(ios_devices_username,
+                                                        ios_devices_password,
                                                         host_group,
                                                         play_path,
                                                         private_data_dir,
@@ -79,15 +82,42 @@ def test_get_interface_descriptions(username,
     assert len(df_desc) >= 1
 
 
-def test_get_vrfs(username: str,
-                  password: str,
+def test_ios_get_interface_ips(ios_devices_username,
+                               ios_devices_password,
+                               host_group,
+                               play_path,
+                               private_data_dir):
+    """Test the 'ios_get_interface_descriptions' collector.
+    """
+    df = collectors.ios_get_interface_ips(ios_devices_username,
+                                          ios_devices_password,
+                                          host_group,
+                                          play_path,
+                                          private_data_dir)
+
+    expected = ['device',
+                'interface',
+                'ip',
+                'cidr',
+                'vrf',
+                'subnet',
+                'network_ip',
+                'broadcast_ip']
+
+    assert df.columns.to_list() == expected
+
+    assert len(df) >= 1
+
+
+def test_get_vrfs(ios_devices_username: str,
+                  ios_devices_password: str,
                   host_group: str,
                   play_path: str,
                   private_data_dir: str):
     """Test the 'get_vrfs' collector.
     """
-    df = collectors.get_vrfs(username,
-                             password,
+    df = collectors.get_vrfs(ios_devices_username,
+                             ios_devices_password,
                              host_group,
                              play_path,
                              private_data_dir)
@@ -99,44 +129,91 @@ def test_get_vrfs(username: str,
     assert len(df) >= 1
 
 
+def test_inventory(ios_devices_username,
+                   ios_devices_password,
+                   host_group,
+                   play_path,
+                   private_data_dir,
+                   interface=None):
+    """Test the 'ios_inventory' collector."""
+    df = collectors.inventory(ios_devices_username,
+                              ios_devices_password,
+                              host_group,
+                              play_path,
+                              private_data_dir)
+
+    expected = ['device',
+                'name',
+                'description',
+                'pid',
+                'vid',
+                'serial']
+
+    assert df.columns.to_list() == expected
+
+    assert len(df) >= 1
+
+
 def main():
-    username = os.environ.get('USERNAME')
-    password = os.environ.get('PASSWORD')
-    host_group_all = os.environ.get('IOS_HOST_GROUP_ALL')
-    host_group_l2 = os.environ.get('IOS_L2_HOST_GROUP')
-    # host_group_l3 = os.environ.get('IOS_L3_HOST_GROUP')
-    nm_path = os.environ.get('NM_PATH')
-    play_path = os.environ.get('PLAY_PATH')
-    private_data_dir = os.environ.get('PRIVATE_DATA_DIR')
+    # Read environment variables.
+    database_path = os.path.expanduser(os.environ['database_path'])
+    host_group = os.environ.get('ios_host_group')
+    netmanage_path = os.path.expanduser(
+        os.environ['netmanage_path'].rstrip('/'))
+    private_data_dir = os.path.expanduser(
+        os.environ['private_data_directory'])
+
+    ios_devices_username = os.environ['ios_devices_username']
+    ios_devices_password = os.environ['ios_devices_password']
+
+    # Create the output folder if it does not already exist.
+    exists = hp.check_dir_existence(database_path)
+    if not exists:
+        hp.create_dir(database_path)
+
+    # Define additional variables
+    play_path = netmanage_path + '/playbooks'
 
     # Execute tests
-    test_get_arp_table(username,
-                       password,
-                       host_group_all,
-                       nm_path,
+    test_get_arp_table(ios_devices_username,
+                       ios_devices_password,
+                       host_group,
+                       netmanage_path,
                        play_path,
                        private_data_dir)
 
-    test_get_cam_table(username,
-                       password,
-                       host_group_l2,
-                       nm_path,
+    test_get_cam_table(ios_devices_username,
+                       ios_devices_password,
+                       host_group,
+                       netmanage_path,
                        play_path,
                        private_data_dir,
                        interface=None)
 
-    test_get_interface_descriptions(username,
-                                    password,
-                                    host_group_all,
+    test_get_interface_descriptions(ios_devices_username,
+                                    ios_devices_password,
+                                    host_group,
                                     play_path,
                                     private_data_dir,
                                     interface=None)
 
-    test_get_vrfs(username,
-                  password,
-                  host_group_all,
+    test_ios_get_interface_ips(ios_devices_username,
+                               ios_devices_password,
+                               host_group,
+                               play_path,
+                               private_data_dir)
+
+    test_get_vrfs(ios_devices_username,
+                  ios_devices_password,
+                  host_group,
                   play_path,
                   private_data_dir)
+
+    test_inventory(ios_devices_username,
+                   ios_devices_password,
+                   host_group,
+                   play_path,
+                   private_data_dir)
 
 
 if __name__ == '__main__':

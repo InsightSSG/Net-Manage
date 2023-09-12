@@ -6,7 +6,7 @@ Define collectors and map them to the correct function in colletors.py.
 
 import argparse
 import ast
-import asyncio
+# import asyncio  # Temporarily disabled; does not work inside iPython.
 import datetime as dt
 import os
 import pandas as pd
@@ -59,7 +59,7 @@ def collect(ansible_os: str,
     database_name = os.environ['database_name']
     database_path = os.path.expanduser(os.environ['database_path'])
     netmanage_path = os.path.expanduser(
-        os.environ['netmanage_path'].strip('/'))
+        os.environ['netmanage_path'].rstrip('/'))
     private_data_dir = os.path.expanduser(
         os.environ['private_data_directory'])
     validate_certs = ast.literal_eval(os.environ['validate_certs'])
@@ -103,9 +103,6 @@ def collect(ansible_os: str,
         None, os.environ['meraki_networks'].split(',')))
     meraki_organizations = list(filter(
         None, os.environ['meraki_organizations'].split(',')))
-    meraki_macs = os.environ['meraki_macs']
-    meraki_lookback = os.environ['meraki_lookback_timespan']
-    meraki_per_page = os.environ['meraki_per_page']
     meraki_serials = list(filter(
         None, os.environ['meraki_serials'].split(',')))
     meraki_serials = [_.strip() for _ in meraki_serials]
@@ -113,6 +110,11 @@ def collect(ansible_os: str,
         meraki_tp = int(os.environ['meraki_total_pages'])
     except ValueError:
         meraki_tp = -1
+    # These 3 variables are temporarily commented out until we re-enable the
+    # asyncio collectors.
+    # meraki_macs = os.environ['meraki_macs']
+    # meraki_lookback = os.environ['meraki_lookback_timespan']
+    # meraki_per_page = os.environ['meraki_per_page']
 
     # Read Netbox variables
     netbox_url = os.environ['netbox_url']
@@ -255,13 +257,20 @@ def collect(ansible_os: str,
                                         private_data_dir,
                                         validate_certs=validate_certs)
 
-    if collector == 'bgp_neighbors_summary':
+    if collector == 'bgp_neighbors':
         if ansible_os == 'cisco.ios.ios':
-            result = cic.bgp_neighbor_summary(ios_devices_username,
-                                              ios_devices_password,
-                                              hostgroup,
-                                              play_path,
-                                              private_data_dir)
+            result = cic.bgp_neighbors(ios_devices_username,
+                                       ios_devices_password,
+                                       hostgroup,
+                                       play_path,
+                                       private_data_dir)
+
+        if ansible_os == 'paloaltonetworks.panos':
+            result = pac.bgp_neighbors(palo_alto_username,
+                                       palo_alto_password,
+                                       hostgroup,
+                                       netmanage_path,
+                                       private_data_dir)
 
         if ansible_os == 'cisco.nxos.nxos':
             result = cnc.nxos_get_bgp_neighbors(nxos_devices_username,
@@ -279,12 +288,14 @@ def collect(ansible_os: str,
                                            platform_ids=dnac_platform_ids,
                                            verify=validate_certs)
 
-    if collector == 'device_cdp_lldp_neighbors':
-        if ansible_os == 'meraki':
-            result = asyncio.run(
-                mc.meraki_get_device_cdp_lldp_neighbors(meraki_api_key,
-                                                        database_full_path,
-                                                        meraki_serials))
+    # This needs to be implemented differently, because asyncio.run does not
+    # work when run inside iPython (including Jupyter).
+    # if collector == 'device_cdp_lldp_neighbors':
+    #     if ansible_os == 'meraki':
+    #         result = asyncio.run(
+    #             mc.meraki_get_device_cdp_lldp_neighbors(meraki_api_key,
+    #                                                     database_full_path,
+    #                                                     meraki_serials))
 
     if collector == 'devices_modules':
         if ansible_os == 'cisco.dnac':
@@ -351,6 +362,43 @@ def collect(ansible_os: str,
                                                 netmanage_path,
                                                 play_path,
                                                 private_data_dir)
+
+    if collector == 'hardware_inventory':
+        if ansible_os == 'cisco.asa.asa':
+            result = cac.inventory(asa_devices_username,
+                                   asa_devices_password,
+                                   hostgroup,
+                                   play_path,
+                                   private_data_dir)
+
+        if ansible_os == 'cisco.ios.ios':
+            result = cic.inventory(ios_devices_username,
+                                   ios_devices_password,
+                                   hostgroup,
+                                   play_path,
+                                   private_data_dir)
+
+        if ansible_os == 'cisco.nxos.nxos':
+            result = cnc.nxos_get_inventory(nxos_devices_username,
+                                            nxos_devices_password,
+                                            hostgroup,
+                                            play_path,
+                                            private_data_dir)
+
+        if ansible_os == 'bigip':
+            result = f5c.inventory(f5_ltm_username,
+                                   f5_ltm_password,
+                                   hostgroup,
+                                   play_path,
+                                   private_data_dir,
+                                   validate_certs=validate_certs)
+
+        if ansible_os == 'paloaltonetworks.panos':
+            result = pac.inventory(palo_alto_username,
+                                   palo_alto_password,
+                                   hostgroup,
+                                   netmanage_path,
+                                   private_data_dir)
 
     if collector == 'fexes_table':
         if ansible_os == 'cisco.nxos.nxos':
@@ -463,13 +511,6 @@ def collect(ansible_os: str,
                                                play_path,
                                                private_data_dir)
 
-    if collector == 'inventory_nxos':
-        result = cnc.nxos_get_inventory(nxos_devices_username,
-                                        nxos_devices_password,
-                                        hostgroup,
-                                        play_path,
-                                        private_data_dir)
-
     if collector == 'network_appliance_vlans':
         if ansible_os == 'meraki':
             mc.get_network_appliance_vlans(ansible_os,
@@ -480,16 +521,18 @@ def collect(ansible_os: str,
                                            networks=meraki_networks,
                                            orgs=meraki_organizations)
 
-    if collector == 'network_clients':
-        if ansible_os == 'meraki':
-            result = asyncio.run(
-                mc.meraki_get_network_clients(meraki_api_key,
-                                              networks=meraki_networks,
-                                              macs=meraki_macs,
-                                              orgs=meraki_organizations,
-                                              per_page=meraki_per_page,
-                                              timespan=meraki_lookback,
-                                              total_pages=meraki_tp))
+    # This needs to be implemented differently, because asyncio.run does not
+    # work when run inside iPython (including Jupyter).
+    # if collector == 'network_clients':
+    #     if ansible_os == 'meraki':
+    #         result = asyncio.run(
+    #             mc.meraki_get_network_clients(meraki_api_key,
+    #                                           networks=meraki_networks,
+    #                                           macs=meraki_macs,
+    #                                           orgs=meraki_organizations,
+    #                                           per_page=meraki_per_page,
+    #                                           timespan=meraki_lookback,
+    #                                           total_pages=meraki_tp))
 
     if collector == 'network_devices':
         if ansible_os == 'meraki':
@@ -535,6 +578,13 @@ def collect(ansible_os: str,
                                         ios_devices_password,
                                         hostgroup,
                                         play_path,
+                                        private_data_dir)
+
+        if ansible_os == 'paloaltonetworks.panos':
+            result = pac.ospf_neighbors(palo_alto_username,
+                                        palo_alto_password,
+                                        hostgroup,
+                                        netmanage_path,
                                         private_data_dir)
 
     if collector == 'switch_lldp_neighbors':
@@ -639,6 +689,13 @@ def collect(ansible_os: str,
                                                     hostgroup,
                                                     play_path,
                                                     private_data_dir)
+
+    if collector == 'appliance_uplink_statuses':
+        if ansible_os == 'meraki':
+            result = mc.meraki_get_org_appliance_uplink_statuses(
+                meraki_api_key,
+                database_full_path,
+                meraki_organizations)
 
     if collector == 'vpc_state':
         if ansible_os == 'cisco.nxos.nxos':

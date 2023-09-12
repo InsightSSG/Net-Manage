@@ -482,13 +482,18 @@ def define_collectors(hostgroup: str) -> Dict[str, Any]:
                                 'cisco.ios.ios',
                                 'cisco.nxos.nxos',
                                 'paloaltonetworks.panos'],
-                  'bgp_neighbors_summary': ['cisco.ios.ios',
-                                            'cisco.nxos.nxos'],
+                  'bgp_neighbors': ['cisco.ios.ios',
+                                    'paloaltonetworks.panos'],
                   'cam_table': ['cisco.ios.ios', 'cisco.nxos.nxos'],
                   'config': ['cisco.ios.ios'],
                   'devices_inventory': ['cisco.dnac'],
                   'device_cdp_lldp_neighbors': ['meraki'],
                   'devices_modules': ['cisco.dnac'],
+                  'hardware_inventory': ['bigip',
+                                         'cisco.asa.asa',
+                                         'cisco.ios.ios',
+                                         'cisco.nxos.nxos',
+                                         'paloaltonetworks.panos'],
                   'fexes_table': ['cisco.nxos.nxos'],
                   'logs': ['bigip'],
                   'ncm_serial_numbers': ['solarwinds'],
@@ -502,12 +507,14 @@ def define_collectors(hostgroup: str) -> Dict[str, Any]:
                   'npm_node_os_versions': ['solarwinds'],
                   'npm_node_vendors': ['solarwinds'],
                   'npm_nodes': ['solarwinds'],
-                  'ospf_neighbors': ['cisco.ios.ios'],
+                  'ospf_neighbors': ['cisco.ios.ios',
+                                     'paloaltonetworks.panos'],
                   'node_availability': ['bigip'],
                   'pool_availability': ['bigip'],
                   'pool_member_availability': ['bigip'],
                   'pool_summary': ['bigip'],
                   'self_ips': ['bigip'],
+                  'appliance_uplink_statuses': ['meraki'],
                   'vip_availability': ['bigip'],
                   'vip_destinations': ['bigip'],
                   #  'vip_summary': ['bigip'],
@@ -528,7 +535,6 @@ def define_collectors(hostgroup: str) -> Dict[str, Any]:
                                              'paloaltonetworks.panos'],
                   'interface_status': ['cisco.nxos.nxos'],
                   'interface_summary': ['bigip', 'cisco.nxos.nxos'],
-                  'inventory_nxos': ['cisco.nxos.nxos'],
                   'network_clients': ['meraki'],
                   'network_devices': ['meraki'],
                   'network_device_statuses': ['meraki'],
@@ -668,10 +674,10 @@ def find_mac_vendors(macs: List[str], nm_path: str) -> pd.DataFrame:
 def generate_subnet_details(addresses: List[str],
                             return_keys: List[str] = ['subnet',
                                                       'network_ip',
-                                                      'broadcast_ip']) \
+                                                      'broadcast_ip',
+                                                      'subnet_mask']) \
         -> Dict[str, List[str]]:
-    '''
-    Generates the subnet, network, and broadcast IPs for a list of IPs.
+    '''Generates the subnet, network, and broadcast IPs for a list of IPs.
 
     Parameters
     ----------
@@ -679,15 +685,17 @@ def generate_subnet_details(addresses: List[str],
         List of IP addresses in the format {ip}/{subnet_mask_length}.
     return_keys : list of str, optional
         List of keys to return. Used for when a table has column names that
-        conflict with the default return_keys of 'subnet', 'network_ip', and
-        'broadcast_ip'. NOTE: The keys should be ordered so that element[0]
-        is for the 'subnet' column, element[1] for 'network_ip', and element[2]
-        for 'broadcast_ip'. Defaults to ['subnet','network_ip','broadcast_ip'].
+        conflict with the default return_keys of 'subnet', 'network_ip',
+        'broadcast_ip', and 'subnet_mask'. Defaults to ['subnet','network_ip',
+        'broadcast_ip', 'subnet_mask'].
+        NOTE: The keys should be ordered so that element[0] is for the 'subnet'
+              column, element[1] for 'network_ip', element[2] for
+              'broadcast_ip', and element[3] for 'subnet_mask'.
 
     Returns
     -------
     dict
-        A dictionary with three keys:
+        A dictionary with four keys:
         - 'subnet' : list of str
             List of subnet in CIDR notation for each IP address in the input
             list.
@@ -695,10 +703,13 @@ def generate_subnet_details(addresses: List[str],
             List of network IP for each IP address in the input list.
         - 'broadcast_ip' : list of str
             List of broadcast IP for each IP address in the input list.
+        - 'subnet_mask' : list of str
+            List of subnet masks for each IP address in the input list.
     '''
     subnet = list()
     network_ip = list()
     broadcast_ip = list()
+    subnet_mask = list()
 
     for ip in addresses:
         ip_obj = ipaddress.ip_interface(ip)
@@ -706,10 +717,14 @@ def generate_subnet_details(addresses: List[str],
         network_ip.append(str(ip_obj.network.network_address))
         brd = str(ipaddress.IPv4Address(int(ip_obj.network.broadcast_address)))
         broadcast_ip.append(brd)
+        mask = str(ip_obj.netmask)
+        subnet_mask.append(mask)
 
-    return {return_keys[0]: subnet,
-            return_keys[1]: network_ip,
-            return_keys[2]: broadcast_ip}
+    return {
+        return_keys[0]: subnet_mask,
+        return_keys[1]: network_ip,
+        return_keys[2]: broadcast_ip,
+    }
 
 
 def get_creds(prompt: str = '') -> Tuple[str, str]:
@@ -1620,6 +1635,27 @@ def download_ouis(path: str) -> None:
         for chunk in response.iter_content(chunk_size=1024):
             if chunk:
                 txt.write(chunk)
+
+
+def subnet_mask_to_cidr(masks: list) -> list:
+    """Convert a list of subnet masks to CIDR notation.
+
+    Parameters
+    ----------
+    masks : list
+        A list of subnet masks.
+
+    Returns
+    -------
+    cidrs : list
+        A list of subnet masks converted to CIDR notation.
+
+    """
+    cidrs = list()
+    for mask in masks:
+        cidr = ipaddress.ip_network(f"0.0.0.0/{mask}")
+        cidrs.append(cidr.prefixlen)
+    return cidrs
 
 
 def tabulate_df_head(df: pd.DataFrame) -> None:

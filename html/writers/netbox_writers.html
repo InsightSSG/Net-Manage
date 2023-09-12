@@ -1,0 +1,1667 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>writers.netbox_writers API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>writers.netbox_writers</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">#!/usr/bin/env python3
+
+import pynetbox
+from typing import Dict, List, Optional, Any
+from netmanage.collectors import netbox_collectors as nbc
+
+
+from pynetbox import api
+
+
+def add_cable(netbox_url: str,
+              netbox_token: str,
+              a_terminations: list,
+              b_terminations: list) -&gt; None:
+    &#34;&#34;&#34;
+    Add a cable to NetBox.
+
+    Parameters
+    ----------
+    netbox_url : str
+        The URL of the NetBox instance.
+    netbox_token : str
+        The authentication token for the NetBox API.
+    a_terminations : list
+        A list of dictionaries containing the terminations for the A side.
+    b_terminations : list
+        A list of dictionaries containing the terminations for the B side.
+
+    Notes
+    -----
+    In Netbox 3.3, cables were changed so that they can have multiple
+    terminations. This change was mentioned in the release notes, but it does
+    not seem to be documented anywhere. Even the Ansible examples are out of
+    date. The bulk import reference isn&#39;t of use either, since the field names
+    and types are different.
+
+    This version of the function works. Currently it only adds the
+    terminations. It does not have support for adding colors and lengths, etc.
+    We can add those later.
+
+    Examples
+    --------
+    &gt;&gt;&gt; netbox_token = &#39;12387asdv13&#39;
+    &gt;&gt;&gt; netbox_url = &#39;http://0.0.0.0:8000&#39;
+    &gt;&gt;&gt; add_cable(netbox_url,
+                  netbox_token,
+                  [{&#39;object_id&#39;: 22104, &#39;object_type&#39;: &#39;dcim.interface&#39;}],
+                  [{&#39;object_id&#39;: 29287, &#39;object_type&#39;: &#39;dcim.interface&#39;}])
+    &#34;&#34;&#34;
+    nb = pynetbox.api(netbox_url, netbox_token)
+
+    cable = {
+        &#39;a_terminations&#39;: a_terminations,
+        &#39;b_terminations&#39;: b_terminations
+    }
+
+    # Remove any keys that do not have values.
+    cable = {k: v for k, v in cable.items() if v}
+    print(cable)
+
+    nb.dcim.cables.create(cable)
+
+
+def add_device_to_netbox(netbox_url: str,
+                         netbox_token: str,
+                         name: str,
+                         manufacturer: str,
+                         status: str,
+                         device_role_id: str = str(),
+                         device_role_name: str = str(),
+                         device_type_id: str = str(),
+                         device_type_name: str = str(),
+                         site_id: str = str(),
+                         site_name: str = str(),
+                         tenant_id: str = str(),
+                         tenant_name: str = str(),
+                         serial: str = str(),
+                         custom_fields: dict = {},
+                         asset_tag: str = str(),
+                         location: str = str(),
+                         rack: str = str(),
+                         position: int = int(),
+                         face: str = str(),
+                         parent: str = str(),
+                         device_bay: str = str(),
+                         airflow: str = str(),
+                         virtual_chassis: str = str(),
+                         vc_position: int = int(),
+                         vc_priority: int = int(),
+                         cluster: str = str(),
+                         description: str = str(),
+                         config_context: dict = {},
+                         config_template: str = str(),
+                         comments: str = str()) -&gt; None:
+    &#34;&#34;&#34;
+    Add a new device to NetBox.
+
+    Parameters
+    ----------
+    netbox_url : str
+        The URL of the NetBox instance.
+    netbox_token : str
+        The authentication token for the NetBox API.
+    name : str
+        The name of the device.
+    manufacturer : str
+        The manufacturer of the device.
+    status : str
+        The operational status of the device.
+    device_role_id : str, optional
+        The ID of the role assigned to the device.
+    device_role_name : str, optional
+        The name of the role assigned to the device.
+    device_type_id : str, optional
+        The ID of the device type.
+    device_type_name : str, optional
+        The name of the device type.
+    site_id : str, optional
+        The ID of the site where the device is located.
+    site_name : str, optional
+        The name of the site where the device is located.
+    tenant_id : str, optional
+        The ID of the tenant that owns the device.
+    tenant_name : str, optional
+        The name of the tenant that owns the device.
+    serial : str, optional
+        The serial number of the device.
+    custom_fields : dict, optional
+        The custom fields related to the device.
+    asset_tag : str, optional
+        The asset tag of the device.
+    location : str, optional
+        The location of the device.
+    rack : str, optional
+        The rack of the device.
+    position : int, optional
+        The position of the device in the rack.
+    face : str, optional
+        The face of the device in the rack.
+    parent : str, optional
+        The parent device of the device.
+    device_bay : str, optional
+        The device bay where the device is installed.
+    airflow : str, optional
+        The airflow direction of the device.
+    virtual_chassis : str, optional
+        The virtual chassis to which the device belongs.
+    vc_position : int, optional
+        The position of the device in the virtual chassis.
+    vc_priority : int, optional
+        The priority of the device in the virtual chassis.
+    cluster : str, optional
+        The cluster to which the device belongs.
+    description : str, optional
+        The description of the device.
+    config_context : dict, optional
+        A dictionary containing the config context.
+    config_template : str, optional
+        The configuration template of the device.
+    comments : str, optional
+        Any comments about the device.
+
+    Returns
+    -------
+    None
+        This function does not return any value. It only creates the device in
+        NetBox.
+    &#34;&#34;&#34;
+    # Create an instance of the API using the provided URL and token
+    nb = api(url=netbox_url, token=netbox_token)
+
+    # If the user provided a device_role name instead of a device_role ID, then
+    # use the name of the device_role to find its ID.
+    if device_role_name and not device_role_id:
+        df = nbc.\
+            netbox_get_device_role_attributes(netbox_url,
+                                              netbox_token,
+                                              device_role=device_role_name)
+        device_role_id = str(df.loc[0, &#39;id&#39;])
+
+    # If the user provided a device_type name instead of a device_tole ID, then
+    # user the name of the device_type to find its ID.
+    if device_type_name and not device_type_id:
+        df = nbc.\
+            netbox_get_device_type_attributes(netbox_url,
+                                              netbox_token,
+                                              device_type=device_type_name)
+        device_type_id = str(df.loc[0, &#39;id&#39;])
+
+    # If the user provided a site name instead of a site ID, then use the name
+    # to find the ID.
+    if site_name and not site_id:
+        df = nbc.netbox_get_site_attributes(netbox_url,
+                                            netbox_token,
+                                            site_name)
+        site_id = str(df.loc[0, &#39;id&#39;])
+
+    # If the user provided a tenant name instead of a tenant ID, then use the
+    # name to find the ID.
+    if tenant_name and not tenant_id:
+        df = nbc.netbox_get_tenant_attributes(netbox_url,
+                                              netbox_token,
+                                              tenant_name)
+        tenant_id = str(df.iloc[0][&#39;id&#39;])
+
+    # Create the device dictionary.
+    device = {
+        &#39;name&#39;: name,
+        &#39;manufacturer&#39;: manufacturer,
+        &#39;device_role&#39;: device_role_id,
+        &#39;device_type&#39;: device_type_id,
+        &#39;status&#39;: status,
+        &#39;site&#39;: site_id,
+        &#39;tenant&#39;: tenant_id,
+        &#39;serial&#39;: serial,
+        &#39;asset_tag&#39;: asset_tag,
+        &#39;location&#39;: location,
+        &#39;rack&#39;: rack,
+        &#39;position&#39;: position,
+        &#39;face&#39;: face,
+        &#39;parent&#39;: parent,
+        &#39;device_bay&#39;: device_bay,
+        &#39;airflow&#39;: airflow,
+        &#39;virtual_chassis&#39;: virtual_chassis,
+        &#39;vc_position&#39;: vc_position,
+        &#39;vc_priority&#39;: vc_priority,
+        &#39;cluster&#39;: cluster,
+        &#39;description&#39;: description,
+        &#39;comments&#39;: comments,
+        &#39;config_context&#39;: config_context,
+        &#39;config_template&#39;: config_template,
+        &#39;custom_fields&#39;: custom_fields
+    }
+
+    # Remove any keys that do not have values.
+    device = {k: v for k, v in device.items() if v}
+
+    # Add the device to NetBox
+    try:
+        nb.dcim.devices.create(device)
+    except Exception as e:
+        raise Exception(f&#34;Error occurred while adding the device: {str(e)}&#34;)
+
+
+def add_device_role(netbox_url: str,
+                    netbox_token: str,
+                    name: str,
+                    slug: str,
+                    color: str = &#39;c0c0c0&#39;,  # Light Grey
+                    description: str = str(),
+                    vm_role: bool = False) -&gt; None:
+    &#34;&#34;&#34;
+    Create a device role in NetBox.
+
+    Parameters
+    ----------
+    netbox_url : str
+        The URL of the NetBox instance.
+    netbox_token : str
+        The authentication token for the NetBox API.
+    name : str
+        The name of the device role.
+    slug : str
+        The slug (unique identifier) for the device role.
+    color : str
+        The hexadecimal code associated with the device role. List of valid
+        codes (valid for version 3.4.5) can be found here:
+        https://tinyurl.com/netboxcolorcodes
+    description : str, optional
+        The description of the device role.
+    vm_role : bool, optional
+        Indicates whether the device role is for a virtual machine.
+
+    Returns
+    -------
+    None
+        This function does not return any value.
+
+    Raises
+    ------
+    Exception
+        If any error occurs while creating or updating the device role.
+    &#34;&#34;&#34;
+    # Create an instance of the API using the provided URL and token
+    nb = pynetbox.api(url=netbox_url, token=netbox_token)
+    # Create or update the device role
+    try:
+        nb.dcim.device_roles.create(name=name,
+                                    slug=slug,
+                                    color=color,
+                                    description=description,
+                                    vm_role=vm_role)
+    except Exception as e:
+        print(f&#34;Error while creating device role: {str(e)}&#34;)
+
+
+def add_device_type(netbox_url: str,
+                    netbox_token: str,
+                    manufacturer_name: str,
+                    model: str,
+                    slug: str,
+                    u_height: int,
+                    is_full_depth: bool = False,
+                    part_number: str = str(),
+                    subdevice_role: str = str(),
+                    airflow: str = str(),
+                    description: str = str(),
+                    weight: float = float(),
+                    weight_unit: str = str(),
+                    comments: str = str(),
+                    tags: List[str] = list()) \
+                        -&gt; pynetbox.models.dcim.DeviceTypes:
+    &#34;&#34;&#34;
+    Add a device type to NetBox.
+
+    Parameters
+    ----------
+    netbox_url : str
+        The URL of the NetBox instance.
+    netbox_token : str
+        The authentication token for the NetBox API.
+    manufacturer_name : str
+        The name of the manufacturer of the device type.
+    model : str
+        The model name of the device type.
+    slug : str
+        The slug (unique identifier) for the device type.
+    u_height : int
+        The height of the device type in rack units (U).
+    is_full_depth : bool, optional
+        Indicates whether the device consumes both front and rear rack faces.
+    part_number : str, optional
+        The part number of the device type.
+    subdevice_role : str, optional
+        The subdevice role of the device type.
+    airflow : str, optional
+        The airflow direction of the device type.
+    description : str, optional
+        The description of the device type.
+    weight : float, optional
+        The weight of the device type.
+    weight_unit : str, optional
+        The unit for the device weight.
+    comments : str, optional
+        Additional comments or notes.
+    tags : List[str], optional
+        Tags associated with the device type.
+
+    Returns
+    -------
+    device_type : pynetbox.models.dcim.DeviceTypes
+        The created DeviceType object in NetBox.
+    &#34;&#34;&#34;
+    nb = pynetbox.api(netbox_url, netbox_token)
+    manufacturer = nb.dcim.manufacturers.get(name=manufacturer_name)
+    device_type = nb.dcim.device_types.create(
+        manufacturer=manufacturer.id,
+        model=model,
+        slug=slug,
+        part_number=part_number,
+        u_height=u_height,
+        is_full_depth=is_full_depth,
+        subdevice_role=subdevice_role,
+        airflow=airflow,
+        description=description,
+        weight=weight,
+        weight_unit=weight_unit,
+        comments=comments,
+        tags=tags
+    )
+    return device_type
+
+
+def add_vrf(token: str,
+            url: str,
+            vrf_name: str,
+            description: str,
+            rd: Optional[str] = None,
+            enforce_unique: Optional[bool] = True):
+    &#34;&#34;&#34;
+    Add a new VRF to Netbox.
+
+    Parameters
+    ----------
+    token : str
+        API token for authentication.
+    url : str
+        Url of Netbox instance.
+    vrf_name : str
+        The name of the VRF to be added to Netbox.
+    description : str
+        A description for the VRF.
+    rd : Optional[str], Default None
+        The route distinguisher for the VRF.
+    enforce_unique : Optional[bool], Default True
+        Whether duplicate VRF names should be disallowed (True) or allowed
+        (False).
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    pynetbox.RequestError
+        If there is any problem in the request to Netbox API.
+
+    Notes
+    -------
+    A RequestError is thrown if there is a duplicate VRF name, but ONLY if
+    the option to disallow duplicate VRF names is either passed to the function
+    as &#39;enforce_unique=True&#39; (the default) or has been enabled inside of Netbox
+    (it is disabled by default). The option to enforce unique VRF names can be
+    enabled globally or for certain groups of prefixes. See this URL for more
+    information:
+    - https://demo.netbox.dev/static/docs/core-functionality/ipam/
+    - https://demo.netbox.dev/static/docs/configuration/dynamic-settings/
+
+    &#34;&#34;&#34;
+    nb = pynetbox.api(url, token=token)
+    data = {
+        &#39;name&#39;: vrf_name,
+        &#39;rd&#39;: rd,
+        &#39;description&#39;: description,
+        &#39;enforce_unique&#39;: enforce_unique
+    }
+    try:
+        nb.ipam.vrfs.create(data)
+    except pynetbox.RequestError as e:
+        print(f&#39;[{vrf_name}]: {str(e)}&#39;)
+
+
+def add_prefix(token: str,
+               url: str,
+               prefix: str,
+               description: str,
+               site: Optional[str] = None,
+               tenant: Optional[str] = None,
+               vrf: Optional[str] = None):
+    &#34;&#34;&#34;
+    Add a new prefix to Netbox IPAM.
+
+    Parameters
+    ----------
+    token : str
+        API token for authentication.
+    url : str
+        Url of Netbox instance.
+    prefix : str
+        The prefix to be added to Netbox IPAM in CIDR notation.
+    description: str
+        A description for the prefix.
+    site: Optional[str], Default None
+        The slug of the Site where the prefix belongs.
+    tenant: Optional[str], Default None
+        The slug of the Tenant in which the prefix is located.
+    vrf: Optional[str], Default None
+        The name of the VRF.
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    pynetbox.RequestError
+        If there is any problem in the request to Netbox API.
+
+    Notes
+    -------
+    A RequestError is thrown if there is a duplicate prefix, but ONLY if
+    the option to allow duplicate prefixes has been disabled (it is enabled by
+    default). The option to disallow duplicate prefixes can be  disabled on a
+    vrf-by-vrf basis. For prefixes that are not in VRFs, it can be disabled
+    globally. See these URLs for more information:
+    - https://demo.netbox.dev/static/docs/core-functionality/ipam/
+    - https://demo.netbox.dev/static/docs/configuration/dynamic-settings/
+    &#34;&#34;&#34;
+    nb = pynetbox.api(url, token=token)
+
+    # If a VRF was provided, then get its ID.
+    if vrf:
+        result = nbc.netbox_get_vrf_details(url, token, vrf)
+        vrf = str(result.iloc[0][&#39;id&#39;])
+
+    data = {
+        &#39;prefix&#39;: prefix,
+        &#39;site&#39;: site,
+        &#39;description&#39;: description,
+        &#39;tenant&#39;: tenant,
+        &#39;vrf&#39;: vrf
+    }
+    try:
+        nb.ipam.prefixes.create(data)
+    except pynetbox.RequestError as e:
+        print(f&#39;[{prefix}]: {str(e)}&#39;)
+
+
+def add_site(token: str,
+             url: str,
+             name: str,
+             slug: str,
+             status: str,
+             latitude: Optional[float] = None,
+             longitude: Optional[float] = None,
+             physical_address: Optional[str] = None,
+             shipping_address: Optional[str] = None,
+             tenant_id: Optional[str] = None,
+             tenant_name: Optional[str] = None,
+             timezone: Optional[str] = None,
+             meraki_organization_id: Optional[int] = None,
+             meraki_network_id: Optional[str] = None,
+             meraki_product_types: Optional[str] = None,
+             meraki_tags: Optional[str] = None,
+             meraki_enrollement_string: Optional[str] = None,
+             meraki_configTemplateId: Optional[str] = None,
+             meraki_isBoundToConfigTemplate: Optional[bool] = None,
+             meraki_notes: Optional[str] = None,
+             meraki_site_url: Optional[str] = None,
+             ) -&gt; Dict[str, Any]:
+    &#34;&#34;&#34;
+    Create a new site in Netbox with custom Meraki fields.
+
+    Parameters
+    ----------
+    token : str
+        API token for authentication.
+    url : str
+        Url of Netbox instance.
+    name (str):
+        The name of the site.
+    slug (str):
+        The slug for the site.
+    status (str):
+        The status of the site. Valid statuses are &#39;planned&#39;, &#39;staging&#39;,
+        &#39;active&#39;, &#39;decommissioning&#39;, &#39;retired&#39;.
+    latitude (float, optional):
+        The latitude of the site. Defaults to None.
+    longitude (float, optional):
+        The longitude of the site. Defaults to None.
+    physical_address (str, optional):
+        The physical address for the site. Defaults to None.
+    shipping_address (str, optional):
+        The shipping address for the site. Defaults to None.
+    tenant_id (str, optional):
+        The numeric ID of the tenant. Defaults to None.
+    tenant_name (str, optional):
+        The name of the tenant. Defaults to None.
+    timezone (str, optional):
+        The time zone for the site. Valid options are found here:
+        https://en.wikipedia.org/wiki/List_of_tz_database_time_zones.
+    meraki_organization_id (int, optional):
+        The Meraki organization ID associated with the site. Defaults to None.
+    meraki_network_id (str, optional):
+        The Meraki network ID associated with the site. Defaults to None.
+    meraki_product_types (str, optional):
+        The Meraki product types for the site. Defaults to None.
+    meraki_tags (str, optional):
+        The Meraki tags for the site. Defaults to None.
+    meraki_enrollement_string (str, optional):
+        The Meraki enrollment string for the site. Defaults to None.
+    meraki_configTemplateId (str, optional):
+        The Meraki config template ID for the site. Defaults to None.
+    meraki_isBoundToConfigTemplate (bool, optional):
+        Whether the site is bound to a Meraki config template. Defaults to
+        None.
+    meraki_notes (str, optional):
+        Any notes related to the Meraki configuration for the site. Defaults
+        to None.
+    meraki_site_url (str, optional):
+        The URL associated with the site. Defaults to None.
+
+    Returns:
+    ----------
+    dict: The response from the Netbox API when adding the site.
+    &#34;&#34;&#34;
+    # Initialize pynetbox API and site payload
+    api = pynetbox.api(url=url, token=token)
+    site = {&#34;name&#34;: name,
+            &#34;slug&#34;: slug,
+            &#34;status&#34;: status}
+
+    # Check which optional fields are passed and add them to the site payload
+    # as appropriate.
+    if tenant_id:
+        site[&#34;tenant&#34;] = tenant_id
+    if tenant_name:
+        tenant_df = nbc.netbox_get_tenant_attributes(url, token, tenant_name)
+        site[&#34;tenant&#34;] = str(tenant_df.iloc[0][&#34;id&#34;])
+    if physical_address:
+        site[&#34;physical_address&#34;] = physical_address
+    if shipping_address:
+        site[&#34;shipping_address&#34;] = shipping_address
+    if latitude:
+        site[&#34;latitude&#34;] = latitude
+    if longitude:
+        site[&#34;longitude&#34;] = longitude
+    if timezone:
+        site[&#34;time_zone&#34;] = timezone
+
+    # Check which Meraki fields are passed and add them to the site payload as
+    # appropriate.
+    if meraki_organization_id:
+        site[&#34;custom_fields__meraki_organization_id&#34;] = meraki_organization_id
+    if meraki_network_id:
+        site[&#34;custom_fields__meraki_network_id&#34;] = meraki_network_id
+    if meraki_product_types:
+        site[&#34;custom_fields__meraki_product_types&#34;] = meraki_product_types
+    if meraki_tags:
+        site[&#34;custom_fields__meraki_tags&#34;] = meraki_tags
+    if meraki_enrollement_string:
+        site[&#34;custom_fields__meraki_enrollment_string&#34;] = \
+            meraki_enrollement_string
+    if meraki_configTemplateId:
+        site[&#34;custom_fields__meraki_configTemplateId&#34;] = \
+            meraki_configTemplateId
+    if meraki_isBoundToConfigTemplate is not None:
+        site[&#34;custom_fields__meraki_isBoundToConfigTemplate&#34;] = \
+            meraki_isBoundToConfigTemplate
+    if meraki_notes:
+        site[&#34;custom_fields__meraki_notes&#34;] = meraki_notes
+    if meraki_site_url:
+        site[&#34;custom_fields__url&#34;] = meraki_site_url
+
+    # Send the API request to add the site and return the response
+    return api.dcim.sites.create(site)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="writers.netbox_writers.add_cable"><code class="name flex">
+<span>def <span class="ident">add_cable</span></span>(<span>netbox_url: str, netbox_token: str, a_terminations: list, b_terminations: list) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Add a cable to NetBox.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>netbox_url</code></strong> :&ensp;<code>str</code></dt>
+<dd>The URL of the NetBox instance.</dd>
+<dt><strong><code>netbox_token</code></strong> :&ensp;<code>str</code></dt>
+<dd>The authentication token for the NetBox API.</dd>
+<dt><strong><code>a_terminations</code></strong> :&ensp;<code>list</code></dt>
+<dd>A list of dictionaries containing the terminations for the A side.</dd>
+<dt><strong><code>b_terminations</code></strong> :&ensp;<code>list</code></dt>
+<dd>A list of dictionaries containing the terminations for the B side.</dd>
+</dl>
+<h2 id="notes">Notes</h2>
+<p>In Netbox 3.3, cables were changed so that they can have multiple
+terminations. This change was mentioned in the release notes, but it does
+not seem to be documented anywhere. Even the Ansible examples are out of
+date. The bulk import reference isn't of use either, since the field names
+and types are different.</p>
+<p>This version of the function works. Currently it only adds the
+terminations. It does not have support for adding colors and lengths, etc.
+We can add those later.</p>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; netbox_token = '12387asdv13'
+&gt;&gt;&gt; netbox_url = 'http://0.0.0.0:8000'
+&gt;&gt;&gt; add_cable(netbox_url,
+              netbox_token,
+              [{'object_id': 22104, 'object_type': 'dcim.interface'}],
+              [{'object_id': 29287, 'object_type': 'dcim.interface'}])
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_cable(netbox_url: str,
+              netbox_token: str,
+              a_terminations: list,
+              b_terminations: list) -&gt; None:
+    &#34;&#34;&#34;
+    Add a cable to NetBox.
+
+    Parameters
+    ----------
+    netbox_url : str
+        The URL of the NetBox instance.
+    netbox_token : str
+        The authentication token for the NetBox API.
+    a_terminations : list
+        A list of dictionaries containing the terminations for the A side.
+    b_terminations : list
+        A list of dictionaries containing the terminations for the B side.
+
+    Notes
+    -----
+    In Netbox 3.3, cables were changed so that they can have multiple
+    terminations. This change was mentioned in the release notes, but it does
+    not seem to be documented anywhere. Even the Ansible examples are out of
+    date. The bulk import reference isn&#39;t of use either, since the field names
+    and types are different.
+
+    This version of the function works. Currently it only adds the
+    terminations. It does not have support for adding colors and lengths, etc.
+    We can add those later.
+
+    Examples
+    --------
+    &gt;&gt;&gt; netbox_token = &#39;12387asdv13&#39;
+    &gt;&gt;&gt; netbox_url = &#39;http://0.0.0.0:8000&#39;
+    &gt;&gt;&gt; add_cable(netbox_url,
+                  netbox_token,
+                  [{&#39;object_id&#39;: 22104, &#39;object_type&#39;: &#39;dcim.interface&#39;}],
+                  [{&#39;object_id&#39;: 29287, &#39;object_type&#39;: &#39;dcim.interface&#39;}])
+    &#34;&#34;&#34;
+    nb = pynetbox.api(netbox_url, netbox_token)
+
+    cable = {
+        &#39;a_terminations&#39;: a_terminations,
+        &#39;b_terminations&#39;: b_terminations
+    }
+
+    # Remove any keys that do not have values.
+    cable = {k: v for k, v in cable.items() if v}
+    print(cable)
+
+    nb.dcim.cables.create(cable)</code></pre>
+</details>
+</dd>
+<dt id="writers.netbox_writers.add_device_role"><code class="name flex">
+<span>def <span class="ident">add_device_role</span></span>(<span>netbox_url: str, netbox_token: str, name: str, slug: str, color: str = 'c0c0c0', description: str = '', vm_role: bool = False) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create a device role in NetBox.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>netbox_url</code></strong> :&ensp;<code>str</code></dt>
+<dd>The URL of the NetBox instance.</dd>
+<dt><strong><code>netbox_token</code></strong> :&ensp;<code>str</code></dt>
+<dd>The authentication token for the NetBox API.</dd>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>The name of the device role.</dd>
+<dt><strong><code>slug</code></strong> :&ensp;<code>str</code></dt>
+<dd>The slug (unique identifier) for the device role.</dd>
+<dt><strong><code>color</code></strong> :&ensp;<code>str</code></dt>
+<dd>The hexadecimal code associated with the device role. List of valid
+codes (valid for version 3.4.5) can be found here:
+<a href="https://tinyurl.com/netboxcolorcodes">https://tinyurl.com/netboxcolorcodes</a></dd>
+<dt><strong><code>description</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The description of the device role.</dd>
+<dt><strong><code>vm_role</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Indicates whether the device role is for a virtual machine.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>None</code></dt>
+<dd>This function does not return any value.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>Exception</code></dt>
+<dd>If any error occurs while creating or updating the device role.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_device_role(netbox_url: str,
+                    netbox_token: str,
+                    name: str,
+                    slug: str,
+                    color: str = &#39;c0c0c0&#39;,  # Light Grey
+                    description: str = str(),
+                    vm_role: bool = False) -&gt; None:
+    &#34;&#34;&#34;
+    Create a device role in NetBox.
+
+    Parameters
+    ----------
+    netbox_url : str
+        The URL of the NetBox instance.
+    netbox_token : str
+        The authentication token for the NetBox API.
+    name : str
+        The name of the device role.
+    slug : str
+        The slug (unique identifier) for the device role.
+    color : str
+        The hexadecimal code associated with the device role. List of valid
+        codes (valid for version 3.4.5) can be found here:
+        https://tinyurl.com/netboxcolorcodes
+    description : str, optional
+        The description of the device role.
+    vm_role : bool, optional
+        Indicates whether the device role is for a virtual machine.
+
+    Returns
+    -------
+    None
+        This function does not return any value.
+
+    Raises
+    ------
+    Exception
+        If any error occurs while creating or updating the device role.
+    &#34;&#34;&#34;
+    # Create an instance of the API using the provided URL and token
+    nb = pynetbox.api(url=netbox_url, token=netbox_token)
+    # Create or update the device role
+    try:
+        nb.dcim.device_roles.create(name=name,
+                                    slug=slug,
+                                    color=color,
+                                    description=description,
+                                    vm_role=vm_role)
+    except Exception as e:
+        print(f&#34;Error while creating device role: {str(e)}&#34;)</code></pre>
+</details>
+</dd>
+<dt id="writers.netbox_writers.add_device_to_netbox"><code class="name flex">
+<span>def <span class="ident">add_device_to_netbox</span></span>(<span>netbox_url: str, netbox_token: str, name: str, manufacturer: str, status: str, device_role_id: str = '', device_role_name: str = '', device_type_id: str = '', device_type_name: str = '', site_id: str = '', site_name: str = '', tenant_id: str = '', tenant_name: str = '', serial: str = '', custom_fields: dict = {}, asset_tag: str = '', location: str = '', rack: str = '', position: int = 0, face: str = '', parent: str = '', device_bay: str = '', airflow: str = '', virtual_chassis: str = '', vc_position: int = 0, vc_priority: int = 0, cluster: str = '', description: str = '', config_context: dict = {}, config_template: str = '', comments: str = '') ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Add a new device to NetBox.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>netbox_url</code></strong> :&ensp;<code>str</code></dt>
+<dd>The URL of the NetBox instance.</dd>
+<dt><strong><code>netbox_token</code></strong> :&ensp;<code>str</code></dt>
+<dd>The authentication token for the NetBox API.</dd>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>The name of the device.</dd>
+<dt><strong><code>manufacturer</code></strong> :&ensp;<code>str</code></dt>
+<dd>The manufacturer of the device.</dd>
+<dt><strong><code>status</code></strong> :&ensp;<code>str</code></dt>
+<dd>The operational status of the device.</dd>
+<dt><strong><code>device_role_id</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The ID of the role assigned to the device.</dd>
+<dt><strong><code>device_role_name</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The name of the role assigned to the device.</dd>
+<dt><strong><code>device_type_id</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The ID of the device type.</dd>
+<dt><strong><code>device_type_name</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The name of the device type.</dd>
+<dt><strong><code>site_id</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The ID of the site where the device is located.</dd>
+<dt><strong><code>site_name</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The name of the site where the device is located.</dd>
+<dt><strong><code>tenant_id</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The ID of the tenant that owns the device.</dd>
+<dt><strong><code>tenant_name</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The name of the tenant that owns the device.</dd>
+<dt><strong><code>serial</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The serial number of the device.</dd>
+<dt><strong><code>custom_fields</code></strong> :&ensp;<code>dict</code>, optional</dt>
+<dd>The custom fields related to the device.</dd>
+<dt><strong><code>asset_tag</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The asset tag of the device.</dd>
+<dt><strong><code>location</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The location of the device.</dd>
+<dt><strong><code>rack</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The rack of the device.</dd>
+<dt><strong><code>position</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>The position of the device in the rack.</dd>
+<dt><strong><code>face</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The face of the device in the rack.</dd>
+<dt><strong><code>parent</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The parent device of the device.</dd>
+<dt><strong><code>device_bay</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The device bay where the device is installed.</dd>
+<dt><strong><code>airflow</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The airflow direction of the device.</dd>
+<dt><strong><code>virtual_chassis</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The virtual chassis to which the device belongs.</dd>
+<dt><strong><code>vc_position</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>The position of the device in the virtual chassis.</dd>
+<dt><strong><code>vc_priority</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>The priority of the device in the virtual chassis.</dd>
+<dt><strong><code>cluster</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The cluster to which the device belongs.</dd>
+<dt><strong><code>description</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The description of the device.</dd>
+<dt><strong><code>config_context</code></strong> :&ensp;<code>dict</code>, optional</dt>
+<dd>A dictionary containing the config context.</dd>
+<dt><strong><code>config_template</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The configuration template of the device.</dd>
+<dt><strong><code>comments</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>Any comments about the device.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>None</code></dt>
+<dd>This function does not return any value. It only creates the device in
+NetBox.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_device_to_netbox(netbox_url: str,
+                         netbox_token: str,
+                         name: str,
+                         manufacturer: str,
+                         status: str,
+                         device_role_id: str = str(),
+                         device_role_name: str = str(),
+                         device_type_id: str = str(),
+                         device_type_name: str = str(),
+                         site_id: str = str(),
+                         site_name: str = str(),
+                         tenant_id: str = str(),
+                         tenant_name: str = str(),
+                         serial: str = str(),
+                         custom_fields: dict = {},
+                         asset_tag: str = str(),
+                         location: str = str(),
+                         rack: str = str(),
+                         position: int = int(),
+                         face: str = str(),
+                         parent: str = str(),
+                         device_bay: str = str(),
+                         airflow: str = str(),
+                         virtual_chassis: str = str(),
+                         vc_position: int = int(),
+                         vc_priority: int = int(),
+                         cluster: str = str(),
+                         description: str = str(),
+                         config_context: dict = {},
+                         config_template: str = str(),
+                         comments: str = str()) -&gt; None:
+    &#34;&#34;&#34;
+    Add a new device to NetBox.
+
+    Parameters
+    ----------
+    netbox_url : str
+        The URL of the NetBox instance.
+    netbox_token : str
+        The authentication token for the NetBox API.
+    name : str
+        The name of the device.
+    manufacturer : str
+        The manufacturer of the device.
+    status : str
+        The operational status of the device.
+    device_role_id : str, optional
+        The ID of the role assigned to the device.
+    device_role_name : str, optional
+        The name of the role assigned to the device.
+    device_type_id : str, optional
+        The ID of the device type.
+    device_type_name : str, optional
+        The name of the device type.
+    site_id : str, optional
+        The ID of the site where the device is located.
+    site_name : str, optional
+        The name of the site where the device is located.
+    tenant_id : str, optional
+        The ID of the tenant that owns the device.
+    tenant_name : str, optional
+        The name of the tenant that owns the device.
+    serial : str, optional
+        The serial number of the device.
+    custom_fields : dict, optional
+        The custom fields related to the device.
+    asset_tag : str, optional
+        The asset tag of the device.
+    location : str, optional
+        The location of the device.
+    rack : str, optional
+        The rack of the device.
+    position : int, optional
+        The position of the device in the rack.
+    face : str, optional
+        The face of the device in the rack.
+    parent : str, optional
+        The parent device of the device.
+    device_bay : str, optional
+        The device bay where the device is installed.
+    airflow : str, optional
+        The airflow direction of the device.
+    virtual_chassis : str, optional
+        The virtual chassis to which the device belongs.
+    vc_position : int, optional
+        The position of the device in the virtual chassis.
+    vc_priority : int, optional
+        The priority of the device in the virtual chassis.
+    cluster : str, optional
+        The cluster to which the device belongs.
+    description : str, optional
+        The description of the device.
+    config_context : dict, optional
+        A dictionary containing the config context.
+    config_template : str, optional
+        The configuration template of the device.
+    comments : str, optional
+        Any comments about the device.
+
+    Returns
+    -------
+    None
+        This function does not return any value. It only creates the device in
+        NetBox.
+    &#34;&#34;&#34;
+    # Create an instance of the API using the provided URL and token
+    nb = api(url=netbox_url, token=netbox_token)
+
+    # If the user provided a device_role name instead of a device_role ID, then
+    # use the name of the device_role to find its ID.
+    if device_role_name and not device_role_id:
+        df = nbc.\
+            netbox_get_device_role_attributes(netbox_url,
+                                              netbox_token,
+                                              device_role=device_role_name)
+        device_role_id = str(df.loc[0, &#39;id&#39;])
+
+    # If the user provided a device_type name instead of a device_tole ID, then
+    # user the name of the device_type to find its ID.
+    if device_type_name and not device_type_id:
+        df = nbc.\
+            netbox_get_device_type_attributes(netbox_url,
+                                              netbox_token,
+                                              device_type=device_type_name)
+        device_type_id = str(df.loc[0, &#39;id&#39;])
+
+    # If the user provided a site name instead of a site ID, then use the name
+    # to find the ID.
+    if site_name and not site_id:
+        df = nbc.netbox_get_site_attributes(netbox_url,
+                                            netbox_token,
+                                            site_name)
+        site_id = str(df.loc[0, &#39;id&#39;])
+
+    # If the user provided a tenant name instead of a tenant ID, then use the
+    # name to find the ID.
+    if tenant_name and not tenant_id:
+        df = nbc.netbox_get_tenant_attributes(netbox_url,
+                                              netbox_token,
+                                              tenant_name)
+        tenant_id = str(df.iloc[0][&#39;id&#39;])
+
+    # Create the device dictionary.
+    device = {
+        &#39;name&#39;: name,
+        &#39;manufacturer&#39;: manufacturer,
+        &#39;device_role&#39;: device_role_id,
+        &#39;device_type&#39;: device_type_id,
+        &#39;status&#39;: status,
+        &#39;site&#39;: site_id,
+        &#39;tenant&#39;: tenant_id,
+        &#39;serial&#39;: serial,
+        &#39;asset_tag&#39;: asset_tag,
+        &#39;location&#39;: location,
+        &#39;rack&#39;: rack,
+        &#39;position&#39;: position,
+        &#39;face&#39;: face,
+        &#39;parent&#39;: parent,
+        &#39;device_bay&#39;: device_bay,
+        &#39;airflow&#39;: airflow,
+        &#39;virtual_chassis&#39;: virtual_chassis,
+        &#39;vc_position&#39;: vc_position,
+        &#39;vc_priority&#39;: vc_priority,
+        &#39;cluster&#39;: cluster,
+        &#39;description&#39;: description,
+        &#39;comments&#39;: comments,
+        &#39;config_context&#39;: config_context,
+        &#39;config_template&#39;: config_template,
+        &#39;custom_fields&#39;: custom_fields
+    }
+
+    # Remove any keys that do not have values.
+    device = {k: v for k, v in device.items() if v}
+
+    # Add the device to NetBox
+    try:
+        nb.dcim.devices.create(device)
+    except Exception as e:
+        raise Exception(f&#34;Error occurred while adding the device: {str(e)}&#34;)</code></pre>
+</details>
+</dd>
+<dt id="writers.netbox_writers.add_device_type"><code class="name flex">
+<span>def <span class="ident">add_device_type</span></span>(<span>netbox_url: str, netbox_token: str, manufacturer_name: str, model: str, slug: str, u_height: int, is_full_depth: bool = False, part_number: str = '', subdevice_role: str = '', airflow: str = '', description: str = '', weight: float = 0.0, weight_unit: str = '', comments: str = '', tags: List[str] = []) ‑> pynetbox.models.dcim.DeviceTypes</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Add a device type to NetBox.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>netbox_url</code></strong> :&ensp;<code>str</code></dt>
+<dd>The URL of the NetBox instance.</dd>
+<dt><strong><code>netbox_token</code></strong> :&ensp;<code>str</code></dt>
+<dd>The authentication token for the NetBox API.</dd>
+<dt><strong><code>manufacturer_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>The name of the manufacturer of the device type.</dd>
+<dt><strong><code>model</code></strong> :&ensp;<code>str</code></dt>
+<dd>The model name of the device type.</dd>
+<dt><strong><code>slug</code></strong> :&ensp;<code>str</code></dt>
+<dd>The slug (unique identifier) for the device type.</dd>
+<dt><strong><code>u_height</code></strong> :&ensp;<code>int</code></dt>
+<dd>The height of the device type in rack units (U).</dd>
+<dt><strong><code>is_full_depth</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Indicates whether the device consumes both front and rear rack faces.</dd>
+<dt><strong><code>part_number</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The part number of the device type.</dd>
+<dt><strong><code>subdevice_role</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The subdevice role of the device type.</dd>
+<dt><strong><code>airflow</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The airflow direction of the device type.</dd>
+<dt><strong><code>description</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The description of the device type.</dd>
+<dt><strong><code>weight</code></strong> :&ensp;<code>float</code>, optional</dt>
+<dd>The weight of the device type.</dd>
+<dt><strong><code>weight_unit</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The unit for the device weight.</dd>
+<dt><strong><code>comments</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>Additional comments or notes.</dd>
+<dt><strong><code>tags</code></strong> :&ensp;<code>List[str]</code>, optional</dt>
+<dd>Tags associated with the device type.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>device_type</code></strong> :&ensp;<code>pynetbox.models.dcim.DeviceTypes</code></dt>
+<dd>The created DeviceType object in NetBox.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_device_type(netbox_url: str,
+                    netbox_token: str,
+                    manufacturer_name: str,
+                    model: str,
+                    slug: str,
+                    u_height: int,
+                    is_full_depth: bool = False,
+                    part_number: str = str(),
+                    subdevice_role: str = str(),
+                    airflow: str = str(),
+                    description: str = str(),
+                    weight: float = float(),
+                    weight_unit: str = str(),
+                    comments: str = str(),
+                    tags: List[str] = list()) \
+                        -&gt; pynetbox.models.dcim.DeviceTypes:
+    &#34;&#34;&#34;
+    Add a device type to NetBox.
+
+    Parameters
+    ----------
+    netbox_url : str
+        The URL of the NetBox instance.
+    netbox_token : str
+        The authentication token for the NetBox API.
+    manufacturer_name : str
+        The name of the manufacturer of the device type.
+    model : str
+        The model name of the device type.
+    slug : str
+        The slug (unique identifier) for the device type.
+    u_height : int
+        The height of the device type in rack units (U).
+    is_full_depth : bool, optional
+        Indicates whether the device consumes both front and rear rack faces.
+    part_number : str, optional
+        The part number of the device type.
+    subdevice_role : str, optional
+        The subdevice role of the device type.
+    airflow : str, optional
+        The airflow direction of the device type.
+    description : str, optional
+        The description of the device type.
+    weight : float, optional
+        The weight of the device type.
+    weight_unit : str, optional
+        The unit for the device weight.
+    comments : str, optional
+        Additional comments or notes.
+    tags : List[str], optional
+        Tags associated with the device type.
+
+    Returns
+    -------
+    device_type : pynetbox.models.dcim.DeviceTypes
+        The created DeviceType object in NetBox.
+    &#34;&#34;&#34;
+    nb = pynetbox.api(netbox_url, netbox_token)
+    manufacturer = nb.dcim.manufacturers.get(name=manufacturer_name)
+    device_type = nb.dcim.device_types.create(
+        manufacturer=manufacturer.id,
+        model=model,
+        slug=slug,
+        part_number=part_number,
+        u_height=u_height,
+        is_full_depth=is_full_depth,
+        subdevice_role=subdevice_role,
+        airflow=airflow,
+        description=description,
+        weight=weight,
+        weight_unit=weight_unit,
+        comments=comments,
+        tags=tags
+    )
+    return device_type</code></pre>
+</details>
+</dd>
+<dt id="writers.netbox_writers.add_prefix"><code class="name flex">
+<span>def <span class="ident">add_prefix</span></span>(<span>token: str, url: str, prefix: str, description: str, site: Optional[str] = None, tenant: Optional[str] = None, vrf: Optional[str] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Add a new prefix to Netbox IPAM.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>token</code></strong> :&ensp;<code>str</code></dt>
+<dd>API token for authentication.</dd>
+<dt><strong><code>url</code></strong> :&ensp;<code>str</code></dt>
+<dd>Url of Netbox instance.</dd>
+<dt><strong><code>prefix</code></strong> :&ensp;<code>str</code></dt>
+<dd>The prefix to be added to Netbox IPAM in CIDR notation.</dd>
+<dt><strong><code>description</code></strong> :&ensp;<code>str</code></dt>
+<dd>A description for the prefix.</dd>
+<dt><strong><code>site</code></strong> :&ensp;<code>Optional[str], Default None</code></dt>
+<dd>The slug of the Site where the prefix belongs.</dd>
+<dt><strong><code>tenant</code></strong> :&ensp;<code>Optional[str], Default None</code></dt>
+<dd>The slug of the Tenant in which the prefix is located.</dd>
+<dt><strong><code>vrf</code></strong> :&ensp;<code>Optional[str], Default None</code></dt>
+<dd>The name of the VRF.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>None</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>pynetbox.RequestError</code></dt>
+<dd>If there is any problem in the request to Netbox API.</dd>
+</dl>
+<h2 id="notes">Notes</h2>
+<p>A RequestError is thrown if there is a duplicate prefix, but ONLY if
+the option to allow duplicate prefixes has been disabled (it is enabled by
+default). The option to disallow duplicate prefixes can be
+disabled on a
+vrf-by-vrf basis. For prefixes that are not in VRFs, it can be disabled
+globally. See these URLs for more information:
+- <a href="https://demo.netbox.dev/static/docs/core-functionality/ipam/">https://demo.netbox.dev/static/docs/core-functionality/ipam/</a>
+- <a href="https://demo.netbox.dev/static/docs/configuration/dynamic-settings/">https://demo.netbox.dev/static/docs/configuration/dynamic-settings/</a></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_prefix(token: str,
+               url: str,
+               prefix: str,
+               description: str,
+               site: Optional[str] = None,
+               tenant: Optional[str] = None,
+               vrf: Optional[str] = None):
+    &#34;&#34;&#34;
+    Add a new prefix to Netbox IPAM.
+
+    Parameters
+    ----------
+    token : str
+        API token for authentication.
+    url : str
+        Url of Netbox instance.
+    prefix : str
+        The prefix to be added to Netbox IPAM in CIDR notation.
+    description: str
+        A description for the prefix.
+    site: Optional[str], Default None
+        The slug of the Site where the prefix belongs.
+    tenant: Optional[str], Default None
+        The slug of the Tenant in which the prefix is located.
+    vrf: Optional[str], Default None
+        The name of the VRF.
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    pynetbox.RequestError
+        If there is any problem in the request to Netbox API.
+
+    Notes
+    -------
+    A RequestError is thrown if there is a duplicate prefix, but ONLY if
+    the option to allow duplicate prefixes has been disabled (it is enabled by
+    default). The option to disallow duplicate prefixes can be  disabled on a
+    vrf-by-vrf basis. For prefixes that are not in VRFs, it can be disabled
+    globally. See these URLs for more information:
+    - https://demo.netbox.dev/static/docs/core-functionality/ipam/
+    - https://demo.netbox.dev/static/docs/configuration/dynamic-settings/
+    &#34;&#34;&#34;
+    nb = pynetbox.api(url, token=token)
+
+    # If a VRF was provided, then get its ID.
+    if vrf:
+        result = nbc.netbox_get_vrf_details(url, token, vrf)
+        vrf = str(result.iloc[0][&#39;id&#39;])
+
+    data = {
+        &#39;prefix&#39;: prefix,
+        &#39;site&#39;: site,
+        &#39;description&#39;: description,
+        &#39;tenant&#39;: tenant,
+        &#39;vrf&#39;: vrf
+    }
+    try:
+        nb.ipam.prefixes.create(data)
+    except pynetbox.RequestError as e:
+        print(f&#39;[{prefix}]: {str(e)}&#39;)</code></pre>
+</details>
+</dd>
+<dt id="writers.netbox_writers.add_site"><code class="name flex">
+<span>def <span class="ident">add_site</span></span>(<span>token: str, url: str, name: str, slug: str, status: str, latitude: Optional[float] = None, longitude: Optional[float] = None, physical_address: Optional[str] = None, shipping_address: Optional[str] = None, tenant_id: Optional[str] = None, tenant_name: Optional[str] = None, timezone: Optional[str] = None, meraki_organization_id: Optional[int] = None, meraki_network_id: Optional[str] = None, meraki_product_types: Optional[str] = None, meraki_tags: Optional[str] = None, meraki_enrollement_string: Optional[str] = None, meraki_configTemplateId: Optional[str] = None, meraki_isBoundToConfigTemplate: Optional[bool] = None, meraki_notes: Optional[str] = None, meraki_site_url: Optional[str] = None) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create a new site in Netbox with custom Meraki fields.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>token</code></strong> :&ensp;<code>str</code></dt>
+<dd>API token for authentication.</dd>
+<dt><strong><code>url</code></strong> :&ensp;<code>str</code></dt>
+<dd>Url of Netbox instance.</dd>
+</dl>
+<p>name (str):
+The name of the site.
+slug (str):
+The slug for the site.
+status (str):
+The status of the site. Valid statuses are 'planned', 'staging',
+'active', 'decommissioning', 'retired'.
+latitude (float, optional):
+The latitude of the site. Defaults to None.
+longitude (float, optional):
+The longitude of the site. Defaults to None.
+physical_address (str, optional):
+The physical address for the site. Defaults to None.
+shipping_address (str, optional):
+The shipping address for the site. Defaults to None.
+tenant_id (str, optional):
+The numeric ID of the tenant. Defaults to None.
+tenant_name (str, optional):
+The name of the tenant. Defaults to None.
+timezone (str, optional):
+The time zone for the site. Valid options are found here:
+<a href="https://en.wikipedia.org/wiki/List_of_tz_database_time_zones.">https://en.wikipedia.org/wiki/List_of_tz_database_time_zones.</a>
+meraki_organization_id (int, optional):
+The Meraki organization ID associated with the site. Defaults to None.
+meraki_network_id (str, optional):
+The Meraki network ID associated with the site. Defaults to None.
+meraki_product_types (str, optional):
+The Meraki product types for the site. Defaults to None.
+meraki_tags (str, optional):
+The Meraki tags for the site. Defaults to None.
+meraki_enrollement_string (str, optional):
+The Meraki enrollment string for the site. Defaults to None.
+meraki_configTemplateId (str, optional):
+The Meraki config template ID for the site. Defaults to None.
+meraki_isBoundToConfigTemplate (bool, optional):
+Whether the site is bound to a Meraki config template. Defaults to
+None.
+meraki_notes (str, optional):
+Any notes related to the Meraki configuration for the site. Defaults
+to None.
+meraki_site_url (str, optional):
+The URL associated with the site. Defaults to None.</p>
+<h2 id="returns">Returns:</h2>
+<p>dict: The response from the Netbox API when adding the site.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_site(token: str,
+             url: str,
+             name: str,
+             slug: str,
+             status: str,
+             latitude: Optional[float] = None,
+             longitude: Optional[float] = None,
+             physical_address: Optional[str] = None,
+             shipping_address: Optional[str] = None,
+             tenant_id: Optional[str] = None,
+             tenant_name: Optional[str] = None,
+             timezone: Optional[str] = None,
+             meraki_organization_id: Optional[int] = None,
+             meraki_network_id: Optional[str] = None,
+             meraki_product_types: Optional[str] = None,
+             meraki_tags: Optional[str] = None,
+             meraki_enrollement_string: Optional[str] = None,
+             meraki_configTemplateId: Optional[str] = None,
+             meraki_isBoundToConfigTemplate: Optional[bool] = None,
+             meraki_notes: Optional[str] = None,
+             meraki_site_url: Optional[str] = None,
+             ) -&gt; Dict[str, Any]:
+    &#34;&#34;&#34;
+    Create a new site in Netbox with custom Meraki fields.
+
+    Parameters
+    ----------
+    token : str
+        API token for authentication.
+    url : str
+        Url of Netbox instance.
+    name (str):
+        The name of the site.
+    slug (str):
+        The slug for the site.
+    status (str):
+        The status of the site. Valid statuses are &#39;planned&#39;, &#39;staging&#39;,
+        &#39;active&#39;, &#39;decommissioning&#39;, &#39;retired&#39;.
+    latitude (float, optional):
+        The latitude of the site. Defaults to None.
+    longitude (float, optional):
+        The longitude of the site. Defaults to None.
+    physical_address (str, optional):
+        The physical address for the site. Defaults to None.
+    shipping_address (str, optional):
+        The shipping address for the site. Defaults to None.
+    tenant_id (str, optional):
+        The numeric ID of the tenant. Defaults to None.
+    tenant_name (str, optional):
+        The name of the tenant. Defaults to None.
+    timezone (str, optional):
+        The time zone for the site. Valid options are found here:
+        https://en.wikipedia.org/wiki/List_of_tz_database_time_zones.
+    meraki_organization_id (int, optional):
+        The Meraki organization ID associated with the site. Defaults to None.
+    meraki_network_id (str, optional):
+        The Meraki network ID associated with the site. Defaults to None.
+    meraki_product_types (str, optional):
+        The Meraki product types for the site. Defaults to None.
+    meraki_tags (str, optional):
+        The Meraki tags for the site. Defaults to None.
+    meraki_enrollement_string (str, optional):
+        The Meraki enrollment string for the site. Defaults to None.
+    meraki_configTemplateId (str, optional):
+        The Meraki config template ID for the site. Defaults to None.
+    meraki_isBoundToConfigTemplate (bool, optional):
+        Whether the site is bound to a Meraki config template. Defaults to
+        None.
+    meraki_notes (str, optional):
+        Any notes related to the Meraki configuration for the site. Defaults
+        to None.
+    meraki_site_url (str, optional):
+        The URL associated with the site. Defaults to None.
+
+    Returns:
+    ----------
+    dict: The response from the Netbox API when adding the site.
+    &#34;&#34;&#34;
+    # Initialize pynetbox API and site payload
+    api = pynetbox.api(url=url, token=token)
+    site = {&#34;name&#34;: name,
+            &#34;slug&#34;: slug,
+            &#34;status&#34;: status}
+
+    # Check which optional fields are passed and add them to the site payload
+    # as appropriate.
+    if tenant_id:
+        site[&#34;tenant&#34;] = tenant_id
+    if tenant_name:
+        tenant_df = nbc.netbox_get_tenant_attributes(url, token, tenant_name)
+        site[&#34;tenant&#34;] = str(tenant_df.iloc[0][&#34;id&#34;])
+    if physical_address:
+        site[&#34;physical_address&#34;] = physical_address
+    if shipping_address:
+        site[&#34;shipping_address&#34;] = shipping_address
+    if latitude:
+        site[&#34;latitude&#34;] = latitude
+    if longitude:
+        site[&#34;longitude&#34;] = longitude
+    if timezone:
+        site[&#34;time_zone&#34;] = timezone
+
+    # Check which Meraki fields are passed and add them to the site payload as
+    # appropriate.
+    if meraki_organization_id:
+        site[&#34;custom_fields__meraki_organization_id&#34;] = meraki_organization_id
+    if meraki_network_id:
+        site[&#34;custom_fields__meraki_network_id&#34;] = meraki_network_id
+    if meraki_product_types:
+        site[&#34;custom_fields__meraki_product_types&#34;] = meraki_product_types
+    if meraki_tags:
+        site[&#34;custom_fields__meraki_tags&#34;] = meraki_tags
+    if meraki_enrollement_string:
+        site[&#34;custom_fields__meraki_enrollment_string&#34;] = \
+            meraki_enrollement_string
+    if meraki_configTemplateId:
+        site[&#34;custom_fields__meraki_configTemplateId&#34;] = \
+            meraki_configTemplateId
+    if meraki_isBoundToConfigTemplate is not None:
+        site[&#34;custom_fields__meraki_isBoundToConfigTemplate&#34;] = \
+            meraki_isBoundToConfigTemplate
+    if meraki_notes:
+        site[&#34;custom_fields__meraki_notes&#34;] = meraki_notes
+    if meraki_site_url:
+        site[&#34;custom_fields__url&#34;] = meraki_site_url
+
+    # Send the API request to add the site and return the response
+    return api.dcim.sites.create(site)</code></pre>
+</details>
+</dd>
+<dt id="writers.netbox_writers.add_vrf"><code class="name flex">
+<span>def <span class="ident">add_vrf</span></span>(<span>token: str, url: str, vrf_name: str, description: str, rd: Optional[str] = None, enforce_unique: Optional[bool] = True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Add a new VRF to Netbox.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>token</code></strong> :&ensp;<code>str</code></dt>
+<dd>API token for authentication.</dd>
+<dt><strong><code>url</code></strong> :&ensp;<code>str</code></dt>
+<dd>Url of Netbox instance.</dd>
+<dt><strong><code>vrf_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>The name of the VRF to be added to Netbox.</dd>
+<dt><strong><code>description</code></strong> :&ensp;<code>str</code></dt>
+<dd>A description for the VRF.</dd>
+<dt><strong><code>rd</code></strong> :&ensp;<code>Optional[str], Default None</code></dt>
+<dd>The route distinguisher for the VRF.</dd>
+<dt><strong><code>enforce_unique</code></strong> :&ensp;<code>Optional[bool], Default True</code></dt>
+<dd>Whether duplicate VRF names should be disallowed (True) or allowed
+(False).</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>None</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>pynetbox.RequestError</code></dt>
+<dd>If there is any problem in the request to Netbox API.</dd>
+</dl>
+<h2 id="notes">Notes</h2>
+<p>A RequestError is thrown if there is a duplicate VRF name, but ONLY if
+the option to disallow duplicate VRF names is either passed to the function
+as 'enforce_unique=True' (the default) or has been enabled inside of Netbox
+(it is disabled by default). The option to enforce unique VRF names can be
+enabled globally or for certain groups of prefixes. See this URL for more
+information:
+- <a href="https://demo.netbox.dev/static/docs/core-functionality/ipam/">https://demo.netbox.dev/static/docs/core-functionality/ipam/</a>
+- <a href="https://demo.netbox.dev/static/docs/configuration/dynamic-settings/">https://demo.netbox.dev/static/docs/configuration/dynamic-settings/</a></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_vrf(token: str,
+            url: str,
+            vrf_name: str,
+            description: str,
+            rd: Optional[str] = None,
+            enforce_unique: Optional[bool] = True):
+    &#34;&#34;&#34;
+    Add a new VRF to Netbox.
+
+    Parameters
+    ----------
+    token : str
+        API token for authentication.
+    url : str
+        Url of Netbox instance.
+    vrf_name : str
+        The name of the VRF to be added to Netbox.
+    description : str
+        A description for the VRF.
+    rd : Optional[str], Default None
+        The route distinguisher for the VRF.
+    enforce_unique : Optional[bool], Default True
+        Whether duplicate VRF names should be disallowed (True) or allowed
+        (False).
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    pynetbox.RequestError
+        If there is any problem in the request to Netbox API.
+
+    Notes
+    -------
+    A RequestError is thrown if there is a duplicate VRF name, but ONLY if
+    the option to disallow duplicate VRF names is either passed to the function
+    as &#39;enforce_unique=True&#39; (the default) or has been enabled inside of Netbox
+    (it is disabled by default). The option to enforce unique VRF names can be
+    enabled globally or for certain groups of prefixes. See this URL for more
+    information:
+    - https://demo.netbox.dev/static/docs/core-functionality/ipam/
+    - https://demo.netbox.dev/static/docs/configuration/dynamic-settings/
+
+    &#34;&#34;&#34;
+    nb = pynetbox.api(url, token=token)
+    data = {
+        &#39;name&#39;: vrf_name,
+        &#39;rd&#39;: rd,
+        &#39;description&#39;: description,
+        &#39;enforce_unique&#39;: enforce_unique
+    }
+    try:
+        nb.ipam.vrfs.create(data)
+    except pynetbox.RequestError as e:
+        print(f&#39;[{vrf_name}]: {str(e)}&#39;)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="writers" href="index.html">writers</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="writers.netbox_writers.add_cable" href="#writers.netbox_writers.add_cable">add_cable</a></code></li>
+<li><code><a title="writers.netbox_writers.add_device_role" href="#writers.netbox_writers.add_device_role">add_device_role</a></code></li>
+<li><code><a title="writers.netbox_writers.add_device_to_netbox" href="#writers.netbox_writers.add_device_to_netbox">add_device_to_netbox</a></code></li>
+<li><code><a title="writers.netbox_writers.add_device_type" href="#writers.netbox_writers.add_device_type">add_device_type</a></code></li>
+<li><code><a title="writers.netbox_writers.add_prefix" href="#writers.netbox_writers.add_prefix">add_prefix</a></code></li>
+<li><code><a title="writers.netbox_writers.add_site" href="#writers.netbox_writers.add_site">add_site</a></code></li>
+<li><code><a title="writers.netbox_writers.add_vrf" href="#writers.netbox_writers.add_vrf">add_vrf</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

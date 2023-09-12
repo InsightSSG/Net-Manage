@@ -101,6 +101,115 @@ def run_adhoc_command(username: str,
     return result
 
 
+def inventory(username: str,
+              password: str,
+              host_group: str,
+              nm_path: str,
+              private_data_dir: str) -> pd.DataFrame:
+    '''
+    Gets partial hardware inventory on Palo Alto firewalls.
+
+    Parameters
+    ----------
+    username : str
+        The user's username.
+    password : str
+        The user's password.
+    host_group : str
+        The name of the Ansible inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    private_data_dir : str
+        The path to the Ansible private data directory
+
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame containing the hardware inventory.
+    '''
+    cmd = 'show system info'
+    cmd_is_xml = False
+
+    response = run_adhoc_command(username,
+                                 password,
+                                 host_group,
+                                 nm_path,
+                                 private_data_dir,
+                                 cmd,
+                                 cmd_is_xml)
+
+    # Parse results into df
+    return parser.parse_inventory(response)
+
+
+def bgp_neighbors(username: str,
+                  password: str,
+                  host_group: str,
+                  nm_path: str,
+                  private_data_dir: str) -> pd.DataFrame:
+    '''Gets BGP neighbors for Palo Alto firewalls.
+
+    Parameters
+    ----------
+    username : str
+        The user's username.
+    password : str
+        The user's password.
+    host_group : str
+        The name of the Ansible inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+
+    Returns
+    -------
+    df : Pandas Dataframe
+        A dataframe containing the BGP neighbors.
+
+    Examples
+    --------
+    >>> df = ospf_neighbors(username,
+                            password,
+                            host_group,
+                            nm_path,
+                            private_data_dir)
+    >>> df.columns.to_list()
+    ['device',
+    'virtual-router',
+    'neighbor-address',
+    'local-address-binding',
+    'type',
+    'status',
+    'neighbor-router-id',
+    'area-id',
+    'neighbor-priority',
+    'lifetime-remain',
+    'messages-pending',
+    'lsa-request-pending',
+    'options',
+    'hello-suppressed',
+    'restart-helper-status',
+    'restart-helper-time-remaining',
+    'restart-helper-exit-reason',
+    'timestamp']
+    '''
+
+    cmd = 'show routing protocol bgp peer'
+    cmd_is_xml = False
+
+    response = run_adhoc_command(username,
+                                 password,
+                                 host_group,
+                                 nm_path,
+                                 private_data_dir,
+                                 cmd,
+                                 cmd_is_xml)
+
+    # Parse results into df
+    return parser.parse_bgp_neighbors(response)
+
+
 def get_all_interfaces(username: str,
                        password: str,
                        host_group: str,
@@ -459,3 +568,71 @@ def get_security_rules(username: str,
 
     # Parse results into df
     return parser.parse_security_rules(runner)
+
+
+def ospf_neighbors(username: str,
+                   password: str,
+                   host_group: str,
+                   nm_path: str,
+                   private_data_dir: str) -> pd.DataFrame:
+    '''Gets OSPF neighbors for Palo Alto firewalls.
+
+    Parameters
+    ----------
+    username : str
+        The user's username.
+    password : str
+        The user's password.
+    host_group : str
+        The name of the Ansible inventory host group.
+    nm_path : str
+        The path to the Net-Manage repository.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+
+    Returns
+    -------
+    df : Pandas Dataframe
+        A dataframe containing the OSPF neighbors.
+
+    Examples
+    --------
+    >>> df = ospf_neighbors(username,
+                            password,
+                            host_group,
+                            nm_path,
+                            private_data_dir)
+    >>> df.columns.to_list()
+    ['device',
+    'virtual-router',
+    'neighbor-address',
+    'local-address-binding',
+    'type',
+    'status',
+    'neighbor-router-id',
+    'area-id',
+    'neighbor-priority',
+    'lifetime-remain',
+    'messages-pending',
+    'lsa-request-pending',
+    'options',
+    'hello-suppressed',
+    'restart-helper-status',
+    'restart-helper-time-remaining',
+    'restart-helper-exit-reason',
+    'timestamp']
+    '''
+
+    cmd = 'show routing protocol ospf neighbor'
+    cmd_is_xml = False
+
+    response = run_adhoc_command(username,
+                                 password,
+                                 host_group,
+                                 nm_path,
+                                 private_data_dir,
+                                 cmd,
+                                 cmd_is_xml)
+
+    # Parse results into df
+    return parser.parse_ospf_neighbors(response)

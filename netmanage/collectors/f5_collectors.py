@@ -493,10 +493,20 @@ def get_self_ips(username: str,
 
     # Add the subnets, network IPs, and broadcast IPs.
     addresses = df['address'].to_list()
+
+    df['cidr'] = [_.split('/')[-1] for _ in df['address'].to_list()]
+    df['address'] = [_.split('/')[0] for _ in df['address'].to_list()]
+
     result = hp.generate_subnet_details(addresses)
     df['subnet'] = result['subnet']
     df['network_ip'] = result['network_ip']
     df['broadcast_ip'] = result['broadcast_ip']
+
+    # Place 'cidr' column to the right of 'address' column.
+    cols = df.columns.tolist()
+    ip_index = cols.index('address')
+    cols.insert(ip_index + 1, cols.pop(cols.index('cidr')))
+    df = df[cols]
 
     return df
 
@@ -1724,9 +1734,103 @@ def get_vlans(username: str,
 
     # Create `df`.
     df = pd.DataFrame.from_dict(df_data).astype(str)
+    print(df)
 
     # Make `device` the first column, then return `df`.
     col_1 = df.pop('device')
     df.insert(0, 'device', col_1)
+
+    return df
+
+
+def inventory(username: str,
+              password: str,
+              host_group: str,
+              play_path: str,
+              private_data_dir: str,
+              validate_certs: bool = True) -> pd.DataFrame:
+    '''
+    Gets a partial hardware inventory from F5 load balancers.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to the device.
+    host_group : str
+        The Ansible inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+    validate_certs : bool, optional:
+        Whether to validate SSL certificates. Defaults to True.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A Pandas DataFrame containing the VLANs.
+    '''
+    command = 'show sys hardware | grep -A 20 "Platform"'
+
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'command': command}
+
+    if not validate_certs:
+        extravars['validate_certs'] = 'no'
+
+    playbook = f'{play_path}/f5_run_adhoc_command.yml'
+
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Create a dictionary to store the data.
+    df_data = dict()
+    columns = ['device',
+               'name',
+               'bios_revision',
+               'base_mac',
+               'appliance_type',
+               'appliance_serial',
+               'part_number',
+               'host_board_serial',
+               'host_board_part_revision']
+    for col in columns:
+        df_data[col] = list()
+
+    # Create a mapping of text in the data to the desired column names.
+    mapping = {
+        'Name': 'name',
+        'BIOS Revision': 'bios_revision',
+        'Base MAC': 'base_mac',
+        'Type': 'appliance_type',
+        'Appliance Serial': 'appliance_serial',
+        'Part Number': 'part_number',
+        'Host Board Serial': 'host_board_serial',
+        'Host Board Part Revision': 'host_board_part_revision'
+    }
+
+    # Parse the output and add it to df_data.
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+            df_data['device'].append(device)
+
+            data = event_data['res']['stdout_lines'][0]
+
+            for line in data:
+                for key, value in mapping.items():
+                    if key in line:
+                        df_data[value].append(line.split(key)[1].strip())
+
+    # Create the dataframe and return it.
+    df = pd.DataFrame(df_data)
 
     return df

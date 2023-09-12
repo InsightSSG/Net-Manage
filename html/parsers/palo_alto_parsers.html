@@ -1,0 +1,1283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>parsers.palo_alto_parsers API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>parsers.palo_alto_parsers</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">#!/usr/bin/env python3
+
+import json
+import pandas as pd
+from netmanage.helpers import helpers as hp
+
+
+def parse_all_interfaces(response: dict) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Parse all interfaces on Palo Altos.
+
+    Parameters
+    ----------
+    response : dict
+        A dictionary containing the command output, where the keys are the
+        devices and the value is a dictionary
+
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame containing the logical interfaces.
+
+    &#39;&#39;&#39;
+
+    if response is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Create a dictionary to store the formatted cmd output for each device.
+    result = dict()
+
+    # Parse &#39;response&#39;, adding the cmd output for each device to &#39;result&#39;.
+    for device, event in response.items():
+        output = json.loads(event[&#39;event_data&#39;][&#39;res&#39;][&#39;stdout&#39;])
+        if output[&#39;response&#39;][&#39;result&#39;][&#39;ifnet&#39;].get(&#39;entry&#39;):
+            output = output[&#39;response&#39;][&#39;result&#39;][&#39;ifnet&#39;][&#39;entry&#39;]
+            result[device] = output
+        else:
+            result[device] = dict()
+
+    # Use the data in &#39;result&#39; to populate &#39;df_data&#39;, which will be used to
+    # create the dataframe.
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+    for device in result:
+        for item in result[device]:
+            df_data[&#39;device&#39;].append(device)
+            for key, value in item.items():
+                if not df_data.get(key):
+                    df_data[key] = list()
+                df_data[key].append(value)
+
+    # Create the dataframe.
+    df = pd.DataFrame.from_dict(df_data).astype(str)
+
+    return df
+
+
+def parse_arp_table(response: dict, nm_path: str) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Parses the Palo Alto ARP table and adds vendor OUIs.
+
+    Parameters
+    ----------
+    response : dict
+        A dictionary containing the command output, where the keys are the
+        devices and the value is a dictionary
+    nm_path : str
+        The path to the Net-Manage repository.
+
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame containing the ARP table and vendor OUIs.
+
+    Other Parameters
+    ----------------
+    interface : str, optional
+        The interface for which to return the ARP table. The default is to
+        return the ARP table for all interfaces.
+    &#39;&#39;&#39;
+
+    if response is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Create a dictionary to store the data for &#39;df&#39;
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+
+    # Populate &#39;df_data&#39; from &#39;result&#39;
+    for device in response:
+        output = json.loads(response[device][&#39;event_data&#39;][&#39;res&#39;][&#39;stdout&#39;])
+        # An &#39;error&#39; key indicates the interface does not exist.
+        if not output[&#39;response&#39;][&#39;result&#39;].get(&#39;error&#39;):
+            if output[&#39;response&#39;][&#39;result&#39;].get(&#39;entries&#39;):
+                arp_table = output[&#39;response&#39;][&#39;result&#39;][&#39;entries&#39;][&#39;entry&#39;]
+                if isinstance(arp_table, dict):
+                    arp_table = [arp_table]
+                for item in arp_table:
+                    df_data[&#39;device&#39;].append(device)
+                    for key, value in item.items():
+                        if not df_data.get(key):
+                            df_data[key] = list()
+                        df_data[key].append(value)
+
+    # Get the vendors for the MAC addresses
+    df_vendors = hp.find_mac_vendors(df_data[&#39;mac&#39;], nm_path)
+    df_data[&#39;vendor&#39;] = df_vendors[&#39;vendor&#39;].to_list()
+
+    # Create the dataframe
+    df = pd.DataFrame.from_dict(df_data)
+
+    return df
+
+
+def parse_bgp_neighbors(response: dict) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Parse BGP neighbors for Palo Alto firewalls.
+
+    Parameters
+    ----------
+    response : dict
+        A dictionary containing the command output, where the keys are the
+        devices and the value is a dictionary
+
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame containing the BGP peers.
+    &#39;&#39;&#39;
+    if response is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Create a dictionary to store the formatted cmd output for each device.
+    result = dict()
+
+    # Parse &#39;response&#39;, adding the cmd output for each device to &#39;result&#39;.
+    for device, event in response.items():
+        output = json.loads(event[&#39;event_data&#39;][&#39;res&#39;][&#39;stdout&#39;])
+        try:
+            if output[&#39;response&#39;][&#39;result&#39;].get(&#39;entry&#39;):
+                output = output[&#39;response&#39;][&#39;result&#39;][&#39;entry&#39;]
+                result[device] = output
+        except Exception as e:
+            if str(e) == &#34;&#39;NoneType&#39; object has no attribute &#39;get&#39;&#34;:
+                pass
+            else:
+                print(f&#39;{device}: {str(e)}&#39;)
+
+    # Use the data in &#39;result&#39; to populate &#39;df_data&#39;, which will be used to
+    # create the dataframe.
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+    for device in result:
+        # If there is only one neighbor, then the Palo Alto API returns a
+        # dictionary.
+        if isinstance(result[device], dict):
+            df_data[&#39;device&#39;].append(device)
+            for key, value in result[device].items():
+                if not df_data.get(key):
+                    df_data[key] = list()
+                df_data[key].append(value)
+        # If there is more than one neighbor, then the Palo Alto API returns a
+        # list.
+        else:
+            for item in result[device]:
+                df_data[&#39;device&#39;].append(device)
+                for key, value in item.items():
+                    if not df_data.get(key):
+                        df_data[key] = list()
+                    df_data[key].append(value)
+
+    # Create the dataframe.
+    df = pd.DataFrame.from_dict(df_data).astype(str)
+
+    return df
+
+
+def parse_interface_ips(df: pd.DataFrame) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;Parse IP addresses on Palo Alto firewall interfaces.
+
+    Parameters
+    ----------
+    df : Pandas Dataframe
+        A pd.DataFrame
+
+    Returns
+    -------
+    df : Pandas Dataframe
+        A dataframe containing the IP addresses.
+
+    &#39;&#39;&#39;
+    # TODO: Optimize this function by setting &#39;get_all_interfaces&#39; as a
+    #       dependency. That way the same command does not need to be
+    #       run twice (potentially) for two different collectors.
+
+    if df is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Filter out interfaces that do not have an IP address.
+    df = df[df[&#39;ip&#39;] != &#39;N/A&#39;].copy()
+
+    # Add the subnets, network IPs, and broadcast IPs.
+    addresses = df[&#39;ip&#39;].to_list()
+    result = hp.generate_subnet_details(addresses)
+    df[&#39;subnet&#39;] = result[&#39;subnet&#39;]
+    df[&#39;network_ip&#39;] = result[&#39;network_ip&#39;]
+    df[&#39;broadcast_ip&#39;] = result[&#39;broadcast_ip&#39;]
+
+    # Split the &#39;ip&#39; column to separate the IP and the CIDR notation
+    df[&#39;cidr&#39;] = df[&#39;ip&#39;].str.split(&#39;/&#39;).str[1]
+    df[&#39;ip&#39;] = df[&#39;ip&#39;].str.split(&#39;/&#39;).str[0]
+
+    # Rearrange the columns to place &#39;cidr&#39; column to the right of &#39;ip&#39; column.
+    cols = df.columns.tolist()
+    ip_index = cols.index(&#39;ip&#39;)
+    cols.insert(ip_index + 1, cols.pop(cols.index(&#39;cidr&#39;)))
+    df = df[cols]
+
+    return df
+
+
+def parse_inventory(response: dict) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Parse &#39;show system info&#39; command on Palo Alto firewalls.
+
+    Parameters
+    ----------
+    response : dict
+        A dictionary containing the command output, where the keys are the
+        devices and the value is a dictionary
+
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame containing the hardware inventory.
+
+    &#39;&#39;&#39;
+    if response is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Create a list to store columns. This method accounts for the fact that
+    # not all devices return the same data.
+    columns = [&#39;device&#39;]
+
+    # Create a dictionary to store the output. This will allow us to iterate
+    # over all the output and collect the column headers before populating the
+    # dataframe.
+    data = dict()
+
+    # Parse &#39;response&#39;, adding the cmd output for each device to &#39;result&#39;.
+    for device, event in response.items():
+        output = json.loads(event[&#39;event_data&#39;][&#39;res&#39;][&#39;stdout&#39;])
+        if output[&#39;response&#39;][&#39;result&#39;].get(&#39;system&#39;):
+            output = output[&#39;response&#39;][&#39;result&#39;].get(&#39;system&#39;)
+            data[device] = output
+
+    # Iterate over the output, adding all column names to &#39;columns&#39;.
+    for key, value in data.items():
+        for k in value:
+            if k not in columns:
+                columns.append(k)
+
+    # Create a dictionary to store the formatted data for the dataframe.
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+    for col in columns:
+        df_data[col] = list()
+
+    # Iterate over the output, adding all data to &#39;df_data&#39;.
+    for key, value in data.items():
+        df_data[&#39;device&#39;].append(key)
+        for col in columns[1:]:  # Skip the &#39;device&#39; column.
+            df_data[col].append(value.get(col))
+
+    # Create the dataframe and return it.
+    df = pd.DataFrame(df_data)
+
+    return df.astype(str)
+
+
+def parse_logical_interfaces(response: pd.DataFrame) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Parse the logical interfaces on Palo Altos.
+
+    Parameters
+    ----------
+    response : dict
+        A dictionary containing the command output, where the keys are the
+        devices and the value is a dictionary
+
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame containing the logical interfaces.
+
+    &#39;&#39;&#39;
+
+    if response is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Create a dictionary to store the formatted cmd output for each device.
+    result = dict()
+
+    # Parse &#39;response&#39;, adding the cmd output for each device to &#39;result&#39;.
+    for device, event in response.items():
+        output = json.loads(event[&#39;event_data&#39;][&#39;res&#39;][&#39;stdout&#39;])
+        if output[&#39;response&#39;][&#39;result&#39;][&#39;ifnet&#39;].get(&#39;entry&#39;):
+            output = output[&#39;response&#39;][&#39;result&#39;][&#39;ifnet&#39;][&#39;entry&#39;]
+            result[device] = output
+        else:
+            result[device] = dict()
+
+    # Use the data in &#39;result&#39; to populate &#39;df_data&#39;, which will be used to
+    # create the dataframe.
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+    for device in result:
+        for item in result[device]:
+            df_data[&#39;device&#39;].append(device)
+            for key, value in item.items():
+                if not df_data.get(key):
+                    df_data[key] = list()
+                df_data[key].append(value)
+
+    # Create the dataframe.
+    df = pd.DataFrame.from_dict(df_data).astype(str)
+
+    return df
+
+
+def parse_ospf_neighbors(response: dict) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Parse OSPF neighbors for Palo Alto firewalls.
+
+    Parameters
+    ----------
+    response : dict
+        A dictionary containing the command output, where the keys are the
+        devices and the value is a dictionary
+
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame containing the OSPF neighbors.
+    &#39;&#39;&#39;
+    if response is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Create a dictionary to store the formatted cmd output for each device.
+    result = dict()
+
+    # Parse &#39;response&#39;, adding the cmd output for each device to &#39;result&#39;.
+    for device, event in response.items():
+        output = json.loads(event[&#39;event_data&#39;][&#39;res&#39;][&#39;stdout&#39;])
+        if output[&#39;response&#39;][&#39;result&#39;].get(&#39;entry&#39;):
+            output = output[&#39;response&#39;][&#39;result&#39;][&#39;entry&#39;]
+            result[device] = output
+
+    # Use the data in &#39;result&#39; to populate &#39;df_data&#39;, which will be used to
+    # create the dataframe.
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+    for device in result:
+        # If there is only one neighbor, then the Palo Alto API returns a
+        # dictionary.
+        if isinstance(result[device], dict):
+            df_data[&#39;device&#39;].append(device)
+            for key, value in result[device].items():
+                if not df_data.get(key):
+                    df_data[key] = list()
+                df_data[key].append(value)
+        # If there is more than one neighbor, then the Palo Alto API returns a
+        # list.
+        else:
+            for item in result[device]:
+                df_data[&#39;device&#39;].append(device)
+                for key, value in item.items():
+                    if not df_data.get(key):
+                        df_data[key] = list()
+                    df_data[key].append(value)
+
+    # Create the dataframe.
+    df = pd.DataFrame.from_dict(df_data).astype(str)
+
+    return df
+
+
+def parse_physical_interfaces(response: dict) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Parse the physical interfaces on Palo Altos.
+
+    Parameters
+    ----------
+    response : dict
+        A dictionary containing the command output, where the keys are the
+        devices and the value is a dictionary
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A DataFrame containing the physical interfaces.
+
+
+    &#39;&#39;&#39;
+
+    if response is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Create a dictionary to store the formatted cmd output for each device.
+    result = dict()
+
+    # Parse &#39;response&#39;, adding the cmd output for each device to &#39;result&#39;.
+    for device, event in response.items():
+        event_data = event[&#39;event_data&#39;]
+        output = event_data[&#39;res&#39;][&#39;stdout&#39;]
+        output = json.loads(output)
+        if output[&#39;response&#39;][&#39;result&#39;][&#39;hw&#39;].get(&#39;entry&#39;):
+            output = output[&#39;response&#39;][&#39;result&#39;][&#39;hw&#39;][&#39;entry&#39;]
+            result[device] = output
+        else:  # Just in case no results are returned for some reason.
+            result[device] = dict()
+
+    # Use the data in &#39;result&#39; to populate &#39;df_data&#39;, which will be used to
+    # create the dataframe.
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+    for device in result:
+        interfaces = result[device]
+        for item in interfaces:
+            df_data[&#39;device&#39;].append(device)
+            for key, value in item.items():
+                if key != &#39;ae_member&#39;:  # Exclude aggregation groups.
+                    if not df_data.get(key):
+                        df_data[key] = list()
+                    df_data[key].append(value)
+
+    # Create the dataframe.
+    df = pd.DataFrame.from_dict(df_data)
+
+    return df
+
+
+def parse_security_rules(runner: dict) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Parse a list of all security rules from a Palo Alto firewall.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    df_rules : pd.DataFrame
+        A DataFrame containing the security rules.
+    &#39;&#39;&#39;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Create the &#39;df_data&#39; dictionary. It will be used to create the dataframe
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+
+    # Create a list to store the unformatted details for each rule
+    rules = list()
+
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            event_data = event[&#39;event_data&#39;]
+            device = event_data[&#39;remote_addr&#39;]
+            output = event_data[&#39;res&#39;][&#39;gathered&#39;]
+
+            for item in output:
+                item[&#39;device&#39;] = device
+                rules.append(item)
+                for key in item:
+                    if not df_data.get(key):
+                        df_data[key] = list()
+
+    # Iterate over the rule details, using the keys in dict_keys to create the
+    # &#39;df_data&#39; dictionary, which will be used to create the dataframe
+    for item in rules:
+        for key in df_data:
+            # If a key in a rule has a value that is a list, then convert it to
+            # a string by joining it with &#39;|&#39; as a delimiter. We do not want to
+            # use commas a delimiter, since that can cause issues when
+            # exporting the data to CSV files.
+            if isinstance(item.get(key), list):
+                # Some keys have a value that is a list, with commas inside the
+                # list items. For example, source_user might look like this:
+                # [&#39;cn=name,ou=firewall,ou=groups,dc=dcname,dc=local&#39;]. That
+                # creates an issue when exporting to a CSV file. Therefore,
+                # the commas inside list items will be replaced with a space
+                # before joining the list.
+                _list = item.get(key)
+                _list = [_.replace(&#39;,&#39;, &#39; &#39;) for _ in _list]
+
+                # Join the list using &#39;|&#39; as a delimiter
+                df_data[key].append(&#39;|&#39;.join(_list))
+            # If the key&#39;s value is not a list, then convert it to a string
+            # and append it to the key in &#39;df_data&#39;
+            else:
+                df_data[key].append(str(item.get(key)))
+
+    # Create the dataframe and return it
+    df_rules = pd.DataFrame.from_dict(df_data)
+
+    # Rename the &#39;destintaion_zone&#39; column to &#39;destination_zone&#39;
+    df_rules.rename({&#39;destintaion_zone&#39;: &#39;destination_zone&#39;},
+                    axis=1,
+                    inplace=True)
+
+    return df_rules</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="parsers.palo_alto_parsers.parse_all_interfaces"><code class="name flex">
+<span>def <span class="ident">parse_all_interfaces</span></span>(<span>response: dict) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse all interfaces on Palo Altos.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>response</code></strong> :&ensp;<code>dict</code></dt>
+<dd>A dictionary containing the command output, where the keys are the
+devices and the value is a dictionary</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>pd.DataFrame</code></dt>
+<dd>A DataFrame containing the logical interfaces.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def parse_all_interfaces(response: dict) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Parse all interfaces on Palo Altos.
+
+    Parameters
+    ----------
+    response : dict
+        A dictionary containing the command output, where the keys are the
+        devices and the value is a dictionary
+
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame containing the logical interfaces.
+
+    &#39;&#39;&#39;
+
+    if response is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Create a dictionary to store the formatted cmd output for each device.
+    result = dict()
+
+    # Parse &#39;response&#39;, adding the cmd output for each device to &#39;result&#39;.
+    for device, event in response.items():
+        output = json.loads(event[&#39;event_data&#39;][&#39;res&#39;][&#39;stdout&#39;])
+        if output[&#39;response&#39;][&#39;result&#39;][&#39;ifnet&#39;].get(&#39;entry&#39;):
+            output = output[&#39;response&#39;][&#39;result&#39;][&#39;ifnet&#39;][&#39;entry&#39;]
+            result[device] = output
+        else:
+            result[device] = dict()
+
+    # Use the data in &#39;result&#39; to populate &#39;df_data&#39;, which will be used to
+    # create the dataframe.
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+    for device in result:
+        for item in result[device]:
+            df_data[&#39;device&#39;].append(device)
+            for key, value in item.items():
+                if not df_data.get(key):
+                    df_data[key] = list()
+                df_data[key].append(value)
+
+    # Create the dataframe.
+    df = pd.DataFrame.from_dict(df_data).astype(str)
+
+    return df</code></pre>
+</details>
+</dd>
+<dt id="parsers.palo_alto_parsers.parse_arp_table"><code class="name flex">
+<span>def <span class="ident">parse_arp_table</span></span>(<span>response: dict, nm_path: str) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parses the Palo Alto ARP table and adds vendor OUIs.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>response</code></strong> :&ensp;<code>dict</code></dt>
+<dd>A dictionary containing the command output, where the keys are the
+devices and the value is a dictionary</dd>
+<dt><strong><code>nm_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the Net-Manage repository.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>pd.DataFrame</code></dt>
+<dd>A DataFrame containing the ARP table and vendor OUIs.</dd>
+</dl>
+<h2 id="other-parameters">Other Parameters</h2>
+<dl>
+<dt><strong><code>interface</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The interface for which to return the ARP table. The default is to
+return the ARP table for all interfaces.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def parse_arp_table(response: dict, nm_path: str) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Parses the Palo Alto ARP table and adds vendor OUIs.
+
+    Parameters
+    ----------
+    response : dict
+        A dictionary containing the command output, where the keys are the
+        devices and the value is a dictionary
+    nm_path : str
+        The path to the Net-Manage repository.
+
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame containing the ARP table and vendor OUIs.
+
+    Other Parameters
+    ----------------
+    interface : str, optional
+        The interface for which to return the ARP table. The default is to
+        return the ARP table for all interfaces.
+    &#39;&#39;&#39;
+
+    if response is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Create a dictionary to store the data for &#39;df&#39;
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+
+    # Populate &#39;df_data&#39; from &#39;result&#39;
+    for device in response:
+        output = json.loads(response[device][&#39;event_data&#39;][&#39;res&#39;][&#39;stdout&#39;])
+        # An &#39;error&#39; key indicates the interface does not exist.
+        if not output[&#39;response&#39;][&#39;result&#39;].get(&#39;error&#39;):
+            if output[&#39;response&#39;][&#39;result&#39;].get(&#39;entries&#39;):
+                arp_table = output[&#39;response&#39;][&#39;result&#39;][&#39;entries&#39;][&#39;entry&#39;]
+                if isinstance(arp_table, dict):
+                    arp_table = [arp_table]
+                for item in arp_table:
+                    df_data[&#39;device&#39;].append(device)
+                    for key, value in item.items():
+                        if not df_data.get(key):
+                            df_data[key] = list()
+                        df_data[key].append(value)
+
+    # Get the vendors for the MAC addresses
+    df_vendors = hp.find_mac_vendors(df_data[&#39;mac&#39;], nm_path)
+    df_data[&#39;vendor&#39;] = df_vendors[&#39;vendor&#39;].to_list()
+
+    # Create the dataframe
+    df = pd.DataFrame.from_dict(df_data)
+
+    return df</code></pre>
+</details>
+</dd>
+<dt id="parsers.palo_alto_parsers.parse_bgp_neighbors"><code class="name flex">
+<span>def <span class="ident">parse_bgp_neighbors</span></span>(<span>response: dict) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse BGP neighbors for Palo Alto firewalls.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>response</code></strong> :&ensp;<code>dict</code></dt>
+<dd>A dictionary containing the command output, where the keys are the
+devices and the value is a dictionary</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>pd.DataFrame</code></dt>
+<dd>A DataFrame containing the BGP peers.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def parse_bgp_neighbors(response: dict) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Parse BGP neighbors for Palo Alto firewalls.
+
+    Parameters
+    ----------
+    response : dict
+        A dictionary containing the command output, where the keys are the
+        devices and the value is a dictionary
+
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame containing the BGP peers.
+    &#39;&#39;&#39;
+    if response is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Create a dictionary to store the formatted cmd output for each device.
+    result = dict()
+
+    # Parse &#39;response&#39;, adding the cmd output for each device to &#39;result&#39;.
+    for device, event in response.items():
+        output = json.loads(event[&#39;event_data&#39;][&#39;res&#39;][&#39;stdout&#39;])
+        try:
+            if output[&#39;response&#39;][&#39;result&#39;].get(&#39;entry&#39;):
+                output = output[&#39;response&#39;][&#39;result&#39;][&#39;entry&#39;]
+                result[device] = output
+        except Exception as e:
+            if str(e) == &#34;&#39;NoneType&#39; object has no attribute &#39;get&#39;&#34;:
+                pass
+            else:
+                print(f&#39;{device}: {str(e)}&#39;)
+
+    # Use the data in &#39;result&#39; to populate &#39;df_data&#39;, which will be used to
+    # create the dataframe.
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+    for device in result:
+        # If there is only one neighbor, then the Palo Alto API returns a
+        # dictionary.
+        if isinstance(result[device], dict):
+            df_data[&#39;device&#39;].append(device)
+            for key, value in result[device].items():
+                if not df_data.get(key):
+                    df_data[key] = list()
+                df_data[key].append(value)
+        # If there is more than one neighbor, then the Palo Alto API returns a
+        # list.
+        else:
+            for item in result[device]:
+                df_data[&#39;device&#39;].append(device)
+                for key, value in item.items():
+                    if not df_data.get(key):
+                        df_data[key] = list()
+                    df_data[key].append(value)
+
+    # Create the dataframe.
+    df = pd.DataFrame.from_dict(df_data).astype(str)
+
+    return df</code></pre>
+</details>
+</dd>
+<dt id="parsers.palo_alto_parsers.parse_interface_ips"><code class="name flex">
+<span>def <span class="ident">parse_interface_ips</span></span>(<span>df: pandas.core.frame.DataFrame) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse IP addresses on Palo Alto firewall interfaces.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>Pandas Dataframe</code></dt>
+<dd>A pd.DataFrame</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>Pandas Dataframe</code></dt>
+<dd>A dataframe containing the IP addresses.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def parse_interface_ips(df: pd.DataFrame) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;Parse IP addresses on Palo Alto firewall interfaces.
+
+    Parameters
+    ----------
+    df : Pandas Dataframe
+        A pd.DataFrame
+
+    Returns
+    -------
+    df : Pandas Dataframe
+        A dataframe containing the IP addresses.
+
+    &#39;&#39;&#39;
+    # TODO: Optimize this function by setting &#39;get_all_interfaces&#39; as a
+    #       dependency. That way the same command does not need to be
+    #       run twice (potentially) for two different collectors.
+
+    if df is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Filter out interfaces that do not have an IP address.
+    df = df[df[&#39;ip&#39;] != &#39;N/A&#39;].copy()
+
+    # Add the subnets, network IPs, and broadcast IPs.
+    addresses = df[&#39;ip&#39;].to_list()
+    result = hp.generate_subnet_details(addresses)
+    df[&#39;subnet&#39;] = result[&#39;subnet&#39;]
+    df[&#39;network_ip&#39;] = result[&#39;network_ip&#39;]
+    df[&#39;broadcast_ip&#39;] = result[&#39;broadcast_ip&#39;]
+
+    # Split the &#39;ip&#39; column to separate the IP and the CIDR notation
+    df[&#39;cidr&#39;] = df[&#39;ip&#39;].str.split(&#39;/&#39;).str[1]
+    df[&#39;ip&#39;] = df[&#39;ip&#39;].str.split(&#39;/&#39;).str[0]
+
+    # Rearrange the columns to place &#39;cidr&#39; column to the right of &#39;ip&#39; column.
+    cols = df.columns.tolist()
+    ip_index = cols.index(&#39;ip&#39;)
+    cols.insert(ip_index + 1, cols.pop(cols.index(&#39;cidr&#39;)))
+    df = df[cols]
+
+    return df</code></pre>
+</details>
+</dd>
+<dt id="parsers.palo_alto_parsers.parse_inventory"><code class="name flex">
+<span>def <span class="ident">parse_inventory</span></span>(<span>response: dict) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse 'show system info' command on Palo Alto firewalls.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>response</code></strong> :&ensp;<code>dict</code></dt>
+<dd>A dictionary containing the command output, where the keys are the
+devices and the value is a dictionary</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>pd.DataFrame</code></dt>
+<dd>A DataFrame containing the hardware inventory.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def parse_inventory(response: dict) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Parse &#39;show system info&#39; command on Palo Alto firewalls.
+
+    Parameters
+    ----------
+    response : dict
+        A dictionary containing the command output, where the keys are the
+        devices and the value is a dictionary
+
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame containing the hardware inventory.
+
+    &#39;&#39;&#39;
+    if response is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Create a list to store columns. This method accounts for the fact that
+    # not all devices return the same data.
+    columns = [&#39;device&#39;]
+
+    # Create a dictionary to store the output. This will allow us to iterate
+    # over all the output and collect the column headers before populating the
+    # dataframe.
+    data = dict()
+
+    # Parse &#39;response&#39;, adding the cmd output for each device to &#39;result&#39;.
+    for device, event in response.items():
+        output = json.loads(event[&#39;event_data&#39;][&#39;res&#39;][&#39;stdout&#39;])
+        if output[&#39;response&#39;][&#39;result&#39;].get(&#39;system&#39;):
+            output = output[&#39;response&#39;][&#39;result&#39;].get(&#39;system&#39;)
+            data[device] = output
+
+    # Iterate over the output, adding all column names to &#39;columns&#39;.
+    for key, value in data.items():
+        for k in value:
+            if k not in columns:
+                columns.append(k)
+
+    # Create a dictionary to store the formatted data for the dataframe.
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+    for col in columns:
+        df_data[col] = list()
+
+    # Iterate over the output, adding all data to &#39;df_data&#39;.
+    for key, value in data.items():
+        df_data[&#39;device&#39;].append(key)
+        for col in columns[1:]:  # Skip the &#39;device&#39; column.
+            df_data[col].append(value.get(col))
+
+    # Create the dataframe and return it.
+    df = pd.DataFrame(df_data)
+
+    return df.astype(str)</code></pre>
+</details>
+</dd>
+<dt id="parsers.palo_alto_parsers.parse_logical_interfaces"><code class="name flex">
+<span>def <span class="ident">parse_logical_interfaces</span></span>(<span>response: pandas.core.frame.DataFrame) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse the logical interfaces on Palo Altos.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>response</code></strong> :&ensp;<code>dict</code></dt>
+<dd>A dictionary containing the command output, where the keys are the
+devices and the value is a dictionary</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>pd.DataFrame</code></dt>
+<dd>A DataFrame containing the logical interfaces.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def parse_logical_interfaces(response: pd.DataFrame) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Parse the logical interfaces on Palo Altos.
+
+    Parameters
+    ----------
+    response : dict
+        A dictionary containing the command output, where the keys are the
+        devices and the value is a dictionary
+
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame containing the logical interfaces.
+
+    &#39;&#39;&#39;
+
+    if response is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Create a dictionary to store the formatted cmd output for each device.
+    result = dict()
+
+    # Parse &#39;response&#39;, adding the cmd output for each device to &#39;result&#39;.
+    for device, event in response.items():
+        output = json.loads(event[&#39;event_data&#39;][&#39;res&#39;][&#39;stdout&#39;])
+        if output[&#39;response&#39;][&#39;result&#39;][&#39;ifnet&#39;].get(&#39;entry&#39;):
+            output = output[&#39;response&#39;][&#39;result&#39;][&#39;ifnet&#39;][&#39;entry&#39;]
+            result[device] = output
+        else:
+            result[device] = dict()
+
+    # Use the data in &#39;result&#39; to populate &#39;df_data&#39;, which will be used to
+    # create the dataframe.
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+    for device in result:
+        for item in result[device]:
+            df_data[&#39;device&#39;].append(device)
+            for key, value in item.items():
+                if not df_data.get(key):
+                    df_data[key] = list()
+                df_data[key].append(value)
+
+    # Create the dataframe.
+    df = pd.DataFrame.from_dict(df_data).astype(str)
+
+    return df</code></pre>
+</details>
+</dd>
+<dt id="parsers.palo_alto_parsers.parse_ospf_neighbors"><code class="name flex">
+<span>def <span class="ident">parse_ospf_neighbors</span></span>(<span>response: dict) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse OSPF neighbors for Palo Alto firewalls.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>response</code></strong> :&ensp;<code>dict</code></dt>
+<dd>A dictionary containing the command output, where the keys are the
+devices and the value is a dictionary</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>pd.DataFrame</code></dt>
+<dd>A DataFrame containing the OSPF neighbors.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def parse_ospf_neighbors(response: dict) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Parse OSPF neighbors for Palo Alto firewalls.
+
+    Parameters
+    ----------
+    response : dict
+        A dictionary containing the command output, where the keys are the
+        devices and the value is a dictionary
+
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame containing the OSPF neighbors.
+    &#39;&#39;&#39;
+    if response is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Create a dictionary to store the formatted cmd output for each device.
+    result = dict()
+
+    # Parse &#39;response&#39;, adding the cmd output for each device to &#39;result&#39;.
+    for device, event in response.items():
+        output = json.loads(event[&#39;event_data&#39;][&#39;res&#39;][&#39;stdout&#39;])
+        if output[&#39;response&#39;][&#39;result&#39;].get(&#39;entry&#39;):
+            output = output[&#39;response&#39;][&#39;result&#39;][&#39;entry&#39;]
+            result[device] = output
+
+    # Use the data in &#39;result&#39; to populate &#39;df_data&#39;, which will be used to
+    # create the dataframe.
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+    for device in result:
+        # If there is only one neighbor, then the Palo Alto API returns a
+        # dictionary.
+        if isinstance(result[device], dict):
+            df_data[&#39;device&#39;].append(device)
+            for key, value in result[device].items():
+                if not df_data.get(key):
+                    df_data[key] = list()
+                df_data[key].append(value)
+        # If there is more than one neighbor, then the Palo Alto API returns a
+        # list.
+        else:
+            for item in result[device]:
+                df_data[&#39;device&#39;].append(device)
+                for key, value in item.items():
+                    if not df_data.get(key):
+                        df_data[key] = list()
+                    df_data[key].append(value)
+
+    # Create the dataframe.
+    df = pd.DataFrame.from_dict(df_data).astype(str)
+
+    return df</code></pre>
+</details>
+</dd>
+<dt id="parsers.palo_alto_parsers.parse_physical_interfaces"><code class="name flex">
+<span>def <span class="ident">parse_physical_interfaces</span></span>(<span>response: dict) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse the physical interfaces on Palo Altos.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>response</code></strong> :&ensp;<code>dict</code></dt>
+<dd>A dictionary containing the command output, where the keys are the
+devices and the value is a dictionary</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>A DataFrame containing the physical interfaces.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def parse_physical_interfaces(response: dict) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Parse the physical interfaces on Palo Altos.
+
+    Parameters
+    ----------
+    response : dict
+        A dictionary containing the command output, where the keys are the
+        devices and the value is a dictionary
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A DataFrame containing the physical interfaces.
+
+
+    &#39;&#39;&#39;
+
+    if response is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Create a dictionary to store the formatted cmd output for each device.
+    result = dict()
+
+    # Parse &#39;response&#39;, adding the cmd output for each device to &#39;result&#39;.
+    for device, event in response.items():
+        event_data = event[&#39;event_data&#39;]
+        output = event_data[&#39;res&#39;][&#39;stdout&#39;]
+        output = json.loads(output)
+        if output[&#39;response&#39;][&#39;result&#39;][&#39;hw&#39;].get(&#39;entry&#39;):
+            output = output[&#39;response&#39;][&#39;result&#39;][&#39;hw&#39;][&#39;entry&#39;]
+            result[device] = output
+        else:  # Just in case no results are returned for some reason.
+            result[device] = dict()
+
+    # Use the data in &#39;result&#39; to populate &#39;df_data&#39;, which will be used to
+    # create the dataframe.
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+    for device in result:
+        interfaces = result[device]
+        for item in interfaces:
+            df_data[&#39;device&#39;].append(device)
+            for key, value in item.items():
+                if key != &#39;ae_member&#39;:  # Exclude aggregation groups.
+                    if not df_data.get(key):
+                        df_data[key] = list()
+                    df_data[key].append(value)
+
+    # Create the dataframe.
+    df = pd.DataFrame.from_dict(df_data)
+
+    return df</code></pre>
+</details>
+</dd>
+<dt id="parsers.palo_alto_parsers.parse_security_rules"><code class="name flex">
+<span>def <span class="ident">parse_security_rules</span></span>(<span>runner: dict) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse a list of all security rules from a Palo Alto firewall.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>runner</code></strong> :&ensp;<code>dict</code></dt>
+<dd>An Ansible runner genrator</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>df_rules</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>A DataFrame containing the security rules.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def parse_security_rules(runner: dict) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Parse a list of all security rules from a Palo Alto firewall.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    df_rules : pd.DataFrame
+        A DataFrame containing the security rules.
+    &#39;&#39;&#39;
+
+    if runner is None or runner.events is None:
+        raise ValueError(&#34;The input is None or empty&#34;)
+
+    # Create the &#39;df_data&#39; dictionary. It will be used to create the dataframe
+    df_data = dict()
+    df_data[&#39;device&#39;] = list()
+
+    # Create a list to store the unformatted details for each rule
+    rules = list()
+
+    for event in runner.events:
+        if event[&#39;event&#39;] == &#39;runner_on_ok&#39;:
+            event_data = event[&#39;event_data&#39;]
+            device = event_data[&#39;remote_addr&#39;]
+            output = event_data[&#39;res&#39;][&#39;gathered&#39;]
+
+            for item in output:
+                item[&#39;device&#39;] = device
+                rules.append(item)
+                for key in item:
+                    if not df_data.get(key):
+                        df_data[key] = list()
+
+    # Iterate over the rule details, using the keys in dict_keys to create the
+    # &#39;df_data&#39; dictionary, which will be used to create the dataframe
+    for item in rules:
+        for key in df_data:
+            # If a key in a rule has a value that is a list, then convert it to
+            # a string by joining it with &#39;|&#39; as a delimiter. We do not want to
+            # use commas a delimiter, since that can cause issues when
+            # exporting the data to CSV files.
+            if isinstance(item.get(key), list):
+                # Some keys have a value that is a list, with commas inside the
+                # list items. For example, source_user might look like this:
+                # [&#39;cn=name,ou=firewall,ou=groups,dc=dcname,dc=local&#39;]. That
+                # creates an issue when exporting to a CSV file. Therefore,
+                # the commas inside list items will be replaced with a space
+                # before joining the list.
+                _list = item.get(key)
+                _list = [_.replace(&#39;,&#39;, &#39; &#39;) for _ in _list]
+
+                # Join the list using &#39;|&#39; as a delimiter
+                df_data[key].append(&#39;|&#39;.join(_list))
+            # If the key&#39;s value is not a list, then convert it to a string
+            # and append it to the key in &#39;df_data&#39;
+            else:
+                df_data[key].append(str(item.get(key)))
+
+    # Create the dataframe and return it
+    df_rules = pd.DataFrame.from_dict(df_data)
+
+    # Rename the &#39;destintaion_zone&#39; column to &#39;destination_zone&#39;
+    df_rules.rename({&#39;destintaion_zone&#39;: &#39;destination_zone&#39;},
+                    axis=1,
+                    inplace=True)
+
+    return df_rules</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="parsers" href="index.html">parsers</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="parsers.palo_alto_parsers.parse_all_interfaces" href="#parsers.palo_alto_parsers.parse_all_interfaces">parse_all_interfaces</a></code></li>
+<li><code><a title="parsers.palo_alto_parsers.parse_arp_table" href="#parsers.palo_alto_parsers.parse_arp_table">parse_arp_table</a></code></li>
+<li><code><a title="parsers.palo_alto_parsers.parse_bgp_neighbors" href="#parsers.palo_alto_parsers.parse_bgp_neighbors">parse_bgp_neighbors</a></code></li>
+<li><code><a title="parsers.palo_alto_parsers.parse_interface_ips" href="#parsers.palo_alto_parsers.parse_interface_ips">parse_interface_ips</a></code></li>
+<li><code><a title="parsers.palo_alto_parsers.parse_inventory" href="#parsers.palo_alto_parsers.parse_inventory">parse_inventory</a></code></li>
+<li><code><a title="parsers.palo_alto_parsers.parse_logical_interfaces" href="#parsers.palo_alto_parsers.parse_logical_interfaces">parse_logical_interfaces</a></code></li>
+<li><code><a title="parsers.palo_alto_parsers.parse_ospf_neighbors" href="#parsers.palo_alto_parsers.parse_ospf_neighbors">parse_ospf_neighbors</a></code></li>
+<li><code><a title="parsers.palo_alto_parsers.parse_physical_interfaces" href="#parsers.palo_alto_parsers.parse_physical_interfaces">parse_physical_interfaces</a></code></li>
+<li><code><a title="parsers.palo_alto_parsers.parse_security_rules" href="#parsers.palo_alto_parsers.parse_security_rules">parse_security_rules</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

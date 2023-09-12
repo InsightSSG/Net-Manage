@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import pandas as pd
+import re
 
 from netmanage.helpers import helpers as hp
 
@@ -38,12 +39,12 @@ def parse_facts(runner: dict) -> dict:
     return facts
 
 
-def parse_bgp_neighbor_summary(runner: dict) -> pd.DataFrame:
+def parse_bgp_neighbors(runner):
     """Parses the BGP neighbor summary output and returns it in a DataFrame.
 
     Parameters
     ----------
-    runner : dict
+    runner : generator
         An Ansible runner generator.
 
     Returns
@@ -54,37 +55,71 @@ def parse_bgp_neighbor_summary(runner: dict) -> pd.DataFrame:
     if runner is None or runner.events is None:
         raise ValueError('The input is None or empty')
 
-    # Create a dictionary to store the parsed output.
-    df_data = dict()
-    df_data['device'] = list()
+    rows = list()
 
-    # Parse the output, create the DataFrame and return it.
     for event in runner.events:
         if event['event'] == 'runner_on_ok':
             event_data = event['event_data']
 
             device = event_data['remote_addr']
 
-            output = event_data['res']['stdout'][0].split('\n')
+            text = event_data['res']['stdout'][0]
 
-            # Add the column headers to df_data as keys.
-            headers = output[0].split()
-            for key in headers:
-                if not df_data.get(key):
-                    df_data[key] = list()
+            neighbors = text.split("BGP neighbor is")[1:]
 
-            # Convert the output to a nested list and remove the header row.
-            output = [_.split() for _ in output[1:]]
-            # Add the device to each list element.
-            output = [[device] + _ for _ in output]
+            for neighbor in neighbors:
+                local_host_search = re.search(
+                    r"Local host: (\d+\.\d+\.\d+\.\d+)", neighbor)
+                local_host = local_host_search.group(1) \
+                    if local_host_search else None
+                bgp_neighbor = re.search(
+                    r"(\d+\.\d+\.\d+\.\d+)", neighbor).group(1)
+                vrf_search = re.search(r"vrf (\w+)", neighbor)
+                vrf = vrf_search.group(1) if vrf_search else None
+                local_as_search = re.search(r"local AS (\d+)", neighbor)
+                local_as = int(local_as_search.group(1)) \
+                    if local_as_search else None
+                remote_as = int(
+                    re.search(r"remote AS (\d+)", neighbor).group(1))
+                peer_group_search = re.search(
+                    r"Member of peer-group ([\w+-]+)", neighbor)
+                peer_group = peer_group_search.group(
+                    1) if peer_group_search else None
+                bgp_version = int(
+                    re.search(r"BGP version (\d+)", neighbor).group(1))
+                neighbor_id = re.search(
+                    r"remote router ID (\d+\.\d+\.\d+\.\d+)", neighbor).\
+                    group(1)
+                bgp_state = re.search(r"BGP state = (\w+)", neighbor).group(1)
+                bgp_state_timer_search = re.search(
+                    r"BGP state = \w+, (.+)", neighbor)
+                bgp_state_timer = bgp_state_timer_search.group(
+                    1) if bgp_state_timer_search else None
 
-            # Parse the output and add it to 'df_data'.
-            for line in output:
-                for key, value in zip(df_data.keys(), line):
-                    df_data[key].append(value)
+                rows.append([device,
+                             local_host,
+                             bgp_neighbor,
+                             vrf,
+                             local_as,
+                             remote_as,
+                             peer_group,
+                             bgp_version,
+                             neighbor_id,
+                             bgp_state,
+                             bgp_state_timer])
 
-    # Create the dataframe and return it.
-    df = pd.DataFrame(df_data).astype(str)
+    # Create DataFrame
+    df = pd.DataFrame(rows, columns=["device",
+                                     "local_host",
+                                     "bgp_neighbor",
+                                     "vrf",
+                                     "local_as",
+                                     "remote_as",
+                                     "peer_group",
+                                     "bgp_version",
+                                     "neighbor_id",
+                                     "bgp_state",
+                                     "bgp_state_timer"])
 
     return df
 
@@ -225,10 +260,16 @@ def parse_vrfs(runner: dict) -> pd.DataFrame:
             output = event_data['res']['stdout'][0].split('\n')
 
             # Gather the header indexes.
-            header = output[0]
-            rd_pos = header.index('Default RD')
-            proto_pos = header.index('Protocols')
-            inf_pos = header.index('Interfaces')
+            try:
+                header = output[0]
+                rd_pos = header.index('Default RD')
+                proto_pos = header.index('Protocols')
+                inf_pos = header.index('Interfaces')
+            except Exception as e:
+                if str(e) == 'substring not found':  # Raised if no VRFs.
+                    pass
+                else:
+                    print(f'{device}: {str(e)}')
 
             # Reverse 'output' to make it easier to parse.
             output.reverse()
@@ -568,7 +609,7 @@ def ios_parse_interface_ips(runner: dict) -> pd.DataFrame:
                         vrf = output[pos - 1].split()[-1].strip('"')
                     else:
                         vrf = "None"
-                    ip = line.split()[-1]
+                    ip = line.split()[-1].split('/')[0]
                     inf = output[pos + 1].split()[0]
                     row = [device, inf, ip, vrf]
                     df_data.append(row)
@@ -585,6 +626,85 @@ def ios_parse_interface_ips(runner: dict) -> pd.DataFrame:
     df["subnet"] = result["subnet"]
     df["network_ip"] = result["network_ip"]
     df["broadcast_ip"] = result["broadcast_ip"]
+
+    # Add a column containing the CIDR notation.
+    cidrs = hp.subnet_mask_to_cidr(df["subnet"].to_list())
+    df['cidr'] = cidrs
+    df = df[['device',
+             'interface',
+             'ip',
+             'cidr',
+             'vrf',
+             'subnet',
+             'network_ip',
+             'broadcast_ip']]
+
+    return df
+
+
+def ios_parse_inventory(runner: dict) -> pd.DataFrame:
+    """
+    Parses the inventory for Cisco IOS and IOS-XE devices.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner generator.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A DataFrame containing the inventory data.
+    """
+    if runner is None or runner.events is None:
+        raise ValueError("The input is None or empty")
+
+    # Create a dictionary to store the inventory data.
+    columns = ['device',
+               'name',
+               'description',
+               'pid',
+               'vid',
+               'serial']
+    df_data = dict()
+    for col in columns:
+        df_data[col] = list()
+
+    # Parse the output and add it to 'df_data'
+    for event in runner.events:
+        if event["event"] == "runner_on_ok":
+            event_data = event["event_data"]
+
+            device = event_data["remote_addr"]
+
+            data = event_data["res"]["stdout"][0].split("\n")
+
+            # Iterate through data (each hardware entry has 3 lines).
+            for i in range(0, len(data), 3):
+                df_data['device'].append(device)
+                # Split the first line to extract name and description
+                name_desc = data[i].split(", DESCR: ")
+                df_data['name'].append(
+                    name_desc[0].replace('NAME: "', '').
+                    replace('"', '').strip())
+                df_data['description'].append(
+                    name_desc[1].replace('"', '').strip())
+
+                # Split the second line to extract PID, VID and SN
+                pid_vid_sn = data[i+1].split(", ")
+                df_data['pid'].append(
+                    pid_vid_sn[0].replace('PID: ', '').strip())
+                df_data['vid'].append(
+                    pid_vid_sn[1].replace('VID: ', '').strip())
+
+                # If SN value is "SN:", replace with an empty string.
+                sn_value = pid_vid_sn[2].replace('SN: ', '').strip()
+                if sn_value == "SN:":
+                    sn_value = ""
+                df_data['serial'].append(sn_value)
+
+    # Create the DataFrame and return it.
+    df = pd.DataFrame(df_data)
 
     return df
 

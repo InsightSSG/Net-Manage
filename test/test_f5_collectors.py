@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 
+import ast
 import os
+import sys
 from dotenv import load_dotenv
+sys.path.append('.')
 from netmanage.collectors import f5_collectors as collectors  # noqa
 from netmanage.helpers import helpers as hp  # noqa
 
@@ -14,7 +17,7 @@ def test_get_arp_table(username,
                        netmanage_path,
                        play_path,
                        private_data_dir,
-                       validate_certs=False):
+                       validate_certs=True):
     """Test the 'f5_get_arp_table' collector.
     """
     df = collectors.get_arp_table(username,
@@ -23,7 +26,7 @@ def test_get_arp_table(username,
                                   netmanage_path,
                                   play_path,
                                   private_data_dir,
-                                  validate_certs=False)
+                                  validate_certs=validate_certs)
 
     expected = ['device',
                 'Name',
@@ -52,11 +55,20 @@ def test_get_self_ips(username,
                                  host_group,
                                  play_path,
                                  private_data_dir,
-                                 validate_certs=False)
+                                 validate_certs=validate_certs)
 
-    expected = ['device', 'address', 'allow-service',
-                'traffic-group', 'vlan', 'name',
-                'subnet', 'network_ip', 'broadcast_ip']
+    expected = ['device',
+                'address',
+                'cidr',
+                'allow-service',
+                'traffic-group',
+                'vlan',
+                'name',
+                'floating',
+                'unit',
+                'subnet',
+                'network_ip',
+                'broadcast_ip']
 
     assert df.columns.to_list() == expected
 
@@ -70,7 +82,7 @@ def test_get_interface_descriptions(username,
                                     play_path,
                                     private_data_dir,
                                     reverse_dns=False,
-                                    validate_certs=False):
+                                    validate_certs=True):
     """Test the 'f5_get_interface_descriptions' collector.
     """
     df = collectors.get_interface_descriptions(username,
@@ -80,7 +92,7 @@ def test_get_interface_descriptions(username,
                                                play_path,
                                                private_data_dir,
                                                reverse_dns=False,
-                                               validate_certs=False)
+                                               validate_certs=validate_certs)
 
     expected = ['device', 'interface', 'description']
 
@@ -94,7 +106,7 @@ def test_get_interface_status(username,
                               host_group,
                               play_path,
                               private_data_dir,
-                              validate_certs=False):
+                              validate_certs=True):
     """Test the 'f5_get_interface_status' collector.
     """
     df = collectors.get_interface_status(username,
@@ -102,7 +114,7 @@ def test_get_interface_status(username,
                                          host_group,
                                          play_path,
                                          private_data_dir,
-                                         validate_certs=False)
+                                         validate_certs=validate_certs)
 
     expected = ['device', 'interface', 'status',
                 'vlan', 'duplex', 'speed', 'type']
@@ -117,7 +129,7 @@ def test_get_node_availability(username,
                                host_group,
                                play_path,
                                private_data_dir,
-                               validate_certs=False):
+                               validate_certs=True):
     """Test the 'f5_get_node_availability' collector.
     """
     df = collectors.get_node_availability(username,
@@ -125,7 +137,7 @@ def test_get_node_availability(username,
                                           host_group,
                                           play_path,
                                           private_data_dir,
-                                          validate_certs=False)
+                                          validate_certs=validate_certs)
 
     expected = ['device', 'partition', 'node', 'addr',
                 'cur-sessions', 'monitor-rule', 'monitor-status',
@@ -146,7 +158,7 @@ def test_get_pool_availability(username,
                                host_group,
                                play_path,
                                private_data_dir,
-                               validate_certs=False):
+                               validate_certs=True):
     """Test the 'f5_get_pool_availability' collector.
     """
     df = collectors.get_pool_availability(username,
@@ -154,7 +166,7 @@ def test_get_pool_availability(username,
                                           host_group,
                                           play_path,
                                           private_data_dir,
-                                          validate_certs=False)
+                                          validate_certs=validate_certs)
 
     expected = ['device', 'partition', 'pool', 'availability',
                 'state', 'total', 'avail', 'cur', 'min', 'reason']
@@ -169,7 +181,7 @@ def test_get_pool_data(username,
                        host_group,
                        play_path,
                        private_data_dir,
-                       validate_certs=False):
+                       validate_certs=True):
     """Test the 'f5_get_pool_data' collector.
     """
     df = collectors.get_pool_data(username,
@@ -177,7 +189,7 @@ def test_get_pool_data(username,
                                   host_group,
                                   play_path,
                                   private_data_dir,
-                                  validate_certs=False)
+                                  validate_certs=validate_certs)
 
     expected = ['device', 'partition', 'pool',
                 'member', 'member_port', 'address']
@@ -190,7 +202,7 @@ def test_get_pool_member_availability(username,
                                       host_group,
                                       play_path,
                                       private_data_dir,
-                                      validate_certs=False):
+                                      validate_certs=True):
     """Test the 'f5_get_pool_member_availability' collector.
     """
     df = collectors.get_pool_member_availability(username,
@@ -198,30 +210,10 @@ def test_get_pool_member_availability(username,
                                                  host_group,
                                                  play_path,
                                                  private_data_dir,
-                                                 validate_certs=False)
+                                                 validate_certs=validate_certs)
 
     expected = ['device', 'partition', 'pool_name',
                 'pool_member', 'pool_member_state']
-
-    assert df.columns.to_list() == expected
-
-
-def test_get_pools_and_members(username,
-                               password,
-                               host_group,
-                               play_path,
-                               private_data_dir,
-                               validate_certs=False):
-    """Test the 'f5_get_pool_member_availability' collector.
-    """
-    df = collectors.get_pools_and_members(username,
-                                          password,
-                                          host_group,
-                                          play_path,
-                                          private_data_dir,
-                                          validate_certs=False)
-
-    expected = ['device', 'partition', 'pool', 'member', 'address']
 
     assert df.columns.to_list() == expected
 
@@ -231,7 +223,7 @@ def test_get_vip_availability(username,
                               host_group,
                               play_path,
                               private_data_dir,
-                              validate_certs=False):
+                              validate_certs=True):
     """Test the 'f5_get_vip_availability' collector.
     """
     df = collectors.get_vip_availability(username,
@@ -239,42 +231,10 @@ def test_get_vip_availability(username,
                                          host_group,
                                          play_path,
                                          private_data_dir,
-                                         validate_certs=False)
+                                         validate_certs=validate_certs)
 
     expected = ['device', 'partition', 'vip', 'destination',
                 'port', 'availability', 'state', 'reason']
-
-    assert df.columns.to_list() == expected
-
-
-def test_get_vip_summary(username,
-                         password,
-                         host_group,
-                         play_path,
-                         private_data_dir,
-                         db_path,
-                         timestamp,
-                         validate_certs=False):
-    """Test the 'f5_get_vip_summary' collector.
-    """
-    df_pools = collectors.build_pool_table(username,
-                                           password,
-                                           host_group,
-                                           play_path,
-                                           private_data_dir,
-                                           db_path,
-                                           timestamp,
-                                           validate_certs=False)
-
-    df = collectors.get_vip_summary(username,
-                                    password,
-                                    host_group,
-                                    play_path,
-                                    private_data_dir,
-                                    df_pools,
-                                    validate_certs=False)
-
-    expected = []
 
     assert df.columns.to_list() == expected
 
@@ -284,7 +244,7 @@ def test_get_vlan_db(username,
                      host_group,
                      play_path,
                      private_data_dir,
-                     validate_certs=False):
+                     validate_certs=True):
     """Test the 'f5_get_vlan_db' collector.
     """
     df = collectors.get_vlan_db(username,
@@ -292,7 +252,7 @@ def test_get_vlan_db(username,
                                 host_group,
                                 play_path,
                                 private_data_dir,
-                                validate_certs=False)
+                                validate_certs=validate_certs)
 
     expected = ['device', 'id', 'name', 'status', 'ports']
 
@@ -304,7 +264,7 @@ def test_get_vlans(username,
                    host_group,
                    play_path,
                    private_data_dir,
-                   validate_certs=False):
+                   validate_certs=True):
     """Test the 'f5_get_vlans' collector.
     """
     df = collectors.get_vlans(username,
@@ -312,22 +272,60 @@ def test_get_vlans(username,
                               host_group,
                               play_path,
                               private_data_dir,
-                              validate_certs=False)
+                              validate_certs=validate_certs)
 
-    expected = ['device', 'fwd-mode', 'if-index',
-                'interfaces', 'sflow', 'tag', 'name']
+    expected = ['device',
+                'fwd-mode',
+                'if-index',
+                'interfaces',
+                'sflow',
+                'tag',
+                'name']
 
     assert df.columns.to_list() == expected
+
+    assert len(df) >= 1
+
+
+def test_inventory(username,
+                   password,
+                   host_group,
+                   play_path,
+                   private_data_dir,
+                   validate_certs=True):
+    """Test the 'f5_inventory' collector."""
+    df = collectors.inventory(username,
+                              password,
+                              host_group,
+                              play_path,
+                              private_data_dir,
+                              validate_certs=validate_certs)
+
+    expected = ['device',
+                'name',
+                'bios_revision',
+                'base_mac',
+                'appliance_type',
+                'appliance_serial',
+                'part_number',
+                'host_board_serial',
+                'host_board_part_revision']
+
+    assert df.columns.to_list() == expected
+
+    assert len(df) >= 1
 
 
 def main():
     username = os.environ.get('f5_ltm_username')
     password = os.environ.get('f5_ltm_password')
     database_path = os.path.expanduser(os.environ['database_path'])
+    host_group = os.environ.get('f5_host_group')
     netmanage_path = os.path.expanduser(
         os.environ['netmanage_path'].rstrip('/'))
     private_data_dir = os.path.expanduser(
         os.environ['private_data_directory'])
+    validate_certs = ast.literal_eval(os.environ['validate_certs'])
 
     # Create the output folder if it does not already exist.
     exists = hp.check_dir_existence(database_path)
@@ -337,9 +335,6 @@ def main():
     # Define additional variables
     play_path = netmanage_path + '/playbooks'
 
-    # Define the host group to test against.
-    host_group = os.environ.get('f5_host_group')
-
     # Execute tests
     test_get_arp_table(username,
                        password,
@@ -347,14 +342,14 @@ def main():
                        netmanage_path,
                        play_path,
                        private_data_dir,
-                       validate_certs=False)
+                       validate_certs=validate_certs)
 
     test_get_self_ips(username,
                       password,
                       host_group,
                       play_path,
                       private_data_dir,
-                      validate_certs=False)
+                      validate_certs=validate_certs)
 
     test_get_interface_descriptions(username,
                                     password,
@@ -363,77 +358,70 @@ def main():
                                     play_path,
                                     private_data_dir,
                                     reverse_dns=False,
-                                    validate_certs=False)
+                                    validate_certs=validate_certs)
 
     test_get_interface_status(username,
                               password,
                               host_group,
                               play_path,
                               private_data_dir,
-                              validate_certs=False)
+                              validate_certs=validate_certs)
 
     test_get_node_availability(username,
                                password,
                                host_group,
                                play_path,
                                private_data_dir,
-                               validate_certs=False)
+                               validate_certs=validate_certs)
 
     test_get_pool_availability(username,
                                password,
                                host_group,
                                play_path,
                                private_data_dir,
-                               validate_certs=False)
+                               validate_certs=validate_certs)
 
     test_get_pool_data(username,
                        password,
                        host_group,
                        play_path,
                        private_data_dir,
-                       validate_certs=False)
+                       validate_certs=validate_certs)
 
     test_get_pool_member_availability(username,
                                       password,
                                       host_group,
                                       play_path,
                                       private_data_dir,
-                                      validate_certs=False)
-
-    test_get_pools_and_members(username,
-                               password,
-                               host_group,
-                               play_path,
-                               private_data_dir,
-                               validate_certs=False)
+                                      validate_certs=validate_certs)
 
     test_get_vip_availability(username,
                               password,
                               host_group,
                               play_path,
                               private_data_dir,
-                              validate_certs=False)
-
-    # test_get_vip_summary(username,
-    #                password,
-    #                host_group,
-    #                play_path,
-    #                private_data_dir,
-    #                validate_certs=False)
+                              validate_certs=validate_certs)
 
     test_get_vlan_db(username,
                      password,
                      host_group,
                      play_path,
                      private_data_dir,
-                     validate_certs=False)
+                     validate_certs=validate_certs)
 
     test_get_vlans(username,
                    password,
                    host_group,
                    play_path,
                    private_data_dir,
-                   validate_certs=False)
+                   validate_certs=validate_certs)
+
+    test_inventory(username,
+                   password,
+                   host_group,
+                   play_path,
+                   private_data_dir,
+                   validate_certs=validate_certs)
 
 
 if __name__ == '__main__':

@@ -17,7 +17,7 @@ async def meraki_get_device_cdp_lldp_neighbors(api_key: str,
                                                db_path: str = '',
                                                serials: list = [],
                                                orgs: list = []) \
-                                                -> pd.DataFrame:
+        -> pd.DataFrame:
     '''
     Gets the CDP and LLDP neighbors for a list of device serial numbers.
 
@@ -49,21 +49,6 @@ async def meraki_get_device_cdp_lldp_neighbors(api_key: str,
         neighbors = await dashboard.devices.getDeviceLldpCdp(serial)
         return neighbors
 
-    # Create two dictionaries to store the neighbors data.
-    cdp_headers = ['sourceMac',
-                   'sourcePort',
-                   'deviceId',
-                   'address',
-                   'portId']
-    lldp_headers = ['sourceMac',
-                    'sourcePort',
-                    'systemName',
-                    'managementAddress',
-                    'portId']
-
-    cdp_data = {key: [] for key in cdp_headers}
-    lldp_data = {key: [] for key in lldp_headers}
-
     # If the user did not pass a list of serials to the function, then get all
     # of the serials from the list of orgs. If the user did not pass a list
     # of orgs either, then get all of the serials from all of the
@@ -82,52 +67,31 @@ async def meraki_get_device_cdp_lldp_neighbors(api_key: str,
         results = await asyncio.gather(*(get_neighbors_for_device(
             dashboard, serial) for serial in serials))
 
-    # Flatten the list of neighbors into a single list, which will ultimately
-    # be used to create a DataFrame.
-    # data = [neighbor for neighbors in results for neighbor in neighbors]
-    df = pd.DataFrame()
-    for item in results:
-        df = pd.concat([df, pd.DataFrame(item)], axis=0).reset_index(drop=True)
+    rows = []
+    for device in results:
+        if not device:  # Skip empty device data
+            continue
+        sourceMac = device.get('sourceMac', None)
+        ports = device.get('ports', {})
+        for port, details in ports.items():
+            row = {'sourceMac': sourceMac}
+            lldp_details = details.get('lldp', {})
+            cdp_details = details.get('cdp', {})
 
-    # Iterate through the neighbors, collecting them and adding the CDP
-    # and/or LLDP neighbors to their respective dictionaries.
-    for idx, row in df.iterrows():
-        sourceMac = row['sourceMac']
-        ports = row['ports']
-        # Collect the CDP neighbors.
-        if ports.get('cdp'):
-            excluded_keys = ['sourceMac',
-                             'systemName',
-                             'managementAddress']
-            cdp_data['sourceMac'].append(sourceMac)
-            neighbors = ports.get('cdp')
-            for key in cdp_data:
-                if key not in excluded_keys:
-                    cdp_data[key].append(neighbors.get(key))
-        # Collect the LLDP neighbors.
-        if ports.get('lldp'):
-            excluded_keys = ['sourceMac', 'deviceId', 'address']
-            lldp_data['sourceMac'].append(sourceMac)
-            neighbors = ports.get('lldp')
-            for key in lldp_data:
-                if key not in excluded_keys:
-                    lldp_data[key].append(neighbors.get(key))
+            row['lldp_sourcePort'] = lldp_details.get('sourcePort', None)
+            row['lldpSystemName'] = lldp_details.get('systemName', None)
+            row['lldpManagementAddress'] = lldp_details.get(
+                'managementAddress', None)
+            row['lldpPortId'] = lldp_details.get('portId', None)
 
-    # Create the DataFrames and return them.
-    df_cdp = pd.DataFrame(cdp_data)
-    df_lldp = pd.DataFrame(lldp_data)
+            row['cdp_sourcePort'] = cdp_details.get('sourcePort', None)
+            row['cdpDeviceId'] = cdp_details.get('deviceId', None)
+            row['cdpAddress'] = cdp_details.get('address', None)
+            row['cdpPortId'] = cdp_details.get('portId', None)
 
-    # Rename the columns so that 'cdp_' and 'lldp_' are the prefixes.
-    df_cdp.columns = ['cdp_' + col for col in df_cdp.columns]
-    df_lldp.columns = ['lldp_' + col for col in df_lldp.columns]
+            rows.append(row)
 
-    # Combine the two dataframes into a single one then return it.
-    df = df_cdp.merge(df_lldp,
-                      left_on=['cdp_sourceMac', 'cdp_sourcePort'],
-                      right_on=['lldp_sourceMac', 'lldp_sourcePort'],
-                      how='outer')
-
-    return df
+    return pd.DataFrame(rows)
 
 
 def get_network_appliance_vlans(ansible_os: str,
@@ -327,7 +291,7 @@ async def meraki_get_network_clients(api_key: str,
                                      per_page: int = 1000,
                                      timespan: int = 86400,
                                      total_pages: Union[int, str] = 'all') \
-                                         -> pd.DataFrame:
+        -> pd.DataFrame:
     '''
     Gets the list of clients on a network.
 
@@ -644,6 +608,93 @@ def meraki_get_organizations(api_key: str) -> pd.DataFrame:
     df_orgs = pd.DataFrame(orgs).astype(str)
 
     return df_orgs
+
+
+def meraki_get_org_appliance_uplink_statuses(api_key: str,
+                                             db_path: str,
+                                             orgs: list = []) -> pd.DataFrame:
+    '''Gets the uplink statuses for appliances in a list of organizations.
+
+    This API endpoint also returns some associated data, like uplink IP
+    addresses.
+
+    Parameters
+    ----------
+    api_key : str
+        The user's API key.
+    db_path : str
+        The path to the database to store results.
+    orgs : list, optional
+        One or more organization IDs. If none are specified, then the devices
+        for all orgs will be returned. Defaults to an empty list.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        The appliance uplinks for the organizations.
+
+    Examples
+    --------
+    >>> api_key = '<your_api_key_here>'
+    >>> db_path = '/path/to/database.db'
+    >>> orgs = ['org_id_1', 'org_id_2']
+    >>> df = meraki_get_org_devices(api_key, db_path, orgs)
+    >>> print(df)
+    '''
+    # Get the organizations (collected by 'meraki_get_orgs') from the database
+    table = 'meraki_organizations'
+    organizations = hp.meraki_parse_organizations(db_path, orgs, table)
+
+    # Initialize Meraki dashboard
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
+    app = dashboard.appliance
+
+    # This list will contain all of the uplinks for each org. It will then be
+    # used to create the dataframe. This method accounts for uplinks that might
+    # not have the same keys.
+    results = list()
+    for org in organizations:
+        # Check if API access is enabled for the org
+        enabled = hp.meraki_check_api_enablement(db_path, org)
+        if enabled:
+            uplinks = app.getOrganizationApplianceUplinkStatuses(
+                org, total_pages="all"
+            )
+            for uplink in uplinks:
+                uplink['orgId'] = org
+            results.append(uplinks)
+
+    # Combine the uplinks from the orgs into a single list.
+    data = [_ for uplink in results for _ in uplink]
+
+    df_data = list()
+
+    for item in data:
+        row = {}
+        row['networkId'] = item['networkId']
+        row['serial'] = item['serial']
+        row['model'] = item['model']
+        row['highAvailability'] = item['highAvailability']['role']
+        row['lastReportedAt'] = item['lastReportedAt']
+        row['uplinks'] = len(item['uplinks'])
+
+        for uplink in item['uplinks']:
+            prefix = 'wan1' if uplink['interface'] == 'wan1' else 'wan2'
+            row[f'{prefix}_interface'] = uplink['interface']
+            row[f'{prefix}_status'] = uplink['status']
+            row[f'{prefix}_ip'] = uplink['ip']
+            row[f'{prefix}_gateway'] = uplink['gateway']
+            row[f'{prefix}_publicIp'] = uplink['publicIp']
+            row[f'{prefix}_primaryDns'] = uplink.get('primaryDns', None)
+            row[f'{prefix}_secondaryDns'] = uplink.get('secondaryDns', None)
+            row[f'{prefix}_ipAssignedBy'] = uplink['ipAssignedBy']
+
+        df_data.append(row)
+
+    # Convert the list of dictionaries to a DataFrame and return it.
+    df = pd.DataFrame(df_data)
+
+    return df
 
 
 def meraki_get_org_devices(api_key: str,

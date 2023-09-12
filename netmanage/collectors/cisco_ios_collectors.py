@@ -103,12 +103,12 @@ def gather_facts(username: str,
     return parser.parse_facts(runner)
 
 
-def bgp_neighbor_summary(username: str,
-                         password: str,
-                         host_group: str,
-                         play_path: str,
-                         private_data_dir: str) -> pd.DataFrame:
-    """Gets the BGP neighbor summary for all VRFs.
+def bgp_neighbors(username: str,
+                  password: str,
+                  host_group: str,
+                  play_path: str,
+                  private_data_dir: str) -> pd.DataFrame:
+    """Gets the BGP neighbors for all VRFs.
 
     Parameters
     ----------
@@ -128,7 +128,14 @@ def bgp_neighbor_summary(username: str,
     pandas.DataFrame
         A DataFrame containing the BGP neighbor summary.
     """
-    cmd = 'show ip bgp all summary | begin Neighbor'
+    cmd = ['show ip bgp all neighbors ',
+           ' include BGP neighbor is',
+           'Member of',
+           'BGP version',
+           'BGP state',
+           'Local host']
+    cmd = '|'.join(cmd)
+
     extravars = {'username': username,
                  'password': password,
                  'host_group': host_group,
@@ -142,7 +149,50 @@ def bgp_neighbor_summary(username: str,
                                 suppress_env_files=True)
 
     # Parse results into df
-    return parser.parse_bgp_neighbor_summary(runner)
+    return parser.parse_bgp_neighbors(runner)
+
+
+def inventory(username: str,
+              password: str,
+              host_group: str,
+              play_path: str,
+              private_data_dir: str) -> pd.DataFrame:
+    '''
+    Get the inventory for Cisco IOS and IOS-XE devices.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A DataFrame containing the interfaces and IP addresses.
+    '''
+    cmd = 'show inventory'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute the command
+    playbook = f'{play_path}/cisco_ios_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse results into df
+    return parser.ios_parse_inventory(runner)
 
 
 def get_config(username: str,
