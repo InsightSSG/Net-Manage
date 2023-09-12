@@ -43,5 +43,68 @@ def create_db_view(db_path: str, view_name: str):
             MERAKI_ORG_DEVICES d
         ON
             n.sourceMac = d.mac''')
-    con.commit()
+        con.commit()
+
+    if view_name == 'device_models':
+        cur.execute('''CREATE VIEW device_models AS
+        -- BIGIP_HARDWARE_INVENTORY segment
+        SELECT
+            'BIGIP_HARDWARE_INVENTORY' AS source,
+            device,
+            name AS model,
+            appliance_serial AS serial
+        FROM BIGIP_HARDWARE_INVENTORY
+
+        UNION ALL
+
+        -- NXOS_HARDWARE_INVENTORY segment with the "Chassis" condition
+        SELECT
+            'NXOS_HARDWARE_INVENTORY' AS source,
+            device,
+            name AS model,
+            serialnum AS serial
+        FROM NXOS_HARDWARE_INVENTORY
+        WHERE LOWER(name) LIKE '%chassis%'
+
+        UNION ALL
+
+        -- IOS_HARDWARE_INVENTORY segment with necessary conditions
+        SELECT
+            'IOS_HARDWARE_INVENTORY' AS source,
+            device,
+            name AS model,
+            serial
+        FROM IOS_HARDWARE_INVENTORY
+        WHERE
+        (
+            (LOWER(description) LIKE '%chassis%')
+            OR (name = '1' AND pid = description)
+        )
+        AND
+        (
+            LOWER(name) NOT LIKE '%fan%'
+        )
+
+        UNION ALL
+
+        -- ASA_HARDWARE_INVENTORY segment with the "Chassis" condition
+        SELECT
+            'ASA_HARDWARE_INVENTORY' AS source,
+            device,
+            name AS model,
+            serial
+        FROM ASA_HARDWARE_INVENTORY
+        WHERE LOWER(name) LIKE '%chassis%'
+
+        UNION ALL
+
+        -- PANOS_HARDWARE_INVENTORY segment
+        SELECT
+            'PANOS_HARDWARE_INVENTORY' AS source,
+            device,
+            model,
+            serial
+        FROM PANOS_HARDWARE_INVENTORY;
+        ''')
+        con.commit()
     con.close()
