@@ -23,6 +23,7 @@ from netmanage.collectors import palo_alto_collectors as pac
 from netmanage.collectors import solarwinds_collectors as swc
 from dotenv import load_dotenv
 from netmanage.helpers import helpers as hp
+from netmanage.helpers import create_db_views as cdv
 from typing import List
 
 # Load environment variables.
@@ -797,6 +798,13 @@ def add_to_db(table_name: str,
     # Connect to the database
     con = hp.connect_to_db(database_path)
     cur = con.cursor()
+
+    # Check if views are created. If they aren't, then create them.
+    expected = ['meraki_neighbors']
+    views = hp.get_database_views(database_path)
+    for view in expected:
+        if view not in views:
+            cdv.create_db_view(database_path, view)
 
     # Get the table schema. This also checks if the table exists, because the
     # length of 'schema' will be 0 if it hasn't been created yet.

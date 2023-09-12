@@ -8,6 +8,7 @@ import ansible_runner
 import ast
 import glob
 import ipaddress
+import nmap
 import numpy as np
 import os
 import pandas as pd
@@ -17,6 +18,7 @@ import sqlite3 as sl
 import sys
 import time
 import yaml
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime as dt
 from getpass import getpass
 from tabulate import tabulate
@@ -323,6 +325,44 @@ def get_database_tables(db_path: str) -> List[str]:
         df_tables = pd.read_sql(query2, con)
     tables = df_tables['name'].to_list()
     return tables
+
+
+def get_database_views(db_path: str) -> List[str]:
+    '''
+    Get all of the views out of the database.
+
+    Parameters
+    ----------
+    db_path : str
+        The path to the database.
+
+    Returns
+    -------
+    views : list
+        A list of views.
+
+    Examples
+    --------
+    >>> db_path = '/path/to/database'
+    >>> views = get_database_views(db_path)
+    >>> print(views)
+    '''
+    # sqlite_schema used to be named sqlite_master. This method tries the new
+    # name but will fail back to the old name if the user is on an older
+    # version
+    name_old = 'master'
+    name_new = 'schema'
+    con = connect_to_db(db_path)
+    query1 = f'''select name from sqlite_{name_new}
+                 where type = "view" and name not like "sqlite_%"'''
+    query2 = f'''select name from sqlite_{name_old}
+                 where type = "view" and name not like "sqlite_%"'''
+    try:
+        df_views = pd.read_sql(query1, con)
+    except Exception:
+        df_views = pd.read_sql(query2, con)
+    views = df_views['name'].to_list()
+    return views
 
 
 def ansible_get_hostgroup() -> str:
@@ -1073,6 +1113,58 @@ def read_table(db_path: str, table: str) -> pd.DataFrame:
     df = pd.read_sql(f'select * from {table} where timestamp = "{ts}"', con)
     con.close()
     return df
+
+
+def scan_targets(targets: list, max_threads: int = 10) -> dict:
+    """
+    Use nmap to perform a ping scan on a list of targets.
+
+    Parameters
+    ----------
+    targets : list
+        A list of target subnets or IP addresses.
+    max_threads : int, optional
+        Maximum number of parallel threads, by default 10.
+
+    Returns
+    -------
+    dict
+        A dictionary with target as the key and list of alive hosts as the
+        value.
+
+    Examples
+    --------
+    >>> targets = ["192.168.1.0/24", "192.168.2.0/24"]
+    >>> alive_hosts = scan_targets(targets)
+    >>> print(alive_hosts)
+    """
+
+    def scan_subnet(target: str) -> list:
+        """
+        Scan a single subnet or IP address.
+
+        Parameters
+        ----------
+        target : str
+            The target subnet or IP address.
+
+        Returns
+        -------
+        list
+            A list of alive hosts in the target.
+        """
+        scanner = nmap.PortScanner()
+        scanner.scan(hosts=target, arguments='-sn')
+        return [host for host in scanner.all_hosts()]
+
+    results = {}
+
+    with ThreadPoolExecutor(max_threads) as executor:
+        for target, alive_hosts in zip(targets,
+                                       executor.map(scan_subnet, targets)):
+            results[target] = alive_hosts
+
+    return results
 
 
 def set_dependencies(selected: List[str]) -> List[str]:

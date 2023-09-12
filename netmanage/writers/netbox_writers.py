@@ -203,11 +203,15 @@ def add_device_to_netbox(netbox_url: str,
                                               tenant_name)
         tenant_id = str(df.iloc[0]['id'])
 
-    # Create the device dictionary.
+    # Create the device dictionary. Note that at some point Netbox changed
+    # 'device_role' to 'role'. For now, having both keys in the dictionary
+    # seems to work. If it breaks down the road, then we will have to build in
+    # some version-specific logic.
     device = {
         'name': name,
         'manufacturer': manufacturer,
         'device_role': device_role_id,
+        'role': device_role_id,
         'device_type': device_type_id,
         'status': status,
         'site': site_id,
@@ -239,7 +243,12 @@ def add_device_to_netbox(netbox_url: str,
     try:
         nb.dcim.devices.create(device)
     except Exception as e:
-        raise Exception(f"Error occurred while adding the device: {str(e)}")
+        if 'Constraint “dcim_device_unique_name_site_tenant” is violated' \
+                in str(e):
+            print(f'Site ID: {site_id}: {name}: Device already exists')
+        else:
+            raise Exception(
+                f"Error occurred while adding the device: {str(e)}")
 
 
 def add_device_role(netbox_url: str,
@@ -309,7 +318,7 @@ def add_device_type(netbox_url: str,
                     weight_unit: str = str(),
                     comments: str = str(),
                     tags: List[str] = list()) \
-                        -> pynetbox.models.dcim.DeviceTypes:
+        -> pynetbox.models.dcim.DeviceTypes:
     """
     Add a device type to NetBox.
 
@@ -430,70 +439,94 @@ def add_vrf(token: str,
         print(f'[{vrf_name}]: {str(e)}')
 
 
-def add_prefix(token: str,
-               url: str,
+def add_prefix(netbox_url: str,
+               token: str,
                prefix: str,
-               description: str,
-               site: Optional[str] = None,
-               tenant: Optional[str] = None,
-               vrf: Optional[str] = None):
+               status: Optional[str] = "active",
+               description: Optional[str] = str(),
+               site_id: Optional[int] = None,
+               vrf_id: Optional[int] = None,
+               tenant_id: Optional[int] = None,
+               vlan_id: Optional[int] = None,
+               vid: Optional[int] = None,
+               vlan_name: Optional[str] = str(),
+               role_id: Optional[int] = None,
+               is_pool: Optional[bool] = False
+               ) -> pynetbox.models.ipam.Prefixes:
     """
-    Add a new prefix to Netbox IPAM.
+    Add a prefix to Netbox using pynetbox.
 
     Parameters
     ----------
+    netbox_url : str
+        The URL of the Netbox instance.
     token : str
-        API token for authentication.
-    url : str
-        Url of Netbox instance.
+        The API token to authenticate with Netbox.
     prefix : str
-        The prefix to be added to Netbox IPAM in CIDR notation.
-    description: str
-        A description for the prefix.
-    site: Optional[str], Default None
-        The slug of the Site where the prefix belongs.
-    tenant: Optional[str], Default None
-        The slug of the Tenant in which the prefix is located.
-    vrf: Optional[str], Default None
-        The name of the VRF.
+        The IP prefix in CIDR notation.
+    status : str, optional
+        The status of the prefix (e.g., "active", "reserved"), by default
+        "active".
+    description : str, optional
+        A description for the prefix, by default None.
+    site_id : int, optional
+        The site ID to associate with the prefix, by default None.
+    vrf_id : int, optional
+        The VRF ID to associate with the prefix, by default None.
+    tenant_id : int, optional
+        The tenant ID to associate with the prefix, by default None.
+    vlan_id : int, optional
+        The VLAN ID to associate with the prefix, by default None. Note that
+        this is Netbox's internal ID for the VLAN.
+    vid : int, optional
+        The VLAN ID as displayed in Netbox (I.e., what is configured on the
+        device). Used in conjunction with 'vlan_name' to search for Netbox's
+        vlan_id.
+    vlan_name: str, optional
+        The VLAN name. Used to search for Netbox's vlan_id.
+    role_id : int, optional
+        The role ID to associate with the prefix, by default None.
+    is_pool : bool, optional
+        Whether the prefix is an IP address pool, by default False.
 
     Returns
     -------
-    None
+    pynetbox.models.ipam.Prefixes
+        The created prefix object.
 
-    Raises
-    ------
-    pynetbox.RequestError
-        If there is any problem in the request to Netbox API.
-
-    Notes
-    -------
-    A RequestError is thrown if there is a duplicate prefix, but ONLY if
-    the option to allow duplicate prefixes has been disabled (it is enabled by
-    default). The option to disallow duplicate prefixes can be  disabled on a
-    vrf-by-vrf basis. For prefixes that are not in VRFs, it can be disabled
-    globally. See these URLs for more information:
-    - https://demo.netbox.dev/static/docs/core-functionality/ipam/
-    - https://demo.netbox.dev/static/docs/configuration/dynamic-settings/
+    Examples
+    --------
+    >>> netbox_url = "http://netbox.local"
+    >>> token = "YOUR_API_TOKEN"
+    >>> prefix_obj = add_prefix(netbox_url, token, "192.168.1.0/24")
+    >>> print(prefix_obj)
     """
-    nb = pynetbox.api(url, token=token)
 
-    # If a VRF was provided, then get its ID.
-    if vrf:
-        result = nbc.netbox_get_vrf_details(url, token, vrf)
-        vrf = str(result.iloc[0]['id'])
+    # If a vlan_id is not specified but a vid and vlan_name are, then search
+    # for the vlan_id.
+    if not vlan_id and vid and vlan_name:
+        vlan_id = nbc.get_netbox_vlan_internal_id(netbox_url,
+                                                  token,
+                                                  vid,
+                                                  vlan_name)
 
-    data = {
-        'prefix': prefix,
-        'site': site,
-        'description': description,
-        'tenant': tenant,
-        'vrf': vrf
-    }
-    try:
-        nb.ipam.prefixes.create(data)
-    except pynetbox.RequestError as e:
-        print(f'[{prefix}]: {str(e)}')
+    # Initialize the Netbox API client
+    nb = pynetbox.api(netbox_url, token=token)
+
+    # Create the prefix
+    prefix_obj = nb.ipam.prefixes.create({
+        "prefix": prefix,
+        "status": status,
+        "description": description,
+        "site": site_id,
+        "vrf": vrf_id,
+        "tenant": tenant_id,
+        "vlan": vlan_id,
+        "role": role_id,
+        "is_pool": is_pool
+    })
+
+    return prefix_obj
 
 
 def add_site(token: str,
@@ -624,3 +657,72 @@ def add_site(token: str,
 
     # Send the API request to add the site and return the response
     return api.dcim.sites.create(site)
+
+
+def add_vlan(netbox_url: str,
+             token: str,
+             vlan_id: int,
+             name: str,
+             description: Optional[str] = str(),
+             site_id: Optional[int] = None,
+             group_id: Optional[int] = None,
+             tenant_id: Optional[int] = None,
+             status: Optional[str] = "active",
+             role_id: Optional[int] = None
+             ) -> pynetbox.models.ipam.Vlans:
+    """
+    Add a VLAN to Netbox.
+
+    Parameters
+    ----------
+    netbox_url : str
+        The URL of the Netbox instance.
+    token : str
+        The API token to authenticate with Netbox.
+    vlan_id : int
+        The VLAN ID to add.
+    name : str
+        The name of the VLAN.
+    description : str, optional
+        A description for the VLAN, by default None.
+    site_id : int, optional
+        The site ID to associate with the VLAN, by default None.
+    group_id : int, optional
+        The VLAN group ID to associate with the VLAN, by default None.
+    tenant_id : int, optional
+        The tenant ID to associate with the VLAN, by default None.
+    status : str, optional
+        The status of the VLAN (e.g., "active", "reserved"), by default
+        "active".
+    role_id : int, optional
+        The role ID to associate with the VLAN, by default None.
+
+    Returns
+    -------
+    pynetbox.models.ipam.Vlans
+        The created VLAN object.
+
+    Examples
+    --------
+    >>> netbox_url = "http://netbox.local"
+    >>> token = "YOUR_API_TOKEN"
+    >>> vlan = add_vlan(netbox_url, token, 10, "VLAN10")
+    >>> print(vlan)
+    """
+
+    # Initialize the Netbox API client
+    nb = pynetbox.api(netbox_url, token=token)
+
+    # Create the VLAN
+    vlan = nb.ipam.vlans.create({
+        "vid": vlan_id,
+        "name": name,
+        "site": site_id,
+        "group": group_id,
+        "tenant": tenant_id,
+        "status": status,
+        "description": description,
+        "role": role_id
+    })
+
+    return vlan

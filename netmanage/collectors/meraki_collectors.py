@@ -6,7 +6,7 @@ import meraki
 import pandas as pd
 from netmanage import run_collectors as rc
 import sqlite3 as sl
-
+from asyncio import Semaphore
 from netmanage.helpers import helpers as hp
 from meraki.aio import AsyncDashboardAPI
 from meraki.exceptions import APIError
@@ -16,7 +16,8 @@ from typing import Union
 async def meraki_get_device_cdp_lldp_neighbors(api_key: str,
                                                db_path: str = '',
                                                serials: list = [],
-                                               orgs: list = []) \
+                                               orgs: list = [],
+                                               sem: int = 3) \
         -> pd.DataFrame:
     '''
     Gets the CDP and LLDP neighbors for a list of device serial numbers.
@@ -35,19 +36,25 @@ async def meraki_get_device_cdp_lldp_neighbors(api_key: str,
         returned. This could take several minutes for large organizations.
         Also, if 'serials' and 'org_ids' are both passed to the function,
         then 'org_ids' will be ignored.
+    sem : int
+        The Semaphore used to limit the maximum number of concurrent requests
+        to the Meraki API. Defaults to 3.
 
     Returns
     -------
     df : pd.DataFrame
         A DataFrame containing the CDP and LLDP neighbors.
     '''
+    sem = asyncio.Semaphore(3)
+
     async def get_neighbors_for_device(dashboard, serial):
         '''
         Get all neighbors for a single device serial number.
         '''
         # Get all the neighbors for the device
-        neighbors = await dashboard.devices.getDeviceLldpCdp(serial)
-        return neighbors
+        async with sem:
+            neighbors = await dashboard.devices.getDeviceLldpCdp(serial)
+            return neighbors
 
     # If the user did not pass a list of serials to the function, then get all
     # of the serials from the list of orgs. If the user did not pass a list
@@ -290,6 +297,7 @@ async def meraki_get_network_clients(api_key: str,
                                      orgs: list = [],
                                      per_page: int = 1000,
                                      timespan: int = 86400,
+                                     sem: Semaphore = Semaphore(3),
                                      total_pages: Union[int, str] = 'all') \
         -> pd.DataFrame:
     '''
@@ -315,12 +323,11 @@ async def meraki_get_network_clients(api_key: str,
     timespan : int, optional
         The timespan in seconds to retrieve client data for. Defaults to 86400
         (24 hours).
+    sem : int
+        The Semaphore used to limit the maximum number of concurrent requests
+        to the Meraki API. Defaults to 3.
     total_pages : int or str, optional
-        Important: 'total_pages' is ignored due to an issue with the meraki.aio
-        API. The argument still exists for backwards compatibility, but the
-        maximum number of pages that is returned is currently 1. We recommend
-        using 'per_page' and 'timespan' to filter results. We will re-enable
-        'total_pages' when Meraki fixes the issue.
+        The number of page to return. Defaults to 'all' or -1.
 
     Returns
     -------
@@ -345,18 +352,26 @@ async def meraki_get_network_clients(api_key: str,
                                                     networks,macs=macs))
     >>> print(df)
     '''
+    if sem is None:
+        sem = asyncio.Semaphore(3)
 
-    async def get_clients_for_network(dashboard, network_id):
+    async def get_clients_for_network(dashboard,
+                                      network_id,
+                                      per_page,
+                                      timespan,
+                                      total_pages):
         '''
         Get all clients for a single network ID.
         '''
         # Get all the clients for the network
-        clients = await dashboard.networks.\
-            getNetworkClients(network_id,
-                              per_page=per_page,
-                              timespan=timespan,
-                              print_console=False)
-        return clients
+        async with sem:
+            clients = await dashboard.networks.\
+                getNetworkClients(network_id,
+                                  per_page=per_page,
+                                  timespan=timespan,
+                                  print_console=False,
+                                  total_pages=total_pages)
+            return clients
 
     # Create a list to store the individual clients for each network.
     data = list()
@@ -378,7 +393,11 @@ async def meraki_get_network_clients(api_key: str,
         # Schedule get_clients_for_network() for all network_ids to run
         # concurrently.
         results = await asyncio.gather(*(get_clients_for_network(
-            dashboard, network_id) for network_id in networks))
+            dashboard,
+            network_id,
+            per_page,
+            timespan,
+            total_pages) for network_id in networks))
 
     # Flatten the list of clients into a single list, which will ultimately be
     # used to create a DataFrame.
