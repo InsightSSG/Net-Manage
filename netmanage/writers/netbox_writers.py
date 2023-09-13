@@ -380,63 +380,91 @@ def add_device_type(netbox_url: str,
     return device_type
 
 
-def add_vrf(token: str,
-            url: str,
-            vrf_name: str,
-            description: str,
-            rd: Optional[str] = None,
-            enforce_unique: Optional[bool] = True):
+def add_ip_ranges_to_netbox(netbox_url: str,
+                            netbox_token: str,
+                            ranges: List[Dict[str, str]],
+                            default_tenant: str = None,
+                            default_vrf: int = None,
+                            default_tags: List[str] = list()) -> None:
     """
-    Add a new VRF to Netbox.
+    Add IP ranges to Netbox using pynetbox.
 
     Parameters
     ----------
+    netbox_url : str
+        The URL of the Netbox instance.
     token : str
-        API token for authentication.
-    url : str
-        Url of Netbox instance.
-    vrf_name : str
-        The name of the VRF to be added to Netbox.
-    description : str
-        A description for the VRF.
-    rd : Optional[str], Default None
-        The route distinguisher for the VRF.
-    enforce_unique : Optional[bool], Default True
-        Whether duplicate VRF names should be disallowed (True) or allowed
-        (False).
+        The token for authentication to Netbox.
+    ranges : List[Dict[str, str]]
+        A list of dictionaries representing IP ranges.
+        Each dictionary should contain keys: start_ip, end_ip, description, and
+        optionally: tenant, vrf, tags.
+    default_tenant : str, optional
+        The default tenant that the IP range belongs to, if not specified in
+        the range dictionary. Default is None.
+    default_vrf : str, optional
+        The default VRF that the IP range belongs to, if not specified in the
+        range dictionary. Default is None.
+    default_tags : List[str], optional
+        Default tags to be added to the IP range, if not specified in the
+        range dictionary. Default is None.
 
     Returns
     -------
     None
 
-    Raises
-    ------
-    pynetbox.RequestError
-        If there is any problem in the request to Netbox API.
-
-    Notes
-    -------
-    A RequestError is thrown if there is a duplicate VRF name, but ONLY if
-    the option to disallow duplicate VRF names is either passed to the function
-    as 'enforce_unique=True' (the default) or has been enabled inside of Netbox
-    (it is disabled by default). The option to enforce unique VRF names can be
-    enabled globally or for certain groups of prefixes. See this URL for more
-    information:
-    - https://demo.netbox.dev/static/docs/core-functionality/ipam/
-    - https://demo.netbox.dev/static/docs/configuration/dynamic-settings/
-
+    Examples
+    --------
+    >>> add_ip_ranges_to_netbox(
+    ...     'http://netbox.local',
+    ...     '0123456789abcdef0123456789abcdef01234567',
+    ...     [
+    ...         {'start_ip': '192.168.1.0',
+                 'end_ip': '192.168.1.255',
+                 'description': 'Office IPs',
+                 'tags': ['office']},
+    ...         {'start_ip': '10.0.0.0',
+                 'end_ip': '10.0.0.255',
+                 'description':
+                 'Datacenter IPs',
+                 'vrf': 'DC_VRF',
+                 'tags': ['dc']}
+    ...     ],
+    ...     default_tenant='Corporate',
+    ...     default_tags=['main']
+    ... )
     """
-    nb = pynetbox.api(url, token=token)
-    data = {
-        'name': vrf_name,
-        'rd': rd,
-        'description': description,
-        'enforce_unique': enforce_unique
-    }
-    try:
-        nb.ipam.vrfs.create(data)
-    except pynetbox.RequestError as e:
-        print(f'[{vrf_name}]: {str(e)}')
+    # Initialize the pynetbox API
+    nb = pynetbox.api(netbox_url, token=netbox_token)
+
+    for ip_range in ranges:
+        range_data = {
+            'start_address': ip_range['start_ip'],
+            'end_address': ip_range['end_ip'],
+            'description': ip_range.get('description', ''),
+            'tenant': ip_range.get('tenant', default_tenant),
+            'vrf': ip_range.get('vrf', default_vrf),
+            'tags': ip_range.get('tags', default_tags)
+        }
+
+        try:
+            # Add the IP range to Netbox
+            response = nb.ipam.ip_ranges.create(range_data)
+            if not response:
+                msg = [f"Failed to add IP range {ip_range['start_ip']}",
+                       f"{ip_range['end_ip']}. Response: {response}"]
+                msg = ' - '.join(msg)
+                print(msg)
+            else:
+                msg = [f"Successfully added IP range {ip_range['start_ip']}",
+                       f"{ip_range['end_ip']}."]
+                msg = ' - '.join(msg)
+                print(msg)
+        except pynetbox.RequestError as e:
+            msg = [f"Failed to add IP range {ip_range['start_ip']}",
+                   f"{ip_range['end_ip']}: {e}"]
+            msg = ' - '.join(msg)
+            print(msg)
 
 
 def add_prefix(netbox_url: str,
@@ -726,3 +754,62 @@ def add_vlan(netbox_url: str,
     })
 
     return vlan
+
+
+def add_vrf(token: str,
+            url: str,
+            vrf_name: str,
+            description: str,
+            rd: Optional[str] = None,
+            enforce_unique: Optional[bool] = True):
+    """
+    Add a new VRF to Netbox.
+
+    Parameters
+    ----------
+    token : str
+        API token for authentication.
+    url : str
+        Url of Netbox instance.
+    vrf_name : str
+        The name of the VRF to be added to Netbox.
+    description : str
+        A description for the VRF.
+    rd : Optional[str], Default None
+        The route distinguisher for the VRF.
+    enforce_unique : Optional[bool], Default True
+        Whether duplicate VRF names should be disallowed (True) or allowed
+        (False).
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    pynetbox.RequestError
+        If there is any problem in the request to Netbox API.
+
+    Notes
+    -------
+    A RequestError is thrown if there is a duplicate VRF name, but ONLY if
+    the option to disallow duplicate VRF names is either passed to the function
+    as 'enforce_unique=True' (the default) or has been enabled inside of Netbox
+    (it is disabled by default). The option to enforce unique VRF names can be
+    enabled globally or for certain groups of prefixes. See this URL for more
+    information:
+    - https://demo.netbox.dev/static/docs/core-functionality/ipam/
+    - https://demo.netbox.dev/static/docs/configuration/dynamic-settings/
+
+    """
+    nb = pynetbox.api(url, token=token)
+    data = {
+        'name': vrf_name,
+        'rd': rd,
+        'description': description,
+        'enforce_unique': enforce_unique
+    }
+    try:
+        nb.ipam.vrfs.create(data)
+    except pynetbox.RequestError as e:
+        print(f'[{vrf_name}]: {str(e)}')
