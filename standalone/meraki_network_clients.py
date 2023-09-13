@@ -31,6 +31,7 @@ def main():
                                       networks=networks,
                                       orgs=orgs,
                                       total_pages='all',
+                                      timespan=300,
                                       sem=Semaphore(2)))
 
     rc.add_to_db('MERAKI_NETWORK_CLIENTS',

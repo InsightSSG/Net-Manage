@@ -872,6 +872,7 @@ def create_sqlite_regexp_function(conn: sl.Connection) -> None:
         reg = re.compile(expr)
         return reg.search(item) is not None
     conn.create_function('REGEXP', 2, regexp)
+    conn.commit()
 
 
 def get_dir_timestamps(path: str) -> Dict[str, dt]:

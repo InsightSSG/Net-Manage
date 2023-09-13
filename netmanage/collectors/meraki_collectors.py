@@ -296,8 +296,8 @@ async def meraki_get_network_clients(api_key: str,
                                      macs: list = [],
                                      orgs: list = [],
                                      per_page: int = 1000,
-                                     timespan: int = 86400,
-                                     sem: Semaphore = Semaphore(3),
+                                     timespan: int = 300,
+                                     sem: Semaphore = Semaphore(2),
                                      total_pages: Union[int, str] = 'all') \
         -> pd.DataFrame:
     '''
@@ -321,8 +321,8 @@ async def meraki_get_network_clients(api_key: str,
     per_page : int, optional
         The number of clients to retrieve per page. Defaults to 1000.
     timespan : int, optional
-        The timespan in seconds to retrieve client data for. Defaults to 86400
-        (24 hours).
+        The timespan in seconds to retrieve client data for. Defaults to 300
+        (5 minutes).
     sem : int
         The Semaphore used to limit the maximum number of concurrent requests
         to the Meraki API. Defaults to 3.
