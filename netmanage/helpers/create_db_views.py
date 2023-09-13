@@ -61,7 +61,7 @@ def create_db_view(db_path: str, view_name: str):
         SELECT
             'NXOS_HARDWARE_INVENTORY' AS source,
             device,
-            name AS model,
+            productid AS model,
             serialnum AS serial
         FROM NXOS_HARDWARE_INVENTORY
         WHERE LOWER(name) LIKE '%chassis%'
@@ -72,7 +72,7 @@ def create_db_view(db_path: str, view_name: str):
         SELECT
             'IOS_HARDWARE_INVENTORY' AS source,
             device,
-            name AS model,
+            pid AS model,
             serial
         FROM IOS_HARDWARE_INVENTORY
         WHERE
@@ -91,7 +91,7 @@ def create_db_view(db_path: str, view_name: str):
         SELECT
             'ASA_HARDWARE_INVENTORY' AS source,
             device,
-            name AS model,
+            pid AS model,
             serial
         FROM ASA_HARDWARE_INVENTORY
         WHERE LOWER(name) LIKE '%chassis%'
