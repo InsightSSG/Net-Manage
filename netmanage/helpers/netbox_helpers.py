@@ -5,6 +5,7 @@
 """
 
 import pandas as pd
+import re
 from netmanage.collectors import netbox_collectors as nbc
 
 
@@ -58,7 +59,8 @@ def get_prefix_custom_field_states(nb_path: str,
 
 def make_nb_url_compliant(string: str):
     """
-    Replaces all characters except letters, numbers, underscores, and hyphens with hyphens.
+    Replaces all characters except letters, numbers, underscores,
+    and hyphens with hyphens.
 
     Parameters
     ----------
@@ -68,7 +70,7 @@ def make_nb_url_compliant(string: str):
     return re.sub(r"[^\w\-]", "-", string)
 
 
-def get_table_prefix_to_device_mfg(): 
+def get_table_prefix_to_device_mfg():
     return {
         'ASA': 'CISCO',
         'BIGIP': 'F5 Networks',
@@ -229,14 +231,6 @@ def get_device_types():
                 'weight': 9.5,
                 'weight_unit': 'lb',
             },
-            'CISCO1921/K9': {
-                'u_height': 1,
-                'is_full_depth': False,
-                'airflow': 'front-to-rear',
-                'weight': '6.75',
-                'weight_unit': 'lb',
-                'slug': 'cisco1921-k9'
-            },
             'ASA5555': {
                 'u_height': 2,
                 'is_full_depth': True,
@@ -252,14 +246,6 @@ def get_device_types():
                 'weight': 6.04,
                 'weight_unit': 'lb',
                 'slug': 'ws-c2960l-24ts'
-            },
-            'C9410R': {
-                'u_height': 2,
-                'is_full_depth': True,
-                'airflow': 'front-to-rear',
-                'weight': 52,
-                'weight_unit': 'lb',
-                'slug': 'c9410r'
             },
             'WS-C2960L-24TS-LL': {
                 'u_height': 1,
