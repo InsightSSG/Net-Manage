@@ -4,7 +4,6 @@ import pynetbox
 from typing import Dict, List, Optional, Any
 from netmanage.collectors import netbox_collectors as nbc
 
-
 from pynetbox import api
 
 
@@ -309,7 +308,7 @@ def add_device_type(netbox_url: str,
                     weight_unit: str = str(),
                     comments: str = str(),
                     tags: List[str] = list()) \
-                        -> pynetbox.models.dcim.DeviceTypes:
+        -> pynetbox.models.dcim.DeviceTypes:
     """
     Add a device type to NetBox.
 
@@ -494,6 +493,59 @@ def add_prefix(token: str,
         nb.ipam.prefixes.create(data)
     except pynetbox.RequestError as e:
         print(f'[{prefix}]: {str(e)}')
+
+
+def add_vlan(token: str,
+             url: str,
+             vlan_id: int,
+             name: str,
+             site: Optional[str] = None,
+             tenant: Optional[str] = None,
+             status: Optional[str] = 'active'):
+    """
+    Add a new VLAN to Netbox.
+
+    Parameters
+    ----------
+    token : str
+        API token for authentication.
+    url : str
+        Url of Netbox instance.
+    vlan_id : int
+        The VLAN ID to be added.
+    name : str
+        The name of the VLAN.
+    site: Optional[str], Default None
+        The slug of the Site where the VLAN belongs.
+    tenant: Optional[str], Default None
+        The slug of the Tenant in which the VLAN is located.
+    status: Optional[str], Default 'active'
+        The status of the VLAN ("active", "reserved", etc).
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    pynetbox.RequestError
+        If there is any problem in the request to Netbox API.
+    """
+
+    nb = pynetbox.api(url, token=token)
+
+    data = {
+        'vid': vlan_id,
+        'name': name,
+        'site': site,
+        'tenant': tenant,
+        'status': status,
+    }
+
+    try:
+        nb.ipam.vlans.create(data)
+    except pynetbox.RequestError as e:
+        print(f'[VLAN {vlan_id}]: {str(e)}')
 
 
 def add_site(token: str,
