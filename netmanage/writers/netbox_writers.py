@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
 import pynetbox
+import pandas as pd
 from typing import Dict, List, Optional, Any
 from netmanage.collectors import netbox_collectors as nbc
-
+from netmanage.helpers import helpers as hp
+from netmanage.helpers import netbox_helpers as nhp
 
 from pynetbox import api
 
@@ -557,6 +559,118 @@ def add_prefix(netbox_url: str,
     return prefix_obj
 
 
+def add_vlan(token: str,
+             url: str,
+             vlan_id: int,
+             name: str,
+             site: Optional[str] = None,
+             tenant: Optional[str] = None,
+             status: Optional[str] = 'active'):
+    """
+    Add a new VLAN to Netbox.
+
+    Parameters
+    ----------
+    token : str
+        API token for authentication.
+    url : str
+        Url of Netbox instance.
+    vlan_id : int
+        The VLAN ID to be added.
+    name : str
+        The name of the VLAN.
+    site: Optional[str], Default None
+        The slug of the Site where the VLAN belongs.
+    tenant: Optional[str], Default None
+        The slug of the Tenant in which the VLAN is located.
+    status: Optional[str], Default 'active'
+        The status of the VLAN ("active", "reserved", etc).
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    pynetbox.RequestError
+        If there is any problem in the request to Netbox API.
+    """
+
+    nb = pynetbox.api(url, token=token)
+
+    data = {
+        'vid': vlan_id,
+        'name': name,
+        'site': site,
+        'tenant': tenant,
+        'status': status,
+    }
+
+    try:
+        nb.ipam.vlans.create(data)
+    except pynetbox.RequestError as e:
+        print(f'[VLAN {vlan_id}]: {str(e)}')
+
+        
+def add_vrf(token: str,
+            url: str,
+            vrf_name: str,
+            description: str,
+            rd: Optional[str] = None,
+            enforce_unique: Optional[bool] = True):
+    """
+    Add a new VRF to Netbox.
+
+    Parameters
+    ----------
+    token : str
+        API token for authentication.
+    url : str
+        Url of Netbox instance.
+    vrf_name : str
+        The name of the VRF to be added to Netbox.
+    description : str
+        A description for the VRF.
+    rd : Optional[str], Default None
+        The route distinguisher for the VRF.
+    enforce_unique : Optional[bool], Default True
+        Whether duplicate VRF names should be disallowed (True) or allowed
+        (False).
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    pynetbox.RequestError
+        If there is any problem in the request to Netbox API.
+
+    Notes
+    -------
+    A RequestError is thrown if there is a duplicate VRF name, but ONLY if
+    the option to disallow duplicate VRF names is either passed to the function
+    as 'enforce_unique=True' (the default) or has been enabled inside of Netbox
+    (it is disabled by default). The option to enforce unique VRF names can be
+    enabled globally or for certain groups of prefixes. See this URL for more
+    information:
+    - https://demo.netbox.dev/static/docs/core-functionality/ipam/
+    - https://demo.netbox.dev/static/docs/configuration/dynamic-settings/
+
+    """
+    nb = pynetbox.api(url, token=token)
+    data = {
+        'name': vrf_name,
+        'rd': rd,
+        'description': description,
+        'enforce_unique': enforce_unique
+    }
+    try:
+        nb.ipam.vrfs.create(data)
+    except pynetbox.RequestError as e:
+        print(f'[{vrf_name}]: {str(e)}')
+        
+
 def add_site(token: str,
              url: str,
              name: str,
@@ -700,10 +814,6 @@ def add_vlan(netbox_url: str,
              ) -> pynetbox.models.ipam.Vlans:
     """
     Add a VLAN to Netbox.
-
-    Parameters
-    ----------
-    netbox_url : str
         The URL of the Netbox instance.
     token : str
         The API token to authenticate with Netbox.
@@ -756,60 +866,144 @@ def add_vlan(netbox_url: str,
     return vlan
 
 
-def add_vrf(token: str,
-            url: str,
-            vrf_name: str,
-            description: str,
-            rd: Optional[str] = None,
-            enforce_unique: Optional[bool] = True):
+def add_manufacturer(netbox_url: str,
+                     netbox_token: str,
+                     name: str,
+                     slug: str,
+                     description: Optional[str] = "",
+                     tags: Optional[list] = []) -> None:
     """
-    Add a new VRF to Netbox.
+    Create a device manufacturer in NetBox.
 
     Parameters
     ----------
-    token : str
-        API token for authentication.
-    url : str
-        Url of Netbox instance.
-    vrf_name : str
-        The name of the VRF to be added to Netbox.
-    description : str
-        A description for the VRF.
-    rd : Optional[str], Default None
-        The route distinguisher for the VRF.
-    enforce_unique : Optional[bool], Default True
-        Whether duplicate VRF names should be disallowed (True) or allowed
-        (False).
+    netbox_url : str
+        The URL of the NetBox instance.
+    netbox_token : str
+        The authentication token for the NetBox API.
+    name : str
+        The name of the manufacturer.
+    slug : str
+        The slug (unique identifier) for the manufacturer.
+    description : str, optional
+        The description of the manufacturer.
+    tags : list, optional
+        optional tags
 
     Returns
     -------
     None
+        This function does not return any value.
 
     Raises
     ------
-    pynetbox.RequestError
-        If there is any problem in the request to Netbox API.
-
-    Notes
-    -------
-    A RequestError is thrown if there is a duplicate VRF name, but ONLY if
-    the option to disallow duplicate VRF names is either passed to the function
-    as 'enforce_unique=True' (the default) or has been enabled inside of Netbox
-    (it is disabled by default). The option to enforce unique VRF names can be
-    enabled globally or for certain groups of prefixes. See this URL for more
-    information:
-    - https://demo.netbox.dev/static/docs/core-functionality/ipam/
-    - https://demo.netbox.dev/static/docs/configuration/dynamic-settings/
-
+    Exception
+        If any error occurs while creating the device manufacturer.
     """
-    nb = pynetbox.api(url, token=token)
-    data = {
-        'name': vrf_name,
-        'rd': rd,
-        'description': description,
-        'enforce_unique': enforce_unique
-    }
+    # Create an instance of the API using the provided URL and token
+    nb = api(url=netbox_url, token=netbox_token)
+
+    # Create the device manufacturer
     try:
-        nb.ipam.vrfs.create(data)
-    except pynetbox.RequestError as e:
-        print(f'[{vrf_name}]: {str(e)}')
+        nb.dcim.manufacturers.create(name=name,
+                                     slug=slug,
+                                     description=description,
+                                     tags=tags)
+    except Exception as e:
+        print(f"Error while creating manufacturer {name}: {str(e)}")
+
+
+def add_device_mfg(url: str,
+                   token: str,
+                   database_path: str):
+    """
+    Add manufacturers to NB.
+
+    Parameters
+    ----------
+    url : str
+        Url of Netbox instance.
+    token : str
+        API token for authentication.
+    database_path: str
+        Path to NM DB
+    Returns
+    -------
+    None
+    """
+    nm_mfgs = nhp.get_table_prefix_to_device_mfg()
+    tables = hp.get_database_tables(database_path)
+    mfgs = []
+
+    for table in tables:
+        try:
+            mfg = table.split('_')[0].upper()
+            mfgs.append(nm_mfgs[mfg])
+        except Exception as e:
+            print(f'Error parsing table {mfg}: {e}')
+
+    mfgs = set(mfgs)
+    if not mfgs:
+        return None
+
+    for mfg in mfgs:
+        try:
+            add_manufacturer(
+                netbox_url=url,
+                netbox_token=token,
+                name=mfg.title(),
+                slug=mfg.lower().replace(' ', '-')
+            )
+        except pynetbox.RequestError as e:
+            print(f'Error adding {mfg}: {e}')
+
+
+def add_device_types(url: str,
+                     token: str,
+                     database_path: str):
+    """
+    Add Device types based on NM database devices.
+
+    Parameters
+    ----------
+    url : str
+        Url of Netbox instance.
+    token : str
+        API token for authentication.
+    database_path: str
+        Path to NM DB
+    Returns
+    -------
+    None
+    """
+    query = """SELECT source, model FROM
+             device_models GROUP BY source, model;"""
+    mfgs = nhp.get_table_prefix_to_device_mfg()
+    device_types = nhp.get_device_types()
+    con = hp.connect_to_db(database_path)
+    df_tables = pd.read_sql(query, con)
+    for idx, row in df_tables.iterrows():
+        data = dict()
+        data['netbox_url'] = url
+        data['netbox_token'] = token
+        mfg = row["source"].split("_")[0]
+        mfg = mfgs.get(mfg).upper()
+        if not mfg:
+            continue
+        model = row["model"]
+        data['manufacturer_name'] = mfg.title()
+        data['model'] = row["model"]
+        slug = model.lower().replace(" ", "-")
+        slug = nhp.make_nb_url_compliant(slug)
+        data['slug'] = slug.lower()
+        data['u_height'] = device_types[mfg][model].get("u_height")
+        data['weight'] = device_types[mfg][model].get("weight")
+        data['weight_unit'] = device_types[mfg][model].get("weight_unit")
+        data['is_full_depth'] = device_types[mfg][model].get("is_full_depth")
+        data['airflow'] = device_types[mfg][model].get("airflow")
+
+        try:
+            add_device_type(data)
+        except Exception as e:
+            print(data)
+            print(f'add_device_type error: {e}')
