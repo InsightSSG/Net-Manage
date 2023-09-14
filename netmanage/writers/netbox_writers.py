@@ -10,6 +10,7 @@ from pynetbox import api
 def add_cable(netbox_url: str,
               netbox_token: str,
               a_terminations: list,
+              
               b_terminations: list) -> None:
     """
     Add a cable to NetBox.
@@ -676,3 +677,145 @@ def add_site(token: str,
 
     # Send the API request to add the site and return the response
     return api.dcim.sites.create(site)
+
+
+def add_manufacturer(netbox_url: str,
+                    netbox_token: str,
+                    name: str,
+                    slug: str,
+                    description: Optional[str] = "",
+                    tags: Optional[list] = []) -> None:
+    """
+    Create a device manufacturer in NetBox.
+
+    Parameters
+    ----------
+    netbox_url : str
+        The URL of the NetBox instance.
+    netbox_token : str
+        The authentication token for the NetBox API.
+    name : str
+        The name of the manufacturer.
+    slug : str
+        The slug (unique identifier) for the manufacturer.
+    description : str, optional
+        The description of the manufacturer.
+    tags : list, optional
+        optional tags
+
+    Returns
+    -------
+    None
+        This function does not return any value.
+
+    Raises
+    ------
+    Exception
+        If any error occurs while creating the device manufacturer.
+    """
+    # Create an instance of the API using the provided URL and token
+    nb = api(url=netbox_url, token=netbox_token)
+
+    # Create the device manufacturer
+    try:
+        nb.dcim.manufacturers.create(name=name,
+                                    slug=slug,
+                                    description=description,
+                                    tags=tags)
+    except Exception as e:
+        print(f"Error while creating manufacturer {name}: {str(e)}")
+
+def add_device_mfg(url: str,
+             token: str,
+             database_path: str):
+    """
+    Add manufacturers to NB.
+
+    Parameters
+    ----------
+    url : str
+        Url of Netbox instance.
+    token : str
+        API token for authentication.
+    database_path: str
+        Path to NM DB
+    Returns
+    -------
+    None
+    """
+    nm_mfgs = nhp.get_table_prefix_to_device_mfg()
+    tables = hp.get_database_tables(database_path)
+    mfgs = []
+
+    for table in tables:
+        try:
+            mfg = table.split('_')[0].upper()
+            mfgs.append(nm_mfgs[mfg])
+        except Exception as e:
+            print(f'Error parsing table {mfg}: {e}')
+
+    mfgs = set(mfgs)
+    if not mfgs:
+        return None
+
+    for mfg in mfgs:
+        try:
+            add_manufacturer(
+                netbox_url=url,
+                netbox_token=token,
+                name=mfg.title(),
+                slug=mfg.lower().replace(' ', '-')
+            )
+        except pynetbox.RequestError as e:
+            print(f'Error adding {mfg}: {e}')
+
+
+def add_device_types(url: str,
+             token: str,
+             database_path: str):
+    """
+    Add Device types based on NM database devices.
+
+    Parameters
+    ----------
+    url : str
+        Url of Netbox instance.
+    token : str
+        API token for authentication.
+    database_path: str
+        Path to NM DB
+    Returns
+    -------
+    None
+    """
+    query = """SELECT source, model FROM  
+             device_models GROUP BY source, model;"""
+    mfgs = nhp.get_table_prefix_to_device_mfg()
+    device_types = nhp.get_device_types()
+    con = hp.connect_to_db(database_path)
+    df_tables = pd.read_sql(query, con)
+    for idx, row in df_tables.iterrows():
+        data = dict()
+        data['netbox_url'] = url
+        data['netbox_token'] = token
+        mfg = row["source"].split("_")[0]
+        mfg = mfgs.get(mfg).upper()
+        if not mfg:
+            continue
+        model = row["model"]
+        data['manufacturer_name'] = mfg.title()
+        data['model'] = row["model"]
+        slug = model.lower().replace(" ", "-")
+        slug = nhp.make_nb_url_compliant(slug)
+        data['slug'] = slug.lower()
+        data['u_height'] = device_types[mfg][model].get("u_height")
+        data['weight'] = device_types[mfg][model].get("weight")
+        data['weight_unit'] = device_types[mfg][model].get("weight_unit")
+        data['is_full_depth'] = device_types[mfg][model].get("is_full_depth")
+        data['airflow'] = device_types[mfg][model].get("airflow")
+
+        try:
+            add_device_type(data)
+        except Exception as e:
+            print(data)
+            print(f'add_device_type error: {e}')
