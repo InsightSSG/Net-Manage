@@ -469,6 +469,65 @@ def add_ip_ranges_to_netbox(netbox_url: str,
             print(msg)
 
 
+def add_vrf(token: str,
+            url: str,
+            vrf_name: str,
+            description: str,
+            rd: Optional[str] = None,
+            enforce_unique: Optional[bool] = True):
+    """
+    Add a new VRF to Netbox.
+
+    Parameters
+    ----------
+    token : str
+        API token for authentication.
+    url : str
+        Url of Netbox instance.
+    vrf_name : str
+        The name of the VRF to be added to Netbox.
+    description : str
+        A description for the VRF.
+    rd : Optional[str], Default None
+        The route distinguisher for the VRF.
+    enforce_unique : Optional[bool], Default True
+        Whether duplicate VRF names should be disallowed (True) or allowed
+        (False).
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    pynetbox.RequestError
+        If there is any problem in the request to Netbox API.
+
+    Notes
+    -------
+    A RequestError is thrown if there is a duplicate VRF name, but ONLY if
+    the option to disallow duplicate VRF names is either passed to the function
+    as 'enforce_unique=True' (the default) or has been enabled inside of Netbox
+    (it is disabled by default). The option to enforce unique VRF names can be
+    enabled globally or for certain groups of prefixes. See this URL for more
+    information:
+    - https://demo.netbox.dev/static/docs/core-functionality/ipam/
+    - https://demo.netbox.dev/static/docs/configuration/dynamic-settings/
+
+    """
+    nb = pynetbox.api(url, token=token)
+    data = {
+        'name': vrf_name,
+        'rd': rd,
+        'description': description,
+        'enforce_unique': enforce_unique
+    }
+    try:
+        nb.ipam.vrfs.create(data)
+    except pynetbox.RequestError as e:
+        print(f'[{vrf_name}]: {str(e)}')
+
+
 def add_prefix(netbox_url: str,
                token: str,
                prefix: str,
@@ -611,65 +670,6 @@ def add_vlan(token: str,
     except pynetbox.RequestError as e:
         print(f'[VLAN {vlan_id}]: {str(e)}')
 
-        
-def add_vrf(token: str,
-            url: str,
-            vrf_name: str,
-            description: str,
-            rd: Optional[str] = None,
-            enforce_unique: Optional[bool] = True):
-    """
-    Add a new VRF to Netbox.
-
-    Parameters
-    ----------
-    token : str
-        API token for authentication.
-    url : str
-        Url of Netbox instance.
-    vrf_name : str
-        The name of the VRF to be added to Netbox.
-    description : str
-        A description for the VRF.
-    rd : Optional[str], Default None
-        The route distinguisher for the VRF.
-    enforce_unique : Optional[bool], Default True
-        Whether duplicate VRF names should be disallowed (True) or allowed
-        (False).
-
-    Returns
-    -------
-    None
-
-    Raises
-    ------
-    pynetbox.RequestError
-        If there is any problem in the request to Netbox API.
-
-    Notes
-    -------
-    A RequestError is thrown if there is a duplicate VRF name, but ONLY if
-    the option to disallow duplicate VRF names is either passed to the function
-    as 'enforce_unique=True' (the default) or has been enabled inside of Netbox
-    (it is disabled by default). The option to enforce unique VRF names can be
-    enabled globally or for certain groups of prefixes. See this URL for more
-    information:
-    - https://demo.netbox.dev/static/docs/core-functionality/ipam/
-    - https://demo.netbox.dev/static/docs/configuration/dynamic-settings/
-
-    """
-    nb = pynetbox.api(url, token=token)
-    data = {
-        'name': vrf_name,
-        'rd': rd,
-        'description': description,
-        'enforce_unique': enforce_unique
-    }
-    try:
-        nb.ipam.vrfs.create(data)
-    except pynetbox.RequestError as e:
-        print(f'[{vrf_name}]: {str(e)}')
-        
 
 def add_site(token: str,
              url: str,
@@ -799,71 +799,6 @@ def add_site(token: str,
 
     # Send the API request to add the site and return the response
     return api.dcim.sites.create(site)
-
-
-def add_vlan(netbox_url: str,
-             token: str,
-             vlan_id: int,
-             name: str,
-             description: Optional[str] = str(),
-             site_id: Optional[int] = None,
-             group_id: Optional[int] = None,
-             tenant_id: Optional[int] = None,
-             status: Optional[str] = "active",
-             role_id: Optional[int] = None
-             ) -> pynetbox.models.ipam.Vlans:
-    """
-    Add a VLAN to Netbox.
-        The URL of the Netbox instance.
-    token : str
-        The API token to authenticate with Netbox.
-    vlan_id : int
-        The VLAN ID to add.
-    name : str
-        The name of the VLAN.
-    description : str, optional
-        A description for the VLAN, by default None.
-    site_id : int, optional
-        The site ID to associate with the VLAN, by default None.
-    group_id : int, optional
-        The VLAN group ID to associate with the VLAN, by default None.
-    tenant_id : int, optional
-        The tenant ID to associate with the VLAN, by default None.
-    status : str, optional
-        The status of the VLAN (e.g., "active", "reserved"), by default
-        "active".
-    role_id : int, optional
-        The role ID to associate with the VLAN, by default None.
-
-    Returns
-    -------
-    pynetbox.models.ipam.Vlans
-        The created VLAN object.
-
-    Examples
-    --------
-    >>> netbox_url = "http://netbox.local"
-    >>> token = "YOUR_API_TOKEN"
-    >>> vlan = add_vlan(netbox_url, token, 10, "VLAN10")
-    >>> print(vlan)
-    """
-
-    # Initialize the Netbox API client
-    nb = pynetbox.api(netbox_url, token=token)
-
-    # Create the VLAN
-    vlan = nb.ipam.vlans.create({
-        "vid": vlan_id,
-        "name": name,
-        "site": site_id,
-        "group": group_id,
-        "tenant": tenant_id,
-        "status": status,
-        "description": description,
-        "role": role_id
-    })
-
-    return vlan
 
 
 def add_manufacturer(netbox_url: str,
