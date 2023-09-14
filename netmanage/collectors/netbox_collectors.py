@@ -80,7 +80,7 @@ def netbox_get_device_attributes(nb_path: str,
                                  token: str,
                                  device_id: Optional[int] = None,
                                  device_name: Optional[str] = None) \
-                                    -> pd.DataFrame:
+        -> pd.DataFrame:
     """
     Gets the attributes for a device by its id or name.
 
@@ -204,7 +204,7 @@ def netbox_get_device_interfaces(nb_url: str,
 def netbox_get_device_role_attributes(nb_path: str,
                                       token: str,
                                       device_role: Optional[str] = None) \
-                                        -> pd.DataFrame:
+        -> pd.DataFrame:
     """
     Gets the attributes for one or more device roles.
 
@@ -263,7 +263,7 @@ def netbox_get_device_role_attributes(nb_path: str,
 def netbox_get_device_type_attributes(nb_path: str,
                                       token: str,
                                       device_type: Optional[str] = None) \
-                                        -> pd.DataFrame:
+        -> pd.DataFrame:
     """
     Gets the attributes for one or more device types.
 
@@ -415,6 +415,53 @@ def netbox_get_ipam_prefixes(nb_path: str,
         df = pd.concat([df, pd.DataFrame.from_dict(_, orient='index').T]).\
             reset_index(drop=True)
     return df
+
+
+def get_netbox_vlan_internal_id(netbox_url: str,
+                                token: str,
+                                vlan_vid: int,
+                                vlan_name: str
+                                ) -> Optional[int]:
+    """
+    Get the Netbox internal ID for a VLAN based on its VLAN ID and name.
+
+    Parameters
+    ----------
+    netbox_url : str
+        The URL of the Netbox instance.
+    token : str
+        The API token to authenticate with Netbox.
+    vlan_vid : int
+        The VLAN ID (VID).
+    vlan_name : str
+        The name of the VLAN.
+
+    Returns
+    -------
+    int or None
+        The Netbox internal ID for the VLAN if found, otherwise None.
+
+    Examples
+    --------
+    >>> netbox_url = "http://netbox.local"
+    >>> token = "YOUR_API_TOKEN"
+    >>> vlan_id = get_netbox_vlan_internal_id(netbox_url,
+                                              token,
+                                              100,
+                                              "VLAN100")
+    >>> print(vlan_id)
+    """
+    # Initialize the Netbox API client
+    nb = pynetbox.api(netbox_url, token=token)
+
+    # Query for the VLAN with the given VLAN ID and name
+    vlans = list(nb.ipam.vlans.filter(vid=vlan_vid, name=vlan_name))
+
+    # If the VLAN is found, return its Netbox internal ID
+    if vlans and len(vlans) == 1:
+        return vlans[0].id
+    else:
+        return None
 
 
 def netbox_get_site_attributes(nb_path: str,
