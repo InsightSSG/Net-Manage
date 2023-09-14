@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 
 import pynetbox
+import pandas as pd
 from typing import Dict, List, Optional, Any
 from netmanage.collectors import netbox_collectors as nbc
+from netmanage.helpers import helpers as hp
+from netmanage.helpers import netbox_helpers as nhp
 
 from pynetbox import api
 
@@ -10,7 +13,6 @@ from pynetbox import api
 def add_cable(netbox_url: str,
               netbox_token: str,
               a_terminations: list,
-              
               b_terminations: list) -> None:
     """
     Add a cable to NetBox.
@@ -680,11 +682,11 @@ def add_site(token: str,
 
 
 def add_manufacturer(netbox_url: str,
-                    netbox_token: str,
-                    name: str,
-                    slug: str,
-                    description: Optional[str] = "",
-                    tags: Optional[list] = []) -> None:
+                     netbox_token: str,
+                     name: str,
+                     slug: str,
+                     description: Optional[str] = "",
+                     tags: Optional[list] = []) -> None:
     """
     Create a device manufacturer in NetBox.
 
@@ -719,15 +721,16 @@ def add_manufacturer(netbox_url: str,
     # Create the device manufacturer
     try:
         nb.dcim.manufacturers.create(name=name,
-                                    slug=slug,
-                                    description=description,
-                                    tags=tags)
+                                     slug=slug,
+                                     description=description,
+                                     tags=tags)
     except Exception as e:
         print(f"Error while creating manufacturer {name}: {str(e)}")
 
+
 def add_device_mfg(url: str,
-             token: str,
-             database_path: str):
+                   token: str,
+                   database_path: str):
     """
     Add manufacturers to NB.
 
@@ -771,8 +774,8 @@ def add_device_mfg(url: str,
 
 
 def add_device_types(url: str,
-             token: str,
-             database_path: str):
+                     token: str,
+                     database_path: str):
     """
     Add Device types based on NM database devices.
 
@@ -788,7 +791,7 @@ def add_device_types(url: str,
     -------
     None
     """
-    query = """SELECT source, model FROM  
+    query = """SELECT source, model FROM
              device_models GROUP BY source, model;"""
     mfgs = nhp.get_table_prefix_to_device_mfg()
     device_types = nhp.get_device_types()
