@@ -5,6 +5,7 @@
 """
 
 import pandas as pd
+import re
 from netmanage.collectors import netbox_collectors as nbc
 
 
@@ -54,3 +55,245 @@ def get_prefix_custom_field_states(nb_path: str,
     df = result[['id', f'custom_fields_{f_name}']].copy()
 
     return df
+
+
+def make_nb_url_compliant(string: str):
+    """
+    Replaces all characters except letters, numbers, underscores,
+    and hyphens with hyphens.
+
+    Parameters
+    ----------
+    string : str
+        string to make URL compliant for NB
+    """
+    return re.sub(r"[^\w\-]", "-", string)
+
+
+def get_table_prefix_to_device_mfg():
+    return {
+        'ASA': 'CISCO',
+        'BIGIP': 'F5 Networks',
+        'IOS': 'CISCO',
+        'MERAKI': 'MERAKI',
+        'NXOS': 'CISCO',
+        'PANOS': 'PALO ALTO',
+    }
+
+
+def get_device_types():
+    return {
+        'MERAKI': {
+            'MS120-48FP': {
+                'u_height': 1,
+                'is_full_depth': False,
+                'airflow': 'front-to-rear',
+                'weight': '10.8',
+                'weight_unit': 'lb',
+                'slug': 'ms120-48fp'
+            },
+        },
+        'CISCO': {
+            'FPR-1120': {
+                'u_height': 1,
+                'is_full_depth': True,
+                'airflow': 'front-to-rear',
+                'weight': 8,
+                'weight_unit': 'lb'
+            },
+            'ASR1002-X': {
+                'u_height': 2,
+                'is_full_depth': True,
+                'airflow': 'front-to-rear',
+                'weight': 17.36,
+                'weight_unit': 'lb'
+            },
+            'ASR1002-HX': {
+                'u_height': 2,
+                'is_full_depth': True,
+                'airflow': 'front-to-rear',
+                'weight': 39.05,
+                'weight_unit': 'lb'
+            },
+            'N2K-C2248TP-E-1GE': {
+                'u_height': 1,
+                'is_full_depth': True,
+                'airflow': 'front-to-rear',
+                'weight': 12.7,
+                'weight_unit': 'lb'
+            },
+            'N9K-C93180YC-FX': {
+                'u_height': 2,
+                'is_full_depth': True,
+                'airflow': 'front-to-rear',
+                'weight': 47.5,
+                'weight_unit': 'lb'
+            },
+            'WS-C2960X-24TS-LL': {
+                'u_height': 1,
+                'is_full_depth': True,
+                'airflow': 'front-to-rear',
+                'weight': 10.8,
+                'weight_unit': 'lb'
+            },
+            'CISCO1921/K9': {
+                'u_height': 1,
+                'is_full_depth': True,
+                'airflow': 'front-to-rear',
+                'weight': 2.9,
+                'weight_unit': 'lb'
+            },
+            'WS-C2960L-24PS-LL': {
+                'u_height': 1,
+                'is_full_depth': True,
+                'airflow': 'front-to-rear',
+                'weight': 11.2,
+                'weight_unit': 'lb'
+            },
+            'C9410R': {
+                'u_height': 2,
+                'is_full_depth': True,
+                'airflow': 'front-to-rear',
+                'weight': 33.1,
+                'weight_unit': 'lb'
+            },
+            'C8500-12X': {
+                'u_height': 12,
+                'is_full_depth': True,
+                'airflow': 'front-to-rear',
+                'weight': 152,
+                'weight_unit': 'lb'
+            },
+            'WS-C2960-24TT-L': {
+                'u_height': 1,
+                'is_full_depth': True,
+                'airflow': 'front-to-rear',
+                'weight': 10.8,
+                'weight_unit': 'lb'
+            },
+            'ASR1001-X': {
+                'u_height': 1,
+                'is_full_depth': True,
+                'airflow': 'front-to-rear',
+                'weight': 6.6,
+                'weight_unit': 'lb'
+            },
+            'WS-C2960L-48TS-LL': {
+                'u_height': 1,
+                'is_full_depth': True,
+                'airflow': 'front-to-rear',
+                'weight': 12.7,
+                'weight_unit': 'lb'
+            },
+            'C9500-48Y4C': {
+                'u_height': 1,
+                'is_full_depth': True,
+                'airflow': 'front-to-rear',
+                'weight': 37.8,
+                'weight_unit': 'lb'
+            },
+            'N5K-C5696Q': {
+                'u_height': 2,
+                'is_full_depth': True,
+                'airflow': 'front-to-rear',
+                'weight': '47.5',
+                'weight_unit': 'lb',
+                'slug': 'n5k-c5696q'
+            },
+            'N77-C7706': {
+                'u_height': 9,
+                'is_full_depth': True,
+                'airflow': 'front-to-rear',
+                'weight': '300',
+                'weight_unit': 'lb',
+                'slug': 'n77-c7706'
+            },
+            'N2K-C2348UPQ-10GE': {
+                'u_height': 1,
+                'is_full_depth': True,
+                'airflow': 'front-to-rear',
+                'weight': '10.8',
+                'weight_unit': 'lb',
+                'slug': 'n2k-c2348upq-10ge'
+            },
+            'N5K-C5596UP': {
+                'u_height': 2,
+                'is_full_depth': False,
+                'airflow': 'front-to-rear',
+                'weight': '47.5',
+                'weight_unit': 'lb',
+                'slug': 'n5k-c5596up'
+            },
+            'CISCO2901/K9': {
+                'u_height': 1,
+                'airflow': 'front-to-rear',
+                'is_full_depth': False,
+                'weight': 9.5,
+                'weight_unit': 'lb',
+            },
+            'ASA5555': {
+                'u_height': 2,
+                'is_full_depth': True,
+                'airflow': 'front-to-rear',
+                'weight': 25,
+                'weight_unit': 'lb',
+                'slug': 'asa5555'
+            },
+            'WS-C2960L-24TS': {
+                'u_height': 1,
+                'is_full_depth': True,
+                'airflow': 'front-to-rear',
+                'weight': 6.04,
+                'weight_unit': 'lb',
+                'slug': 'ws-c2960l-24ts'
+            },
+            'WS-C2960L-24TS-LL': {
+                'u_height': 1,
+                'is_full_depth': True,
+                'airflow': 'front-to-rear',
+                'weight': '11.2',
+                'weight_unit': 'lb'
+            },
+            'N2K-C2348TQ-10G-E': {
+                'u_height': 1,
+                'is_full_depth': True,
+                'airflow': 'front-to-rear',
+                'weight': '12.7',
+                'weight_unit': 'lb',
+                'slug': 'n2k-c2348tq-10g-e'
+            },
+        },
+        'F5 NETWORKS': {
+            'BIG-IP i4600': {
+                'u_height': 1,
+                'is_full_depth': True,
+                'airflow': 'front-to-rear',
+                'weight': 82,
+                'weight_unit': 'lb',
+                'slug': 'i4600'
+            }
+        },
+        'PALO ALTO': {
+            'PA-5250': {
+                'u_height': 2,
+                'is_full_depth': True,
+                'airflow': 'front-to-rear',
+                'weight': '28.6',
+                'weight_unit': 'lb'
+            },
+            'PA-VM': {
+                'u_height': 0,
+                'is_full_depth': False,
+                'airflow': 'front-to-rear',
+                'weight': '0',
+                'weight_unit': 'lb'
+            },
+            'PA-5220': {
+                'u_height': 2,
+                'is_full_depth': True,
+                'airflow': 'front-to-rear',
+                'weight': '28.6',
+                'weight_unit': 'lb'
+            },
+        }
+    }
