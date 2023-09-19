@@ -677,6 +677,10 @@ def ios_parse_inventory(runner: dict) -> pd.DataFrame:
 
             device = event_data["remote_addr"]
 
+            if not event_data["res"]["stdout"][0]:
+                print(f'No Inventory output found. Skipping {device}')
+                continue
+
             data = event_data["res"]["stdout"][0].split("\n")
 
             # Iterate through data (each hardware entry has 3 lines).
