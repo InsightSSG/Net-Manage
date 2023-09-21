@@ -28,6 +28,7 @@ import sqlite3
 import re
 import string
 import random
+from pathlib import Path
 
 
 def get_columns_to_rename():
@@ -152,6 +153,7 @@ def consistent_transform(s: str, ignores: list = [], prefix: str = '') -> str:
     if not s:
         return s
     ignores = [ignore.lower() for ignore in ignores]
+    s = str(s) if not isinstance(s, (str, bytes)) else s
     words = re.split(r'(\W+)', s)
     transformed_words = []
     for word in words:
@@ -216,14 +218,20 @@ def reverse_consistent_transform(s: str, reverse_map, ignores: list = [],
     return ''.join(transformed_words)
 
 
-def obfuscate_db_data(source_db_path: str, dest_db_path: str):
+def obfuscate_db_data(source_db_path: str, dest_db_path: str = None):
     """Obfuscate the database data from a source database to a destination
     database.
 
     Args:
         source_db_path (str): Path to the source SQLite database.
-        dest_db_path (str): Path to the destination SQLite database.
+        dest_db_path (str, optional): Path to the destination SQLite database.
     """
+    if not dest_db_path:
+        dest_db_path = source_db_path.replace('.db', '-new.db', 1)
+
+    if Path(dest_db_path).exists():
+        raise FileExistsError(f"The db {dest_db_path} already exists.")
+
     source_conn = sqlite3.connect(source_db_path)
     source_cursor = source_conn.cursor()
 
