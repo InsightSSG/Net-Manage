@@ -248,11 +248,11 @@ def test_nxos_get_vrfs(
 
 
 def test_nxos_get_bgp_neighbors(
-    username, password, host_group, netmanage_path, play_path, private_data_dir
+    username, password, host_group, play_path, private_data_dir
 ):
     """Test the 'nxos_get_bgp_neighbors' collector."""
     df = collectors.nxos_get_bgp_neighbors(
-        username, password, host_group, netmanage_path, play_path,
+        username, password, host_group, play_path,
         private_data_dir
     )
 
@@ -392,7 +392,7 @@ def main():
     )
 
     test_nxos_get_bgp_neighbors(
-        username, password, host_group, netmanage_path, play_path,
+        username, password, host_group, play_path,
         private_data_dir
     )
 
