@@ -165,7 +165,8 @@ def consistent_transform(s: str, ignores: list = [], prefix: str = '') -> str:
         else ''.join(transformed_words)
 
 
-def copy_table_structure(source_cursor, dest_cursor, dest_conn, table_name):
+def copy_table_structure(source_cursor, dest_cursor, dest_conn,
+                         table_name, table_type):
     """Copy the table structure from a source to a destination database
 
     Args:
@@ -173,12 +174,13 @@ def copy_table_structure(source_cursor, dest_cursor, dest_conn, table_name):
         dest_cursor: SQLite cursor object for the destination database.
         dest_conn: SQLite connection object for the destination database.
         table_name (str): Name of the table to copy.
+        table_type (str): Type of table to create.
     """
-    source_cursor.execute(f"PRAGMA table_info({table_name});")
-    columns = source_cursor.fetchall()
-    columns_str = ", ".join([f'"{col[1]}" {col[2]}' for col in columns])
-    create_table_query = f"CREATE TABLE {table_name} ({columns_str});"
-    dest_cursor.execute(create_table_query)
+    source_cursor.execute(f"SELECT sql FROM sqlite_master WHERE "
+                          f"type='{table_type}' AND name='{table_name}';")
+    create_table = source_cursor.fetchall()[0]
+    create_table = create_table[0]
+    dest_cursor.execute(create_table)
     dest_conn.commit()
 
 
@@ -250,15 +252,24 @@ def obfuscate_db_data(source_db_path: str, dest_db_path: str = None):
             (original, mapped))
     dest_conn.commit()
 
-    source_cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    source_cursor.execute("SELECT name,type FROM sqlite_master order by type;")
     tables = source_cursor.fetchall()
 
     for table in tables:
         table_name = table[0]
-        if table_name == 'sqlite_sequence':
+        table_type = table[1]
+
+        if (
+            table_name == 'sqlite_sequence'
+            or table_type not in ['table', 'view']
+        ):
             continue
 
-        copy_table_structure(source_cursor, dest_cursor, dest_conn, table_name)
+        copy_table_structure(source_cursor, dest_cursor, dest_conn,
+                             table_name, table_type)
+
+        if table_type == 'view':
+            continue
 
         source_cursor.execute(f"SELECT * FROM {table_name};")
         rows = source_cursor.fetchall()

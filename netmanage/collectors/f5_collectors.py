@@ -1438,7 +1438,7 @@ def get_vip_destinations(db_path: str) -> pd.DataFrame:
                           vip,
                           destination,
                           port
-                   from VIP_AVAILABILITY
+                   from BIGIP_VIP_AVAILABILITY
                    ''')
 
     query = 'select * from BIGIP_VIP_AVAILABILITY'
