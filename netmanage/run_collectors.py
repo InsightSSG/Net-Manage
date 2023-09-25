@@ -790,7 +790,8 @@ def add_to_db(table_name: str,
     cur = con.cursor()
 
     # Check if views are created. If they aren't, then create them.
-    expected = ['device_models', 'meraki_neighbors']
+    expected = ['device_models', 'meraki_neighbors',
+                'combined_bgp_neighbors']
     views = hp.get_database_views(database_path)
     for view in expected:
         if view not in views:
