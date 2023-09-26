@@ -57,6 +57,9 @@ def parse_bgp_neighbors(runner):
 
     rows = list()
 
+    # Regex pattern to match both IPv4 and IPv6 addresses
+    ip_pattern = r'(\d+\.\d+\.\d+\.\d+|[0-9a-fA-F:]{3,39})'
+
     for event in runner.events:
         if event['event'] == 'runner_on_ok':
             event_data = event['event_data']
@@ -69,11 +72,10 @@ def parse_bgp_neighbors(runner):
 
             for neighbor in neighbors:
                 local_host_search = re.search(
-                    r"Local host: (\d+\.\d+\.\d+\.\d+)", neighbor)
+                    f"Local host: {ip_pattern}", neighbor)
                 local_host = local_host_search.group(1) \
                     if local_host_search else None
-                bgp_neighbor = re.search(
-                    r"(\d+\.\d+\.\d+\.\d+)", neighbor).group(1)
+                bgp_neighbor = re.search(ip_pattern, neighbor).group(1)
                 vrf_search = re.search(r"vrf (\w+)", neighbor)
                 vrf = vrf_search.group(1) if vrf_search else None
                 local_as_search = re.search(r"local AS (\d+)", neighbor)
