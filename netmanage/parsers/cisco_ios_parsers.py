@@ -677,31 +677,33 @@ def ios_parse_inventory(runner: dict) -> pd.DataFrame:
 
             device = event_data["remote_addr"]
 
-            data = event_data["res"]["stdout"][0].split("\n")
+            data = list(filter(
+                None, event_data["res"]["stdout"][0].split("\n")))
 
-            # Iterate through data (each hardware entry has 3 lines).
-            for i in range(0, len(data), 3):
-                df_data['device'].append(device)
-                # Split the first line to extract name and description
-                name_desc = data[i].split(", DESCR: ")
-                df_data['name'].append(
-                    name_desc[0].replace('NAME: "', '').
-                    replace('"', '').strip())
-                df_data['description'].append(
-                    name_desc[1].replace('"', '').strip())
+            if data:
+                # Iterate through data (each hardware entry has 3 lines).
+                for i in range(0, len(data), 3):
+                    df_data['device'].append(device)
+                    # Split the first line to extract name and description
+                    name_desc = data[i].split(", DESCR: ")
+                    df_data['name'].append(
+                        name_desc[0].replace('NAME: "', '').
+                        replace('"', '').strip())
+                    df_data['description'].append(
+                        name_desc[1].replace('"', '').strip())
 
-                # Split the second line to extract PID, VID and SN
-                pid_vid_sn = data[i+1].split(", ")
-                df_data['pid'].append(
-                    pid_vid_sn[0].replace('PID: ', '').strip())
-                df_data['vid'].append(
-                    pid_vid_sn[1].replace('VID: ', '').strip())
+                    # Split the second line to extract PID, VID and SN
+                    pid_vid_sn = data[i+1].split(", ")
+                    df_data['pid'].append(
+                        pid_vid_sn[0].replace('PID: ', '').strip())
+                    df_data['vid'].append(
+                        pid_vid_sn[1].replace('VID: ', '').strip())
 
-                # If SN value is "SN:", replace with an empty string.
-                sn_value = pid_vid_sn[2].replace('SN: ', '').strip()
-                if sn_value == "SN:":
-                    sn_value = ""
-                df_data['serial'].append(sn_value)
+                    # If SN value is "SN:", replace with an empty string.
+                    sn_value = pid_vid_sn[2].replace('SN: ', '').strip()
+                    if sn_value == "SN:":
+                        sn_value = ""
+                    df_data['serial'].append(sn_value)
 
     # Create the DataFrame and return it.
     df = pd.DataFrame(df_data)
