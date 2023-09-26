@@ -482,6 +482,14 @@ def collect(ansible_os: str,
                                            netmanage_path,
                                            private_data_dir)
 
+    if collector == 'interface_ipv6_addresses':
+        if ansible_os == 'cisco.ios.ios':
+            result = cic.ios_get_interface_ipv6_ips(ios_devices_username,
+                                                    ios_devices_password,
+                                                    hostgroup,
+                                                    play_path,
+                                                    private_data_dir)
+
     if collector == 'interface_status':
         if ansible_os == 'cisco.nxos.nxos':
             result = cnc.nxos_get_interface_status(nxos_devices_username,

@@ -644,6 +644,100 @@ def ios_parse_interface_ips(runner: dict) -> pd.DataFrame:
     return df
 
 
+def ios_parse_interface_ipv6_ips(runner: dict) -> pd.DataFrame:
+    """
+    Parses the IPv6 addresses assigned to interfaces.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A DataFrame containing the interfaces and IP addresses.
+    """
+
+    if runner is None or runner.events is None:
+        raise ValueError("The input is None or empty")
+
+    # Lists to hold data
+    devices = list()
+    interfaces = list()
+    ips = list()
+    vrfs = list()
+
+    # Parse the results
+    for event in runner.events:
+        if event["event"] == "runner_on_ok":
+            event_data = event["event_data"]
+
+            device = event_data["remote_addr"]
+
+            lines = event_data["res"]["stdout"][0].split("\n")
+
+            idx = 0
+            while idx < len(lines):
+                line = lines[idx]
+                # Detecting interface lines
+                if "line protocol is" in line:
+                    interface = line.split()[0]
+                    ip = ""
+                    vrf = ""
+
+                    # Checking for the next lines to see if they contain IPs
+                    next_line_idx = idx + 1
+                    if next_line_idx < len(lines) and "subnet is" in lines[
+                            next_line_idx]:
+                        ip = lines[next_line_idx].split(",")[0].strip()
+
+                        # Checking for VRF in the subsequent line
+                        if next_line_idx + 1 < len(lines) and \
+                                "VPN Routing/Forwarding" in \
+                                lines[next_line_idx + 1]:
+                            vrf = lines[next_line_idx + 1].split(
+                                '"')[1].strip()
+
+                    devices.append(device)
+                    interfaces.append(interface)
+                    ips.append(ip)
+                    vrfs.append(vrf)
+
+                    idx = next_line_idx + 2 if vrf else next_line_idx + 1
+                else:
+                    idx += 1
+
+    # Create the dataframe.
+    df = pd.DataFrame({'device': devices,
+                       'interface': interfaces,
+                       'ip': ips,
+                       'vrf': vrfs})
+
+    return df
+
+    # Add the subnets, network IPs, and broadcast IPs.
+    addresses = df["ip"].to_list()
+    result = hp.generate_subnet_details(addresses)
+    df["subnet"] = result["subnet"]
+    df["network_ip"] = result["network_ip"]
+    df["broadcast_ip"] = result["broadcast_ip"]
+
+    # Add a column containing the CIDR notation.
+    cidrs = hp.subnet_mask_to_cidr(df["subnet"].to_list())
+    df['cidr'] = cidrs
+    df = df[['device',
+             'interface',
+             'ip',
+             'cidr',
+             'vrf',
+             'subnet',
+             'network_ip',
+             'broadcast_ip']]
+
+    return df
+
+
 def ios_parse_inventory(runner: dict) -> pd.DataFrame:
     """
     Parses the inventory for Cisco IOS and IOS-XE devices.

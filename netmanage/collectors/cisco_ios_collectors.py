@@ -629,6 +629,49 @@ def ios_get_interface_ips(username: str,
     return parser.ios_parse_interface_ips(runner)
 
 
+def ios_get_interface_ipv6_ips(username: str,
+                               password: str,
+                               host_group: str,
+                               play_path: str,
+                               private_data_dir: str) -> pd.DataFrame:
+    '''
+    Get the IPv6 addresses assigned to interfaces.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A DataFrame containing the interfaces and IP addresses.
+    '''
+    cmd = 'show ipv6 interface | include line protocol|subnet is|VPN Routing'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute the command
+    playbook = f'{play_path}/cisco_ios_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse results into df
+    return parser.ios_parse_interface_ipv6_ips(runner)
+
+
 def ios_get_vlan_db(username: str,
                     password: str,
                     host_group: str,
