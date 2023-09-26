@@ -20,7 +20,7 @@ infoblox-client
 meraki
 pynetbox
 python-dotenv
-python3-nmap
+python-nmap
 xmltodict
 streamlit
 tabulate
