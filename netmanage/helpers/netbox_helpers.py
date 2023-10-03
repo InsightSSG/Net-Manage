@@ -92,6 +92,62 @@ def get_device_types():
                 'weight_unit': 'lb',
                 'slug': 'ms120-48fp'
             },
+            'MS120-48LP': {
+                'u_height': 1,
+                'is_full_depth': False,
+                'airflow': 'front-to-rear',
+                'weight': '10.8',
+                'weight_unit': 'lb',
+                'slug': 'ms120-48lp'
+            },
+            "MR33": {
+                "u_height": 1,
+                "is_full_depth": False,
+                "airflow": "front-to-rear",
+                "weight": "2.7",
+                "weight_unit": "lb",
+                "slug": "mr33",
+            },
+            "MR42": {
+                "u_height": 1,
+                "is_full_depth": False,
+                "airflow": "front-to-rear",
+                "weight": "2.7",
+                "weight_unit": "lb",
+                "slug": "mr42",
+            },
+            "MX450": {
+                "u_height": 1,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": "20.9",
+                "weight_unit": "lb",
+                "slug": "mx450",
+            },
+            "MX64": {
+                "u_height": 1,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": "20.9",
+                "weight_unit": "lb",
+                "slug": "mx64",
+            },
+            "MX65": {
+                "u_height": 1,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": "20.9",
+                "weight_unit": "lb",
+                "slug": "mx65",
+            },
+            "MX84": {
+                "u_height": 1,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": "20.9",
+                "weight_unit": "lb",
+                "slug": "mx84",
+            },
         },
         'CISCO': {
             'FPR-1120': {
