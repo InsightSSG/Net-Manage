@@ -1168,6 +1168,7 @@ def meraki_get_switch_port_statuses(api_key: str,
 
     return df_ports
 
+
 def meraki_get_switch_port_usages(api_key: str,
                                   db_path: str,
                                   networks: list,
