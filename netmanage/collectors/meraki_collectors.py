@@ -1168,7 +1168,6 @@ def meraki_get_switch_port_statuses(api_key: str,
 
     return df_ports
 
-
 def meraki_get_switch_port_usages(api_key: str,
                                   db_path: str,
                                   networks: list,
@@ -1242,3 +1241,157 @@ def meraki_get_switch_port_usages(api_key: str,
     df_usage = pd.DataFrame.from_dict(df_data)
 
     return df_usage
+
+async def meraki_get_switch_ports(api_key: str,
+                            sem: Semaphore = Semaphore(2)
+    ) -> pd.DataFrame:
+    '''
+    Gets a list of switchports that the
+    user's API key has access to.
+
+    Parameters
+    ----------
+    api_key : str
+        The user's API key.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A DataFrame containing a list of devices and ports the user's API key
+        has access to.
+
+    Examples
+    --------
+    >>> api_key = '<your_api_key_here>'
+    >>> df = meraki_get_switch_ports(api_key)
+    >>> df.columns
+        Index(["device",
+        "portId",
+        "name",
+        "tags",
+        "enabled",
+        "poeEnabled",
+        "type",
+        "vlan",
+        "voiceVlan",
+        "allowedVlans",
+        "rstpEnabled",
+        "stpGuard",
+        "linkNegotiation",
+        "accessPolicyType"],
+        dtype='object')
+    '''
+    if sem is None:
+        sem = asyncio.Semaphore(3)
+
+    async def get_switch_ports_for_org(dashboard, org):
+        return await dashboard.switch.getOrganizationSwitchPortsBySwitch(org)
+
+    orgs = meraki_get_organizations(api_key)
+    orgs = orgs['id'].to_list()
+
+    data = list()
+
+    async with AsyncDashboardAPI(api_key, print_console=False,) as dashboard:
+        # Schedule get_switch_ports_for_org() for all orgs to run concurrently.
+        result = await asyncio.gather(*(get_switch_ports_for_org(dashboard, org) for org in orgs))
+
+        for res in result:
+            for row in res:
+                if not row:
+                    continue
+                device = row['name']
+                for idx, port in enumerate(row['ports']):
+                    row['ports'][idx]['device'] = device
+                    data.append(row['ports'][idx])
+
+    df = pd.DataFrame(data)
+    # Move the 'device' column to be the first column
+    col_order = ['device'] + [col for col in df if col != 'device']
+    df = df[col_order]
+    df = hp.convert_lists_to_json_in_df(df)
+    df = df.astype(str)
+    # Convert all float columns to int
+    for col in df.columns:
+        if df[col].dtype == 'float64':
+            df[col] = df[col].astype(int)
+    return df
+
+
+async def meraki_get_appliance_ports(api_key: str,
+                                    sem: Semaphore = Semaphore(2)
+    ) -> pd.DataFrame:
+    '''
+    Gets a list of appliance ports that the
+    user's API key has access to.
+
+    Parameters
+    ----------
+    api_key : str
+        The user's API key.
+
+    Returns
+    -------
+    df_orgs : pd.DataFrame
+        A DataFrame containing a list of appliance and ports the user's API key
+        has access to.
+
+    Examples
+    --------
+    >>> api_key = '<your_api_key_here>'
+    >>> df = meraki_get_appliance_ports(api_key)
+    >>> df.columns
+        Index(['device',
+        'number',
+        'enabled',
+        'type',
+        'dropUntaggedTraffic',
+        'allowedVlans',
+        'vlan',
+        'accessPolicy'],
+        dtype='object')
+    '''
+    if sem is None:
+        sem = asyncio.Semaphore(3)
+
+    def get_all_networks(dashboard, organization_id):
+        return dashboard.organizations.getOrganizationNetworks(
+            organizationId=organization_id,
+            total_pages='all'  # Fetch all pages
+        )
+
+    async def get_switch_ports_for_appl(dashboard, net):
+        try:
+            res = await dashboard.appliance.getNetworkAppliancePorts(net['id'])
+            data = [{**item, 'device': net['name']} for item in res]
+            return data
+        except Exception as e:
+            print(f"Error getting applicance ports for network: {net['id']}\nerror: {e}")
+            return []
+
+    orgs = meraki_get_organizations(api_key)
+    orgs = orgs['id'].to_list()
+
+    data = list()
+
+    async with AsyncDashboardAPI(api_key, print_console=False,) as dashboard:
+        result = await asyncio.gather(*(get_all_networks(dashboard, org) for org in orgs))
+        networks = [{'id': _['id'], 'name': _['name']} for _ in result[0]]
+        result = await asyncio.gather(*(get_switch_ports_for_appl(dashboard, net) for net in networks))
+
+        for res in result:
+            for row in res:
+                if not row:
+                    continue
+                data.append(row)
+
+    df = pd.DataFrame(data)
+    # Move the 'device' column to be the first column
+    col_order = ['device'] + [col for col in df if col != 'device']
+    df = df[col_order]
+    df = df.astype(str)
+    # Convert all float columns to int
+    for col in df.columns:
+        if df[col].dtype == 'float64':
+            df[col] = df[col].astype(int)
+    return df
