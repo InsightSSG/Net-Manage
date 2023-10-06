@@ -188,7 +188,8 @@ def create_db_view(db_path: str, view_name: str):
         SELECT
             REPLACE(IOS.device, '.mmi.local', '') AS device,
             CASE
-                WHEN (LENGTH(IOS.local_host) - LENGTH(REPLACE(IOS.local_host, ':', ''))) > 1 THEN
+                WHEN (LENGTH(IOS.local_host) - LENGTH(REPLACE(
+                        IOS.local_host, ':', ''))) > 1 THEN
                     IOS.local_host
                 WHEN INSTR(IOS.local_host, ':') > 0 THEN
                     SUBSTR(IOS.local_host, 1, INSTR(IOS.local_host, ':') - 1)
@@ -215,10 +216,12 @@ def create_db_view(db_path: str, view_name: str):
         SELECT
             REPLACE(PANOS.device, '.mmi.local', '') AS device,
             CASE
-                WHEN (LENGTH(PANOS."local-address") - LENGTH(REPLACE(PANOS."local-address", ':', ''))) > 1 THEN
+                WHEN (LENGTH(PANOS."local-address") - LENGTH(
+                        REPLACE(PANOS."local-address", ':', ''))) > 1 THEN
                     PANOS."local-address"
                 WHEN INSTR(PANOS."local-address", ':') > 0 THEN
-                    SUBSTR(PANOS."local-address", 1, INSTR(PANOS."local-address", ':') - 1)
+                    SUBSTR(PANOS."local-address", 1, INSTR(
+                        PANOS."local-address", ':') - 1)
                 ELSE
                     PANOS."local-address"
             END AS local_host,
