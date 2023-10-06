@@ -56,6 +56,7 @@ def get_mapping_schema() -> Dict[str, Dict[str, Union[str, Dict[str, Any]]]]:
     or mapped to its new format or column.
     """
     return {
+        # BGP NEIGHBORS
         'IOS_BGP_NEIGHBORS': {
             'bgp_neighbor': 'bgp_neighbor',
             'local_host': 'local_address',
@@ -123,6 +124,100 @@ def get_mapping_schema() -> Dict[str, Dict[str, Union[str, Dict[str, Any]]]]:
             'config': 'config',
             'peer-capability': 'peer_capability',
             'prefix-counter': 'prefix_counter'
+        },
+        # HARDWARE INVENTORY
+        'ASA_HARDWARE_INVENTORY': {
+            'device': 'device',
+            'name': 'name',
+            'description': 'description',
+            'pid': 'product_id',
+            'vid': 'vendor_id',
+            'serial': 'serial'
+        },
+        'BIGIP_HARDWARE_INVENTORY': {
+            'device': 'device',
+            'name': 'name',
+            'bios_revision': 'bios_revision',
+            'base_mac': 'mac_address',
+            'appliance_type': 'appliance_type',
+            'appliance_serial': 'serial'
+        },
+        'IOS_HARDWARE_INVENTORY': {
+            'device': 'device',
+            'name': 'name',
+            'description': 'description',
+            'pid': 'product_id',
+            'vid': 'vendor_id',
+            'serial': 'serial'
+        },
+        'NXOS_HARDWARE_INVENTORY': {
+            'device': 'device',
+            'name': 'name',
+            'desc': 'description',
+            'productid': 'product_id',
+            'vendorid': 'vendor_id',
+            'serialnum': 'serial'
+        },
+        'PANOS_HARDWARE_INVENTORY': {
+            'device': 'device',
+            'hostname': 'hostname',
+            'ip-address': 'ip_address',
+            'public-ip-address': 'public_ip_address',
+            'netmask': 'netmask',
+            'default-gateway': 'default_gateway',
+            'is-dhcp': 'is_dhcp',
+            'ipv6-address': 'ipv6_address',
+            'ipv6-link-local-address': 'ipv6_link_local_address',
+            'mac-address': 'mac_address',
+            'time': 'time',
+            'uptime': 'uptime',
+            'devicename': 'device_name',
+            'family': 'family',
+            'model': 'model',
+            'serial': 'serial',
+            'cloud-mode': 'cloud_mode',
+            'sw-version': 'software_version',
+            'global-protect-client-package-version':
+                'global_protect_client_package_version',
+            'device-dictionary-version': 'device_dictionary_version',
+            'device-dictionary-release-date': 'device_dictionary_release_date',
+            'app-version': 'app_version',
+            'app-release-date': 'app_release_date',
+            'av-version': 'av_version',
+            'av-release-date': 'av_release_date',
+            'threat-version': 'threat_version',
+            'threat-release-date': 'threat_release_date',
+            'wf-private-version': 'wf_private_version',
+            'wf-private-release-date': 'wf_private_release_date',
+            'url-db': 'url_db',
+            'wildfire-version': 'wildfire_version',
+            'wildfire-release-date': 'wildfire_release_date',
+            'wildfire-rt': 'wildfire_rt',
+            'url-filtering-version': 'url_filtering_version',
+            'global-protect-datafile-version':
+                'global_protect_datafile_version',
+            'global-protect-datafile-release-date':
+                'global_protect_datafile_release_date',
+            'global-protect-clientless-vpn-version':
+                'global_protect_clientless_vpn_version',
+            'logdb-version': 'logdb_version',
+            'plugin_versions': 'plugin_versions',
+            'platform-family': 'platform_family',
+            'high-speed-log-forwarding-mode': 'high_speed_log_forwarding_mode',
+            'vpn-disable-mode': 'vpn_disable_mode',
+            'multi-vsys': 'multi_vsys',
+            'operational-mode': 'operational_mode',
+            'device-certificate-status': 'device_certificate_status',
+            'vm-uuid': 'vm_uuid',
+            'vm-cpuid': 'vm_cpuid',
+            'vm-license': 'vm_license',
+            'vm-cap-tier': 'vm_cap_tier',
+            'vm-cores': 'vm_cores',
+            'vm-mem': 'vm_mem',
+            'relicense': 'relicense',
+            'vm-mode': 'vm_mode',
+            'global-protect-clientless-vpn-release-date':
+                'global_protect_clientless_vpn_release_date'
         }
     }
 
@@ -179,7 +274,13 @@ def set_column_order(table_name: str) -> List:
         A list containing the column order. If the columns do not need to be
         changed, then an empty list will be returned.
     """
-    if table_name == 'IOS_BGP_NEIGHBORS':
+    skipped_tables = ['ASA_HARDWARE_INVENTORY',
+                      'BIGIP_HARDWARE_INVENTORY',
+                      'IOS_HARDWARE_INVENTORY',
+                      'IOS_BGP_NEIGHBORS',
+                      'NXOS_HARDWARE_INVENTORY',
+                      'PANOS_HARDWARE_INVENTORY']
+    if table_name in skipped_tables:
         return list()
     if table_name == 'PANOS_BGP_NEIGHBORS':
         col_order = ['device',
