@@ -56,6 +56,69 @@ def get_mapping_schema() -> Dict[str, Dict[str, Union[str, Dict[str, Any]]]]:
     or mapped to its new format or column.
     """
     return {
+        # ARP TABLES
+        'BIGIP_ARP_TABLE': {
+            'timestamp': {
+                'function': {
+                    'name': 'standardize_timestamp',
+                    'args': []
+                }
+            },
+            'device': 'device',
+            'Name': 'entry_name',
+            'Address': 'ip_address',
+            'HWaddress': 'mac_address',
+            'Vlan': 'vlan',
+            'Expire-in-sec': 'expiry_time_seconds',
+            'Status': 'arp_status',
+            'vendor': 'vendor'
+        },
+        'IOS_ARP_TABLE': {
+            'timestamp': {
+                'function': {
+                    'name': 'standardize_timestamp',
+                    'args': []
+                }
+            },
+            'device': 'device',
+            'protocol': 'protocol',
+            'address': 'ip_address',
+            'age': 'age',
+            'mac': 'mac_address',
+            'inf_type': 'interface_type',
+            'interface': 'interface_name',
+            'vendor': 'vendor'
+        },
+        'NXOS_ARP_TABLE': {
+            'timestamp': {
+                'function': {
+                    'name': 'standardize_timestamp',
+                    'args': []
+                }
+            },
+            'device': 'device',
+            'ip_address': 'ip_address',
+            'age': 'age',
+            'mac_address': 'mac_address',
+            'interface': 'interface_name',
+            'vendor': 'vendor'
+        },
+        'PANOS_ARP_TABLE': {
+            'timestamp': {
+                'function': {
+                    'name': 'standardize_timestamp',
+                    'args': []
+                }
+            },
+            'device': 'device',
+            'status': 'arp_status',
+            'ip': 'ip_address',
+            'mac': 'mac_address',
+            'ttl': 'ttl_seconds',
+            'interface': 'interface_name',
+            'port': 'interface_port',
+            'vendor': 'vendor'
+        },
         # BGP NEIGHBORS
         'IOS_BGP_NEIGHBORS': {
             'bgp_neighbor': 'bgp_neighbor',
@@ -79,6 +142,12 @@ def get_mapping_schema() -> Dict[str, Dict[str, Union[str, Dict[str, Any]]]]:
             'bgp_state_timer': 'bgp_state_timer'
         },
         'PANOS_BGP_NEIGHBORS': {
+            'timestamp': {
+                'function': {
+                    'name': 'standardize_timestamp',
+                    'args': []
+                }
+            },
             'device': 'device',
             '@peer': 'neighbor',
             '@vr': 'vrf',
@@ -127,6 +196,12 @@ def get_mapping_schema() -> Dict[str, Dict[str, Union[str, Dict[str, Any]]]]:
         },
         # HARDWARE INVENTORY
         'ASA_HARDWARE_INVENTORY': {
+            'timestamp': {
+                'function': {
+                    'name': 'standardize_timestamp',
+                    'args': []
+                }
+            },
             'device': 'device',
             'name': 'name',
             'description': 'description',
@@ -135,6 +210,12 @@ def get_mapping_schema() -> Dict[str, Dict[str, Union[str, Dict[str, Any]]]]:
             'serial': 'serial'
         },
         'BIGIP_HARDWARE_INVENTORY': {
+            'timestamp': {
+                'function': {
+                    'name': 'standardize_timestamp',
+                    'args': []
+                }
+            },
             'device': 'device',
             'name': 'name',
             'bios_revision': 'bios_revision',
@@ -143,6 +224,12 @@ def get_mapping_schema() -> Dict[str, Dict[str, Union[str, Dict[str, Any]]]]:
             'appliance_serial': 'serial'
         },
         'IOS_HARDWARE_INVENTORY': {
+            'timestamp': {
+                'function': {
+                    'name': 'standardize_timestamp',
+                    'args': []
+                }
+            },
             'device': 'device',
             'name': 'name',
             'description': 'description',
@@ -151,6 +238,12 @@ def get_mapping_schema() -> Dict[str, Dict[str, Union[str, Dict[str, Any]]]]:
             'serial': 'serial'
         },
         'NXOS_HARDWARE_INVENTORY': {
+            'timestamp': {
+                'function': {
+                    'name': 'standardize_timestamp',
+                    'args': []
+                }
+            },
             'device': 'device',
             'name': 'name',
             'desc': 'description',
@@ -159,6 +252,12 @@ def get_mapping_schema() -> Dict[str, Dict[str, Union[str, Dict[str, Any]]]]:
             'serialnum': 'serial'
         },
         'PANOS_HARDWARE_INVENTORY': {
+            'timestamp': {
+                'function': {
+                    'name': 'standardize_timestamp',
+                    'args': []
+                }
+            },
             'device': 'device',
             'hostname': 'hostname',
             'ip-address': 'ip_address',
@@ -274,14 +373,7 @@ def set_column_order(table_name: str) -> List:
         A list containing the column order. If the columns do not need to be
         changed, then an empty list will be returned.
     """
-    skipped_tables = ['ASA_HARDWARE_INVENTORY',
-                      'BIGIP_HARDWARE_INVENTORY',
-                      'IOS_HARDWARE_INVENTORY',
-                      'IOS_BGP_NEIGHBORS',
-                      'NXOS_HARDWARE_INVENTORY',
-                      'PANOS_HARDWARE_INVENTORY']
-    if table_name in skipped_tables:
-        return list()
+    col_order = list()
     if table_name == 'PANOS_BGP_NEIGHBORS':
         col_order = ['device',
                      'neighbor',
