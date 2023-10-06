@@ -451,13 +451,27 @@ def add_device_types(url: str,
     device_types = nhp.get_device_types()
     con = hp.connect_to_db(database_path)
     df_tables = pd.read_sql(query, con)
+    nb = pynetbox.api(url, token)
+    nb_d_types = nb.dcim.device_types.all()
+    nb_d_types = [_.model for _ in nb_d_types]
+    proccessed_types = list()
     for idx, row in df_tables.iterrows():
+        if row['model'] in nb_d_types:
+            continue
         data = dict()
         data['netbox_url'] = url
         data['netbox_token'] = token
         mfg = row["source"].split("_")[0]
         mfg = mfgs.get(mfg).upper()
+        d_type = f'{mfg}-{row["model"]}'
+        if d_type in proccessed_types:
+            continue
+        proccessed_types.append(d_type)
         if not mfg:
+            print(f'Skipping missing MFG: {d_type}')
+            continue
+        if not device_types[mfg].get(row["model"]):
+            print(f'Skipping missing model: {d_type}')
             continue
         model = row["model"]
         data['manufacturer_name'] = mfg.title()
@@ -472,9 +486,8 @@ def add_device_types(url: str,
         data['airflow'] = device_types[mfg][model].get("airflow")
 
         try:
-            add_device_type(data)
+            add_device_type(**data)
         except Exception as e:
-            print(data)
             print(f'add_device_type error: {e}')
 
 
@@ -880,7 +893,7 @@ def add_vlan(token: str,
     }
 
     try:
-        nb.ipam.vlans.create(data)
+        return nb.ipam.vlans.create(data)
     except pynetbox.RequestError as e:
         print(f'[VLAN {vlan_id}]: {str(e)}')
 
@@ -942,3 +955,96 @@ def add_vrf(token: str,
         nb.ipam.vrfs.create(data)
     except pynetbox.RequestError as e:
         print(f'[{vrf_name}]: {str(e)}')
+
+
+def add_interface(token: str,
+            url: str,
+            device_id: int = None,
+            name: str = None,
+            _type: str = '1000base-t',
+            enabled: Optional[bool] = True,
+            lag: Optional[str] = None,
+            mtu: Optional[str] = None,
+            mac_address: Optional[str] = None, 
+            mgmt_only: Optional[bool] = False,
+            description: Optional[str] = None,
+            is_connected: Optional[bool] = False,
+            interface_connection: Optional[str] = None,
+            circuit_termination: Optional[str] = None, 
+            mode: Optional[str] = None,
+            untagged_vlan: Optional[str] = None,
+            tagged_vlans: Optional[list] = [],
+            tags: Optional[list] = []
+    ):
+    """
+    Add a new interface to Netbox.
+
+    Parameters
+    ----------
+    token : str
+        API token for authentication.
+    url : str
+        URL of the Netbox instance.
+    name : str
+        The name of the Interface to be added to Netbox.
+    _type : str
+        Interface type. e.g '1000base-t'.
+    enabled : bool, optional
+        Whether the interface is enabled or not. Default is True.
+    lag : str, optional
+        Link aggregation group for the interface.
+    mtu : str, optional
+        Maximum transmission unit for the interface.
+    mac_address : str, optional
+        MAC address of the interface.
+    mgmt_only : bool, optional
+        Whether the interface is management-only. Default is False.
+    description : str, optional
+        A description for the Interface.
+    is_connected : bool, optional
+        Whether the interface is connected. Default is False.
+    interface_connection : str, optional
+        Connection details for the interface.
+    circuit_termination : str, optional
+        Circuit termination details for the interface.
+    mode : str, optional
+        Mode of the interface.
+    untagged_vlan : str, optional
+        VLAN details for untagged traffic on the interface.
+    tagged_vlans : list, optional
+        List of VLANs for tagged traffic on the interface.
+    tags : list, optional
+        List of tags associated with the interface.
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    pynetbox.RequestError
+        If there is any problem in the request to Netbox API.
+
+    Notes
+    -------
+    A RequestError is thrown if there is a duplicate VRF name, but ONLY if
+    the option to disallow duplicate VRF names is either passed to the function
+    as 'enforce_unique=True' (the default) or has been enabled inside of Netbox
+    (it is disabled by default). The option to enforce unique VRF names can be
+    enabled globally or for certain groups of prefixes. See this URL for more
+    information:
+    - https://demo.netbox.dev/static/docs/core-functionality/ipam/
+    - https://demo.netbox.dev/static/docs/configuration/dynamic-settings/
+
+    """
+    nb = pynetbox.api(url, token=token)
+    data = {
+        'device': device_id,
+        'name': name,
+        'description': description,
+        'type': _type,
+    }
+    try:
+        nb.dcim.interfaces.create(data)
+    except pynetbox.RequestError as e:
+        print(f'[{name}]: {str(e)}')
