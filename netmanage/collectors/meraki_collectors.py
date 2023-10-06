@@ -507,8 +507,10 @@ def meraki_get_network_devices(api_key: str,
 
     if not networks:
         df_networks = meraki_get_org_networks(api_key, db_path)  # , orgs=orgs)
-        print(df_networks)
-        networks = df_networks['network_id'].to_list()
+        if df_networks.empty:
+            networks = []
+        else:
+            networks = df_networks['network_id'].to_list()
 
     for net in networks:
         # There is no easy way to check if the user's API key has access to
@@ -592,10 +594,10 @@ def meraki_get_network_device_statuses(db_path: str,
 
     # Delete the 'table_id' column, since it was pulled from the
     # 'meraki_org_device_statuses' table and will need to be recreated
-    del df_statuses['table_id']
+    if 'table_id' in df_statuses.columns:
+        del df_statuses['table_id']
 
     return df_statuses
-
 
 def meraki_get_organizations(api_key: str) -> pd.DataFrame:
     '''
@@ -706,7 +708,7 @@ def meraki_get_org_appliance_uplink_statuses(api_key: str,
             row[f'{prefix}_publicIp'] = uplink['publicIp']
             row[f'{prefix}_primaryDns'] = uplink.get('primaryDns', None)
             row[f'{prefix}_secondaryDns'] = uplink.get('secondaryDns', None)
-            row[f'{prefix}_ipAssignedBy'] = uplink['ipAssignedBy']
+            row[f'{prefix}_ipAssignedBy'] = uplink.get('ipAssignedBy')
 
         df_data.append(row)
 
