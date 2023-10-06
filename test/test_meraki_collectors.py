@@ -84,6 +84,43 @@ def test_get_network_clients(api_key,
     except KeyboardInterrupt:
         pass
 
+def test_get_appliance_ports(api_key):
+    df = asyncio.run(
+        mc.meraki_get_appliance_ports(api_key))
+
+    expected_cols = ['device',
+        'number',
+        'enabled',
+        'type',
+        'dropUntaggedTraffic',
+        'allowedVlans',
+        'vlan',
+        'accessPolicy']
+
+    assert expected_cols == df.columns.to_list()
+
+
+def test_get_switch_ports(api_key):
+    df = asyncio.run(
+        mc.meraki_get_switch_ports(api_key))
+
+    expected_cols = ["device",
+        "portId",
+        "name",
+        "tags",
+        "enabled",
+        "poeEnabled",
+        "type",
+        "vlan",
+        "voiceVlan",
+        "allowedVlans",
+        "rstpEnabled",
+        "stpGuard",
+        "linkNegotiation",
+        "accessPolicyType"]
+
+    assert expected_cols == df.columns.to_list()
+
 
 def main():
     # Load environment variables.
@@ -113,6 +150,10 @@ def main():
                              per_page=meraki_per_page,
                              timespan=meraki_lookback,
                              total_pages=meraki_tp)
+
+    test_get_switch_ports(meraki_api_key)
+
+    test_get_appliance_ports(meraki_api_key)
 
 
 if __name__ == '__main__':
