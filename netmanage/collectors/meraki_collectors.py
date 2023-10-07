@@ -510,7 +510,7 @@ def meraki_get_network_devices(api_key: str,
         if df_networks.empty:
             networks = []
         else:
-            networks = df_networks['network_id'].to_list()
+            networks = df_networks['id'].to_list()
 
     for net in networks:
         # There is no easy way to check if the user's API key has access to
@@ -885,7 +885,7 @@ def meraki_get_org_device_statuses(api_key: str,
     df_statuses = df_statuses.astype(str)
 
     # Set the columns to use for the SQL database table index
-    idx_cols = ['timestamp', 'mac', 'table_id']
+    idx_cols = ['timestamp', 'mac']
 
     return df_statuses, idx_cols
 
@@ -932,6 +932,9 @@ def meraki_get_org_networks(api_key: str,
         table = 'meraki_organizations'
         organizations = hp.meraki_parse_organizations(db_path, orgs, table)
     else:
+        if not orgs:
+            orgs = meraki_get_organizations(api_key)
+            orgs = orgs['id'].to_list()
         organizations = orgs
     # Initialize Meraki dashboard
     dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
@@ -950,7 +953,10 @@ def meraki_get_org_networks(api_key: str,
         else:
             enabled = False
         if enabled or not use_db:
-            networks = app.getOrganizationNetworks(org, total_pages="all")
+            try:
+                networks = app.getOrganizationNetworks(org, total_pages="all")
+            except Exception as e:
+                networks = []
             for item in networks:
                 data.append(item)
 
