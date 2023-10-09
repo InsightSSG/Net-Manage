@@ -10,9 +10,7 @@ from netmanage.helpers import netbox_helpers as nhp
 from pynetbox import api
 
 
-def add_cable(netbox_url: str,
-              netbox_token: str,
-              a_terminations: list,
+def add_cable(netbox_url: str, netbox_token: str, a_terminations: list,
               b_terminations: list) -> None:
     """
     Add a cable to NetBox.
@@ -63,9 +61,7 @@ def add_cable(netbox_url: str,
     nb.dcim.cables.create(cable)
 
 
-def add_device_mfg(url: str,
-                   token: str,
-                   database_path: str):
+def add_device_mfg(url: str, token: str, database_path: str):
     """
     Add manufacturers to NB.
 
@@ -98,23 +94,22 @@ def add_device_mfg(url: str,
 
     for mfg in mfgs:
         try:
-            add_manufacturer(
-                netbox_url=url,
-                netbox_token=token,
-                name=mfg.title(),
-                slug=mfg.lower().replace(' ', '-')
-            )
+            add_manufacturer(netbox_url=url,
+                             netbox_token=token,
+                             name=mfg.title(),
+                             slug=mfg.lower().replace(' ', '-'))
         except pynetbox.RequestError as e:
             print(f'Error adding {mfg}: {e}')
 
 
-def add_device_role(netbox_url: str,
-                    netbox_token: str,
-                    name: str,
-                    slug: str,
-                    color: str = 'c0c0c0',  # Light Grey
-                    description: str = str(),
-                    vm_role: bool = False) -> None:
+def add_device_role(
+        netbox_url: str,
+        netbox_token: str,
+        name: str,
+        slug: str,
+        color: str = 'c0c0c0',  # Light Grey
+        description: str = str(),
+        vm_role: bool = False) -> None:
     """
     Create a device role in NetBox.
 
@@ -160,37 +155,39 @@ def add_device_role(netbox_url: str,
         print(f"Error while creating device role: {str(e)}")
 
 
-def add_device_to_netbox(netbox_url: str,
-                         netbox_token: str,
-                         name: str,
-                         manufacturer: str,
-                         status: str,
-                         device_role_id: str = str(),
-                         device_role_name: str = str(),
-                         device_type_id: str = str(),
-                         device_type_name: str = str(),
-                         site_id: str = str(),
-                         site_name: str = str(),
-                         tenant_id: str = str(),
-                         tenant_name: str = str(),
-                         serial: str = str(),
-                         custom_fields: dict = {},
-                         asset_tag: str = str(),
-                         location: str = str(),
-                         rack: str = str(),
-                         position: int = int(),
-                         face: str = str(),
-                         parent: str = str(),
-                         device_bay: str = str(),
-                         airflow: str = str(),
-                         virtual_chassis: str = str(),
-                         vc_position: int = int(),
-                         vc_priority: int = int(),
-                         cluster: str = str(),
-                         description: str = str(),
-                         config_context: dict = {},
-                         config_template: str = str(),
-                         comments: str = str()) -> None:
+def add_device_to_netbox(
+    netbox_url: str,
+    netbox_token: str,
+    name: str,
+    manufacturer: str,
+    status: str,
+    device_role_id: str = str(),
+    device_role_name: str = str(),
+    device_type_id: str = str(),
+    device_type_name: str = str(),
+    site_id: str = str(),
+    site_name: str = str(),
+    tenant_id: str = str(),
+    tenant_name: str = str(),
+    serial: str = str(),
+    custom_fields: dict = {},
+    asset_tag: str = str(),
+    location: str = str(),
+    rack: str = str(),
+    position: int = int(),
+    face: str = str(),
+    parent: str = str(),
+    device_bay: str = str(),
+    airflow: str = str(),
+    virtual_chassis: str = str(),
+    vc_position: int = int(),
+    vc_priority: int = int(),
+    cluster: str = str(),
+    description: str = str(),
+    config_context: dict = {},
+    config_template: str = str(),
+    comments: str = str()
+) -> None:
     """
     Add a new device to NetBox.
 
@@ -289,16 +286,14 @@ def add_device_to_netbox(netbox_url: str,
     # If the user provided a site name instead of a site ID, then use the name
     # to find the ID.
     if site_name and not site_id:
-        df = nbc.netbox_get_site_attributes(netbox_url,
-                                            netbox_token,
+        df = nbc.netbox_get_site_attributes(netbox_url, netbox_token,
                                             site_name)
         site_id = str(df.loc[0, 'id'])
 
     # If the user provided a tenant name instead of a tenant ID, then use the
     # name to find the ID.
     if tenant_name and not tenant_id:
-        df = nbc.netbox_get_tenant_attributes(netbox_url,
-                                              netbox_token,
+        df = nbc.netbox_get_tenant_attributes(netbox_url, netbox_token,
                                               tenant_name)
         tenant_id = str(df.iloc[0]['id'])
 
@@ -409,27 +404,23 @@ def add_device_type(netbox_url: str,
     """
     nb = pynetbox.api(netbox_url, netbox_token)
     manufacturer = nb.dcim.manufacturers.get(name=manufacturer_name)
-    device_type = nb.dcim.device_types.create(
-        manufacturer=manufacturer.id,
-        model=model,
-        slug=slug,
-        part_number=part_number,
-        u_height=u_height,
-        is_full_depth=is_full_depth,
-        subdevice_role=subdevice_role,
-        airflow=airflow,
-        description=description,
-        weight=weight,
-        weight_unit=weight_unit,
-        comments=comments,
-        tags=tags
-    )
+    device_type = nb.dcim.device_types.create(manufacturer=manufacturer.id,
+                                              model=model,
+                                              slug=slug,
+                                              part_number=part_number,
+                                              u_height=u_height,
+                                              is_full_depth=is_full_depth,
+                                              subdevice_role=subdevice_role,
+                                              airflow=airflow,
+                                              description=description,
+                                              weight=weight,
+                                              weight_unit=weight_unit,
+                                              comments=comments,
+                                              tags=tags)
     return device_type
 
 
-def add_device_types(url: str,
-                     token: str,
-                     database_path: str):
+def add_device_types(url: str, token: str, database_path: str):
     """
     Add Device types based on NM database devices.
 
@@ -491,12 +482,13 @@ def add_device_types(url: str,
             print(f'add_device_type error: {e}')
 
 
-def add_ip_ranges_to_netbox(netbox_url: str,
-                            netbox_token: str,
-                            ranges: List[Dict[str, str]],
-                            default_tenant: str = None,
-                            default_vrf: int = None,
-                            default_tags: List[str] = list()) -> None:
+def add_ip_ranges_to_netbox(
+    netbox_url: str,
+    netbox_token: str,
+    ranges: List[Dict[str, str]],
+    default_tenant: str = None,
+    default_vrf: int = None,
+    default_tags: List[str] = list()) -> None:
     """
     Add IP ranges to Netbox using pynetbox.
 
@@ -562,18 +554,24 @@ def add_ip_ranges_to_netbox(netbox_url: str,
             # Add the IP range to Netbox
             response = nb.ipam.ip_ranges.create(range_data)
             if not response:
-                msg = [f"Failed to add IP range {ip_range['start_ip']}",
-                       f"{ip_range['end_ip']}. Response: {response}"]
+                msg = [
+                    f"Failed to add IP range {ip_range['start_ip']}",
+                    f"{ip_range['end_ip']}. Response: {response}"
+                ]
                 msg = ' - '.join(msg)
                 print(msg)
             else:
-                msg = [f"Successfully added IP range {ip_range['start_ip']}",
-                       f"{ip_range['end_ip']}."]
+                msg = [
+                    f"Successfully added IP range {ip_range['start_ip']}",
+                    f"{ip_range['end_ip']}."
+                ]
                 msg = ' - '.join(msg)
                 print(msg)
         except pynetbox.RequestError as e:
-            msg = [f"Failed to add IP range {ip_range['start_ip']}",
-                   f"{ip_range['end_ip']}: {e}"]
+            msg = [
+                f"Failed to add IP range {ip_range['start_ip']}",
+                f"{ip_range['end_ip']}: {e}"
+            ]
             msg = ' - '.join(msg)
             print(msg)
 
@@ -625,20 +623,20 @@ def add_manufacturer(netbox_url: str,
         print(f"Error while creating manufacturer {name}: {str(e)}")
 
 
-def add_prefix(netbox_url: str,
-               token: str,
-               prefix: str,
-               status: Optional[str] = "active",
-               description: Optional[str] = str(),
-               site_id: Optional[int] = None,
-               vrf_id: Optional[int] = None,
-               tenant_id: Optional[int] = None,
-               vlan_id: Optional[int] = None,
-               vid: Optional[int] = None,
-               vlan_name: Optional[str] = str(),
-               role_id: Optional[int] = None,
-               is_pool: Optional[bool] = False
-               ) -> pynetbox.models.ipam.Prefixes:
+def add_prefix(
+        netbox_url: str,
+        token: str,
+        prefix: str,
+        status: Optional[str] = "active",
+        description: Optional[str] = str(),
+        site_id: Optional[int] = None,
+        vrf_id: Optional[int] = None,
+        tenant_id: Optional[int] = None,
+        vlan_id: Optional[int] = None,
+        vid: Optional[int] = None,
+        vlan_name: Optional[str] = str(),
+        role_id: Optional[int] = None,
+        is_pool: Optional[bool] = False) -> pynetbox.models.ipam.Prefixes:
     """
     Add a prefix to Netbox using pynetbox.
 
@@ -691,9 +689,7 @@ def add_prefix(netbox_url: str,
     # If a vlan_id is not specified but a vid and vlan_name are, then search
     # for the vlan_id.
     if not vlan_id and vid and vlan_name:
-        vlan_id = nbc.get_netbox_vlan_internal_id(netbox_url,
-                                                  token,
-                                                  vid,
+        vlan_id = nbc.get_netbox_vlan_internal_id(netbox_url, token, vid,
                                                   vlan_name)
 
     # Initialize the Netbox API client
@@ -715,28 +711,29 @@ def add_prefix(netbox_url: str,
     return prefix_obj
 
 
-def add_site(token: str,
-             url: str,
-             name: str,
-             slug: str,
-             status: str,
-             latitude: Optional[float] = None,
-             longitude: Optional[float] = None,
-             physical_address: Optional[str] = None,
-             shipping_address: Optional[str] = None,
-             tenant_id: Optional[str] = None,
-             tenant_name: Optional[str] = None,
-             timezone: Optional[str] = None,
-             meraki_organization_id: Optional[int] = None,
-             meraki_network_id: Optional[str] = None,
-             meraki_product_types: Optional[str] = None,
-             meraki_tags: Optional[str] = None,
-             meraki_enrollement_string: Optional[str] = None,
-             meraki_configTemplateId: Optional[str] = None,
-             meraki_isBoundToConfigTemplate: Optional[bool] = None,
-             meraki_notes: Optional[str] = None,
-             meraki_site_url: Optional[str] = None,
-             ) -> Dict[str, Any]:
+def add_site(
+    token: str,
+    url: str,
+    name: str,
+    slug: str,
+    status: str,
+    latitude: Optional[float] = None,
+    longitude: Optional[float] = None,
+    physical_address: Optional[str] = None,
+    shipping_address: Optional[str] = None,
+    tenant_id: Optional[str] = None,
+    tenant_name: Optional[str] = None,
+    timezone: Optional[str] = None,
+    meraki_organization_id: Optional[int] = None,
+    meraki_network_id: Optional[str] = None,
+    meraki_product_types: Optional[str] = None,
+    meraki_tags: Optional[str] = None,
+    meraki_enrollement_string: Optional[str] = None,
+    meraki_configTemplateId: Optional[str] = None,
+    meraki_isBoundToConfigTemplate: Optional[bool] = None,
+    meraki_notes: Optional[str] = None,
+    meraki_site_url: Optional[str] = None,
+) -> Dict[str, Any]:
     """
     Create a new site in Netbox with custom Meraki fields.
 
@@ -795,9 +792,7 @@ def add_site(token: str,
     """
     # Initialize pynetbox API and site payload
     api = pynetbox.api(url=url, token=token)
-    site = {"name": name,
-            "slug": slug,
-            "status": status}
+    site = {"name": name, "slug": slug, "status": status}
 
     # Check which optional fields are passed and add them to the site payload
     # as appropriate.
@@ -958,24 +953,23 @@ def add_vrf(token: str,
 
 
 def add_interface(token: str,
-            url: str,
-            device_id: int = None,
-            name: str = None,
-            _type: str = '1000base-t',
-            enabled: Optional[bool] = True,
-            lag: Optional[str] = None,
-            mtu: Optional[str] = None,
-            mac_address: Optional[str] = None, 
-            mgmt_only: Optional[bool] = False,
-            description: Optional[str] = None,
-            is_connected: Optional[bool] = False,
-            interface_connection: Optional[str] = None,
-            circuit_termination: Optional[str] = None, 
-            mode: Optional[str] = None,
-            untagged_vlan: Optional[str] = None,
-            tagged_vlans: Optional[list] = [],
-            tags: Optional[list] = []
-    ):
+                  url: str,
+                  device_id: int = None,
+                  name: str = None,
+                  _type: str = '1000base-t',
+                  enabled: Optional[bool] = True,
+                  lag: Optional[str] = None,
+                  mtu: Optional[str] = None,
+                  mac_address: Optional[str] = None,
+                  mgmt_only: Optional[bool] = False,
+                  description: Optional[str] = None,
+                  is_connected: Optional[bool] = False,
+                  interface_connection: Optional[str] = None,
+                  circuit_termination: Optional[str] = None,
+                  mode: Optional[str] = None,
+                  untagged_vlan: Optional[str] = None,
+                  tagged_vlans: Optional[list] = [],
+                  tags: Optional[list] = []):
     """
     Add a new interface to Netbox.
 
