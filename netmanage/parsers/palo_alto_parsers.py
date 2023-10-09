@@ -221,64 +221,50 @@ def parse_interface_ips(df: pd.DataFrame) -> pd.DataFrame:
 
 def parse_inventory(response: dict) -> pd.DataFrame:
     '''
-    Parse 'show system info' command on Palo Alto firewalls.
+    Parse 'show system info' command output from Palo Alto firewalls.
 
     Parameters
     ----------
     response : dict
         A dictionary containing the command output, where the keys are the
-        devices and the value is a dictionary
+        devices and the value is a dictionary.
 
     Returns
     -------
     pd.DataFrame
         A DataFrame containing the hardware inventory.
-
     '''
     if response is None:
         raise ValueError("The input is None or empty")
 
-    # Create a list to store columns. This method accounts for the fact that
-    # not all devices return the same data.
     columns = ['device']
-
-    # Create a dictionary to store the output. This will allow us to iterate
-    # over all the output and collect the column headers before populating the
-    # dataframe.
     data = dict()
 
-    # Parse 'response', adding the cmd output for each device to 'result'.
-    for device, event in response.items():
-        output = json.loads(event['event_data']['res']['stdout'])
-        if output['response']['result'].get('system'):
-            output = output['response']['result'].get('system')
-            data[device] = output
+    # The updated code directly processes the 'response' dictionary
+    for device, output in response.items():
+        data[device] = output
 
-    # Iterate over the output, adding all column names to 'columns'.
     for key, value in data.items():
         for k in value:
             if k not in columns:
                 columns.append(k)
 
-    # Create a dictionary to store the formatted data for the dataframe.
     df_data = dict()
     df_data['device'] = list()
     for col in columns:
         df_data[col] = list()
 
-    # Iterate over the output, adding all data to 'df_data'.
     for key, value in data.items():
         df_data['device'].append(key)
         for col in columns[1:]:  # Skip the 'device' column.
             df_data[col].append(value.get(col))
 
-    # Create the dataframe and return it.
     df = pd.DataFrame(df_data)
 
     return df.astype(str)
 
 
-def parse_logical_interfaces(response: pd.DataFrame) -> pd.DataFrame:
+def parse_logical_interfaces(response: dict) -> pd.DataFrame:
     '''
     Parse the logical interfaces on Palo Altos.
 
@@ -286,46 +272,32 @@ def parse_logical_interfaces(response: pd.DataFrame) -> pd.DataFrame:
     ----------
     response : dict
         A dictionary containing the command output, where the keys are the
-        devices and the value is a dictionary
+        devices and the value is an XML Element.
 
     Returns
     -------
     pd.DataFrame
         A DataFrame containing the logical interfaces.
-
     '''
-
     if response is None:
         raise ValueError("The input is None or empty")
 
-    # Create a dictionary to store the formatted cmd output for each device.
-    result = dict()
-
-    # Parse 'response', adding the cmd output for each device to 'result'.
-    for device, event in response.items():
-        output = json.loads(event['event_data']['res']['stdout'])
-        if output['response']['result']['ifnet'].get('entry'):
-            output = output['response']['result']['ifnet']['entry']
-            result[device] = output
-        else:
-            result[device] = dict()
-
-    # Use the data in 'result' to populate 'df_data', which will be used to
-    # create the dataframe.
     df_data = dict()
     df_data['device'] = list()
-    for device in result:
-        for item in result[device]:
+    columns = ['device']
+
+    for device, output in response.items():
+        for entry in output.findall('entry'):
             df_data['device'].append(device)
-            for key, value in item.items():
-                if not df_data.get(key):
-                    df_data[key] = list()
-                df_data[key].append(value)
+            for child in entry:
+                if child.tag not in columns:
+                    columns.append(child.tag)
+                    df_data[child.tag] = list()
+                df_data[child.tag].append(child.text if child.text else '')
 
-    # Create the dataframe.
-    df = pd.DataFrame.from_dict(df_data).astype(str)
+    df = pd.DataFrame(df_data)
 
-    return df
+    return df.astype(str)
 
 
 def parse_ospf_neighbors(response: dict) -> pd.DataFrame:
@@ -393,51 +365,33 @@ def parse_physical_interfaces(response: dict) -> pd.DataFrame:
     ----------
     response : dict
         A dictionary containing the command output, where the keys are the
-        devices and the value is a dictionary
+        devices and the value is an XML Element.
 
     Returns
     -------
-    df : pd.DataFrame
+    pd.DataFrame
         A DataFrame containing the physical interfaces.
-
-
     '''
-
     if response is None:
         raise ValueError("The input is None or empty")
 
-    # Create a dictionary to store the formatted cmd output for each device.
-    result = dict()
-
-    # Parse 'response', adding the cmd output for each device to 'result'.
-    for device, event in response.items():
-        event_data = event['event_data']
-        output = event_data['res']['stdout']
-        output = json.loads(output)
-        if output['response']['result']['hw'].get('entry'):
-            output = output['response']['result']['hw']['entry']
-            result[device] = output
-        else:  # Just in case no results are returned for some reason.
-            result[device] = dict()
-
-    # Use the data in 'result' to populate 'df_data', which will be used to
-    # create the dataframe.
     df_data = dict()
     df_data['device'] = list()
-    for device in result:
-        interfaces = result[device]
-        for item in interfaces:
+    columns = ['device']
+
+    for device, output in response.items():
+        for entry in output.findall('entry'):
             df_data['device'].append(device)
-            for key, value in item.items():
-                if key != 'ae_member':  # Exclude aggregation groups.
-                    if not df_data.get(key):
-                        df_data[key] = list()
-                    df_data[key].append(value)
+            for child in entry:
+                if child.tag != 'ae_member':  # Exclude aggregation groups.
+                    if child.tag not in columns:
+                        columns.append(child.tag)
+                        df_data[child.tag] = list()
+                    df_data[child.tag].append(child.text if child.text else '')
 
-    # Create the dataframe.
-    df = pd.DataFrame.from_dict(df_data)
+    df = pd.DataFrame(df_data)
 
-    return df
+    return df.astype(str)
 
 
 def parse_security_rules(runner: dict) -> pd.DataFrame:

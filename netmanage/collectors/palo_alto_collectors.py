@@ -1,9 +1,54 @@
 #!/usr/bin/env python3
 
 import ansible_runner
+import requests
+from xml.etree import ElementTree
 import pandas as pd
 from typing import Dict
 from netmanage.parsers import palo_alto_parsers as parser
+
+
+def generate_api_key(firewall: str,
+                     username: str,
+                     password: str):
+    """
+    Generate an API key for PAN-OS firewall.
+
+    Parameters
+    ----------
+
+    - firewall : str
+        The hostname or IP address of the firewall.
+    - username : str
+        The administrative username.
+    - password : str
+        The administrative password.
+
+    Returns
+    -------
+    str
+        The generated API key or None if an error occurs.
+
+    """
+
+    # Construct the URL
+    url = f"https://{firewall}/api/?type=keygen&user={username}&password={password}"
+
+    try:
+        response = requests.get(url, verify=False)
+
+        # Parse the XML response
+        root = ElementTree.fromstring(response.content)
+        status = root.attrib.get('status')
+
+        if status == 'success':
+            api_key = root.find(".//key").text
+            return api_key
+        else:
+            return None
+    except Exception as e:
+        print(f"Error occurred: {e}")
+        return None
 
 
 def run_adhoc_command(username: str,
@@ -101,45 +146,53 @@ def run_adhoc_command(username: str,
     return result
 
 
-def inventory(username: str,
-              password: str,
-              host_group: str,
-              nm_path: str,
-              private_data_dir: str) -> pd.DataFrame:
+def inventory(firewall: str, username: str, password: str) -> pd.DataFrame:
     '''
-    Gets partial hardware inventory on Palo Alto firewalls.
+    Retrieve system information (inventory) from PAN-OS firewall using the API and parse it into a DataFrame.
 
     Parameters
     ----------
+    firewall : str
+        The hostname or IP address of the firewall.
     username : str
-        The user's username.
+        The administrative username.
     password : str
-        The user's password.
-    host_group : str
-        The name of the Ansible inventory host group.
-    nm_path : str
-        The path to the Net-Manage repository.
-    private_data_dir : str
-        The path to the Ansible private data directory
+        The administrative password.
 
     Returns
     -------
     pd.DataFrame
-        A DataFrame containing the hardware inventory.
+        A DataFrame containing the system information.
     '''
-    cmd = 'show system info'
-    cmd_is_xml = False
 
-    response = run_adhoc_command(username,
-                                 password,
-                                 host_group,
-                                 nm_path,
-                                 private_data_dir,
-                                 cmd,
-                                 cmd_is_xml)
+    # Generate the API key for the given firewall and credentials
+    api_key = generate_api_key(firewall, username, password)
+    if not api_key:
+        print("Error generating API key.")
+        return None
 
-    # Parse results into df
-    return parser.parse_inventory(response)
+    # Construct the URL for system info retrieval
+    cmd = "<show><system><info></info></system></show>"
+    url = f"https://{firewall}/api/?type=op&cmd={cmd}&key={api_key}"
+
+    try:
+        response = requests.get(url, verify=False)
+
+        # Parse the XML response
+        root = ElementTree.fromstring(response.content)
+        status = root.attrib.get('status')
+
+        if status == 'success':
+            system_info = {}
+            for child in root.find(".//result/system"):
+                system_info[child.tag] = child.text
+            # Parse the inventory data using the 'parse_inventory' function
+            return parser.parse_inventory({firewall: system_info})
+        else:
+            return None
+    except Exception as e:
+        print(f"Error occurred: {e}")
+        return None
 
 
 def bgp_neighbors(username: str,
@@ -257,7 +310,7 @@ def get_all_interfaces(username: str,
     'id',
     'addr']
     '''
-    cmd = 'show interface all'
+    cmd = 'show interface logical'
     cmd_is_xml = False
 
     response = run_adhoc_command(username,
@@ -404,126 +457,100 @@ def get_interface_ips(username: str,
     return parser.parse_interface_ips(df)
 
 
-def get_logical_interfaces(username: str,
-                           password: str,
-                           host_group: str,
-                           nm_path: str,
-                           private_data_dir: str) -> pd.DataFrame:
+def get_logical_interfaces(firewall: str, username: str,
+                           password: str) -> pd.DataFrame:
     '''
-    Gets the logical interfaces on Palo Altos.
+    Gets the logical interfaces on Palo Altos using the PAN-OS API.
 
     Parameters
     ----------
+    firewall : str
+        The hostname or IP address of the firewall.
     username : str
-        The user's username.
+        The administrative username.
     password : str
-        The user's password.
-    host_group : str
-        The name of the Ansible inventory host group.
-    nm_path : str
-        The path to the Net-Manage repository.
-    private_data_dir : str
-        The path to the Ansible private data directory
+        The administrative password.
 
     Returns
     -------
     pd.DataFrame
         A DataFrame containing the logical interfaces.
-
-    Examples
-    --------
-    >>> df = get_logical_interfaces(username,
-                                    password,
-                                    host_group,
-                                    nm_path,
-                                    play_path,
-                                    private_data_dir)
-    >>> df.columns.to_list()
-    ['device',
-    'name',
-    'zone',
-    'fwd',
-    'vsys',
-    'dyn-addr',
-    'addr6',
-    'tag',
-    'ip',
-    'id',
-    'addr']
     '''
-    cmd = 'show interface logical'
-    cmd_is_xml = False
 
-    response = run_adhoc_command(username,
-                                 password,
-                                 host_group,
-                                 nm_path,
-                                 private_data_dir,
-                                 cmd,
-                                 cmd_is_xml)
+    # Generate the API key for the given firewall and credentials
+    api_key = generate_api_key(firewall, username, password)
+    if not api_key:
+        print("Error generating API key.")
+        return None
 
-    # Parse results into df
-    return parser.parse_logical_interfaces(response)
+    # Construct the URL for logical interfaces retrieval
+    cmd = "<show><interface>logical</interface></show>"
+    url = f"https://{firewall}/api/?type=op&cmd={cmd}&key={api_key}"
+
+    try:
+        response = requests.get(url, verify=False)
+
+        # Parse the XML response
+        root = ElementTree.fromstring(response.content)
+        status = root.attrib.get('status')
+
+        if status == 'success':
+            # Parse the logical interfaces data using the 'parse_logical_interfaces' function
+            return parser.parse_logical_interfaces(
+                {firewall: root.find(".//result/ifnet")})
+        else:
+            return None
+    except Exception as e:
+        print(f"Error occurred: {e}")
+        return None
 
 
-def get_physical_interfaces(username: str,
-                            password: str,
-                            host_group: str,
-                            nm_path: str,
-                            private_data_dir: str) -> pd.DataFrame:
+def get_physical_interfaces(firewall: str, username: str,
+                            password: str) -> pd.DataFrame:
     '''
-    Gets the physical interfaces on Palo Altos.
+    Gets the physical interfaces on Palo Altos using the PAN-OS API.
 
     Parameters
     ----------
+    firewall : str
+        The hostname or IP address of the firewall.
     username : str
-        The user's username.
+        The administrative username.
     password : str
-        The user's password.
-    host_group : str
-        The name of the Ansible inventory host group.
-    nm_path : str
-        The path to the Net-Manage repository.
-    private_data_dir : str
-        The path to the Ansible private data directory
+        The administrative password.
 
     Returns
     -------
-    df : pd.DataFrame
+    pd.DataFrame
         A DataFrame containing the physical interfaces.
-
-    Examples
-    --------
-    >>> df = get_physical_interfaces(username,
-                                     password,
-                                     host_group,
-                                     nm_path,
-                                     play_path,
-                                     private_data_dir)
-    >>> df.columns.to_list()
-    ['device',
-    'name',
-    'duplex',
-    'type',
-    'state',
-    'st',
-    'mac',
-    'mode',
-    'speed',
-    'id']
     '''
-    cmd = 'show interface hardware'
-    cmd_is_xml = False
-    response = run_adhoc_command(username,
-                                 password,
-                                 host_group,
-                                 nm_path,
-                                 private_data_dir,
-                                 cmd,
-                                 cmd_is_xml)
 
-    # Parse results into df
-    return parser.parse_physical_interfaces(response)
+    # Generate the API key for the given firewall and credentials
+    api_key = generate_api_key(firewall, username, password)
+    if not api_key:
+        print("Error generating API key.")
+        return None
+
+    # Construct the URL for physical interfaces retrieval
+    cmd = "<show><interface>hardware</interface></show>"
+    url = f"https://{firewall}/api/?type=op&cmd={cmd}&key={api_key}"
+
+    try:
+        response = requests.get(url, verify=False)
+
+        # Parse the XML response
+        root = ElementTree.fromstring(response.content)
+        status = root.attrib.get('status')
+
+        if status == 'success':
+            # Parse the physical interfaces data using the 'parse_physical_interfaces' function
+            return parser.parse_physical_interfaces(
+                {firewall: root.find(".//result/hw")})
+        else:
+            return None
+    except Exception as e:
+        print(f"Error occurred: {e}")
+        return None
 
 
 def get_security_rules(username: str,
