@@ -599,6 +599,7 @@ def meraki_get_network_device_statuses(db_path: str,
 
     return df_statuses
 
+
 def meraki_get_organizations(api_key: str) -> pd.DataFrame:
     '''
     Gets a list of organizations and their associated parameters that the
@@ -1251,9 +1252,10 @@ def meraki_get_switch_port_usages(api_key: str,
 
     return df_usage
 
+
 async def meraki_get_switch_ports(api_key: str,
-                            sem: Semaphore = Semaphore(2)
-    ) -> pd.DataFrame:
+                                  sem: Semaphore = Semaphore(2)
+                                  ) -> pd.DataFrame:
     '''
     Gets a list of switchports that the
     user's API key has access to.
@@ -1302,9 +1304,7 @@ async def meraki_get_switch_ports(api_key: str,
     data = list()
 
     async with AsyncDashboardAPI(api_key, print_console=False,) as dashboard:
-        # Schedule get_switch_ports_for_org() for all orgs to run concurrently.
         result = await asyncio.gather(*(get_switch_ports_for_org(dashboard, org) for org in orgs))
-
         for res in result:
             for row in res:
                 if not row:
@@ -1328,8 +1328,8 @@ async def meraki_get_switch_ports(api_key: str,
 
 
 async def meraki_get_appliance_ports(api_key: str,
-                                    sem: Semaphore = Semaphore(2)
-    ) -> pd.DataFrame:
+                                     sem: Semaphore = Semaphore(2)
+                                     ) -> pd.DataFrame:
     '''
     Gets a list of appliance ports that the
     user's API key has access to.
@@ -1375,7 +1375,8 @@ async def meraki_get_appliance_ports(api_key: str,
             data = [{**item, 'device': net['name']} for item in res]
             return data
         except Exception as e:
-            print(f"Error getting applicance ports for network: {net['id']}\nerror: {e}")
+            print(
+                f"Error getting applicance ports for network: {net['id']}\nerror: {e}")
             return []
 
     orgs = meraki_get_organizations(api_key)
