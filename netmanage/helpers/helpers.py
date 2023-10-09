@@ -2085,6 +2085,7 @@ def convert_lists_to_json_in_df(df):
 
     return df
 
+
 def is_jupyter():
     try:
         return get_ipython().__class__.__name__ == 'ZMQInteractiveShell'
