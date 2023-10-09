@@ -228,7 +228,7 @@ def obfuscate_ips_in_db(db_path: str, ip_offset: int = 98765432):
     # Get all tables in the database
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
     tables = cursor.fetchall()
-    pattern = r'\b(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]?|0)(?:\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]?|0)){3}(?:/\d{1,2})?(?::\d{1,5})?\b'
+    pattern = r'\b(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]?|0)(?:\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]?|0)){3}(?:/\d{1,2})?(?::\d{1,5})?\b' # noqa
 
     for table in tables:
         table_name = table[0]
@@ -256,7 +256,8 @@ def obfuscate_ips_in_db(db_path: str, ip_offset: int = 98765432):
                         if ":" in extra:  # CIDR + port
                             mask, port = extra.split(":")
                             transformed_ip = transform_ip(ip_part, ip_offset)
-                            transformed_value = f"{transformed_ip}/{mask}:{port}"
+                            transformed_value =\
+                                f"{transformed_ip}/{mask}:{port}"
                         else:  # Just CIDR
                             mask = extra
                             transformed_ip = transform_ip(ip_part, ip_offset)
@@ -266,7 +267,8 @@ def obfuscate_ips_in_db(db_path: str, ip_offset: int = 98765432):
                         transformed_ip = transform_ip(ip_part, ip_offset)
                         transformed_value = f"{transformed_ip}:{port}"
                     else:  # Just IP
-                        transformed_value = transform_ip(ip_with_extra, ip_offset)
+                        transformed_value = transform_ip(ip_with_extra,
+                                                         ip_offset)
 
                     cursor.execute(
                         f'UPDATE "{table_name}" SET "{col}"=? WHERE "{col}"=?',
