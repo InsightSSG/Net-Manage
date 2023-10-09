@@ -29,6 +29,7 @@ import re
 import string
 import random
 from pathlib import Path
+from netmanage.helpers.obfuscate_addresses import transform_ip
 
 
 def get_columns_to_rename():
@@ -220,14 +221,79 @@ def reverse_consistent_transform(s: str, reverse_map, ignores: list = [],
     return ''.join(transformed_words)
 
 
-def obfuscate_db_data(source_db_path: str, dest_db_path: str = None):
+def obfuscate_ips_in_db(db_path: str, ip_offset: int = 98765432):
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    # Get all tables in the database
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    tables = cursor.fetchall()
+    pattern = r'\b(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]?|0)(?:\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]?|0)){3}(?:/\d{1,2})?(?::\d{1,5})?\b'
+
+    for table in tables:
+        table_name = table[0]
+        if table_name == 'sqlite_sequence' or table_name == 'char_map':
+            continue
+
+        print(f"Processing IP obfuscation in table: {table_name}")
+
+        cursor.execute(f"PRAGMA table_info({table_name});")
+        columns = [col[1] for col in cursor.fetchall()]
+
+        for col in columns:
+            cursor.execute(f'SELECT "{col}" FROM "{table_name}";')
+            values = cursor.fetchall()
+
+            for value in values:
+                value = value[0]
+                match = re.search(pattern, str(value))
+                if match:
+                    ip_with_extra = match.group(0)
+
+                    # Handle CIDR notation
+                    if '/' in ip_with_extra:
+                        ip_part, extra = ip_with_extra.split('/')
+                        if ":" in extra:  # CIDR + port
+                            mask, port = extra.split(":")
+                            transformed_ip = transform_ip(ip_part, ip_offset)
+                            transformed_value = f"{transformed_ip}/{mask}:{port}"
+                        else:  # Just CIDR
+                            mask = extra
+                            transformed_ip = transform_ip(ip_part, ip_offset)
+                            transformed_value = f"{transformed_ip}/{mask}"
+                    elif ":" in ip_with_extra:  # Just port
+                        ip_part, port = ip_with_extra.split(":")
+                        transformed_ip = transform_ip(ip_part, ip_offset)
+                        transformed_value = f"{transformed_ip}:{port}"
+                    else:  # Just IP
+                        transformed_value = transform_ip(ip_with_extra, ip_offset)
+
+                    cursor.execute(
+                        f'UPDATE "{table_name}" SET "{col}"=? WHERE "{col}"=?',
+                        (transformed_value, value))
+
+            conn.commit()
+
+    conn.close()
+
+
+def obfuscate_db_data(source_db_path: str, dest_db_path: str = None,
+                      ip_offset: int = 98765432):
     """Obfuscate the database data from a source database to a destination
     database.
 
     Args:
         source_db_path (str): Path to the source SQLite database.
         dest_db_path (str, optional): Path to the destination SQLite database.
+
+    Parameters
+    ----------
+    ip_offset : int, optional
+        The offset value used for IP address obfuscation. This determines how
+        much each octet in the IP address is adjusted during the obfuscation
+        process. If not provided, it defaults to 98765432.
     """
+
     if not dest_db_path:
         dest_db_path = source_db_path.replace('.db', '-new.db', 1)
 
@@ -258,6 +324,7 @@ def obfuscate_db_data(source_db_path: str, dest_db_path: str = None):
     for table in tables:
         table_name = table[0]
         table_type = table[1]
+        print(f"Processing Name obfuscation in table: {table_name}")
 
         if (
             table_name == 'sqlite_sequence'
@@ -303,6 +370,8 @@ def obfuscate_db_data(source_db_path: str, dest_db_path: str = None):
 
     source_conn.close()
     dest_conn.close()
+    # After the main logic is done, call the IP obfuscation function
+    obfuscate_ips_in_db(dest_db_path, ip_offset)
 
 
 def reverse_db_data(source_db_path: str, dest_db_path: str):
