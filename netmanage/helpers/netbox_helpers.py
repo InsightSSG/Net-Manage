@@ -148,6 +148,176 @@ def get_device_types():
                 "weight_unit": "lb",
                 "slug": "mx84",
             },
+            {
+            "MS390-24P": {
+              "u_height": 1,
+              "is_full_depth": True,
+              "airflow": "Front-to-back",
+              "weight": 11.5,
+              "weight_unit": "lbs",
+              "slug": "ms390-24p"
+            },
+            "MT14": {
+              "u_height": 1,
+              "is_full_depth": False,
+              "airflow": "Front-to-back",
+              "weight": 2.9,
+              "weight_unit": "lbs",
+              "slug": "mt14"
+            },
+            "MV12W": {
+              "u_height": 0.5,
+              "is_full_depth": False,
+              "airflow": "Front-to-back",
+              "weight": 1.1,
+              "weight_unit": "lbs",
+              "slug": "mv12w"
+            },
+            "MV21": {
+              "u_height": 1,
+              "is_full_depth": False,
+              "airflow": "Front-to-back",
+              "weight": 1.9,
+              "weight_unit": "lbs",
+              "slug": "mv21"
+            },
+            "MV71": {
+              "u_height": 1,
+              "is_full_depth": False,
+              "airflow": "Front-to-back",
+              "weight": 2.9,
+              "weight_unit": "lbs",
+              "slug": "mv71"
+            },
+            "MV72": {
+              "u_height": 1,
+              "is_full_depth": False,
+              "airflow": "Front-to-back",
+              "weight": 3.9,
+              "weight_unit": "lbs",
+              "slug": "mv72"
+            },
+            "MX64W": {
+              "u_height": 1,
+              "is_full_depth": True,
+              "airflow": "Front-to-back",
+              "weight": 13.2,
+              "weight_unit": "lbs",
+              "slug": "mx64w"
+            },
+            "MX68": {
+              "u_height": 1,
+              "is_full_depth": True,
+              "airflow": "Front-to-back",
+              "weight": 14.3,
+              "weight_unit": "lbs",
+              "slug": "mx68"
+            },
+            "MX68CW-NA": {
+              "u_height": 2,
+              "is_full_depth": True,
+              "airflow": "Front-to-back",
+              "weight": 38.4,
+              "weight_unit": "lbs",
+              "slug": "mx68cw-na"
+            }
+          },
+          'CW9162I': {
+              'u_height': 1,
+              'is_full_depth': False,
+              "airflow": "Front-to-back",
+              'weight': 1.0,
+              'weight_unit': 'lbs',
+              'slug': 'cw9162i'
+          },
+          'MG51': {
+              'u_height': 1,
+              'is_full_depth': False,
+              "airflow": "Front-to-back",
+              'weight': '1.23',
+              'weight_unit': 'lb',
+              'slug': 'mg51'
+          },
+          'MG51E': {
+              'u_height': 1,
+              'is_full_depth': False,
+              "airflow": "Front-to-back",
+              'weight': '1.58',
+              'weight_unit': 'lb',
+              'slug': 'mg51e'
+          },
+          'MR32': {
+              'u_height': 1,
+              'is_full_depth': False,
+              "airflow": "Front-to-back",
+              'weight': 1.0,
+              'weight_unit': 'lbs',
+              'slug': 'mr32'
+          },
+          'MR53': {
+              'u_height': 1,
+              'is_full_depth': False,
+              "airflow": "Front-to-back",
+              'weight': 1.0,
+              'weight_unit': 'lbs',
+              'slug': 'mr53'
+          },
+          'MS120-24P': {
+              'u_height': 1,
+              'is_full_depth': False,
+              'airflow': 'N/A',
+              'weight': 'N/A',
+              'weight_unit': 'lb',
+              'slug': 'ms120-24p'
+          },
+          'MS120-8': {
+              'u_height': 1,
+              'is_full_depth': False,
+              'airflow': 'N/A',
+              'weight': 'N/A',
+              'weight_unit': 'lb',
+              'slug': 'ms120-8'
+          },
+          'MS220-24P': {
+              'u_height': 1,
+              'is_full_depth': False,
+              'airflow': 'N/A',
+              'weight': 'N/A',
+              'weight_unit': 'lb',
+              'slug': 'ms220-24p'
+          },
+          'MS220-48FP': {
+              'u_height': 1,
+              'is_full_depth': False,
+              'airflow': 'N/A',
+              'weight': 'N/A',
+              'weight_unit': 'lb',
+              'slug': 'ms220-48fp'
+          },
+          'MS250-24': {
+              'u_height': 1,
+              'is_full_depth': False,
+              'airflow': 'N/A',
+              'weight': 'N/A',
+              'weight_unit': 'lb',
+              'slug': 'ms250-24'
+          },
+          'MS350-24': {
+              'u_height': 1,
+              'is_full_depth': False,
+              'airflow': 'N/A',
+              'weight': 'N/A',
+              'weight_unit': 'lb',
+              'slug': 'ms350-24'
+          },
+          'MS320-48FP': {
+              'u_height': 1,
+              'is_full_depth': False,
+              'airflow': 'N/A',
+              'weight': 'N/A',
+              'weight_unit': 'lb',
+              'slug': 'ms320-48fp'
+          },
         },
         'CISCO': {
             'FPR-1120': {
