@@ -482,13 +482,13 @@ def add_device_types(url: str, token: str, database_path: str):
             print(f'add_device_type error: {e}')
 
 
-def add_ip_ranges_to_netbox(
-    netbox_url: str,
-    netbox_token: str,
-    ranges: List[Dict[str, str]],
-    default_tenant: str = None,
-    default_vrf: int = None,
-    default_tags: List[str] = list()) -> None:
+def add_ip_ranges_to_netbox(netbox_url: str,
+                            netbox_token: str,
+                            ranges: List[Dict[str, str]],
+                            default_tenant: str = None,
+                            default_vrf: int = None,
+                            default_tags: List[str] = list()
+                           ) -> None:
     """
     Add IP ranges to Netbox using pynetbox.
 
