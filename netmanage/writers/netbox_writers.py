@@ -488,7 +488,7 @@ def add_ip_ranges_to_netbox(netbox_url: str,
                             default_tenant: str = None,
                             default_vrf: int = None,
                             default_tags: List[str] = list()
-                           ) -> None:
+                            ) -> None:
     """
     Add IP ranges to Netbox using pynetbox.
 
