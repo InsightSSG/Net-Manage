@@ -71,8 +71,9 @@ async def meraki_get_device_cdp_lldp_neighbors(api_key: str,
     async with AsyncDashboardAPI(api_key) as dashboard:
         # Schedule get_neighbors_for_device() for all serials to run
         # concurrently.
-        results = await asyncio.gather(*(get_neighbors_for_device(
-            dashboard, serial) for serial in serials))
+        results = await asyncio.gather(
+            *(get_neighbors_for_device(dashboard, serial)
+              for serial in serials))
 
     rows = []
     for device in results:
@@ -355,11 +356,8 @@ async def meraki_get_network_clients(api_key: str,
     if sem is None:
         sem = asyncio.Semaphore(3)
 
-    async def get_clients_for_network(dashboard,
-                                      network_id,
-                                      per_page,
-                                      timespan,
-                                      total_pages):
+    async def get_clients_for_network(dashboard, network_id, per_page,
+                                      timespan, total_pages):
         '''
         Get all clients for a single network ID.
         '''
@@ -384,8 +382,7 @@ async def meraki_get_network_clients(api_key: str,
         df_orgs = meraki_get_organizations(api_key)
         orgs = df_orgs['id'].to_list()
     if not networks:
-        df_networks = meraki_get_org_networks(api_key,
-                                              orgs=orgs)
+        df_networks = meraki_get_org_networks(api_key, orgs=orgs)
         networks = df_networks['id'].to_list()
 
     # Use the meraki.aio API to concurrently gather the network clients.
@@ -393,11 +390,8 @@ async def meraki_get_network_clients(api_key: str,
         # Schedule get_clients_for_network() for all network_ids to run
         # concurrently.
         results = await asyncio.gather(*(get_clients_for_network(
-            dashboard,
-            network_id,
-            per_page,
-            timespan,
-            total_pages) for network_id in networks))
+            dashboard, network_id, per_page, timespan, total_pages)
+                                         for network_id in networks))
 
     # Flatten the list of clients into a single list, which will ultimately be
     # used to create a DataFrame.
@@ -680,8 +674,7 @@ def meraki_get_org_appliance_uplink_statuses(api_key: str,
         enabled = hp.meraki_check_api_enablement(db_path, org)
         if enabled:
             uplinks = app.getOrganizationApplianceUplinkStatuses(
-                org, total_pages="all"
-            )
+                org, total_pages="all")
             for uplink in uplinks:
                 uplink['orgId'] = org
             results.append(uplinks)
@@ -957,6 +950,7 @@ def meraki_get_org_networks(api_key: str,
             try:
                 networks = app.getOrganizationNetworks(org, total_pages="all")
             except Exception as e:
+                print(f"Network lookup for org {org} failed.\nerror: {e}")
                 networks = []
             for item in networks:
                 data.append(item)
@@ -1000,12 +994,9 @@ def meraki_get_switch_lldp_neighbors(db_path: str) -> pd.DataFrame:
     >>> print(df_lldp)
     '''
     # Query the database to get the LLDP neighbors
-    headers = ['orgId',
-               'networkId',
-               'name',
-               'serial',
-               'portId as local_port',
-               'lldp']
+    headers = [
+        'orgId', 'networkId', 'name', 'serial', 'portId as local_port', 'lldp'
+    ]
     query = f'''SELECT {','.join(headers)}
     FROM MERAKI_SWITCH_PORT_STATUSES
     WHERE lldp != 'None'
@@ -1035,11 +1026,10 @@ def meraki_get_switch_lldp_neighbors(db_path: str) -> pd.DataFrame:
     df_data = list()
 
     for idx, row in result.iterrows():
-        _row = [row['orgId'],
-                row['networkId'],
-                row['name'],
-                row['serial'],
-                row['local_port']]
+        _row = [
+            row['orgId'], row['networkId'], row['name'], row['serial'],
+            row['local_port']
+        ]
         lldp = json.loads(row['lldp'].replace("'", '"'))
         for key in keys:
             _row.append(lldp.get(key))
@@ -1058,16 +1048,10 @@ def meraki_get_switch_lldp_neighbors(db_path: str) -> pd.DataFrame:
     # Re-order columns. Only certain columns are selected. This ensures that
     # the code will continue to function if Meraki adds additional keys in the
     # future.
-    col_order = ['orgId',
-                 'networkId',
-                 'name',
-                 'serial',
-                 'local_port',
-                 'remote_port',
-                 'systemName',
-                 'chassisId',
-                 'systemDescription',
-                 'managementAddress']
+    col_order = [
+        'orgId', 'networkId', 'name', 'serial', 'local_port', 'remote_port',
+        'systemName', 'chassisId', 'systemDescription', 'managementAddress'
+    ]
 
     # Reverse the list so the last item becomes the first column, the next to
     # last item becomes the second column, and so on.
@@ -1178,9 +1162,7 @@ def meraki_get_switch_port_statuses(api_key: str,
     return df_ports
 
 
-def meraki_get_switch_port_usages(api_key: str,
-                                  db_path: str,
-                                  networks: list,
+def meraki_get_switch_port_usages(api_key: str, db_path: str, networks: list,
                                   timestamp: str) -> pd.DataFrame:
     '''
     Gets switch port usage in total rate per second.
@@ -1303,8 +1285,12 @@ async def meraki_get_switch_ports(api_key: str,
 
     data = list()
 
-    async with AsyncDashboardAPI(api_key, print_console=False,) as dashboard:
-        result = await asyncio.gather(*(get_switch_ports_for_org(dashboard, org) for org in orgs))
+    async with AsyncDashboardAPI(
+            api_key,
+            print_console=False,
+    ) as dashboard:
+        result = await asyncio.gather(
+            *(get_switch_ports_for_org(dashboard, org) for org in orgs))
         for res in result:
             for row in res:
                 if not row:
@@ -1376,7 +1362,8 @@ async def meraki_get_appliance_ports(api_key: str,
             return data
         except Exception as e:
             print(
-                f"Error getting applicance ports for network: {net['id']}\nerror: {e}")
+                f"Error getting appl ports for net: {net['id']}\nerror: {e}"
+            )
             return []
 
     orgs = meraki_get_organizations(api_key)
@@ -1384,10 +1371,15 @@ async def meraki_get_appliance_ports(api_key: str,
 
     data = list()
 
-    async with AsyncDashboardAPI(api_key, print_console=False,) as dashboard:
-        result = await asyncio.gather(*(get_all_networks(dashboard, org) for org in orgs))
+    async with AsyncDashboardAPI(
+            api_key,
+            print_console=False,
+    ) as dashboard:
+        result = await asyncio.gather(*(get_all_networks(dashboard, org)
+                                        for org in orgs))
         networks = [{'id': _['id'], 'name': _['name']} for _ in result[0]]
-        result = await asyncio.gather(*(get_switch_ports_for_appl(dashboard, net) for net in networks))
+        result = await asyncio.gather(
+            *(get_switch_ports_for_appl(dashboard, net) for net in networks))
 
         for res in result:
             for row in res:
