@@ -10,8 +10,7 @@ from typing import Union
 
 # Load environment variables
 load_dotenv()
-netmanage_path = os.path.expanduser(
-    os.environ['netmanage_path'].strip('/'))
+netmanage_path = os.path.expanduser(os.environ['netmanage_path'].strip('/'))
 os.chdir(f'{netmanage_path}/test')
 sys.path.append('..')
 import netmanage.run_collectors as rc  # noqa
@@ -40,32 +39,15 @@ def test_get_network_clients(api_key,
                                               per_page=per_page,
                                               timespan=timespan,
                                               total_pages=total_pages))
-            expected_cols = ['id',
-                             'mac',
-                             'description',
-                             'ip',
-                             'ip6',
-                             'ip6Local',
-                             'user',
-                             'firstSeen',
-                             'lastSeen',
-                             'manufacturer',
-                             'os',
-                             'deviceTypePrediction',
-                             'recentDeviceSerial',
-                             'recentDeviceName',
-                             'recentDeviceMac',
-                             'recentDeviceConnection',
-                             'ssid',
-                             'vlan',
-                             'switchport',
-                             'usage',
-                             'status',
-                             'notes',
-                             'groupPolicy8021x',
-                             'adaptivePolicyGroup',
-                             'smInstalled',
-                             'pskGroup']
+            expected_cols = [
+                'id', 'mac', 'description', 'ip', 'ip6', 'ip6Local', 'user',
+                'firstSeen', 'lastSeen', 'manufacturer', 'os',
+                'deviceTypePrediction', 'recentDeviceSerial',
+                'recentDeviceName', 'recentDeviceMac',
+                'recentDeviceConnection', 'ssid', 'vlan', 'switchport',
+                'usage', 'status', 'notes', 'groupPolicy8021x',
+                'adaptivePolicyGroup', 'smInstalled', 'pskGroup'
+            ]
             assert expected_cols == df_clients.columns.to_list()
             print(len(df_clients))
 
@@ -84,40 +66,26 @@ def test_get_network_clients(api_key,
     except KeyboardInterrupt:
         pass
 
-def test_get_appliance_ports(api_key):
-    df = asyncio.run(
-        mc.meraki_get_appliance_ports(api_key))
 
-    expected_cols = ['device',
-        'number',
-        'enabled',
-        'type',
-        'dropUntaggedTraffic',
-        'allowedVlans',
-        'vlan',
-        'accessPolicy']
+def test_get_appliance_ports(api_key):
+    df = asyncio.run(mc.meraki_get_appliance_ports(api_key))
+
+    expected_cols = [
+        'device', 'number', 'enabled', 'type', 'dropUntaggedTraffic',
+        'allowedVlans', 'vlan', 'accessPolicy'
+    ]
 
     assert expected_cols == df.columns.to_list()
 
 
 def test_get_switch_ports(api_key):
-    df = asyncio.run(
-        mc.meraki_get_switch_ports(api_key))
+    df = asyncio.run(mc.meraki_get_switch_ports(api_key))
 
-    expected_cols = ["device",
-        "portId",
-        "name",
-        "tags",
-        "enabled",
-        "poeEnabled",
-        "type",
-        "vlan",
-        "voiceVlan",
-        "allowedVlans",
-        "rstpEnabled",
-        "stpGuard",
-        "linkNegotiation",
-        "accessPolicyType"]
+    expected_cols = [
+        "device", "portId", "name", "tags", "enabled", "poeEnabled", "type",
+        "vlan", "voiceVlan", "allowedVlans", "rstpEnabled", "stpGuard",
+        "linkNegotiation", "accessPolicyType"
+    ]
 
     assert expected_cols == df.columns.to_list()
 
@@ -125,10 +93,10 @@ def test_get_switch_ports(api_key):
 def main():
     # Load environment variables.
     meraki_api_key = os.environ['meraki_api_key']
-    meraki_networks = list(filter(
-        None, os.environ['meraki_networks'].split(',')))
-    meraki_organizations = list(filter(
-        None, os.environ['meraki_organizations'].split(',')))
+    meraki_networks = list(
+        filter(None, os.environ['meraki_networks'].split(',')))
+    meraki_organizations = list(
+        filter(None, os.environ['meraki_organizations'].split(',')))
     meraki_macs = os.environ['meraki_macs']
     meraki_lookback = os.environ['meraki_lookback_timespan']
     meraki_per_page = os.environ['meraki_per_page']
