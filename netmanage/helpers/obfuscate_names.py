@@ -228,7 +228,7 @@ def obfuscate_ips_in_db(db_path: str, ip_offset: int = 98765432):
     # Get all tables in the database
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
     tables = cursor.fetchall()
-    pattern = r'\b(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]?|0)(?:\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]?|0)){3}(?:/\d{1,2})?(?::\d{1,5})?\b' # noqa
+    pattern = r'\b(25[0-4]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]?|0)(?:\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]?|0)){3}(?:/\d{1,2})?(?::\d{1,5})?\b' # noqa
 
     for table in tables:
         table_name = table[0]
