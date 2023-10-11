@@ -509,7 +509,7 @@ def netbox_get_site_attributes(nb_path: str,
     # and return a DataFrame.
     if sites_list and site:
         for item in sites_list:
-            if item['name'] == site:
+            if item['name'] == str(site):
                 site_attributes = vars(item)
                 df_data.append(site_attributes)
                 break
