@@ -68,7 +68,7 @@ async def meraki_get_device_cdp_lldp_neighbors(api_key: str,
         serials = df_devices['serial'].to_list()
 
     # Use the meraki.aio API to concurrently gather the device neighbors.
-    async with AsyncDashboardAPI(api_key) as dashboard:
+    async with AsyncDashboardAPI(api_key, print_console=False) as dashboard:
         # Schedule get_neighbors_for_device() for all serials to run
         # concurrently.
         results = await asyncio.gather(
@@ -285,8 +285,10 @@ def get_network_appliance_vlans(ansible_os: str,
                              timestamp,
                              db_path,
                              method=database_method)
-            except APIError:
-                pass
+            except APIError as e:
+                print(f"APIerror: {e}")
+            except Exception as e:
+                print(f"Error: {e}")
         counter += 1
 
     return df
@@ -386,7 +388,7 @@ async def meraki_get_network_clients(api_key: str,
         networks = df_networks['id'].to_list()
 
     # Use the meraki.aio API to concurrently gather the network clients.
-    async with AsyncDashboardAPI(api_key) as dashboard:
+    async with AsyncDashboardAPI(api_key, print_console=False) as dashboard:
         # Schedule get_clients_for_network() for all network_ids to run
         # concurrently.
         results = await asyncio.gather(*(get_clients_for_network(
@@ -1197,10 +1199,14 @@ def meraki_get_switch_port_usages(api_key: str, db_path: str, networks: list,
     '''
     # Query the database to get all switches in the network(s)
     statement = f'''networkId = "{'" or networkId = "'.join(networks)}"'''
-    query = f'''SELECT distinct orgId, networkId, name, serial, portId
-    FROM MERAKI_SWITCH_PORT_STATUSES
-    WHERE {statement} and timestamp = "{timestamp}"
-    '''
+    if networks:
+        query = f'''SELECT distinct orgId, networkId, name, serial, portId
+        FROM MERAKI_SWITCH_PORT_STATUSES
+        WHERE {statement} and timestamp = "{timestamp}"
+        '''
+    else:
+        query = f'''SELECT distinct orgId, networkId, name, serial, portId
+        FROM MERAKI_SWITCH_PORT_STATUSES WHERE timestamp = "{timestamp}"'''
 
     con = sl.connect(db_path)
     df_devices = pd.read_sql(query, con)
@@ -1305,11 +1311,11 @@ async def meraki_get_switch_ports(api_key: str,
     col_order = ['device'] + [col for col in df if col != 'device']
     df = df[col_order]
     df = hp.convert_lists_to_json_in_df(df)
-    df = df.astype(str)
     # Convert all float columns to int
     for col in df.columns:
         if df[col].dtype == 'float64':
-            df[col] = df[col].astype(int)
+            df[col] = df[col].astype('Int64')
+    df = df.astype(str)
     return df
 
 
@@ -1373,7 +1379,7 @@ async def meraki_get_appliance_ports(api_key: str,
 
     async with AsyncDashboardAPI(
             api_key,
-            print_console=False,
+            print_console=False
     ) as dashboard:
         result = await asyncio.gather(*(get_all_networks(dashboard, org)
                                         for org in orgs))
@@ -1391,9 +1397,9 @@ async def meraki_get_appliance_ports(api_key: str,
     # Move the 'device' column to be the first column
     col_order = ['device'] + [col for col in df if col != 'device']
     df = df[col_order]
-    df = df.astype(str)
     # Convert all float columns to int
     for col in df.columns:
         if df[col].dtype == 'float64':
-            df[col] = df[col].astype(int)
+            df[col] = df[col].astype('Int64')
+    df = df.astype(str)
     return df
