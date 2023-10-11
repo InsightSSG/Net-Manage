@@ -3,8 +3,6 @@
 import asyncio
 import datetime as dt
 import os
-import sys
-import time
 from dotenv import load_dotenv
 from typing import Union
 
@@ -35,45 +33,46 @@ def test_get_network_clients(api_key,
                                         timespan=timespan,
                                         total_pages=total_pages))
     expected_cols = ['id',
-                        'mac',
-                        'description',
-                        'ip',
-                        'ip6',
-                        'ip6Local',
-                        'user',
-                        'firstSeen',
-                        'lastSeen',
-                        'manufacturer',
-                        'os',
-                        'deviceTypePrediction',
-                        'recentDeviceSerial',
-                        'recentDeviceName',
-                        'recentDeviceMac',
-                        'recentDeviceConnection',
-                        'ssid',
-                        'vlan',
-                        'switchport',
-                        'usage',
-                        'status',
-                        'notes',
-                        'groupPolicy8021x',
-                        'adaptivePolicyGroup',
-                        'smInstalled',
-                        'pskGroup']
+                    'mac',
+                    'description',
+                    'ip',
+                    'ip6',
+                    'ip6Local',
+                    'user',
+                    'firstSeen',
+                    'lastSeen',
+                    'manufacturer',
+                    'os',
+                    'deviceTypePrediction',
+                    'recentDeviceSerial',
+                    'recentDeviceName',
+                    'recentDeviceMac',
+                    'recentDeviceConnection',
+                    'ssid',
+                    'vlan',
+                    'switchport',
+                    'usage',
+                    'status',
+                    'notes',
+                    'groupPolicy8021x',
+                    'adaptivePolicyGroup',
+                    'smInstalled',
+                    'pskGroup']
     assert expected_cols == df_clients.columns.to_list()
+
 
 def test_get_appliance_ports(api_key):
     df = asyncio.run(
         mc.meraki_get_appliance_ports(api_key))
 
     expected_cols = ['device',
-        'number',
-        'enabled',
-        'type',
-        'dropUntaggedTraffic',
-        'allowedVlans',
-        'vlan',
-        'accessPolicy']
+                    'number',
+                    'enabled',
+                    'type',
+                    'dropUntaggedTraffic',
+                    'allowedVlans',
+                    'vlan',
+                    'accessPolicy']
 
     assert expected_cols == df.columns.to_list()
 
@@ -83,21 +82,22 @@ def test_get_switch_ports(api_key):
         mc.meraki_get_switch_ports(api_key))
 
     expected_cols = ["device",
-        "portId",
-        "name",
-        "tags",
-        "enabled",
-        "poeEnabled",
-        "type",
-        "vlan",
-        "voiceVlan",
-        "allowedVlans",
-        "rstpEnabled",
-        "stpGuard",
-        "linkNegotiation",
-        "accessPolicyType"]
+                    "portId",
+                    "name",
+                    "tags",
+                    "enabled",
+                    "poeEnabled",
+                    "type",
+                    "vlan",
+                    "voiceVlan",
+                    "allowedVlans",
+                    "rstpEnabled",
+                    "stpGuard",
+                    "linkNegotiation",
+                    "accessPolicyType"]
 
     assert expected_cols == df.columns.to_list()
+
 
 def main():
     # Load environment variables.
