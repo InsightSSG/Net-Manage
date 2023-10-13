@@ -1089,7 +1089,8 @@ def add_ip_address_to_netbox(netbox_url: str,
     primary_for_parent : bool, optional
         Whether this IP address is the primary interface. Default is False.
     nat_inside : str, optional
-        The inside address for NAT (Network Address Translation). Default is None.
+        The inside address for NAT (Network Address Translation).
+        Default is None.
     tenant_group : str, optional
         The tenant group for the IP address. Default is None.
     tenant : str, optional
@@ -1104,7 +1105,7 @@ def add_ip_address_to_netbox(netbox_url: str,
 
     Examples
     --------
-    >>> 
+    >>>
     """
 
     data = {
