@@ -487,8 +487,7 @@ def add_ip_ranges_to_netbox(netbox_url: str,
                             ranges: List[Dict[str, str]],
                             default_tenant: str = None,
                             default_vrf: int = None,
-                            default_tags: List[str] = list()
-                            ) -> None:
+                            default_tags: List[str] = list()) -> None:
     """
     Add IP ranges to Netbox using pynetbox.
 
@@ -1042,3 +1041,108 @@ def add_interface(token: str,
         nb.dcim.interfaces.create(data)
     except pynetbox.RequestError as e:
         print(f'[{name}]: {str(e)}')
+
+
+def add_ip_address_to_netbox(
+    netbox_url: str,
+    netbox_token: str,
+    address: str,
+    status: Optional[str] = "active",
+    role: Optional[str] = None,
+    vrf: Optional[str] = None,
+    dns_name: Optional[str] = "",
+    description: Optional[str] = "",
+    device: Optional[str] = None,
+    interface: Optional[str] = None,
+    object_type: Optional[str] = 'dcim.interface',
+    primary_for_parent: Optional[bool] = False,
+    nat_inside: Optional[str] = None,
+    tenant_group: Optional[str] = None,
+    tenant: Optional[str] = None,
+    vminterface: Optional[str] = None,
+    fhrpgroup: Optional[str] = None,
+    default_tags: List[str] = list()) -> None:
+    """
+    Add IP address to Netbox using pynetbox.
+    Parameters
+    ----------
+    netbox_url : str
+        The URL of the Netbox instance.
+    netbox_token : str
+        The token for authentication to Netbox.
+    address : str
+        The IP address to be added.
+    status : str, optional
+        The status of the IP address. Default is "active".
+    role : str, optional
+        The role of the IP address. Default is None.
+    vrf : str, optional
+        The VRF that the IP address belongs to. Default is None.
+    dns_name : str, optional
+        The fully qualified domain name associated with the IP address. Default is None.
+    description : str, optional
+        A description for the IP address. Default is None.
+    device : str, optional
+        The device associated with the IP address. Default is None.
+    interface : str, optional
+        The interface associated with the IP address. Default is None.
+    primary_for_parent : bool, optional
+        Whether this IP address is the primary interface. Default is False.
+    nat_inside : str, optional
+        The inside address for NAT (Network Address Translation). Default is None.
+    tenant_group : str, optional
+        The tenant group for the IP address. Default is None.
+    tenant : str, optional
+        The tenant that the IP address belongs to. Default is None.
+    default_tags : List[str], optional
+        Default tags to be added to the IP address if not specified. Default is an empty list.
+
+    Returns
+    -------
+    None
+
+    Examples
+    --------
+    >>> 
+    """
+
+    data = {
+        "address": address,
+        "status": status,
+        "role": role,
+        "vrf": vrf,
+        "dns_name": dns_name,
+        "description": description,
+        "tenant_group": tenant_group,
+        "tenant": tenant,
+        "interface": interface,
+        "assigned_object_id": interface,
+        "assigned_object_type": object_type,
+        "primary_for_parent": primary_for_parent,
+        "vminterface": vminterface,
+        "fhrpgroup": fhrpgroup,
+        "nat_inside": nat_inside
+    }
+
+    # Initialize the pynetbox API
+    nb = pynetbox.api(netbox_url, token=netbox_token)
+    if device and interface:
+        # lookup interface ID
+        details = nbc.netbox_get_device_interfaces(netbox_url,
+                                                   netbox_token,
+                                                   device_name=device)
+        found_int = next(
+            (item for item in details.values() if item['name'] == interface),
+            None)
+        if found_int:
+            data['interface'] = found_int['id']
+            data['assigned_object_id'] = found_int['id']
+    else:
+        del data['assigned_object_id']
+        del data['assigned_object_type']
+
+    # Add Address
+    try:
+        nb.ipam.ip_addresses.create(data)
+    except Exception as e:
+        print(f"Add ip address for {device} on {interface}, error: {e}")
