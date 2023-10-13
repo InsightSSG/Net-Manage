@@ -1043,25 +1043,24 @@ def add_interface(token: str,
         print(f'[{name}]: {str(e)}')
 
 
-def add_ip_address_to_netbox(
-    netbox_url: str,
-    netbox_token: str,
-    address: str,
-    status: Optional[str] = "active",
-    role: Optional[str] = None,
-    vrf: Optional[str] = None,
-    dns_name: Optional[str] = "",
-    description: Optional[str] = "",
-    device: Optional[str] = None,
-    interface: Optional[str] = None,
-    object_type: Optional[str] = 'dcim.interface',
-    primary_for_parent: Optional[bool] = False,
-    nat_inside: Optional[str] = None,
-    tenant_group: Optional[str] = None,
-    tenant: Optional[str] = None,
-    vminterface: Optional[str] = None,
-    fhrpgroup: Optional[str] = None,
-    default_tags: List[str] = list()) -> None:
+def add_ip_address_to_netbox(netbox_url: str,
+                             netbox_token: str,
+                             address: str,
+                             status: Optional[str] = "active",
+                             role: Optional[str] = None,
+                             vrf: Optional[str] = None,
+                             dns_name: Optional[str] = "",
+                             description: Optional[str] = "",
+                             device: Optional[str] = None,
+                             interface: Optional[str] = None,
+                             object_type: Optional[str] = 'dcim.interface',
+                             primary_for_parent: Optional[bool] = False,
+                             nat_inside: Optional[str] = None,
+                             tenant_group: Optional[str] = None,
+                             tenant: Optional[str] = None,
+                             vminterface: Optional[str] = None,
+                             fhrpgroup: Optional[str] = None,
+                             default_tags: List[str] = list()) -> None:
     """
     Add IP address to Netbox using pynetbox.
     Parameters
@@ -1079,7 +1078,8 @@ def add_ip_address_to_netbox(
     vrf : str, optional
         The VRF that the IP address belongs to. Default is None.
     dns_name : str, optional
-        The fully qualified domain name associated with the IP address. Default is None.
+        The fully qualified domain name associated with the IP address.
+        Default is None.
     description : str, optional
         A description for the IP address. Default is None.
     device : str, optional
@@ -1095,7 +1095,8 @@ def add_ip_address_to_netbox(
     tenant : str, optional
         The tenant that the IP address belongs to. Default is None.
     default_tags : List[str], optional
-        Default tags to be added to the IP address if not specified. Default is an empty list.
+        Default tags to be added to the IP address if not specified.
+        Default is an empty list.
 
     Returns
     -------
