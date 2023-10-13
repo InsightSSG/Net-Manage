@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 """A collection of helper functions for Netbox operations.
 
 """
@@ -9,8 +8,7 @@ import re
 from netmanage.collectors import netbox_collectors as nbc
 
 
-def get_prefix_custom_field_states(nb_path: str,
-                                   token: str,
+def get_prefix_custom_field_states(nb_path: str, token: str,
                                    f_name: str) -> pd.DataFrame:
     '''
     Gets the values of a single custom field for all prefixes.
@@ -493,6 +491,14 @@ def get_device_types():
                 'weight': '12.7',
                 'weight_unit': 'lb',
                 'slug': 'n2k-c2348tq-10g-e'
+            },
+            'IOL': {
+                'u_height': 1,
+                'is_full_depth': False,
+                'airflow': 'front-to-rear',
+                'weight': '1.0',
+                'weight_unit': 'lb',
+                'slug': 'iol'
             },
         },
         'F5 NETWORKS': {
