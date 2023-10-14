@@ -6,7 +6,7 @@ Define collectors and map them to the correct function in colletors.py.
 
 import argparse
 import ast
-# import asyncio  # Temporarily disabled; does not work inside iPython.
+import asyncio  # Temporarily disabled; does not work inside iPython.
 import datetime as dt
 import os
 import pandas as pd
@@ -113,9 +113,9 @@ def collect(ansible_os: str,
         meraki_tp = -1
     # These 3 variables are temporarily commented out until we re-enable the
     # asyncio collectors.
-    # meraki_macs = os.environ['meraki_macs']
-    # meraki_lookback = os.environ['meraki_lookback_timespan']
-    # meraki_per_page = os.environ['meraki_per_page']
+    meraki_macs = os.environ['meraki_macs']
+    meraki_lookback = os.environ['meraki_lookback_timespan']
+    meraki_per_page = os.environ['meraki_per_page']
 
     # Read Netbox variables
     netbox_url = os.environ['netbox_url']
@@ -290,12 +290,16 @@ def collect(ansible_os: str,
 
     # This needs to be implemented differently, because asyncio.run does not
     # work when run inside iPython (including Jupyter).
-    # if collector == 'device_cdp_lldp_neighbors':
-    #     if ansible_os == 'meraki':
-    #         result = asyncio.run(
-    #             mc.meraki_get_device_cdp_lldp_neighbors(meraki_api_key,
-    #                                                     database_full_path,
-    #                                                     meraki_serials))
+    if collector == 'device_cdp_lldp_neighbors':
+        if ansible_os == 'meraki':
+            if ansible_os == 'meraki':
+                if hp.is_jupyter():
+                    pass
+                else:
+                    result = asyncio.run(
+                        mc.meraki_get_device_cdp_lldp_neighbors(
+                            meraki_api_key, database_full_path,
+                            meraki_serials))
 
     if collector == 'devices_modules':
         if ansible_os == 'cisco.dnac':
@@ -514,16 +518,19 @@ def collect(ansible_os: str,
 
     # This needs to be implemented differently, because asyncio.run does not
     # work when run inside iPython (including Jupyter).
-    # if collector == 'network_clients':
-    #     if ansible_os == 'meraki':
-    #         result = asyncio.run(
-    #             mc.meraki_get_network_clients(meraki_api_key,
-    #                                           networks=meraki_networks,
-    #                                           macs=meraki_macs,
-    #                                           orgs=meraki_organizations,
-    #                                           per_page=meraki_per_page,
-    #                                           timespan=meraki_lookback,
-    #                                           total_pages=meraki_tp))
+    if collector == 'network_clients':
+        if ansible_os == 'meraki':
+            if hp.is_jupyter():
+                pass
+            else:
+                result = asyncio.run(
+                    mc.meraki_get_network_clients(meraki_api_key,
+                                                  networks=meraki_networks,
+                                                  macs=meraki_macs,
+                                                  orgs=meraki_organizations,
+                                                  per_page=meraki_per_page,
+                                                  timespan=meraki_lookback,
+                                                  total_pages=meraki_tp))
 
     if collector == 'network_devices':
         if ansible_os == 'meraki':
@@ -594,6 +601,22 @@ def collect(ansible_os: str,
                                                       database_full_path,
                                                       meraki_networks,
                                                       timestamp)
+
+    if collector == 'switch_ports':
+        if ansible_os == 'meraki':
+            if hp.is_jupyter():
+                pass
+            else:
+                result = asyncio.run(
+                    mc.meraki_get_switch_ports(meraki_api_key))
+
+    if collector == 'appliance_ports':
+        if ansible_os == 'meraki':
+            if hp.is_jupyter():
+                pass
+            else:
+                result = asyncio.run(
+                    mc.meraki_get_appliance_ports(meraki_api_key))
 
     if collector == 'security_rules':
         if ansible_os == 'paloaltonetworks.panos':
@@ -791,7 +814,7 @@ def add_to_db(table_name: str,
 
     # Check if views are created. If they aren't, then create them.
     expected = ['device_models', 'meraki_neighbors',
-                'combined_bgp_neighbors']
+                'combined_bgp_neighbors', 'combined_prefixes']
     views = hp.get_database_views(database_path)
     for view in expected:
         if view not in views:

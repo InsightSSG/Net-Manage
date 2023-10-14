@@ -18,6 +18,7 @@ import sqlite3 as sl
 import sys
 import time
 import yaml
+import json
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime as dt
 from getpass import getpass
@@ -587,6 +588,8 @@ def define_collectors(hostgroup: str) -> Dict[str, Any]:
                   'switch_port_statuses': ['meraki'],
                   'switch_lldp_neighbors': ['meraki'],
                   'switch_port_usages': ['meraki'],
+                  'appliance_ports': ['meraki'],
+                  'switch_ports': ['meraki'],
                   'ipam_prefixes': ['netbox'],
                   'all_interfaces': ['paloaltonetworks.panos'],
                   'logical_interfaces': ['paloaltonetworks.panos'],
@@ -2058,3 +2061,33 @@ def validate_table(table: str, db_path: str, diff_col: List[str]) -> None:
                 '''
     df_diff = pd.read_sql(query, con)
     return df_diff
+
+
+def convert_lists_to_json_in_df(df):
+    """
+    Convert columns containing lists in a DataFrame to JSON strings.
+
+    Parameters:
+    - df (pd.DataFrame): Input DataFrame
+
+    Returns:
+    - pd.DataFrame: Updated DataFrame with lists converted to JSON strings
+    """
+    # Function to check if an element is a list and then convert to JSON
+    def convert_list_to_json(element):
+        if isinstance(element, list):
+            return json.dumps(element)
+        return element
+
+    # Apply the function to each column in the DataFrame
+    for col in df.columns:
+        df[col] = df[col].apply(convert_list_to_json)
+
+    return df
+
+
+def is_jupyter():
+    try:
+        return get_ipython().__class__.__name__ == 'ZMQInteractiveShell'
+    except NameError:
+        return False

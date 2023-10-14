@@ -679,6 +679,12 @@ def ios_parse_inventory(runner: dict) -> pd.DataFrame:
 
             if not event_data["res"]["stdout"][0]:
                 print(f'No Inventory output found. Skipping {device}')
+                df_data['device'].append(device)
+                df_data['name'].append("IOL")
+                df_data['description'].append("Cisco vIOL chassis")
+                df_data['serial'].append("NA")
+                df_data['pid'].append("IOL")
+                df_data['vid'].append("IOL")
                 continue
 
             data = event_data["res"]["stdout"][0].split("\n")
@@ -753,5 +759,7 @@ def ios_parse_vlan_db(runner: dict) -> pd.DataFrame:
                 df_data.append(row)
 
     # Create the dataframe and return it
+    if not df_data:
+        return pd.DataFrame()
     df = pd.DataFrame(data=df_data, columns=cols)
     return df
