@@ -528,7 +528,7 @@ def transform_dataframe_row(row: pd.Series,
                                                    Union[str,
                                                          Dict[str, Any]]]],
                             function_mapping: Dict[str, Callable]) \
-                                -> pd.Series:
+        -> pd.Series:
     """
     Transform a row of DataFrame based on the mapping schema provided.
 
