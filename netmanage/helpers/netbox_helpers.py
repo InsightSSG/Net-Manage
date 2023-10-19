@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 """A collection of helper functions for Netbox operations.
 
 """
@@ -9,8 +8,7 @@ import re
 from netmanage.collectors import netbox_collectors as nbc
 
 
-def get_prefix_custom_field_states(nb_path: str,
-                                   token: str,
+def get_prefix_custom_field_states(nb_path: str, token: str,
                                    f_name: str) -> pd.DataFrame:
     '''
     Gets the values of a single custom field for all prefixes.
@@ -92,6 +90,238 @@ def get_device_types():
                 'weight_unit': 'lb',
                 'slug': 'ms120-48fp'
             },
+            'MS120-48LP': {
+                'u_height': 1,
+                'is_full_depth': False,
+                'airflow': 'front-to-rear',
+                'weight': '10.8',
+                'weight_unit': 'lb',
+                'slug': 'ms120-48lp'
+            },
+            "MR33": {
+                "u_height": 1,
+                "is_full_depth": False,
+                "airflow": "front-to-rear",
+                "weight": 2.7,
+                "weight_unit": "lb",
+                "slug": "mr33",
+            },
+            "MR42": {
+                "u_height": 1,
+                "is_full_depth": False,
+                "airflow": "front-to-rear",
+                "weight": 2.7,
+                "weight_unit": "lb",
+                "slug": "mr42",
+            },
+            "MX450": {
+                "u_height": 1,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": 20.9,
+                "weight_unit": "lb",
+                "slug": "mx450",
+            },
+            "MX64": {
+                "u_height": 1,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": 20.9,
+                "weight_unit": "lb",
+                "slug": "mx64",
+            },
+            "MX65": {
+                "u_height": 1,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": 20.9,
+                "weight_unit": "lb",
+                "slug": "mx65",
+            },
+            "MX84": {
+                "u_height": 1,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": 20.9,
+                "weight_unit": "lb",
+                "slug": "mx84",
+            },
+            "MS390-24P": {
+                "u_height": 1,
+                "is_full_depth": True,
+                'airflow': 'front-to-rear',
+                "weight": 11.5,
+                "weight_unit": "lb",
+                "slug": "ms390-24p"
+            },
+            "MT14": {
+                "u_height": 1,
+                "is_full_depth": False,
+                'airflow': 'front-to-rear',
+                "weight": 2.9,
+                "weight_unit": "lb",
+                "slug": "mt14"
+            },
+            "MV12W": {
+                "u_height": 0.5,
+                "is_full_depth": False,
+                'airflow': 'front-to-rear',
+                "weight": 1.1,
+                "weight_unit": "lb",
+                "slug": "mv12w"
+            },
+            "MV21": {
+                "u_height": 1,
+                "is_full_depth": False,
+                'airflow': 'front-to-rear',
+                "weight": 1.9,
+                "weight_unit": "lb",
+                "slug": "mv21"
+            },
+            "MV71": {
+                "u_height": 1,
+                "is_full_depth": False,
+                'airflow': 'front-to-rear',
+                "weight": 2.9,
+                "weight_unit": "lb",
+                "slug": "mv71"
+            },
+            "MV72": {
+                "u_height": 1,
+                "is_full_depth": False,
+                'airflow': 'front-to-rear',
+                "weight": 3.9,
+                "weight_unit": "lb",
+                "slug": "mv72"
+            },
+            "MX64W": {
+                "u_height": 1,
+                "is_full_depth": True,
+                'airflow': 'front-to-rear',
+                "weight": 13.2,
+                "weight_unit": "lb",
+                "slug": "mx64w"
+            },
+            "MX68": {
+                "u_height": 1,
+                "is_full_depth": True,
+                'airflow': 'front-to-rear',
+                "weight": 14.3,
+                "weight_unit": "lb",
+                "slug": "mx68"
+            },
+            "MX68CW-NA": {
+                "u_height": 2,
+                "is_full_depth": True,
+                'airflow': 'front-to-rear',
+                "weight": 38.4,
+                "weight_unit": "lb",
+                "slug": "mx68cw-na"
+            },
+            'CW9162I': {
+                'u_height': 1,
+                'is_full_depth': False,
+                'airflow': 'front-to-rear',
+                'weight': 1.0,
+                'weight_unit': 'lb',
+                'slug': 'cw9162i'
+            },
+            'MG51': {
+                'u_height': 1,
+                'is_full_depth': False,
+                'airflow': 'front-to-rear',
+                'weight': '1.23',
+                'weight_unit': 'lb',
+                'slug': 'mg51'
+            },
+            'MG51E': {
+                'u_height': 1,
+                'is_full_depth': False,
+                'airflow': 'front-to-rear',
+                'weight': '1.58',
+                'weight_unit': 'lb',
+                'slug': 'mg51e'
+            },
+            'MR32': {
+                'u_height': 1,
+                'is_full_depth': False,
+                'airflow': 'front-to-rear',
+                'weight': 1.0,
+                'weight_unit': 'lb',
+                'slug': 'mr32'
+            },
+            'MR53': {
+                'u_height': 1,
+                'is_full_depth': False,
+                'airflow': 'front-to-rear',
+                'weight': 1.0,
+                'weight_unit': 'lb',
+                'slug': 'mr53'
+            },
+            'MS120-24P': {
+                'u_height': 1,
+                'is_full_depth': False,
+                'airflow': 'front-to-rear',
+                'weight': 1.0,
+                'weight_unit': 'lb',
+                'slug': 'ms120-24p'
+            },
+            'MS120-8': {
+                'u_height': 1,
+                'is_full_depth': False,
+                'airflow': 'front-to-rear',
+                'weight': 1.0,
+                'weight_unit': 'lb',
+                'slug': 'ms120-8'
+            },
+            'MS220-24P': {
+                'u_height': 1,
+                'is_full_depth': False,
+                'airflow': 'front-to-rear',
+                'weight': 1.0,
+                'weight_unit': 'lb',
+                'slug': 'ms220-24p'
+            },
+            'MS220-48FP': {
+                'u_height': 1,
+                'is_full_depth': False,
+                'airflow': 'front-to-rear',
+                'weight': 1.0,
+                'weight_unit': 'lb',
+                'slug': 'ms220-48fp'
+            },
+            'MS250-24': {
+                'u_height': 1,
+                'is_full_depth': False,
+                'airflow': 'front-to-rear',
+                'weight': 1.0,
+                'weight_unit': 'lb',
+                'slug': 'ms250-24'
+            },
+            'MS350-24': {
+                'u_height': 1,
+                'is_full_depth': False,
+                'airflow': 'front-to-rear',
+                'weight': 1.0,
+                'weight_unit': 'lb',
+                'slug': 'ms350-24'
+            },
+            'MS320-48FP': {
+                'u_height': 1,
+                'is_full_depth': False,
+                'airflow': 'front-to-rear',
+                'weight': 1.0,
+                'weight_unit': 'lb',
+                'slug': 'ms320-48fp'
+            },
+            "MS320-24": {
+                "u_height": 1,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": 11.5,
+                "weight_unit": "lb",
+                "slug": "ms320-24"
+            }
         },
         'CISCO': {
             'FPR-1120': {
@@ -261,6 +491,14 @@ def get_device_types():
                 'weight': '12.7',
                 'weight_unit': 'lb',
                 'slug': 'n2k-c2348tq-10g-e'
+            },
+            'IOL': {
+                'u_height': 1,
+                'is_full_depth': False,
+                'airflow': 'front-to-rear',
+                'weight': '1.0',
+                'weight_unit': 'lb',
+                'slug': 'iol'
             },
         },
         'F5 NETWORKS': {

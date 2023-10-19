@@ -764,6 +764,7 @@ def ios_parse_inventory(runner: dict) -> pd.DataFrame:
         if event["event"] == "runner_on_ok":
             event_data = event["event_data"]
             device = event_data["remote_addr"]
+
             data = list(
                 filter(None, event_data["res"]["stdout"][0].split("\n")))
 
@@ -842,5 +843,7 @@ def ios_parse_vlan_db(runner: dict) -> pd.DataFrame:
                 df_data.append(row)
 
     # Create the dataframe and return it
+    if not df_data:
+        return pd.DataFrame()
     df = pd.DataFrame(data=df_data, columns=cols)
     return df
