@@ -112,12 +112,85 @@ def create_db_view(db_path: str, view_name: str):
         )
         con.commit()
     if view_name == "combined_bgp_neighbors":
+        # Create required tables and views.
+        cur.execute(
+            """
+            -- Table for IOS_BGP_NEIGHBORS
+            CREATE TABLE IF NOT EXISTS IOS_BGP_NEIGHBORS (
+                timestamp TEXT,
+                device TEXT,
+                local_host TEXT,
+                bgp_neighbor TEXT,
+                vrf TEXT,
+                neighbor_id TEXT,
+                remote_as TEXT,
+                bgp_state TEXT,
+                table_id INTEGER PRIMARY KEY AUTOINCREMENT
+            );
+            """
+        )
+        con.commit()
+        con.close()
+        con = hp.connect_to_db(db_path)
+        cur = con.cursor()
+
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS PANOS_BGP_NEIGHBORS (
+                timestamp TEXT,
+                device TEXT,
+                "local-address" TEXT,
+                "peer-address" TEXT,
+                "@vr" TEXT,
+                "peer-router-id" TEXT,
+                "remote-as" TEXT,
+                status TEXT,
+                table_id INTEGER PRIMARY KEY AUTOINCREMENT
+            );
+            """
+        )
+        con.commit()
+        con.close()
+        con = hp.connect_to_db(db_path)
+        cur = con.cursor()
+
+        cur.execute(
+            """
+            CREATE VIEW IF NOT EXISTS interface_ips AS
+            -- Query for IOS_INTERFACE_IP_ADDRESSES
+            SELECT
+                device,
+                ip,
+                interface AS interface_name,
+                CASE WHEN vrf = 'None' THEN '' ELSE vrf END AS vrf
+            FROM IOS_INTERFACE_IP_ADDRESSES
+
+            UNION
+
+            -- Query for IOS_INTERFACE_IPV6_ADDRESSES
+            SELECT
+                device,
+                ip,
+                interface AS interface_name,
+                CASE WHEN vrf = 'None' THEN '' ELSE vrf END AS vrf
+            FROM IOS_INTERFACE_IPV6_ADDRESSES;
+            """
+        )
+        con.commit()
+        con.close()
+        con = hp.connect_to_db(db_path)
+        cur = con.cursor()
+
+        # Create view.
         cur.execute(
             """CREATE VIEW combined_bgp_neighbors AS
         -- Query for IOS_BGP_NEIGHBORS
         SELECT
             REPLACE(IOS.device, '.mmi.local', '') AS device,
             CASE
+                WHEN (LENGTH(IOS.local_host) - LENGTH(REPLACE(
+                        IOS.local_host, ':', ''))) > 1 THEN
+                    IOS.local_host
                 WHEN INSTR(IOS.local_host, ':') > 0 THEN
                     SUBSTR(IOS.local_host, 1, INSTR(IOS.local_host, ':') - 1)
                 ELSE
@@ -143,9 +216,12 @@ def create_db_view(db_path: str, view_name: str):
         SELECT
             REPLACE(PANOS.device, '.mmi.local', '') AS device,
             CASE
+                WHEN (LENGTH(PANOS."local-address") - LENGTH(
+                        REPLACE(PANOS."local-address", ':', ''))) > 1 THEN
+                    PANOS."local-address"
                 WHEN INSTR(PANOS."local-address", ':') > 0 THEN
-                    SUBSTR(PANOS."local-address", 1,
-                    INSTR(PANOS."local-address", ':') - 1)
+                    SUBSTR(PANOS."local-address", 1, INSTR(
+                        PANOS."local-address", ':') - 1)
                 ELSE
                     PANOS."local-address"
             END AS local_host,

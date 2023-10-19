@@ -175,6 +175,12 @@ def main():
     play_path = netmanage_path + '/playbooks'
 
     # Execute tests
+    test_inventory(ios_devices_username,
+                   ios_devices_password,
+                   host_group,
+                   play_path,
+                   private_data_dir)
+
     test_get_arp_table(ios_devices_username,
                        ios_devices_password,
                        host_group,
@@ -208,12 +214,6 @@ def main():
                   host_group,
                   play_path,
                   private_data_dir)
-
-    test_inventory(ios_devices_username,
-                   ios_devices_password,
-                   host_group,
-                   play_path,
-                   private_data_dir)
 
 
 if __name__ == '__main__':

@@ -115,7 +115,7 @@ def asa_parse_inventory(runner: dict) -> pd.DataFrame:
                 # Split the first line to extract name and description
                 name_desc = data[i].split(", DESCR: ")
                 df_data['name'].append(
-                    name_desc[0].replace('NAME: "', '').
+                    name_desc[0].replace('NAME: "', '').replace('Name: ', '').
                     replace('"', '').strip())
                 df_data['description'].append(
                     name_desc[1].replace('"', '').strip())

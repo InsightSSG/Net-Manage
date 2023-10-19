@@ -57,6 +57,9 @@ def parse_bgp_neighbors(runner):
 
     rows = list()
 
+    # Regex pattern to match both IPv4 and IPv6 addresses
+    ip_pattern = r'(\d+\.\d+\.\d+\.\d+|[0-9a-fA-F:]{3,39})'
+
     for event in runner.events:
         if event['event'] == 'runner_on_ok':
             event_data = event['event_data']
@@ -69,11 +72,10 @@ def parse_bgp_neighbors(runner):
 
             for neighbor in neighbors:
                 local_host_search = re.search(
-                    r"Local host: (\d+\.\d+\.\d+\.\d+)", neighbor)
+                    f"Local host: {ip_pattern}", neighbor)
                 local_host = local_host_search.group(1) \
                     if local_host_search else None
-                bgp_neighbor = re.search(
-                    r"(\d+\.\d+\.\d+\.\d+)", neighbor).group(1)
+                bgp_neighbor = re.search(ip_pattern, neighbor).group(1)
                 vrf_search = re.search(r"vrf (\w+)", neighbor)
                 vrf = vrf_search.group(1) if vrf_search else None
                 local_as_search = re.search(r"local AS (\d+)", neighbor)
@@ -642,6 +644,100 @@ def ios_parse_interface_ips(runner: dict) -> pd.DataFrame:
     return df
 
 
+def ios_parse_interface_ipv6_ips(runner: dict) -> pd.DataFrame:
+    """
+    Parses the IPv6 addresses assigned to interfaces.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A DataFrame containing the interfaces and IP addresses.
+    """
+
+    if runner is None or runner.events is None:
+        raise ValueError("The input is None or empty")
+
+    # Lists to hold data
+    devices = list()
+    interfaces = list()
+    ips = list()
+    vrfs = list()
+
+    # Parse the results
+    for event in runner.events:
+        if event["event"] == "runner_on_ok":
+            event_data = event["event_data"]
+
+            device = event_data["remote_addr"]
+
+            lines = event_data["res"]["stdout"][0].split("\n")
+
+            idx = 0
+            while idx < len(lines):
+                line = lines[idx]
+                # Detecting interface lines
+                if "line protocol is" in line:
+                    interface = line.split()[0]
+                    ip = ""
+                    vrf = ""
+
+                    # Checking for the next lines to see if they contain IPs
+                    next_line_idx = idx + 1
+                    if next_line_idx < len(lines) and "subnet is" in lines[
+                            next_line_idx]:
+                        ip = lines[next_line_idx].split(",")[0].strip()
+
+                        # Checking for VRF in the subsequent line
+                        if next_line_idx + 1 < len(lines) and \
+                                "VPN Routing/Forwarding" in \
+                                lines[next_line_idx + 1]:
+                            vrf = lines[next_line_idx + 1].split(
+                                '"')[1].strip()
+
+                    devices.append(device)
+                    interfaces.append(interface)
+                    ips.append(ip)
+                    vrfs.append(vrf)
+
+                    idx = next_line_idx + 2 if vrf else next_line_idx + 1
+                else:
+                    idx += 1
+
+    # Create the dataframe.
+    df = pd.DataFrame({'device': devices,
+                       'interface': interfaces,
+                       'ip': ips,
+                       'vrf': vrfs})
+
+    return df
+
+    # Add the subnets, network IPs, and broadcast IPs.
+    addresses = df["ip"].to_list()
+    result = hp.generate_subnet_details(addresses)
+    df["subnet"] = result["subnet"]
+    df["network_ip"] = result["network_ip"]
+    df["broadcast_ip"] = result["broadcast_ip"]
+
+    # Add a column containing the CIDR notation.
+    cidrs = hp.subnet_mask_to_cidr(df["subnet"].to_list())
+    df['cidr'] = cidrs
+    df = df[['device',
+             'interface',
+             'ip',
+             'cidr',
+             'vrf',
+             'subnet',
+             'network_ip',
+             'broadcast_ip']]
+
+    return df
+
+
 def ios_parse_inventory(runner: dict) -> pd.DataFrame:
     """
     Parses the inventory for Cisco IOS and IOS-XE devices.
@@ -660,62 +756,50 @@ def ios_parse_inventory(runner: dict) -> pd.DataFrame:
         raise ValueError("The input is None or empty")
 
     # Create a dictionary to store the inventory data.
-    columns = ['device',
-               'name',
-               'description',
-               'pid',
-               'vid',
-               'serial']
-    df_data = dict()
-    for col in columns:
-        df_data[col] = list()
+    columns = ['device', 'name', 'description', 'pid', 'vid', 'serial']
+    df_data = {col: [] for col in columns}
 
     # Parse the output and add it to 'df_data'
     for event in runner.events:
         if event["event"] == "runner_on_ok":
             event_data = event["event_data"]
-
             device = event_data["remote_addr"]
 
-            if not event_data["res"]["stdout"][0]:
-                print(f'No Inventory output found. Skipping {device}')
-                df_data['device'].append(device)
-                df_data['name'].append("IOL")
-                df_data['description'].append("Cisco vIOL chassis")
-                df_data['serial'].append("NA")
-                df_data['pid'].append("IOL")
-                df_data['vid'].append("IOL")
-                continue
+            data = list(
+                filter(None, event_data["res"]["stdout"][0].split("\n")))
 
-            data = event_data["res"]["stdout"][0].split("\n")
+            if data:
+                for i in range(0, len(data)):
+                    # Handling the "NAME: ... , DESCR: ..." lines
+                    if data[i].startswith("NAME: "):
+                        try:
+                            df_data['device'].append(device)
+                            # Split the first line to extract name, description
+                            name_desc = data[i].split(", DESCR: ")
+                            df_data['name'].append(
+                                name_desc[0].replace('NAME: "', '').replace(
+                                    '"', '').strip())
+                            df_data['description'].append(
+                                name_desc[1].replace('"', '').strip())
 
-            # Iterate through data (each hardware entry has 3 lines).
-            for i in range(0, len(data), 3):
-                df_data['device'].append(device)
-                # Split the first line to extract name and description
-                name_desc = data[i].split(", DESCR: ")
-                df_data['name'].append(
-                    name_desc[0].replace('NAME: "', '').
-                    replace('"', '').strip())
-                df_data['description'].append(
-                    name_desc[1].replace('"', '').strip())
+                            # Next line will have the PID, VID, SN data
+                            pid_vid_sn = data[i+1].split(", ")
+                            df_data['pid'].append(
+                                pid_vid_sn[0].replace('PID: ', '').strip())
+                            df_data['vid'].append(
+                                pid_vid_sn[1].replace('VID: ', '').strip())
+                            sn_value = pid_vid_sn[2].replace(
+                                'SN: ', '').strip()
+                            if sn_value == "SN:":
+                                sn_value = ""
+                            df_data['serial'].append(sn_value)
 
-                # Split the second line to extract PID, VID and SN
-                pid_vid_sn = data[i+1].split(", ")
-                df_data['pid'].append(
-                    pid_vid_sn[0].replace('PID: ', '').strip())
-                df_data['vid'].append(
-                    pid_vid_sn[1].replace('VID: ', '').strip())
-
-                # If SN value is "SN:", replace with an empty string.
-                sn_value = pid_vid_sn[2].replace('SN: ', '').strip()
-                if sn_value == "SN:":
-                    sn_value = ""
-                df_data['serial'].append(sn_value)
+                        except (IndexError, ValueError):
+                            print(f"Error processing: {data[i]}")
+                            continue
 
     # Create the DataFrame and return it.
     df = pd.DataFrame(df_data)
-
     return df
 
 

@@ -575,6 +575,7 @@ def define_collectors(hostgroup: str) -> Dict[str, Any]:
                                              'cisco.ios.ios',
                                              'cisco.nxos.nxos',
                                              'paloaltonetworks.panos'],
+                  'interface_ipv6_addresses': ['cisco.ios.ios'],
                   'interface_status': ['cisco.nxos.nxos'],
                   'interface_summary': ['bigip', 'cisco.nxos.nxos'],
                   'network_clients': ['meraki'],
@@ -1197,6 +1198,12 @@ def set_dependencies(selected: List[str]) -> List[str]:
         The updated list of selected collectors.
     '''
     s = selected
+
+    if 'bgp_neighbors' in s:
+        if 'interface_ip_addresses' in s:
+            pos = s.index('interface_ip_addresses')
+            del s[pos]
+        s.insert(0, 'interface_ip_addresses')
 
     if 'devices_modules' in s:
         if 'devices_inventory' in s:
