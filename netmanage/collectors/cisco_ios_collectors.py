@@ -152,6 +152,60 @@ def bgp_neighbors(username: str,
     return parser.parse_bgp_neighbors(runner)
 
 
+def cdp_neighbors(username: str,
+                  password: str,
+                  host_group: str,
+                  play_path: str,
+                  private_data_dir: str) -> pd.DataFrame:
+    """Gets the CDP neighbors for IOS devices.
+
+    Parameters
+    ----------
+    username : str
+        The username to use for authentication.
+    password : str
+        The password to use for authentication.
+    host_group : str
+        The host group to query for VRF information.
+    play_path : str
+        The path to playbooks in Ansible.
+    private_data_dir : str
+        The path to private data directories in Ansible.
+
+    Returns
+    -------
+    df : pandas.DataFrame
+        A DataFrame containing the CDP neighbors.
+    """
+    params = ['-------------------------',
+              'Device ID',
+              'Entry address',
+              'IP address',
+              'IPv6 address',
+              'Platform',
+              'Interface',
+              'Duplex',
+              'Management']
+    params = '|'.join(params)
+
+    cmd = f'show cdp nei detail | include {params}'
+
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute the pre-checks
+    playbook = f'{play_path}/cisco_ios_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse results into df
+    return parser.parse_cdp_neighbors(runner)
+
+
 def inventory(username: str,
               password: str,
               host_group: str,

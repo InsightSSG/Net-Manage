@@ -281,6 +281,13 @@ def collect(ansible_os: str,
                                        private_data_dir)
 
     if collector == 'cdp_neighbors':
+        if ansible_os == 'cisco.ios.ios':
+            result = cic.cdp_neighbors(ios_devices_username,
+                                       ios_devices_password,
+                                       hostgroup,
+                                       play_path,
+                                       private_data_dir)
+
         if ansible_os == 'cisco.nxos.nxos':
             result = cnc.nxos_get_cdp_neighbors(nxos_devices_username,
                                                 nxos_devices_password,
