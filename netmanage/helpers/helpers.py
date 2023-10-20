@@ -527,6 +527,7 @@ def define_collectors(hostgroup: str) -> Dict[str, Any]:
                                     'cisco.nxos.nxos',
                                     'paloaltonetworks.panos'],
                   'cam_table': ['cisco.ios.ios', 'cisco.nxos.nxos'],
+                  'cdp_neighbors': ['cisco.nxos.nxos'],
                   'config': ['cisco.ios.ios'],
                   'devices_inventory': ['cisco.dnac'],
                   'device_cdp_lldp_neighbors': ['meraki'],
@@ -2093,8 +2094,8 @@ def convert_lists_to_json_in_df(df):
     return df
 
 
-def is_jupyter():
-    try:
-        return get_ipython().__class__.__name__ == 'ZMQInteractiveShell'
-    except NameError:
-        return False
+# def is_jupyter():
+#     try:
+#         return get_ipython().__class__.__name__ == 'ZMQInteractiveShell'
+#     except NameError:
+#         return False

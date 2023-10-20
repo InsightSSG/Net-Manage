@@ -280,6 +280,14 @@ def collect(ansible_os: str,
                                        netmanage_path,
                                        private_data_dir)
 
+    if collector == 'cdp_neighbors':
+        if ansible_os == 'cisco.nxos.nxos':
+            result = cnc.nxos_get_cdp_neighbors(nxos_devices_username,
+                                                nxos_devices_password,
+                                                hostgroup,
+                                                play_path,
+                                                private_data_dir)
+
     if collector == 'devices_inventory':
         if ansible_os == 'cisco.dnac':
             result = dnc.devices_inventory(dnac_url,

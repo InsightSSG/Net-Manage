@@ -108,6 +108,49 @@ def nxos_get_arp_table(username: str,
     return parser.nxos_parse_arp_table(runner, nm_path)
 
 
+def nxos_get_cdp_neighbors(username: str,
+                           password: str,
+                           host_group: str,
+                           play_path: str,
+                           private_data_dir: str) -> pd.DataFrame:
+    '''
+    Get the CDP neighbors on NXOS devices.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        The CDP neighbors as a pandas DataFrame.
+    '''
+    cmd = 'show cdp nei | json'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute the command and parse the output
+    playbook = f'{play_path}/cisco_nxos_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse results into df
+    return parser.nxos_parse_cdp_neighbors(runner)
+
+
 def nxos_get_fexes_table(username: str,
                          password: str,
                          host_group: str,
