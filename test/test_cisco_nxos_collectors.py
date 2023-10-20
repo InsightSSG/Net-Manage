@@ -70,6 +70,34 @@ def test_get_cam_table(
     assert len(df_cam) >= 1
 
 
+def test_nxos_get_cdp_neighbors(
+    username, password, host_group, play_path, private_data_dir
+):
+    """Test the 'nxos_get_cdp_neighbors' collector."""
+    df = collectors.nxos_get_cdp_neighbors(
+        username, password, host_group, play_path, private_data_dir
+    )
+
+    expected = [
+        'device',
+        'neighbor_device_id',
+        'interface',
+        'ttl',
+        'capability',
+        'platform_id',
+        'port_id',
+        'ifindex',
+        'intf_id',
+        'neighbor',
+        'neighbor_serial',
+        'neighbor_domain'
+    ]
+
+    assert df.columns.to_list() == expected
+
+    assert len(df) >= 1
+
+
 def test_get_interface_descriptions(
     username, password, host_group, play_path, private_data_dir, interface=None
 ):
@@ -145,6 +173,34 @@ def test_nxos_get_inventory(
     )
 
     expected = ["name", "desc", "productid", "vendorid", "serialnum", "device"]
+
+    assert df.columns.to_list() == expected
+
+    assert len(df) >= 1
+
+
+def test_nxos_get_lldp_neighbors(
+    username, password, host_group, play_path, private_data_dir
+):
+    """Test the 'nxos_get_lldp_neighbors' collector."""
+    df = collectors.nxos_get_lldp_neighbors(
+        username, password, host_group, play_path, private_data_dir
+    )
+
+    expected = [
+        'device',
+        'chassis_type',
+        'chassis_id',
+        'l_port_id',
+        'ttl',
+        'capability',
+        'system_capability',
+        'enabled_capability',
+        'port_type',
+        'port_id',
+        'mgmt_addr_type',
+        'mgmt_addr'
+    ]
 
     assert df.columns.to_list() == expected
 
@@ -354,6 +410,10 @@ def main():
         interface=None
     )
 
+    test_nxos_get_cdp_neighbors(
+        username, password, host_group, play_path, private_data_dir
+    )
+
     test_get_interface_descriptions(
         username,
         password,
@@ -372,6 +432,10 @@ def main():
     )
 
     test_nxos_get_inventory(
+        username, password, host_group, play_path, private_data_dir
+    )
+
+    test_nxos_get_lldp_neighbors(
         username, password, host_group, play_path, private_data_dir
     )
 
