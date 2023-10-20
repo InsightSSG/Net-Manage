@@ -549,6 +549,49 @@ def nxos_get_inventory(username: str,
     return parser.nxos_parse_inventory(runner)
 
 
+def nxos_get_lldp_neighbors(username: str,
+                            password: str,
+                            host_group: str,
+                            play_path: str,
+                            private_data_dir: str) -> pd.DataFrame:
+    '''
+    Get the LLDP neighbors on NXOS devices.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        The LLDP neighbors as a pandas DataFrame.
+    '''
+    cmd = 'show lldp nei | json'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute the command and parse the output
+    playbook = f'{play_path}/cisco_nxos_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse results into df
+    return parser.nxos_parse_lldp_neighbors(runner)
+
+
 def nxos_get_logs(username: str,
                   password: str,
                   host_group: str,

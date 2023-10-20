@@ -815,6 +815,53 @@ def nxos_parse_inventory(runner: dict) -> pd.DataFrame:
     return df_inventory
 
 
+def nxos_parse_lldp_neighbors(runner: dict) -> pd.DataFrame:
+    """
+    Parse the LLDP neighbors on NXOS devices.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    df : pd.DataFrame
+        The LLDP neighbors as a pandas DataFrame.
+    """
+    if runner is None or runner.events is None:
+        raise ValueError("The input is None or empty")
+
+    data = dict()
+
+    for event in runner.events:
+        if event["event"] == "runner_on_ok":
+            event_data = event["event_data"]
+            device = event_data["remote_addr"]
+            output = event_data["res"]["stdout"][0]
+            data[device] = output['TABLE_nbor']['ROW_nbor']
+
+    # Get a list of all possible keys. This accounts for devices that do not
+    # return the same keys.
+    df_data = {'device': list()}
+    for key, value in data.items():
+        for item in value:
+            for k in item:
+                if not df_data.get(k):
+                    df_data[k] = list()
+
+    # Iterate over 'data', populating 'df_data'.
+    keys = list(df_data.keys())
+    for key, value in data.items():
+        for item in value:
+            df_data['device'].append(key)
+            for k in keys:
+                if k != 'device':
+                    df_data[k].append(item.get(k))
+
+    return pd.DataFrame(df_data).astype(str)
+
+
 def nxos_parse_logs(runner: dict) -> pd.DataFrame:
     """
     Parse the latest log messages for NXOS devices.
