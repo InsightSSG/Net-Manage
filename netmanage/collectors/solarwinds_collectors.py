@@ -5,6 +5,53 @@ from orionsdk import SwisClient
 from typing import Union
 
 
+'''
+This module provides a suite of functions to interact with SolarWinds NPM
+(Network Performance Monitor) using the Orion SDK.
+
+Functions
+---------
+- `get_ncm_serial_numbers`: Returns a DataFrame containing the serial numbers
+    of all physical entities in NCM.
+- `get_npm_containers`: Retrieves all columns from Orion.Container (Orion NPM
+    groups).
+- `get_npm_group_id`: Retrieves the Orion NPM group ID for a given group name.
+- `get_npm_group_members`: Retrieves the names of all the devices within an
+    Orion NPM group.
+- `get_npm_group_names`: Retrieves a list of the names of all the Orion NPM
+    groups.
+- `get_npm_node_ids`: Retrieve the NodeIDs for all nodes in Solarwinds NPM.
+- `get_npm_node_ip`: Retrieve the management IP address for a single node in
+    Solarwinds NPM.
+- `get_npm_node_ips`: Retrieve the management IP addresses for all nodes in
+    Solarwinds NPM.
+- `get_npm_node_machine_types`: Retrieve the MachineType and Caption for all
+    nodes in Solarwinds NPM.
+- `get_npm_node_os_versions`: Retrieve the OS versions of all nodes in
+    Solarwinds NPM.
+- `get_npm_node_vendor`: Retrieve the vendor for a single node in Solarwinds
+    NPM.
+- `get_npm_node_vendors`: Retrieve the vendor for all nodes in Solarwinds NPM.
+- `get_npm_nodes`: Retrieves all columns from Orion.Nodes.
+
+Notes
+-----
+The module requires the `pandas` and `orionsdk` libraries to be installed.
+All functions expect the server, username, and password arguments to
+authenticate with the Orion NPM server. Most of the functions return a
+`pandas.DataFrame` object containing the requested data.
+
+Examples
+--------
+>>> from solarwinds_module import get_npm_node_ids
+>>> server = 'myserver.mycompany.com'
+>>> username = 'myusername'
+>>> password = 'mypassword'
+>>> node_ids = get_npm_node_ids(server, username, password)
+>>> print(node_ids.head())
+'''
+
+
 def get_ncm_serial_numbers(server: str,
                            username: str,
                            password: str) -> pd.DataFrame:

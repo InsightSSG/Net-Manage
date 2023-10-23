@@ -115,6 +115,81 @@ def nxos_parse_arp_table(runner: dict, nm_path: str) -> pd.DataFrame:
     return df_arp
 
 
+def nxos_parse_cdp_neighbors(runner: dict) -> pd.DataFrame:
+    """
+    Parse the CDP neighbors on NXOS devices.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    df : pd.DataFrame
+        The CDP neighbors as a pandas DataFrame.
+    """
+    if runner is None or runner.events is None:
+        raise ValueError("The input is None or empty")
+
+    data = dict()
+
+    for event in runner.events:
+        if event["event"] == "runner_on_ok":
+            event_data = event["event_data"]
+            device = event_data["remote_addr"]
+            output = event_data["res"]["stdout"][0]
+            data[device] = output[
+                'TABLE_cdp_neighbor_brief_info'][
+                    'ROW_cdp_neighbor_brief_info']
+
+    # Get a list of all possible keys. This accounts for devices that do not
+    # return the same keys.
+    df_data = {'device': list()}
+    for key, value in data.items():
+        for item in value:
+            for k in item:
+                if not df_data.get(k):
+                    df_data[k] = list()
+
+    # Iterate over 'data', populating 'df_data'.
+    keys = list(df_data.keys())
+    for key, value in data.items():
+        for item in value:
+            df_data['device'].append(key)
+            for k in keys:
+                if k != 'device':
+                    df_data[k].append(item.get(k))
+
+    # Create the dataframe, and rename the 'device_id' column
+    df = pd.DataFrame(df_data)
+    df.rename(columns={'device_id': 'neighbor_device_id'}, inplace=True)
+
+    # Add additional columns for parsed data in the 'neighbor_device_id' column
+    neighbors = df['neighbor_device_id'].to_list()
+    neighbor = [_.split('(')[0] for _ in neighbors]
+    neighbor_serial = list()
+    for _ in neighbors:
+        if '(' in _:
+            neighbor_serial.append(_.split('(')[-1].split(')')[0])
+        else:
+            neighbor_serial.append(str())
+    neighbor_domain = list()
+    for _ in neighbor:
+        if '.' in _:
+            domain = _.split('.')
+            domain = '.'.join(domain[1:])
+            neighbor_domain.append(domain)
+        else:
+            neighbor_domain.append(str())
+
+    df['neighbor'] = [_.split('.')[0] for _ in neighbor]
+    df['neighbor_serial'] = neighbor_serial
+    df['neighbor_domain'] = neighbor_domain
+
+    return df.astype(str)
+
+
 def nxos_parse_fexes_table(runner: dict, nm_path: str) -> pd.DataFrame:
     """
     Parse the FEXes for Cisco 5Ks. This function is required for gathering
@@ -738,6 +813,53 @@ def nxos_parse_inventory(runner: dict) -> pd.DataFrame:
     df_inventory = pd.DataFrame.from_dict(df_data)
 
     return df_inventory
+
+
+def nxos_parse_lldp_neighbors(runner: dict) -> pd.DataFrame:
+    """
+    Parse the LLDP neighbors on NXOS devices.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    df : pd.DataFrame
+        The LLDP neighbors as a pandas DataFrame.
+    """
+    if runner is None or runner.events is None:
+        raise ValueError("The input is None or empty")
+
+    data = dict()
+
+    for event in runner.events:
+        if event["event"] == "runner_on_ok":
+            event_data = event["event_data"]
+            device = event_data["remote_addr"]
+            output = event_data["res"]["stdout"][0]
+            data[device] = output['TABLE_nbor']['ROW_nbor']
+
+    # Get a list of all possible keys. This accounts for devices that do not
+    # return the same keys.
+    df_data = {'device': list()}
+    for key, value in data.items():
+        for item in value:
+            for k in item:
+                if not df_data.get(k):
+                    df_data[k] = list()
+
+    # Iterate over 'data', populating 'df_data'.
+    keys = list(df_data.keys())
+    for key, value in data.items():
+        for item in value:
+            df_data['device'].append(key)
+            for k in keys:
+                if k != 'device':
+                    df_data[k].append(item.get(k))
+
+    return pd.DataFrame(df_data).astype(str)
 
 
 def nxos_parse_logs(runner: dict) -> pd.DataFrame:

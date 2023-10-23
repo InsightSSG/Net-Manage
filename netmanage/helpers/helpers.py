@@ -527,6 +527,7 @@ def define_collectors(hostgroup: str) -> Dict[str, Any]:
                                     'cisco.nxos.nxos',
                                     'paloaltonetworks.panos'],
                   'cam_table': ['cisco.ios.ios', 'cisco.nxos.nxos'],
+                  'cdp_neighbors': ['cisco.ios.ios', 'cisco.nxos.nxos'],
                   'config': ['cisco.ios.ios'],
                   'devices_inventory': ['cisco.dnac'],
                   'device_cdp_lldp_neighbors': ['meraki'],

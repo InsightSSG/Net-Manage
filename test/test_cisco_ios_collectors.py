@@ -10,6 +10,35 @@ from netmanage.helpers import helpers as hp  # noqa
 load_dotenv()
 
 
+def test_cdp_neighbors(ios_devices_username,
+                       ios_devices_password,
+                       host_group,
+                       play_path,
+                       private_data_dir):
+    """Test the 'cdp_neighbors' collector."""
+    df = collectors.cdp_neighbors(ios_devices_username,
+                                  ios_devices_password,
+                                  host_group,
+                                  play_path,
+                                  private_data_dir)
+
+    expected = ['Device',
+                'Device ID',
+                'Platform',
+                'IPv4 Entry Address',
+                'IPv6 Entry Address',
+                'Capabilities',
+                'Interface',
+                'Port ID (outgoing port)',
+                'Duplex',
+                'IPv4 Management Address',
+                'IPv6 Management Address']
+
+    assert df.columns.to_list() == expected
+
+    assert len(df) >= 1
+
+
 def test_get_arp_table(ios_devices_username,
                        ios_devices_password,
                        host_group,
@@ -175,6 +204,12 @@ def main():
     play_path = netmanage_path + '/playbooks'
 
     # Execute tests
+    test_cdp_neighbors(ios_devices_username,
+                       ios_devices_password,
+                       host_group,
+                       play_path,
+                       private_data_dir)
+
     test_inventory(ios_devices_username,
                    ios_devices_password,
                    host_group,

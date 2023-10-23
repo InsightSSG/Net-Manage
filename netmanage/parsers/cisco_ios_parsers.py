@@ -126,6 +126,123 @@ def parse_bgp_neighbors(runner):
     return df
 
 
+def parse_cdp_neighbors(runner):
+    """Parses the CDP neighbors and returns them in a DataFrame.
+
+    Parameters
+    ----------
+    runner : generator
+        An Ansible runner generator.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A DataFrame containing the CDP neighbors.
+    """
+    if runner is None or runner.events is None:
+        raise ValueError('The input is None or empty')
+
+    # Create a dictionary to store the raw data.
+    df_data = dict()
+    df_data['Device'] = list()
+    df_data['Device ID'] = list()
+    df_data['Platform'] = list()
+    df_data['IPv4 Entry Address'] = list()
+    df_data['IPv6 Entry Address'] = list()
+    df_data['Capabilities'] = list()
+    df_data['Interface'] = list()
+    df_data['Port ID (outgoing port)'] = list()
+    df_data['Duplex'] = list()
+    df_data['IPv4 Management Address'] = list()
+    df_data['IPv6 Management Address'] = list()
+
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            output = event_data['res']['stdout'][0]
+
+            output = output.split('-------------------------')
+            output = list(filter(None, output))
+            output = [_.split('\n') for _ in output]
+            output = [list(filter(None, _)) for _ in output]
+
+            for item in output:
+                counter = 0
+                df_data['Device'].append(device)
+                # Define variables that do not always appear.
+                duplex = str()
+                ipv4_addr = str()
+                ipv6_addr = str()
+                ipv4_mgmt_addr = str()
+                ipv6_mgmt_addr = str()
+
+                # Iterate over the CDP neighbor, populating variables.
+                for line in item:
+                    if 'Device ID' in line:
+                        df_data['Device ID'].append(line.split()[-1])
+
+                    if 'Entry address(es)' in line:
+                        if 'IP address' in item[counter+1]:
+                            ipv4_addr = item[counter+1].split(': ')[-1].strip()
+                        if 'IPv6 address' in item[counter+1]:
+                            ipv6_addr = item[counter+1].split(': ')[-1].strip()
+                        if 'IPv6 address' in item[counter+2]:
+                            ipv6_addr = item[counter+2].split(': ')[-1].strip()
+
+                    if 'Platform' in line:
+                        next_char = line.split('Platform:')[1].lstrip()[0]
+                        if next_char == ',':
+                            df_data['Platform'].append(str())
+                        else:
+                            df_data['Platform'].append(
+                                line.split(
+                                    'Platform: ')[-1].split(',')[0].strip())
+
+                    if 'Capabilities' in line:
+                        df_data['Capabilities'].append(
+                            line.split('Capabilities: ')[-1].strip())
+
+                    if 'Interface' in line:
+                        df_data['Interface'].append(
+                            line.split(': ')[1].split(',')[0])
+
+                    if 'Port ID (outgoing port)' in line:
+                        df_data['Port ID (outgoing port)'].append(
+                            line.split(': ')[-1].strip())
+
+                    if 'Duplex' in line:
+                        duplex = line.split(': ')[-1].strip()
+
+                    if 'Management address(es)' in line:
+                        if 'IP address' in item[counter+1]:
+                            ipv4_mgmt_addr = item[counter+1].\
+                                split(': ')[-1].strip()
+                        if 'IPv6 address' in item[counter+1]:
+                            ipv6_mgmt_addr = item[counter+1].\
+                                split(': ')[-1].strip()
+                        try:
+                            if 'IPv6 address' in item[counter+2]:
+                                ipv6_mgmt_addr = item[counter+2].\
+                                    split(': ')[-1].strip()
+                        except Exception:
+                            pass
+
+                    counter += 1
+
+                # Add variables that do not always appear, so that arrays are
+                # equal length.
+                df_data['Duplex'].append(duplex)
+                df_data['IPv4 Entry Address'].append(ipv4_addr)
+                df_data['IPv6 Entry Address'].append(ipv6_addr)
+                df_data['IPv4 Management Address'].append(ipv4_mgmt_addr)
+                df_data['IPv6 Management Address'].append(ipv6_mgmt_addr)
+
+    return pd.DataFrame(df_data).astype(str)
+
+
 def parse_config(facts: dict) -> pd.DataFrame:
     """Parses the config on Cisco IOS devices.
 
