@@ -2,8 +2,124 @@
 
 import ansible_runner
 import pandas as pd
-
+from netmanage.helpers import netmiko_helpers as nmh
 from netmanage.parsers import cisco_ios_parsers as parser
+
+
+def get_device_info(devices: dict) -> pd.DataFrame:
+    """
+    Gets device info for Cisco IOS devices.
+
+    Parameters
+    ----------
+    devices : dict
+        A dictionary containing one or more devices for which to gather info.
+
+    Returns
+    -------
+    df_interface_ips : pd.DataFrame
+        A DataFrame containing the interface IP addresses.
+    df_inventory : pd.DataFrame
+        A DataFrame containing the devices inventories.
+    """
+    # Define long commands for tasks (short commands are defined directly
+    # within the jobs dictionary).
+
+    # Define the command to get BGP neighbors.
+    cmd = ['show ip bgp all neighbors ',
+           ' include BGP neighbor is',
+           'Member of',
+           'BGP version',
+           'BGP state',
+           'Local host']
+    get_bgp_neighbors_cmd = '|'.join(cmd)
+
+    # Define the command to get CDP neighbors.
+    params = ['-------------------------',
+              'Device ID',
+              'Entry address',
+              'IP address',
+              'IPv6 address',
+              'Platform',
+              'Interface',
+              'Duplex',
+              'Management']
+    params = '|'.join(params)
+    get_cdp_neighbors_cmd = f'show cdp nei detail | include {params}'
+
+    # Define the command to get interface IPs.
+    cmd = ['show ip interface',
+           '|',
+           'include line protocol|Internet address is|VPN Routing']
+    get_interface_ips_cmd = ' '.join(cmd)
+
+    # Define the command to get OSPF neighbors
+    cmd = ['show ip ospf neighbor detail',
+           'include interface address|area|priority|for|Dead timer']
+    ospf_neighbors_cmd = ' | '.join(cmd)
+
+    jobs = {
+        'BGP Neighbors': {
+            'get_bgp_neighbors':
+                get_bgp_neighbors_cmd
+        },
+        'CDP Neighbors': {
+            'get_cdp_neighbors':
+                get_cdp_neighbors_cmd
+        },
+        'Config (Running)': {
+            'get_running_config': 'show running-config'
+        },
+        'Config (Startup)': {
+            'get_startup_config': 'show startup-config'
+        },
+        'Interface IP Addresses': {
+            'get_interface_ip_addresses':
+                get_interface_ips_cmd
+        },
+        'Interface IPv6 Addresses': {
+            'get_interface_ipv6_addresses':
+            'show ipv6 interface | include line protocol|subnet is|VPN Routing'
+        },
+        'Inventory': {
+            'get_inventory': 'show inventory'
+        },
+        'VRFs': {
+            'get_vrfs': 'show vrf'
+        },
+        'OSPF Neighbors': {
+            'get_ospf_neighbors': ospf_neighbors_cmd
+        },
+        'ARP Table': {
+            'get_arp_table': 'show ip arp'
+        },
+        'CAM Table': {
+            'get_cam_table': 'show mac address-table | begin Vlan'
+        },
+        'Interface Descriptions': {
+            'get_interface_descriptions': 'show interface description'
+        },
+        'Vlan Database': {
+            'get_vlan_db': 'show vlan brief | exclude ----'
+        }
+    }
+
+    for device in devices:
+        devices[device]['jobs'] = jobs
+
+    results, connection_errors = nmh.execute_commands_on_devices(devices)
+
+    df_bgp_neighbors = parser.parse_bgp_neighbors(results)
+
+    # df_cdp_neighbors = parser.parse_cdp_neighbors(results)
+
+    return results, connection_errors, df_bgp_neighbors
+
+    # df_interface_ips = parser.ios_parse_interface_ips(results)
+
+    # df_inventory = parser.ios_parse_inventory(results)
+
+    # return df_bgp_neighbors, df_cdp_neighbors, df_interface_ips, df_inventory
 
 
 def gather_facts(username: str,
