@@ -39,7 +39,7 @@ def parse_facts(runner: dict) -> dict:
     return facts
 
 
-def parse_bgp_neighbors(results):
+def parse_bgp_neighbors(runner):
     """Parses the BGP neighbor summary output and returns it in a DataFrame.
 
     Parameters
@@ -50,18 +50,23 @@ def parse_bgp_neighbors(results):
     Returns
     -------
     df : pd.DataFrame
-        A dictionary containing results for 'get_bgp_neighbors'.
+        A DataFrame containing the BGP neighbor summary.
     """
+    if runner is None or runner.events is None:
+        raise ValueError('The input is None or empty')
 
     rows = list()
 
     # Regex pattern to match both IPv4 and IPv6 addresses
     ip_pattern = r'(\d+\.\d+\.\d+\.\d+|[0-9a-fA-F:]{3,39})'
 
-    for key, value in results.items():
-        try:
-            device = key
-            text = value['BGP Neighbors']['get_bgp_neighbors']
+    for event in runner.events:
+        if event['event'] == 'runner_on_ok':
+            event_data = event['event_data']
+
+            device = event_data['remote_addr']
+
+            text = event_data['res']['stdout'][0]
 
             neighbors = text.split("BGP neighbor is")[1:]
 
@@ -94,18 +99,16 @@ def parse_bgp_neighbors(results):
                     1) if bgp_state_timer_search else None
 
                 rows.append([device,
-                            local_host,
-                            bgp_neighbor,
-                            vrf,
-                            local_as,
-                            remote_as,
-                            peer_group,
-                            bgp_version,
-                            neighbor_id,
-                            bgp_state,
-                            bgp_state_timer])
-        except Exception:
-            pass
+                             local_host,
+                             bgp_neighbor,
+                             vrf,
+                             local_as,
+                             remote_as,
+                             peer_group,
+                             bgp_version,
+                             neighbor_id,
+                             bgp_state,
+                             bgp_state_timer])
 
     # Create DataFrame
     df = pd.DataFrame(rows, columns=["device",

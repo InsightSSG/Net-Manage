@@ -1,44 +1,93 @@
 #!/usr/bin/env python3
 
-from netmanage.helpers import netmiko_helpers as nmh
+import ansible_runner
 import pandas as pd
 
 from netmanage.parsers import cisco_asa_parsers as parser
 
 
-def get_device_info(devices: dict) -> pd.DataFrame:
-    """
-    Gets device info for Cisco ASA devices.
+def get_interface_ips(username: str,
+                      password: str,
+                      host_group: str,
+                      play_path: str,
+                      private_data_dir: str) -> pd.DataFrame:
+    '''
+    Gets the IP addresses assigned to interfaces on Cisco ASA devices.
 
     Parameters
     ----------
-    devices : dict
-        A dictionary containing one or more devices for which to gather info.
+    username : str
+        The username to login to devices
+    password : str
+        The password to login to devices
+    host_group : str
+        The inventory host group
+    play_path : str
+        The path to the playbooks directory
+    private_data_dir : str
+        The path to the Ansible private data directory
 
     Returns
     -------
-    df_interface_ips : pd.DataFrame
-        A DataFrame containing the interface IP addresses.
-    df_inventory : pd.DataFrame
-        A DataFrame containing the devices inventories.
-    """
-    jobs = {
-        'Interface IP Addresses': {
-            'get_interface_ip_addresses':
-                'show interface summary | include Interface|IP address'
-        },
-        'Inventory': {
-            'get_inventory': 'show inventory'
-        }
-    }
+    df : pd.DataFrame
+        A DataFrame containing the interfaces and IPs, subnet and network
+        addresses related to each IP.
+    '''
+    cmd = 'show interface summary | include Interface|IP address'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
 
-    for device in devices:
-        devices[device]['jobs'] = jobs
+    # Execute the command
+    playbook = f'{play_path}/cisco_asa_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
 
-    results = nmh.execute_commands_on_devices(devices)
+    # Parse results into df
+    return parser.asa_parse_interface_ips(runner)
 
-    df_interface_ips = parser.asa_parse_interface_ips(results)
 
-    df_inventory = parser.asa_parse_inventory(results)
+def inventory(username: str,
+              password: str,
+              host_group: str,
+              play_path: str,
+              private_data_dir: str) -> pd.DataFrame:
+    '''
+    Get the inventory for Cisco IOS and IOS-XE devices.
 
-    return df_interface_ips, df_inventory
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A DataFrame containing the interfaces and IP addresses.
+    '''
+    cmd = 'show inventory'
+    extravars = {'username': username,
+                 'password': password,
+                 'host_group': host_group,
+                 'commands': cmd}
+
+    # Execute the command
+    playbook = f'{play_path}/cisco_ios_run_commands.yml'
+    runner = ansible_runner.run(private_data_dir=private_data_dir,
+                                playbook=playbook,
+                                extravars=extravars,
+                                suppress_env_files=True)
+
+    # Parse results into df
+    return parser.asa_parse_inventory(runner)

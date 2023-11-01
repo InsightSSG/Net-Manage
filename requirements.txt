@@ -9,7 +9,6 @@ flake8
 jupyterlab
 ipywidgets
 nest-asyncio
-netmiko
 orionsdk
 pan-python
 pandas
