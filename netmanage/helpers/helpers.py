@@ -1176,164 +1176,101 @@ def scan_targets(targets: list, max_threads: int = 10) -> dict:
 
 def set_dependencies(selected: List[str]) -> List[str]:
     '''
-    Ensures that dependent collectors are added to the selection. For example,
-    collecting 'f5_vip_destinations' requires collecting 'f5_vip_availability'.
-    If a user has selected the former without selecting the latter, then this
-    function adds the latter (in the proper order) to the selection.
-
-    TODO: Currently, all dependencies are within the same hostgroup. By that I
-          mean, F5 collectors are dependent on other F5 collectors, Meraki
-          collectors are dependent on other Meraki collectors, and so on.
-          It is possible that at some point collectors will be dependent on
-          hostgroups that the user did not select. If that happens, this
-          function will need to be modified accordingly.
+    Define collector dependencies.
 
     Parameters
     ----------
-    selected : list
+    selected : list[str]
         The list of selected collectors.
 
     Returns
     -------
-    selected : list
+    list[str]
         The updated list of selected collectors.
+
     '''
-    s = selected
+    def get_execution_order(job: str, collectors: dict) -> List[str]:
+        order = []
+        if job not in collectors:
+            return [job]
+        for dependency in collectors[job]['dependencies']:
+            order.extend(get_execution_order(dependency, collectors))
+        order.append(job)
+        return order
 
-    if 'bgp_neighbors' in s:
-        if 'interface_ip_addresses' in s:
-            pos = s.index('interface_ip_addresses')
-            del s[pos]
-        s.insert(0, 'interface_ip_addresses')
+    def combine_execution_orders(jobs: List[str],
+                                 collectors: dict) -> List[str]:
+        combined_order = []
 
-    if 'devices_modules' in s:
-        if 'devices_inventory' in s:
-            pos = s.index('devices_inventory')
-            del s[pos]
-        s.insert(0, 'devices_inventory')
+        for job in jobs:
+            combined_order.extend(get_execution_order(job, collectors))
 
-    if 'interface_summary' in s:
-        pos = s.index('interface_summary')
-        if 'cam_table' not in s:
-            s.insert(pos, 'cam_table')
-        if 'interface_description' not in s:
-            s.insert(pos, 'interface_description')
-        if 'interface_status' not in s:
-            s.insert(pos, 'interface_status')
-    if 'get_device_statuses' in s:
-        pos1 = s.index('get_device_statuses')
-        if 'get_organizations' in s:
-            pos2 = s.index('get_organizations')
-            if pos2 > pos1:
-                del s[pos2]
-                s.insert(pos1, 'get_organizations')
-        else:
-            s.insert(pos1, 'get_organizations')
+        # Deduplicate while preserving order
+        seen = set()
+        deduplicated_order = [j for j in combined_order if j not in seen and
+                              not seen.add(j)]
+        return deduplicated_order
 
-    if 'interface_summary' in s:
-        if 'cam_table' in s:
-            pos = s.index('cam_table')
-            del s[pos]
-        s.insert(0, 'cam_table')
+    collectors = {'bgp_neighbors': {
+        'dependencies': ['interface_ip_addresses']
+        },
+        'devices_modules': {
+            'dependencies': ['devices_inventory']
+        },
+        'interface_summary': {
+            'dependencies': ['cam_table',
+                             'interface_description',
+                             'interface_status']
+        },
+        'get_device_statuses': {
+            'dependencies': ['get_organizations']
+        },
+        'vip_destinations': {
+            'dependencies': ['vip_availability']
+        },
+        'infoblox_get_networks_parent_containers': {
+            'dependencies': ['infoblox_get_networks',
+                             'infoblox_get_network_containers']
+        },
+        'device_statuses': {
+            'dependencies': ['organizations']
+        },
+        'network_appliance_vlans': {
+            'dependencies': ['org_networks']
+        },
+        'network_device_statuses': {
+            'dependencies': ['org_device_statuses']
+        },
+        'network_devices': {
+            'dependencies': ['organizations']
+        },
+        'org_devices': {
+            'dependencies': ['organizations']
+        },
+        'org_device_statuses': {
+            'dependencies': ['org_networks']
+        },
+        'org_networks': {
+            'dependencies': ['organizations']
+        },
+        'switch_lldp_neighbors': {
+            'dependencies': ['switch_port_statuses']
+        },
+        'switch_port_usages': {
+            'dependencies': ['switch_port_statuses']
+        },
+        'switch_port_statuses': {
+            'dependencies': ['org_devices',
+                             'organizations']
+        },
+        'vpn_statuses': {
+            'dependencies': ['organizations']
+        }
+        }
 
-    if 'vip_destinations' in s:
-        if 'vip_availability' in s:
-            pos = s.index('vip_availability')
-            del s[pos]
-        s.insert(0, 'vip_availability')
+    selected = combine_execution_orders(selected, collectors)
 
-    if 'infoblox_get_networks_parent_containers' in s:
-        if 'infoblox_get_networks' in s:
-            pos = s.index('infoblox_get_networks')
-            del s[pos]
-        pos = s.insert(0, 'infoblox_get_networks')
-        if 'infoblox_get_network_containers' in s:
-            pos = s.index('infoblox_get_network_containers')
-            del s[pos]
-        pos = s.insert(0, 'infoblox_get_network_containers')
-
-    if 'device_statuses' in s:
-        if 'organizations' in s:
-            pos = s.index('organizations')
-            del s[pos]
-        s.insert(0, 'organizations')
-
-    if 'network_appliance_vlans' in s:
-        if 'org_networks' in s:
-            pos = s.index('org_networks')
-            del s[pos]
-        s.insert(0, 'org_networks')
-
-    if 'network_device_statuses' in s:
-        if 'org_device_statuses' in s:
-            pos = s.index('org_device_statuses')
-            del s[pos]
-        s.insert(0, 'org_device_statuses')
-
-    if 'network_devices' in s:
-        if 'organizations' in s:
-            pos = s.index('organizations')
-            del s[pos]
-        s.insert(0, 'organizations')
-
-    if 'org_devices' in s:
-        if 'organizations' in s:
-            pos = s.index('organizations')
-            del s[pos]
-        s.insert(0, 'organizations')
-
-    if 'org_device_statuses' in s:
-        if 'org_networks' in s:
-            pos = s.index('org_networks')
-            del s[pos]
-        s.insert(0, 'org_networks')
-
-    if 'org_networks' in s:
-        if 'organizations' in s:
-            pos = s.index('organizations')
-            del s[pos]
-        s.insert(0, 'organizations')
-
-    if 'switch_lldp_neighbors' in s:
-        dependencies = ['switch_port_statuses']
-        for d in dependencies:
-            if d in s:
-                pos = s.index(d)
-                del s[pos]
-        for d in dependencies:
-            s.insert(0, d)
-
-    if 'switch_port_usages' in s:
-        if 'switch_port_statuses' in s:
-            pos = s.index('switch_port_statuses')
-            del s[pos]
-        s.insert(0, 'switch_port_statuses')
-
-    if 'switch_port_statuses' in s:
-        if 'org_devices' in s:
-            pos = s.index('org_devices')
-            del s[pos]
-        s.insert(0, 'org_devices')
-        if 'organizations' in s:
-            pos = s.index('organizations')
-            del s[pos]
-        s.insert(0, 'organizations')
-
-    if 'vpn_statuses' in s:
-        if 'organizations' in s:
-            pos = s.index('organizations')
-            del s[pos]
-        s.insert(0, 'organizations')
-
-    # Remove duplicate collectors from 's'
-    non_dups = list()
-    for item in s:
-        if item not in non_dups:
-            non_dups.append(item)
-    s = non_dups
-
-    selected = s
-    return s
+    return selected
 
 
 def set_filepath(filepath: str) -> str:
