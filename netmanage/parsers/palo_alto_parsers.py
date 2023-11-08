@@ -2,6 +2,7 @@
 
 import json
 import pandas as pd
+import xml.etree.ElementTree as ET
 from netmanage.helpers import helpers as hp
 
 
@@ -56,121 +57,65 @@ def parse_all_interfaces(response: dict) -> pd.DataFrame:
 
 
 def parse_arp_table(response: dict, nm_path: str) -> pd.DataFrame:
-    '''
-    Parses the Palo Alto ARP table and adds vendor OUIs.
-
-    Parameters
-    ----------
-    response : dict
-        A dictionary containing the command output, where the keys are the
-        devices and the value is a dictionary
-    nm_path : str
-        The path to the Net-Manage repository.
-
-    Returns
-    -------
-    pd.DataFrame
-        A DataFrame containing the ARP table and vendor OUIs.
-
-    Other Parameters
-    ----------------
-    interface : str, optional
-        The interface for which to return the ARP table. The default is to
-        return the ARP table for all interfaces.
-    '''
-
     if response is None:
         raise ValueError("The input is None or empty")
 
-    # Create a dictionary to store the data for 'df'
     df_data = dict()
     df_data['device'] = list()
 
-    # Populate 'df_data' from 'result'
     for device in response:
-        output = json.loads(response[device]['event_data']['res']['stdout'])
-        # An 'error' key indicates the interface does not exist.
-        if not output['response']['result'].get('error'):
-            if output['response']['result'].get('entries'):
-                arp_table = output['response']['result']['entries']['entry']
-                if isinstance(arp_table, dict):
-                    arp_table = [arp_table]
-                for item in arp_table:
-                    df_data['device'].append(device)
-                    for key, value in item.items():
-                        if not df_data.get(key):
-                            df_data[key] = list()
-                        df_data[key].append(value)
+        output = response[device]['event_data']['res']['stdout']
+        root = ET.fromstring(output)
+        entries = root.find('.//entries')
+        if entries is not None:
+            for entry in entries.findall('entry'):
+                df_data['device'].append(device)
+                for item in entry:
+                    key = item.tag
+                    value = item.text
+                    if not df_data.get(key):
+                        df_data[key] = list()
+                    df_data[key].append(value)
 
-    # Get the vendors for the MAC addresses
     df_vendors = hp.find_mac_vendors(df_data['mac'], nm_path)
     df_data['vendor'] = df_vendors['vendor'].to_list()
 
-    # Create the dataframe
     df = pd.DataFrame.from_dict(df_data)
 
     return df
 
 
 def parse_bgp_neighbors(response: dict) -> pd.DataFrame:
-    '''
-    Parse BGP neighbors for Palo Alto firewalls.
+    # Create a dictionary to store the formatted data for each device.
+    formatted_data = {
+        'device': [],
+        'remote-as': [],
+        'local-as': [],
+        'peer-group-name': [],
+        'state': [],
+        'local-ip': [],
+        'peer-ip': [],
+        'status-time': [],
+        'ipv4': [],
+        'ipv6': []
+    }
 
-    Parameters
-    ----------
-    response : dict
-        A dictionary containing the command output, where the keys are the
-        devices and the value is a dictionary
+    for device, data in response.items():
+        for vsys, details in data.items():
+            formatted_data['device'].append(device)
+            formatted_data['remote-as'].append(details['remote-as'])
+            formatted_data['local-as'].append(details['local-as'])
+            formatted_data['peer-group-name'].append(
+                details['peer-group-name'])
+            formatted_data['state'].append(details['state'])
+            formatted_data['local-ip'].append(details['local-ip'])
+            formatted_data['peer-ip'].append(details['peer-ip'])
+            formatted_data['status-time'].append(details['status-time'])
+            formatted_data['ipv4'].append(details['ipv4'])
+            formatted_data['ipv6'].append(details['ipv6'])
 
-    Returns
-    -------
-    pd.DataFrame
-        A DataFrame containing the BGP peers.
-    '''
-    if response is None:
-        raise ValueError("The input is None or empty")
-
-    # Create a dictionary to store the formatted cmd output for each device.
-    result = dict()
-
-    # Parse 'response', adding the cmd output for each device to 'result'.
-    for device, event in response.items():
-        output = json.loads(event['event_data']['res']['stdout'])
-        try:
-            if output['response']['result'].get('entry'):
-                output = output['response']['result']['entry']
-                result[device] = output
-        except Exception as e:
-            if str(e) == "'NoneType' object has no attribute 'get'":
-                pass
-            else:
-                print(f'{device}: {str(e)}')
-
-    # Use the data in 'result' to populate 'df_data', which will be used to
-    # create the dataframe.
-    df_data = dict()
-    df_data['device'] = list()
-    for device in result:
-        # If there is only one neighbor, then the Palo Alto API returns a
-        # dictionary.
-        if isinstance(result[device], dict):
-            df_data['device'].append(device)
-            for key, value in result[device].items():
-                if not df_data.get(key):
-                    df_data[key] = list()
-                df_data[key].append(value)
-        # If there is more than one neighbor, then the Palo Alto API returns a
-        # list.
-        else:
-            for item in result[device]:
-                df_data['device'].append(device)
-                for key, value in item.items():
-                    if not df_data.get(key):
-                        df_data[key] = list()
-                    df_data[key].append(value)
-
-    # Create the dataframe.
-    df = pd.DataFrame.from_dict(df_data).astype(str)
+    # Convert the formatted_data dictionary to a pandas DataFrame
+    df = pd.DataFrame(formatted_data)
 
     return df
 
@@ -301,58 +246,30 @@ def parse_logical_interfaces(response: dict) -> pd.DataFrame:
 
 
 def parse_ospf_neighbors(response: dict) -> pd.DataFrame:
-    '''
-    Parse OSPF neighbors for Palo Alto firewalls.
-
-    Parameters
-    ----------
-    response : dict
-        A dictionary containing the command output, where the keys are the
-        devices and the value is a dictionary
-
-    Returns
-    -------
-    pd.DataFrame
-        A DataFrame containing the OSPF neighbors.
-    '''
     if response is None:
         raise ValueError("The input is None or empty")
 
-    # Create a dictionary to store the formatted cmd output for each device.
-    result = dict()
+    # Initializing an empty list to collect rows
+    rows_list = []
 
-    # Parse 'response', adding the cmd output for each device to 'result'.
-    for device, event in response.items():
-        output = json.loads(event['event_data']['res']['stdout'])
-        if output['response']['result'].get('entry'):
-            output = output['response']['result']['entry']
-            result[device] = output
+    for device, data in response.items():
+        neighbors_data = data.get('neighbors', {})
+        for neighbor_ip, neighbors in neighbors_data.items():
+            for neighbor in neighbors:
+                # Create a dictionary for each neighbor
+                neighbor_dict = {
+                    'device': device,
+                    'neighbor_ip': neighbor_ip,
+                    'areaId': neighbor.get('areaId', ''),
+                    'ifaceName': neighbor.get('ifaceName', ''),
+                    'nbrPriority': neighbor.get('nbrPriority', ''),
+                    'nbrState': neighbor.get('nbrState', '')
+                }
+                # Append the dictionary to rows_list
+                rows_list.append(neighbor_dict)
 
-    # Use the data in 'result' to populate 'df_data', which will be used to
-    # create the dataframe.
-    df_data = dict()
-    df_data['device'] = list()
-    for device in result:
-        # If there is only one neighbor, then the Palo Alto API returns a
-        # dictionary.
-        if isinstance(result[device], dict):
-            df_data['device'].append(device)
-            for key, value in result[device].items():
-                if not df_data.get(key):
-                    df_data[key] = list()
-                df_data[key].append(value)
-        # If there is more than one neighbor, then the Palo Alto API returns a
-        # list.
-        else:
-            for item in result[device]:
-                df_data['device'].append(device)
-                for key, value in item.items():
-                    if not df_data.get(key):
-                        df_data[key] = list()
-                    df_data[key].append(value)
-
-    # Create the dataframe.
-    df = pd.DataFrame.from_dict(df_data).astype(str)
+    # Create DataFrame from rows_list
+    df = pd.DataFrame(rows_list)
 
     return df
 
@@ -365,7 +282,7 @@ def parse_physical_interfaces(response: dict) -> pd.DataFrame:
     ----------
     response : dict
         A dictionary containing the command output, where the keys are the
-        devices and the value is an XML Element.
+        devices and the value is a list of interface entries.
 
     Returns
     -------
@@ -375,94 +292,66 @@ def parse_physical_interfaces(response: dict) -> pd.DataFrame:
     if response is None:
         raise ValueError("The input is None or empty")
 
-    df_data = dict()
-    df_data['device'] = list()
-    columns = ['device']
+    # Initialize data lists for each column
+    int_name_list = []
+    ip_list = []
+    tag_list = []
 
-    for device, output in response.items():
-        for entry in output.findall('entry'):
-            df_data['device'].append(device)
-            for child in entry:
-                if child.tag != 'ae_member':  # Exclude aggregation groups.
-                    if child.tag not in columns:
-                        columns.append(child.tag)
-                        df_data[child.tag] = list()
-                    df_data[child.tag].append(child.text if child.text else '')
+    for device, entries in response.items():
+        for entry in entries:
+            int_name = entry.get("@name", "")
+            ip = ""
+            tag = ""
+            layer3 = entry.get("layer3", {})
+            if layer3:
+                ip_entries = layer3.get("ip", {}).get("entry", [])
+                if ip_entries:
+                    ip = ip_entries[0].get("@name", "")
+            else:  # This branch handles sub-interfaces
+                ip_entries = entry.get("ip", {}).get("entry", [])
+                if ip_entries:
+                    ip = ip_entries[0].get("@name", "")
+                tag = entry.get("tag", "")
 
-    df = pd.DataFrame(df_data)
+            # Append the data to the lists
+            int_name_list.append(int_name)
+            ip_list.append(ip)
+            tag_list.append(tag)
+
+    # Create the DataFrame using the collected data
+    df = pd.DataFrame({
+        "int_name": int_name_list,
+        "ip": ip_list,
+        "tag": tag_list
+    })
 
     return df.astype(str)
 
 
-def parse_security_rules(runner: dict) -> pd.DataFrame:
-    '''
+def parse_security_rules(df_rules: pd.DataFrame) -> pd.DataFrame:
+    """
     Parse a list of all security rules from a Palo Alto firewall.
 
     Parameters
     ----------
-    runner : dict
-        An Ansible runner genrator
+    df_rules : pd.DataFrame
+        A DataFrame containing the raw security rules.
 
     Returns
     -------
-    df_rules : pd.DataFrame
-        A DataFrame containing the security rules.
-    '''
+    pd.DataFrame
+        A DataFrame containing the processed security rules.
+    """
 
-    if runner is None or runner.events is None:
+    if df_rules is None or df_rules.empty:
         raise ValueError("The input is None or empty")
 
-    # Create the 'df_data' dictionary. It will be used to create the dataframe
-    df_data = dict()
-    df_data['device'] = list()
+    # Process the DataFrame to format values
+    for column in df_rules.columns:
+        df_rules[column] = df_rules[column].apply(lambda x: '|'.join([item.replace(',', ' ') for item in x]) if isinstance(x, list) else str(x))
 
-    # Create a list to store the unformatted details for each rule
-    rules = list()
-
-    for event in runner.events:
-        if event['event'] == 'runner_on_ok':
-            event_data = event['event_data']
-            device = event_data['remote_addr']
-            output = event_data['res']['gathered']
-
-            for item in output:
-                item['device'] = device
-                rules.append(item)
-                for key in item:
-                    if not df_data.get(key):
-                        df_data[key] = list()
-
-    # Iterate over the rule details, using the keys in dict_keys to create the
-    # 'df_data' dictionary, which will be used to create the dataframe
-    for item in rules:
-        for key in df_data:
-            # If a key in a rule has a value that is a list, then convert it to
-            # a string by joining it with '|' as a delimiter. We do not want to
-            # use commas a delimiter, since that can cause issues when
-            # exporting the data to CSV files.
-            if isinstance(item.get(key), list):
-                # Some keys have a value that is a list, with commas inside the
-                # list items. For example, source_user might look like this:
-                # ['cn=name,ou=firewall,ou=groups,dc=dcname,dc=local']. That
-                # creates an issue when exporting to a CSV file. Therefore,
-                # the commas inside list items will be replaced with a space
-                # before joining the list.
-                _list = item.get(key)
-                _list = [_.replace(',', ' ') for _ in _list]
-
-                # Join the list using '|' as a delimiter
-                df_data[key].append('|'.join(_list))
-            # If the key's value is not a list, then convert it to a string
-            # and append it to the key in 'df_data'
-            else:
-                df_data[key].append(str(item.get(key)))
-
-    # Create the dataframe and return it
-    df_rules = pd.DataFrame.from_dict(df_data)
-
-    # Rename the 'destintaion_zone' column to 'destination_zone'
-    df_rules.rename({'destintaion_zone': 'destination_zone'},
-                    axis=1,
-                    inplace=True)
+    # Rename the 'destintaion_zone' column to 'destination_zone' if it exists
+    if 'destintaion_zone' in df_rules.columns:
+        df_rules.rename({'destintaion_zone': 'destination_zone'}, axis=1, inplace=True)
 
     return df_rules
