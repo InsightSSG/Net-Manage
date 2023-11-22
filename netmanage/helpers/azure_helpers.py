@@ -8,14 +8,15 @@ CSV file and optionally printed to the console.
 """
 
 import argparse
-import csv
 import pandas as pd
 import re
 from typing import List, Dict
 from azure.identity import InteractiveBrowserCredential
+from azure.identity import ClientSecretCredential
 from azure.mgmt.resourcegraph import ResourceGraphClient
 from azure.mgmt.resource import SubscriptionClient
 from azure.mgmt.resourcegraph.models import QueryRequest
+from creds import *
 
 
 def get_subscription_ids(credential) -> List[str]:
@@ -109,6 +110,7 @@ def main():
     Main function to handle command line arguments and control the flow of
     the script.
     """
+
     parser = argparse.ArgumentParser(
         description="Azure Resource Graph Network Query Tool"
     )
@@ -129,6 +131,7 @@ def main():
     args = parser.parse_args()
 
     credential = InteractiveBrowserCredential()
+    # credential = ClientSecretCredential(tenant_id, client_id, client_secret)
     subscription_ids = get_subscription_ids(credential)
 
     # Query 1: Network Interfaces
