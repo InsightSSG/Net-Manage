@@ -110,7 +110,8 @@ def inventory(username: str,
               password: str,
               host_group: str,
               nm_path: str,
-              private_data_dir: str) -> pd.DataFrame:
+              private_data_dir: str,
+              serials: list = []) -> pd.DataFrame:
     '''
     Gets partial hardware inventory on Palo Alto firewalls.
 
@@ -141,7 +142,8 @@ def inventory(username: str,
                                  nm_path,
                                  private_data_dir,
                                  cmd,
-                                 cmd_is_xml)
+                                 cmd_is_xml,
+                                 serials)
 
     # Parse results into df
     return parser.parse_inventory(response)
@@ -151,7 +153,8 @@ def bgp_neighbors(username: str,
                   password: str,
                   host_group: str,
                   nm_path: str,
-                  private_data_dir: str) -> pd.DataFrame:
+                  private_data_dir: str,
+                  serials: list = []) -> pd.DataFrame:
     '''Gets BGP neighbors for Palo Alto firewalls.
 
     Parameters
@@ -220,7 +223,7 @@ def get_all_interfaces(username: str,
                        host_group: str,
                        nm_path: str,
                        private_data_dir: str,
-                       serial: str = '') -> pd.DataFrame:
+                       serials: list = []) -> pd.DataFrame:
     '''
     Gets all interfaces on Palo Altos.
 
@@ -236,9 +239,9 @@ def get_all_interfaces(username: str,
         The path to the Net-Manage repository.
     private_data_dir : str
         The path to the Ansible private data directory
-    serial : str, optional
-        The serial number of the device to run the command on. This is ignored
-        if the device(s) in the host_group are not Panoramas.
+    serials : list
+        The serial numbers of the devices to run the command on. They are
+        ignored if the devices in the host_group are not Panoramas.
 
     Returns
     -------
@@ -269,17 +272,34 @@ def get_all_interfaces(username: str,
     cmd = 'show interface all'
     cmd_is_xml = False
 
-    response = run_adhoc_command(username,
-                                 password,
-                                 host_group,
-                                 nm_path,
-                                 private_data_dir,
-                                 cmd,
-                                 cmd_is_xml,
-                                 serial=serial)
+    df = pd.DataFrame()
 
-    # Parse results into df
-    return parser.parse_all_interfaces(response)
+    if not serials:
+        response = run_adhoc_command(username,
+                                     password,
+                                     host_group,
+                                     nm_path,
+                                     private_data_dir,
+                                     cmd,
+                                     cmd_is_xml)
+        df = parser.parse_all_interfaces(response)
+    else:
+        for serial in serials:
+            response = run_adhoc_command(username,
+                                         password,
+                                         host_group,
+                                         nm_path,
+                                         private_data_dir,
+                                         cmd,
+                                         cmd_is_xml,
+                                         serial)
+            df_response = parser.parse_all_interfaces(response)
+            df_response.insert(0, 'serial', serial)
+            df = pd.concat([df, df_response])
+
+    df = df.reset_index(drop=True)
+
+    return df
 
 
 def get_arp_table(username: str,
@@ -287,6 +307,7 @@ def get_arp_table(username: str,
                   host_group: str,
                   nm_path: str,
                   private_data_dir: str,
+                  serials,
                   interface: str = '') -> pd.DataFrame:
     '''
     Parses the Palo Alto ARP table and adds vendor OUIs.
@@ -358,7 +379,7 @@ def get_interface_ips(username: str,
                       host_group: str,
                       nm_path: str,
                       private_data_dir: str,
-                      serial: str = '') -> pd.DataFrame:
+                      serials: list = []) -> pd.DataFrame:
     '''Gets IP addresses on Palo Alto firewall interfaces.
 
     Parameters
@@ -423,7 +444,8 @@ def get_logical_interfaces(username: str,
                            password: str,
                            host_group: str,
                            nm_path: str,
-                           private_data_dir: str) -> pd.DataFrame:
+                           private_data_dir: str,
+                           serials: list = []) -> pd.DataFrame:
     '''
     Gets the logical interfaces on Palo Altos.
 
@@ -485,7 +507,8 @@ def get_physical_interfaces(username: str,
                             password: str,
                             host_group: str,
                             nm_path: str,
-                            private_data_dir: str) -> pd.DataFrame:
+                            private_data_dir: str,
+                            serials: list = []) -> pd.DataFrame:
     '''
     Gets the physical interfaces on Palo Altos.
 
@@ -546,6 +569,7 @@ def get_security_rules(username: str,
                        host_group: str,
                        play_path: str,
                        private_data_dir: str,
+                       serials,
                        device_group: str = 'shared') -> pd.DataFrame:
     '''
     Get a list of all security rules from a Palo Alto firewall.
@@ -589,7 +613,8 @@ def ospf_neighbors(username: str,
                    password: str,
                    host_group: str,
                    nm_path: str,
-                   private_data_dir: str) -> pd.DataFrame:
+                   private_data_dir: str,
+                   serials: list = []) -> pd.DataFrame:
     '''Gets OSPF neighbors for Palo Alto firewalls.
 
     Parameters

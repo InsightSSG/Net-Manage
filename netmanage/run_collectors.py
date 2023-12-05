@@ -124,6 +124,8 @@ def collect(ansible_os: str,
     # Read Palo Alto variables
     palo_alto_username = os.environ['palo_alto_username']
     palo_alto_password = os.environ['palo_alto_password']
+    palo_alto_serials = os.environ['palo_alto_serials'].split(',')
+    palo_alto_serials = [_.strip() for _ in palo_alto_serials]
 
     # Read Solarwinds NPM variables
     npm_server = os.environ['solarwinds_npm_server']
@@ -278,7 +280,8 @@ def collect(ansible_os: str,
                                        palo_alto_password,
                                        hostgroup,
                                        netmanage_path,
-                                       private_data_dir)
+                                       private_data_dir,
+                                       palo_alto_serials)
 
     if collector == 'cdp_neighbors':
         if ansible_os == 'cisco.ios.ios':
@@ -371,7 +374,8 @@ def collect(ansible_os: str,
                                        palo_alto_password,
                                        hostgroup,
                                        netmanage_path,
-                                       private_data_dir)
+                                       private_data_dir,
+                                       palo_alto_serials)
 
     if collector == 'hardware_inventory':
         if ansible_os == 'cisco.asa.asa':
@@ -408,7 +412,8 @@ def collect(ansible_os: str,
                                    palo_alto_password,
                                    hostgroup,
                                    netmanage_path,
-                                   private_data_dir)
+                                   private_data_dir,
+                                   palo_alto_serials)
 
     if collector == 'fexes_table':
         if ansible_os == 'cisco.nxos.nxos':
@@ -499,7 +504,8 @@ def collect(ansible_os: str,
                                            palo_alto_password,
                                            hostgroup,
                                            netmanage_path,
-                                           private_data_dir)
+                                           private_data_dir,
+                                           palo_alto_serials)
 
     if collector == 'interface_ipv6_addresses':
         if ansible_os == 'cisco.ios.ios':
@@ -606,7 +612,8 @@ def collect(ansible_os: str,
                                         palo_alto_password,
                                         hostgroup,
                                         netmanage_path,
-                                        private_data_dir)
+                                        private_data_dir,
+                                        palo_alto_serials)
 
     if collector == 'switch_lldp_neighbors':
         if ansible_os == 'meraki':
@@ -647,7 +654,8 @@ def collect(ansible_os: str,
                                             palo_alto_password,
                                             hostgroup,
                                             play_path,
-                                            private_data_dir)
+                                            private_data_dir,
+                                            palo_alto_serials)
 
     if collector == 'netbox_get_ipam_prefixes':
         result = nbc.netbox_get_ipam_prefixes(netbox_url, netbox_token)
@@ -701,7 +709,8 @@ def collect(ansible_os: str,
                                             palo_alto_password,
                                             hostgroup,
                                             netmanage_path,
-                                            private_data_dir)
+                                            private_data_dir,
+                                            palo_alto_serials)
 
     if collector == 'logical_interfaces':
         if ansible_os == 'paloaltonetworks.panos':
@@ -709,7 +718,8 @@ def collect(ansible_os: str,
                                                 palo_alto_password,
                                                 hostgroup,
                                                 netmanage_path,
-                                                private_data_dir)
+                                                private_data_dir,
+                                                palo_alto_serials)
 
     if collector == 'physical_interfaces':
         if ansible_os == 'paloaltonetworks.panos':
@@ -717,7 +727,8 @@ def collect(ansible_os: str,
                                                  palo_alto_password,
                                                  hostgroup,
                                                  netmanage_path,
-                                                 private_data_dir)
+                                                 private_data_dir,
+                                                 palo_alto_serials)
 
     if collector == 'port_channel_data':
         if ansible_os == 'cisco.nxos.nxos':
