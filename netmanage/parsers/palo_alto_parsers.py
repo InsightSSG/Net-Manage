@@ -200,7 +200,6 @@ def parse_interface_ips(df: pd.DataFrame) -> pd.DataFrame:
     -------
     df : Pandas Dataframe
         A dataframe containing the IP addresses.
-
     '''
     # TODO: Optimize this function by setting 'get_all_interfaces' as a
     #       dependency. That way the same command does not need to be
@@ -525,3 +524,67 @@ def parse_security_rules(runner: dict) -> pd.DataFrame:
                     inplace=True)
 
     return df_rules
+
+
+def panorama_get_managed_devices(response: dict) -> pd.DataFrame:
+    '''Parse managed devices on Panoramas.
+
+    Parameters
+    ----------
+    response : dict
+        A dictionary containing the command output, where the keys are the
+        devices and the value is a dictionary
+
+    Returns
+    -------
+    df : Pandas Dataframe
+        A dataframe containing the managed devices.
+    '''
+    # Create the DataFrame columns
+    columns = set()
+
+    # Create a dictionary to store the output from each Panorama.
+    data = dict()
+
+    # Get raw output and create dataframe columns.
+    for device in response:
+        if response[device]['event_data'].get('res'):
+            output = json.loads(
+                response[device]['event_data'].get('res')['stdout']
+                )
+            output = output['response']['result']['devices']['entry']
+            # Store the raw command output for parsing.
+            data[device] = output
+
+            # Store the unique keys in the 'columns' list.
+            for item in output:
+                columns.update(item.keys())
+
+    # Parse the raw output and store it in df_data
+    df_data = {key: [] for key in columns}
+    df_data['device'] = list()
+
+    for device in data:
+        output = data[device]
+        for item in output:
+            df_data['device'].append(device)
+            for key in df_data:
+                if key != 'device':
+                    df_data[key].append(item.get(key))
+
+    # Create the DataFrame
+    df = pd.DataFrame(df_data)
+
+    # Re-order the columns.
+    columns_to_front = ['device',
+                        'hostname',
+                        '@name',
+                        'serial',
+                        'ip-address',
+                        'ipv6-address',
+                        'mac-addr']
+    other_columns = [col for col in df.columns if col not in columns_to_front]
+    new_column_order = columns_to_front + other_columns
+    df = df[new_column_order]
+
+    return df

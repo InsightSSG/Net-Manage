@@ -12,7 +12,8 @@ def run_adhoc_command(username: str,
                       nm_path: str,
                       private_data_dir: str,
                       cmd: str,
-                      cmd_is_xml: bool) -> Dict[str, dict]:
+                      cmd_is_xml: bool,
+                      serial: str = '') -> Dict[str, dict]:
     '''
     Runs an ad-hoc command on the specified hosts using Ansible.
 
@@ -32,6 +33,9 @@ def run_adhoc_command(username: str,
         The command to run.
     cmd_is_xml : bool
         Whether the command is formatted as XML.
+    serial : str, optional
+        The serial number of the device to run the command on. This is ignored
+        if the device(s) in the host_group are not Panoramas.
 
     Returns
     -------
@@ -83,7 +87,8 @@ def run_adhoc_command(username: str,
                  'password': password,
                  'host_group': host_group,
                  'cmd': cmd,
-                 'cmd_is_xml': cmd_is_xml}
+                 'cmd_is_xml': cmd_is_xml,
+                 'serial_number': serial}
 
     playbook = f'{nm_path}/playbooks/palo_alto_run_adhoc_command.yml'
     runner = ansible_runner.run(private_data_dir=private_data_dir,
@@ -214,7 +219,8 @@ def get_all_interfaces(username: str,
                        password: str,
                        host_group: str,
                        nm_path: str,
-                       private_data_dir: str) -> pd.DataFrame:
+                       private_data_dir: str,
+                       serial: str = '') -> pd.DataFrame:
     '''
     Gets all interfaces on Palo Altos.
 
@@ -230,6 +236,9 @@ def get_all_interfaces(username: str,
         The path to the Net-Manage repository.
     private_data_dir : str
         The path to the Ansible private data directory
+    serial : str, optional
+        The serial number of the device to run the command on. This is ignored
+        if the device(s) in the host_group are not Panoramas.
 
     Returns
     -------
@@ -266,7 +275,8 @@ def get_all_interfaces(username: str,
                                  nm_path,
                                  private_data_dir,
                                  cmd,
-                                 cmd_is_xml)
+                                 cmd_is_xml,
+                                 serial=serial)
 
     # Parse results into df
     return parser.parse_all_interfaces(response)
@@ -347,7 +357,8 @@ def get_interface_ips(username: str,
                       password: str,
                       host_group: str,
                       nm_path: str,
-                      private_data_dir: str) -> pd.DataFrame:
+                      private_data_dir: str,
+                      serial: str = '') -> pd.DataFrame:
     '''Gets IP addresses on Palo Alto firewall interfaces.
 
     Parameters
@@ -362,6 +373,9 @@ def get_interface_ips(username: str,
         The path to the Net-Manage repository.
     private_data_dir : str
         The path to the Ansible private data directory.
+    serial : str, optional
+        The serial number of the device to run the command on. This is ignored
+        if the device(s) in the host_group are not Panoramas.
 
     Returns
     -------
@@ -398,7 +412,8 @@ def get_interface_ips(username: str,
                             password,
                             host_group,
                             nm_path,
-                            private_data_dir)
+                            private_data_dir,
+                            serial=serial)
 
     # Parse results into df
     return parser.parse_interface_ips(df)
@@ -636,3 +651,22 @@ def ospf_neighbors(username: str,
 
     # Parse results into df
     return parser.parse_ospf_neighbors(response)
+
+
+def panorama_get_managed_devices(username,
+                                 password,
+                                 host_group,
+                                 nm_path,
+                                 private_data_dir):
+    cmd = 'show devices connected'
+    cmd_is_xml = False
+
+    response = run_adhoc_command(username,
+                                 password,
+                                 host_group,
+                                 nm_path,
+                                 private_data_dir,
+                                 cmd,
+                                 cmd_is_xml)
+
+    return parser.panorama_get_managed_devices(response)

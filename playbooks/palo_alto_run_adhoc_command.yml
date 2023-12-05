@@ -12,6 +12,7 @@
           username: "{{ user }}"
           ip_address: "{{ ansible_host }}"
           password: "{{ password }}"
+          serial_number: "{{ serial_number }}"
       delegate_to: localhost
       vars:
         ansible_command_timeout: "{{ ansible_timeout | default('240') }}"

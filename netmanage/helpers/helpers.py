@@ -1520,32 +1520,36 @@ def get_user_meraki_input() -> Tuple[List[str],
 
 def is_valid_ip(ip: str) -> bool:
     """
-    Check if a string is a valid IPv4 or IPv6 address.
+    Check if a string is a valid IPv4 or IPv6 address or CIDR notation.
 
     Parameters
     ----------
     ip : str
-        The string to be checked for being a valid IP address.
+        The string to be checked for being a valid IP address or CIDR notation.
 
     Returns
     -------
     bool
-        Returns True if the string is a valid IPv4 or IPv6 address, otherwise
-        False.
+        Returns True if the string is a valid IPv4 or IPv6 address or CIDR
+        notation, otherwise False.
 
     Examples
     --------
-    >>> is_valid_ip('192.168.1.1')
+    >>> is_valid_ip_or_cidr('192.168.1.1')
     True
-    >>> is_valid_ip('2001:0db8:85a3:0000:0000:8a2e:0370:7334')
+    >>> is_valid_ip_or_cidr('192.168.1.0/24')
     True
-    >>> is_valid_ip('N/A')
+    >>> is_valid_ip_or_cidr('2001:0db8:85a3:0000:0000:8a2e:0370:7334')
+    True
+    >>> is_valid_ip_or_cidr('2001:0db8::/32')
+    True
+    >>> is_valid_ip_or_cidr('N/A')
     False
-    >>> is_valid_ip('invalid_ip')
+    >>> is_valid_ip_or_cidr('invalid_ip')
     False
     """
     try:
-        ipaddress.ip_address(ip)
+        ipaddress.ip_network(ip, strict=False)
         return True
     except ValueError:
         return False
