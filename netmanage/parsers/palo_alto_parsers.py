@@ -31,10 +31,15 @@ def parse_all_interfaces(response: dict) -> pd.DataFrame:
     # Parse 'response', adding the cmd output for each device to 'result'.
     for device, event in response.items():
         output = json.loads(event['event_data']['res']['stdout'])
-        if output['response']['result']['ifnet'].get('entry'):
-            output = output['response']['result']['ifnet']['entry']
-            result[device] = output
-        else:
+        try:  # Firewall output
+            if output['response']['result']['ifnet'].get('entry'):
+                output = output['response']['result']['ifnet']['entry']
+                result[device] = output
+            else:
+                result[device] = dict()
+        except KeyError:  # Panorama output
+            result[device] = output['response'].get('result')
+        except Exception:
             result[device] = dict()
 
     # Use the data in 'result' to populate 'df_data', which will be used to
@@ -44,10 +49,18 @@ def parse_all_interfaces(response: dict) -> pd.DataFrame:
     for device in result:
         for item in result[device]:
             df_data['device'].append(device)
-            for key, value in item.items():
-                if not df_data.get(key):
-                    df_data[key] = list()
-                df_data[key].append(value)
+            try:  # Parse firewall output
+                for key, value in item.items():
+                    if not df_data.get(key):
+                        df_data[key] = list()
+                    df_data[key].append(value)
+            except AttributeError:  # Parse Panorama output
+                for key, value in result[device][item].items():
+                    if not df_data.get(key):
+                        df_data[key] = list()
+                    df_data[key].append(value)
+            except Exception:
+                pass
 
     # Create the dataframe.
     df = pd.DataFrame.from_dict(df_data).astype(str)
@@ -197,7 +210,7 @@ def parse_interface_ips(df: pd.DataFrame) -> pd.DataFrame:
         raise ValueError("The input is None or empty")
 
     # Filter out interfaces that do not have an IP address.
-    df = df[df['ip'] != 'N/A'].copy()
+    df = df[df['ip'].apply(hp.is_valid_ip)].copy()
 
     # Add the subnets, network IPs, and broadcast IPs.
     addresses = df['ip'].to_list()

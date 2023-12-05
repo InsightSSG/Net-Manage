@@ -1518,6 +1518,39 @@ def get_user_meraki_input() -> Tuple[List[str],
     return orgs, networks, macs, timespan, per_page, total_pages
 
 
+def is_valid_ip(ip: str) -> bool:
+    """
+    Check if a string is a valid IPv4 or IPv6 address.
+
+    Parameters
+    ----------
+    ip : str
+        The string to be checked for being a valid IP address.
+
+    Returns
+    -------
+    bool
+        Returns True if the string is a valid IPv4 or IPv6 address, otherwise
+        False.
+
+    Examples
+    --------
+    >>> is_valid_ip('192.168.1.1')
+    True
+    >>> is_valid_ip('2001:0db8:85a3:0000:0000:8a2e:0370:7334')
+    True
+    >>> is_valid_ip('N/A')
+    False
+    >>> is_valid_ip('invalid_ip')
+    False
+    """
+    try:
+        ipaddress.ip_address(ip)
+        return True
+    except ValueError:
+        return False
+
+
 def meraki_check_api_enablement(db_path: str, org: str) -> bool:
     '''
     Queries the database to find if API access is enabled.
