@@ -540,6 +540,7 @@ def define_collectors(hostgroup: str) -> Dict[str, Any]:
             "paloaltonetworks.panos",
         ],
         "fexes_table": ["cisco.nxos.nxos"],
+        "lldp_neighbors": ["cisco.nxos.nxos"],
         "logs": ["bigip"],
         "ncm_serial_numbers": ["solarwinds"],
         "network_appliance_vlans": ["meraki"],

@@ -619,6 +619,16 @@ def collect(
                 private_data_dir,
             )
 
+    if collector == "lldp_neighbors":
+        if ansible_os == "cisco.nxos.nxos":
+            result = cnc.nxos_get_lldp_neighbors(
+                nxos_devices_username,
+                nxos_devices_password,
+                hostgroup,
+                play_path,
+                private_data_dir,
+            )
+
     if collector == "network_appliance_vlans":
         if ansible_os == "meraki":
             mc.get_network_appliance_vlans(
