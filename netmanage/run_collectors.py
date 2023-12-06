@@ -284,6 +284,14 @@ def collect(
                 play_path,
                 private_data_dir,
             )
+        if ansible_os == "cisco.nxos.nxos":
+            result = cnc.gather_basic_facts(
+                nxos_devices_username,
+                nxos_devices_password,
+                hostgroup,
+                play_path,
+                private_data_dir,
+            )
 
     if collector == "bgp_neighbors":
         if ansible_os == "cisco.ios.ios":
