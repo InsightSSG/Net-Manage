@@ -407,9 +407,14 @@ def get_interface_ips(
     host_group: str,
     nm_path: str,
     private_data_dir: str,
+    db_path: str,
     serials: list = [],
 ) -> pd.DataFrame:
-    """Gets IP addresses on Palo Alto firewall interfaces.
+    """
+    Gets interface IPs on Palo Altos. If a list of serial numbers is provided, then it
+    will treat the devices in the hostgroup as Panoramas and try to context switch to
+    each serial number and get their IPs. (The IP addresses for the Panoramas will
+    still be returned, even if serial numbers are provided.)
 
     Parameters
     ----------
@@ -423,9 +428,11 @@ def get_interface_ips(
         The path to the Net-Manage repository.
     private_data_dir : str
         The path to the Ansible private data directory.
-    serial : str, optional
-        The serial number of the device to run the command on. This is ignored
-        if the device(s) in the host_group are not Panoramas.
+    db_path : str
+        The full path to the database.
+    serials : list, optional
+        The serial numbers of the devices to run the command on. They are
+        ignored if the devices in the host_group are not Panoramas.
 
     Returns
     -------
@@ -459,7 +466,13 @@ def get_interface_ips(
     #       dependency. That way the same command does not need to be
     #       run twice (potentially) for two different collectors.
     df = get_all_interfaces(
-        username, password, host_group, nm_path, private_data_dir, serial=serial
+        username,
+        password,
+        host_group,
+        nm_path,
+        private_data_dir,
+        db_path,
+        serials=serials,
     )
 
     # Parse results into df

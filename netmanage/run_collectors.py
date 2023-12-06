@@ -301,7 +301,7 @@ def collect(
                 hostgroup,
                 netmanage_path,
                 private_data_dir,
-                palo_alto_serials,
+                serials=palo_alto_serials,
             )
 
     if collector == "cdp_neighbors":
@@ -416,7 +416,7 @@ def collect(
                 hostgroup,
                 netmanage_path,
                 private_data_dir,
-                palo_alto_serials,
+                serials=palo_alto_serials,
             )
 
     if collector == "hardware_inventory":
@@ -464,7 +464,7 @@ def collect(
                 hostgroup,
                 netmanage_path,
                 private_data_dir,
-                palo_alto_serials,
+                serials=palo_alto_serials,
             )
 
     if collector == "fexes_table":
@@ -580,7 +580,8 @@ def collect(
                 hostgroup,
                 netmanage_path,
                 private_data_dir,
-                palo_alto_serials,
+                database_full_path,
+                serials=palo_alto_serials,
             )
 
     if collector == "interface_ipv6_addresses":
@@ -708,7 +709,7 @@ def collect(
                 hostgroup,
                 netmanage_path,
                 private_data_dir,
-                palo_alto_serials,
+                serials=palo_alto_serials,
             )
 
     if collector == "switch_lldp_neighbors":
@@ -749,7 +750,7 @@ def collect(
                 hostgroup,
                 play_path,
                 private_data_dir,
-                palo_alto_serials,
+                serials=palo_alto_serials,
             )
 
     if collector == "netbox_get_ipam_prefixes":
@@ -807,7 +808,7 @@ def collect(
                 hostgroup,
                 netmanage_path,
                 private_data_dir,
-                palo_alto_serials,
+                serials=palo_alto_serials,
             )
 
     if collector == "physical_interfaces":
@@ -818,7 +819,7 @@ def collect(
                 hostgroup,
                 netmanage_path,
                 private_data_dir,
-                palo_alto_serials,
+                serials=palo_alto_serials,
             )
 
     if collector == "port_channel_data":
