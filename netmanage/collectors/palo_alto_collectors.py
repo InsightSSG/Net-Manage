@@ -166,9 +166,14 @@ def bgp_neighbors(
     host_group: str,
     nm_path: str,
     private_data_dir: str,
+    db_path,
     serials: list = [],
 ) -> pd.DataFrame:
-    """Gets BGP neighbors for Palo Alto firewalls.
+    """
+    Gets BGP neighbors on Palo Altos. If a list of serial numbers is provided, then it
+    will treat the devices in the hostgroup as Panoramas and try to context switch to
+    each serial number and get the BGP neighbors. (The BGP neighbors for the Panoramas
+    will still be returned, even if serial numbers are provided.)
 
     Parameters
     ----------
@@ -182,6 +187,10 @@ def bgp_neighbors(
         The path to the Net-Manage repository.
     private_data_dir : str
         The path to the Ansible private data directory.
+    db_path : str
+        The full path to the database.
+    serials : list, optional
+        A list of serial numbers.
 
     Returns
     -------
@@ -219,12 +228,45 @@ def bgp_neighbors(
     cmd = "show routing protocol bgp peer"
     cmd_is_xml = False
 
+    df = pd.DataFrame()
+
+    # If serial numbers were provided, then get their BGP neighbors.
+    if serials:
+        for serial in serials:
+            response = run_adhoc_command(
+                username,
+                password,
+                host_group,
+                nm_path,
+                private_data_dir,
+                cmd,
+                cmd_is_xml,
+                serial,
+            )
+            df_response = parser.parse_bgp_neighbors(response)
+            df_response.insert(0, "serial", serial)
+            df = pd.concat([df, df_response])
+
+    # If serial numbers were provided, then get the device names for those serials.
+    if serials:
+        df = pah.get_device_name_from_serial(df, db_path)
+
+    # Get the BGP neighbors for the devices in the hostgroup. (This method ensures that
+    # the Panoramas and other devices in the hostgroup will have their neighbors
+    # collected, even if the 'serials' arg is populated.)
     response = run_adhoc_command(
         username, password, host_group, nm_path, private_data_dir, cmd, cmd_is_xml
     )
+    df_response = parser.parse_bgp_neighbors(response)
+    df = pd.concat([df, df_response])
 
-    # Parse results into df
-    return parser.parse_bgp_neighbors(response)
+    df = df.reset_index(drop=True)
+
+    # Reorder the columns in the DataFrame
+    new_column_order = ["device"] + [col for col in df.columns if col != "device"]
+    df = df[new_column_order]
+
+    return df
 
 
 def get_all_interfaces(

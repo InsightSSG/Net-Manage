@@ -1210,8 +1210,8 @@ def set_dependencies(selected: List[str]) -> List[str]:
         ]
         return deduplicated_order
 
+    # Define dependencies.
     collectors = {
-        "all_interfaces": {"dependencies": ["panorama_managed_devices"]},
         "bgp_neighbors": {"dependencies": ["interface_ip_addresses"]},
         "devices_modules": {"dependencies": ["devices_inventory"]},
         "interface_summary": {

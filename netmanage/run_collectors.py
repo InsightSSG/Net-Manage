@@ -301,6 +301,7 @@ def collect(
                 hostgroup,
                 netmanage_path,
                 private_data_dir,
+                database_full_path,
                 serials=palo_alto_serials,
             )
 
