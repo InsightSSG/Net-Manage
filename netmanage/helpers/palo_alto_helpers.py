@@ -33,3 +33,60 @@ def get_device_name_from_serial(df: pd.DataFrame, db_path: str) -> pd.DataFrame:
     df.rename(columns={"hostname": "device"}, inplace=True)
 
     return df
+
+
+def get_serial_from_device_name(
+    df: pd.DataFrame,
+    db_path: str,
+    device_col: str = "device",
+    serial_col: str = "serial",
+) -> pd.DataFrame:
+    """
+    Queries the PANOS_PANORAMA_MANAGED_DEVICES table to get the serial numbers for
+    the device names in 'df', then adds them to 'df'. This function is necessary because
+    some Ansible modules return the serial number as
+    VALUE_SPECIFIED_IN_NO_LOG_PARAMETER.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        A Pandas dataframe containing the device names and serial numbers in two
+        columns.
+    db_path : str
+        The full path to the database containing PANOS_PANORAMA_MANAGED_DEVICES.
+    device_col : str, optional
+        The name of the column that contains the devices (defaults to 'device').
+    serial_col : str, optional;
+        The name of the column that contains the serial numbers (defaults to 'serial').
+
+    Returns
+    -------
+    df : pd.DataFrame
+        An updated DataFrame with the serial_col updated with the serial numbers,
+        assuming they are in the PANOS_PANORAMA_MANAGED_DEVICES table. If they are not
+        in that table then they will be set to "Unknown". (Serial numbers that are
+        already in 'df' will not be changed, even if they are not in the
+        PANOS_PANORAMA_MANAGED_DEVICES table.)
+    """
+    conn = hp.connect_to_db(db_path)
+    query = (
+        "SELECT DISTINCT hostname AS device, serial FROM PANOS_PANORAMA_MANAGED_DEVICES"
+    )
+    df_managed = pd.read_sql(query, conn)
+
+    # Convert to string for consistency
+    df[serial_col] = df[serial_col].astype(str)
+    df_managed["serial"] = df_managed["serial"].astype(str)
+
+    # Create a dictionary for lookup
+    serial_dict = pd.Series(df_managed.serial.values, index=df_managed.device).to_dict()
+
+    # Update df using apply
+    def update_serial(row):
+        if row[serial_col] == "VALUE_SPECIFIED_IN_NO_LOG_PARAMETER":
+            return serial_dict.get(row[device_col], "Unknown")
+        else:
+            return row[serial_col]
+
+    df[serial_col] = df.apply(update_serial, axis=1)
+    return df

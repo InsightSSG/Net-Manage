@@ -269,6 +269,129 @@ def bgp_neighbors(
     return df
 
 
+def gather_facts(
+    username: str,
+    password: str,
+    host_group: str,
+    play_path: str,
+    private_data_dir: str,
+    gather_list: list = [],
+    serials: list = [],
+) -> ansible_runner.runner.Runner:
+    """Gathers specified facts on Palo Alto devices.
+
+    Parameters
+    ----------
+    username : str
+        The username to use for authentication.
+    password : str
+        The password to use for authentication.
+    host_group : str
+        The host group for which to gather facts.
+    play_path : str
+        The path to playbooks in Ansible.
+    private_data_dir : str
+        The path to private data directories in Ansible.
+    gather_list : list, optional
+        Scopes what information is gathered from the device. Possible values for this
+        argument include all, system, session, interfaces, ha, routing, vr, vsys and
+        config. You can specify a list of values to include a larger subset. Values can
+        also be used with an initial ! to specify that a specific subset should not be
+        collected. Panorama only supports the system, ha, and config subsets.
+        More details can be found here:
+        https://paloaltonetworks.github.io/pan-os-ansible/modules/panos_facts_module.html
+    serials : list, optional
+        Serial numbers of firewalls to use for targeted commands. If ip_address is not
+        a Panorama PAN-OS device, then this param is ignored.
+
+    Returns
+    -------
+    facts : list
+        A list containing a dictionary of devices and their facts.
+    """
+    extravars = {
+        "username": username,
+        "password": password,
+        "host_group": host_group,
+    }
+    if gather_list:
+        extravars["gather_list"] = gather_list
+
+    # Gather facts
+    playbook = f"{play_path}/palo_alto_gather_facts.yml"
+
+    facts = list()
+
+    runner = ansible_runner.run(
+        private_data_dir=private_data_dir,
+        playbook=playbook,
+        extravars=extravars,
+        suppress_env_files=True,
+    )
+    facts.append(parser.parse_facts(runner))
+
+    if serials:
+        for serial in serials:
+            extravars["serial_number"] = serial
+            runner = ansible_runner.run(
+                private_data_dir=private_data_dir,
+                playbook=playbook,
+                extravars=extravars,
+                suppress_env_files=True,
+            )
+            facts.append(parser.parse_facts(runner))
+
+    return facts
+
+
+def gather_basic_facts(
+    username: str,
+    password: str,
+    host_group: str,
+    play_path: str,
+    private_data_dir: str,
+    db_path: str,
+    serials: list = [],
+) -> pd.DataFrame:
+    """Gathers system and ha facts on Palo Alto devices.
+
+    Parameters
+    ----------
+    username : str
+        The username to use for authentication.
+    password : str
+        The password to use for authentication.
+    host_group : str
+        The host group for which to gather facts.
+    play_path : str
+        The path to playbooks in Ansible.
+    private_data_dir : str
+        The path to private data directories in Ansible.
+    db_path : str
+        The full path to the database containing the PANOS_PANORAMA_MANAGED_DEVICES
+        table.
+    serials : list, optional
+        Serial numbers of firewalls to use for targeted commands. If ip_address is not
+        a Panorama PAN-OS device, then this param is ignored.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A dataframe containing the system and ha facts.
+    """
+    results = gather_facts(
+        username,
+        password,
+        host_group,
+        play_path,
+        private_data_dir,
+        gather_list=["system", "ha"],
+        serials=serials,
+    )
+
+    return parser.parse_gather_basic_facts(results, db_path)
+
+
 def get_all_interfaces(
     username: str,
     password: str,

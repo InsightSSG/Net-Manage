@@ -292,6 +292,16 @@ def collect(
                 play_path,
                 private_data_dir,
             )
+        if ansible_os == "paloaltonetworks.panos":
+            result = pac.gather_basic_facts(
+                palo_alto_username,
+                palo_alto_password,
+                hostgroup,
+                play_path,
+                private_data_dir,
+                database_full_path,
+                serials=palo_alto_serials,
+            )
 
     if collector == "bgp_neighbors":
         if ansible_os == "cisco.ios.ios":
