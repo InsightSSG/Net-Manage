@@ -275,6 +275,16 @@ def collect(
                 validate_certs=validate_certs,
             )
 
+    if collector == "basic_facts":
+        if ansible_os == "cisco.ios.ios":
+            result = cic.gather_basic_facts(
+                ios_devices_username,
+                ios_devices_password,
+                hostgroup,
+                play_path,
+                private_data_dir,
+            )
+
     if collector == "bgp_neighbors":
         if ansible_os == "cisco.ios.ios":
             result = cic.bgp_neighbors(

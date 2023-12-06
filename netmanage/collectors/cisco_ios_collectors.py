@@ -6,12 +6,14 @@ import pandas as pd
 from netmanage.parsers import cisco_ios_parsers as parser
 
 
-def gather_facts(username: str,
-                 password: str,
-                 host_group: str,
-                 play_path: str,
-                 private_data_dir: str,
-                 gather_info: dict) -> dict:
+def gather_facts(
+    username: str,
+    password: str,
+    host_group: str,
+    play_path: str,
+    private_data_dir: str,
+    gather_info: dict,
+) -> dict:
     """Gathers specified facts on Cisco IOS devices.
 
     Parameters
@@ -88,26 +90,61 @@ def gather_facts(username: str,
     >>> hostname <class 'str'>
     >>> snmp_server <class 'str'>
     """
-    extravars = {'username': username,
-                 'password': password,
-                 'host_group': host_group,
-                 'gather_info': gather_info}
+    extravars = {
+        "username": username,
+        "password": password,
+        "host_group": host_group,
+        "gather_info": gather_info,
+    }
 
     # Execute the pre-checks
-    playbook = f'{play_path}/cisco_ios_gather_facts.yml'
-    runner = ansible_runner.run(private_data_dir=private_data_dir,
-                                playbook=playbook,
-                                extravars=extravars,
-                                suppress_env_files=True)
+    playbook = f"{play_path}/cisco_ios_gather_facts.yml"
+    runner = ansible_runner.run(
+        private_data_dir=private_data_dir,
+        playbook=playbook,
+        extravars=extravars,
+        suppress_env_files=True,
+    )
 
     return parser.parse_facts(runner)
 
 
-def bgp_neighbors(username: str,
-                  password: str,
-                  host_group: str,
-                  play_path: str,
-                  private_data_dir: str) -> pd.DataFrame:
+def gather_basic_facts(
+    username: str, password: str, host_group: str, play_path: str, private_data_dir: str
+) -> pd.DataFrame:
+    """
+    Get 'minimum' facts like model number, hostname, etc, using Ansible's gather_facts.
+
+    Parameters
+    ----------
+    username : str
+        The username to login to devices.
+    password : str
+        The password to login to devices.
+    host_group : str
+        The inventory host group.
+    play_path : str
+        The path to the playbooks directory.
+    private_data_dir : str
+        The path to the Ansible private data directory.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A DataFrame containing the facts.
+    """
+    gather_info = {"subset": ["min"]}
+    facts = gather_facts(
+        username, password, host_group, play_path, private_data_dir, gather_info
+    )
+
+    # Parse results into df
+    return parser.ios_parse_gather_basic_facts(facts)
+
+
+def bgp_neighbors(
+    username: str, password: str, host_group: str, play_path: str, private_data_dir: str
+) -> pd.DataFrame:
     """Gets the BGP neighbors for all VRFs.
 
     Parameters
@@ -128,35 +165,39 @@ def bgp_neighbors(username: str,
     pandas.DataFrame
         A DataFrame containing the BGP neighbor summary.
     """
-    cmd = ['show ip bgp all neighbors ',
-           ' include BGP neighbor is',
-           'Member of',
-           'BGP version',
-           'BGP state',
-           'Local host']
-    cmd = '|'.join(cmd)
+    cmd = [
+        "show ip bgp all neighbors ",
+        " include BGP neighbor is",
+        "Member of",
+        "BGP version",
+        "BGP state",
+        "Local host",
+    ]
+    cmd = "|".join(cmd)
 
-    extravars = {'username': username,
-                 'password': password,
-                 'host_group': host_group,
-                 'commands': cmd}
+    extravars = {
+        "username": username,
+        "password": password,
+        "host_group": host_group,
+        "commands": cmd,
+    }
 
     # Execute the pre-checks
-    playbook = f'{play_path}/cisco_ios_run_commands.yml'
-    runner = ansible_runner.run(private_data_dir=private_data_dir,
-                                playbook=playbook,
-                                extravars=extravars,
-                                suppress_env_files=True)
+    playbook = f"{play_path}/cisco_ios_run_commands.yml"
+    runner = ansible_runner.run(
+        private_data_dir=private_data_dir,
+        playbook=playbook,
+        extravars=extravars,
+        suppress_env_files=True,
+    )
 
     # Parse results into df
     return parser.parse_bgp_neighbors(runner)
 
 
-def cdp_neighbors(username: str,
-                  password: str,
-                  host_group: str,
-                  play_path: str,
-                  private_data_dir: str) -> pd.DataFrame:
+def cdp_neighbors(
+    username: str, password: str, host_group: str, play_path: str, private_data_dir: str
+) -> pd.DataFrame:
     """Gets the CDP neighbors for IOS devices.
 
     Parameters
@@ -177,41 +218,45 @@ def cdp_neighbors(username: str,
     df : pandas.DataFrame
         A DataFrame containing the CDP neighbors.
     """
-    params = ['-------------------------',
-              'Device ID',
-              'Entry address',
-              'IP address',
-              'IPv6 address',
-              'Platform',
-              'Interface',
-              'Duplex',
-              'Management']
-    params = '|'.join(params)
+    params = [
+        "-------------------------",
+        "Device ID",
+        "Entry address",
+        "IP address",
+        "IPv6 address",
+        "Platform",
+        "Interface",
+        "Duplex",
+        "Management",
+    ]
+    params = "|".join(params)
 
-    cmd = f'show cdp nei detail | include {params}'
+    cmd = f"show cdp nei detail | include {params}"
 
-    extravars = {'username': username,
-                 'password': password,
-                 'host_group': host_group,
-                 'commands': cmd}
+    extravars = {
+        "username": username,
+        "password": password,
+        "host_group": host_group,
+        "commands": cmd,
+    }
 
     # Execute the pre-checks
-    playbook = f'{play_path}/cisco_ios_run_commands.yml'
-    runner = ansible_runner.run(private_data_dir=private_data_dir,
-                                playbook=playbook,
-                                extravars=extravars,
-                                suppress_env_files=True)
+    playbook = f"{play_path}/cisco_ios_run_commands.yml"
+    runner = ansible_runner.run(
+        private_data_dir=private_data_dir,
+        playbook=playbook,
+        extravars=extravars,
+        suppress_env_files=True,
+    )
 
     # Parse results into df
     return parser.parse_cdp_neighbors(runner)
 
 
-def inventory(username: str,
-              password: str,
-              host_group: str,
-              play_path: str,
-              private_data_dir: str) -> pd.DataFrame:
-    '''
+def inventory(
+    username: str, password: str, host_group: str, play_path: str, private_data_dir: str
+) -> pd.DataFrame:
+    """
     Get the inventory for Cisco IOS and IOS-XE devices.
 
     Parameters
@@ -231,29 +276,31 @@ def inventory(username: str,
     -------
     df : pd.DataFrame
         A DataFrame containing the interfaces and IP addresses.
-    '''
-    cmd = 'show inventory'
-    extravars = {'username': username,
-                 'password': password,
-                 'host_group': host_group,
-                 'commands': cmd}
+    """
+    cmd = "show inventory"
+    extravars = {
+        "username": username,
+        "password": password,
+        "host_group": host_group,
+        "commands": cmd,
+    }
 
     # Execute the command
-    playbook = f'{play_path}/cisco_ios_run_commands.yml'
-    runner = ansible_runner.run(private_data_dir=private_data_dir,
-                                playbook=playbook,
-                                extravars=extravars,
-                                suppress_env_files=True)
+    playbook = f"{play_path}/cisco_ios_run_commands.yml"
+    runner = ansible_runner.run(
+        private_data_dir=private_data_dir,
+        playbook=playbook,
+        extravars=extravars,
+        suppress_env_files=True,
+    )
 
     # Parse results into df
     return parser.ios_parse_inventory(runner)
 
 
-def get_config(username: str,
-               password: str,
-               host_group: str,
-               play_path: str,
-               private_data_dir: str) -> pd.DataFrame:
+def get_config(
+    username: str, password: str, host_group: str, play_path: str, private_data_dir: str
+) -> pd.DataFrame:
     """Gets the config on Cisco IOS devices.
 
     Parameters
@@ -274,23 +321,18 @@ def get_config(username: str,
     df : pandas.DataFrame
         A DataFrame containing the device configurations.
     """
-    gather_info = {'subset': ['config']}
-    facts = gather_facts(username,
-                         password,
-                         host_group,
-                         play_path,
-                         private_data_dir,
-                         gather_info)
+    gather_info = {"subset": ["config"]}
+    facts = gather_facts(
+        username, password, host_group, play_path, private_data_dir, gather_info
+    )
 
     # Parse results into df
     return parser.parse_config(facts)
 
 
-def get_vrfs(username: str,
-             password: str,
-             host_group: str,
-             play_path: str,
-             private_data_dir: str) -> pd.DataFrame:
+def get_vrfs(
+    username: str, password: str, host_group: str, play_path: str, private_data_dir: str
+) -> pd.DataFrame:
     """Retrieve VRF information and return it as a DataFrame.
 
     Parameters
@@ -312,28 +354,30 @@ def get_vrfs(username: str,
         A DataFrame containing VRF information, with columns ["device", "name",
         "vrf_id", "default_rd", "default_vpn_id"].
     """
-    cmd = 'show vrf'
-    extravars = {'username': username,
-                 'password': password,
-                 'host_group': host_group,
-                 'commands': cmd}
+    cmd = "show vrf"
+    extravars = {
+        "username": username,
+        "password": password,
+        "host_group": host_group,
+        "commands": cmd,
+    }
 
     # Execute the pre-checks
-    playbook = f'{play_path}/cisco_ios_run_commands.yml'
-    runner = ansible_runner.run(private_data_dir=private_data_dir,
-                                playbook=playbook,
-                                extravars=extravars,
-                                suppress_env_files=True)
+    playbook = f"{play_path}/cisco_ios_run_commands.yml"
+    runner = ansible_runner.run(
+        private_data_dir=private_data_dir,
+        playbook=playbook,
+        extravars=extravars,
+        suppress_env_files=True,
+    )
 
     # Parse results into df
     return parser.parse_vrfs(runner)
 
 
-def ospf_neighbors(username: str,
-                   password: str,
-                   host_group: str,
-                   play_path: str,
-                   private_data_dir: str) -> pd.DataFrame:
+def ospf_neighbors(
+    username: str, password: str, host_group: str, play_path: str, private_data_dir: str
+) -> pd.DataFrame:
     """Gets the OSPF neighbors for all VRFs.
 
     Parameters
@@ -354,32 +398,40 @@ def ospf_neighbors(username: str,
     pandas.DataFrame
         A DataFrame containing the OSPF neighbors.
     """
-    cmd = ['show ip ospf neighbor detail',
-           'include interface address|area|priority|for|Dead timer']
-    cmd = ' | '.join(cmd)
-    extravars = {'username': username,
-                 'password': password,
-                 'host_group': host_group,
-                 'commands': cmd}
+    cmd = [
+        "show ip ospf neighbor detail",
+        "include interface address|area|priority|for|Dead timer",
+    ]
+    cmd = " | ".join(cmd)
+    extravars = {
+        "username": username,
+        "password": password,
+        "host_group": host_group,
+        "commands": cmd,
+    }
 
     # Execute the pre-checks
-    playbook = f'{play_path}/cisco_ios_run_commands.yml'
-    runner = ansible_runner.run(private_data_dir=private_data_dir,
-                                playbook=playbook,
-                                extravars=extravars,
-                                suppress_env_files=True)
+    playbook = f"{play_path}/cisco_ios_run_commands.yml"
+    runner = ansible_runner.run(
+        private_data_dir=private_data_dir,
+        playbook=playbook,
+        extravars=extravars,
+        suppress_env_files=True,
+    )
 
     # Parse results into df
     return parser.parse_ospf_neighbors(runner)
 
 
-def ios_find_uplink_by_ip(username: str,
-                          password: str,
-                          host_group: str,
-                          play_path: str,
-                          private_data_dir: str,
-                          subnets: list = []) -> pd.DataFrame:
-    '''
+def ios_find_uplink_by_ip(
+    username: str,
+    password: str,
+    host_group: str,
+    play_path: str,
+    private_data_dir: str,
+    subnets: list = [],
+) -> pd.DataFrame:
+    """
     Search the hostgroup for a list of subnets (use /32 to search for a
     single IP). Once it finds them, it uses CDP and LLDP (if applicable) to try
     to find the uplink.
@@ -426,32 +478,30 @@ def ios_find_uplink_by_ip(username: str,
       - Reverse DNS (in the case of P2P IPs)
       - CAM table
     - Add an option to specify the VRF (low priority).
-    '''
+    """
     # Get the IP addresses on the devices in the host group
-    df_ip = ios_get_interface_ips(username,
-                                  password,
-                                  host_group,
-                                  play_path,
-                                  private_data_dir)
+    df_ip = ios_get_interface_ips(
+        username, password, host_group, play_path, private_data_dir
+    )
 
     # Get the CDP neighbors for the device
-    df_cdp = ios_get_cdp_neighbors(username,
-                                   password,
-                                   host_group,
-                                   play_path,
-                                   private_data_dir)
+    df_cdp = ios_get_cdp_neighbors(
+        username, password, host_group, play_path, private_data_dir
+    )
 
     # Parse results into df
     return parser.ios_parse_uplink_by_ip(df_ip, df_cdp)
 
 
-def ios_get_arp_table(username: str,
-                      password: str,
-                      host_group: str,
-                      nm_path: str,
-                      play_path: str,
-                      private_data_dir: str) -> pd.DataFrame:
-    '''
+def ios_get_arp_table(
+    username: str,
+    password: str,
+    host_group: str,
+    nm_path: str,
+    play_path: str,
+    private_data_dir: str,
+) -> pd.DataFrame:
+    """
     Get the IOS ARP table and add the vendor OUI.
 
     Parameters
@@ -473,32 +523,38 @@ def ios_get_arp_table(username: str,
     -------
     df_arp : pd.DataFrame
         The ARP table and vendor OUI as a pandas DataFrame.
-    '''
-    cmd = 'show ip arp'
-    extravars = {'username': username,
-                 'password': password,
-                 'host_group': host_group,
-                 'commands': cmd}
+    """
+    cmd = "show ip arp"
+    extravars = {
+        "username": username,
+        "password": password,
+        "host_group": host_group,
+        "commands": cmd,
+    }
 
     # Execute the pre-checks
-    playbook = f'{play_path}/cisco_ios_run_commands.yml'
-    runner = ansible_runner.run(private_data_dir=private_data_dir,
-                                playbook=playbook,
-                                extravars=extravars,
-                                suppress_env_files=True)
+    playbook = f"{play_path}/cisco_ios_run_commands.yml"
+    runner = ansible_runner.run(
+        private_data_dir=private_data_dir,
+        playbook=playbook,
+        extravars=extravars,
+        suppress_env_files=True,
+    )
 
     # Parse results into df
     return parser.ios_parse_arp_table(runner, nm_path)
 
 
-def ios_get_cam_table(username: str,
-                      password: str,
-                      host_group: str,
-                      nm_path: str,
-                      play_path: str,
-                      private_data_dir: str,
-                      interface: str = None) -> pd.DataFrame:
-    '''
+def ios_get_cam_table(
+    username: str,
+    password: str,
+    host_group: str,
+    nm_path: str,
+    play_path: str,
+    private_data_dir: str,
+    interface: str = None,
+) -> pd.DataFrame:
+    """
     Get the IOS CAM table and add the vendor OUI.
 
     Parameters
@@ -522,34 +578,40 @@ def ios_get_cam_table(username: str,
     -------
     df_cam : pd.DataFrame
         The CAM table and vendor OUI as a pandas DataFrame.
-    '''
+    """
     if interface:
-        cmd = f'show mac address-table interface {interface}'
+        cmd = f"show mac address-table interface {interface}"
     else:
-        cmd = 'show mac address-table | begin Vlan'
-    extravars = {'username': username,
-                 'password': password,
-                 'host_group': host_group,
-                 'commands': cmd}
+        cmd = "show mac address-table | begin Vlan"
+    extravars = {
+        "username": username,
+        "password": password,
+        "host_group": host_group,
+        "commands": cmd,
+    }
 
     # Execute the pre-checks
-    playbook = f'{play_path}/cisco_ios_run_commands.yml'
-    runner = ansible_runner.run(private_data_dir=private_data_dir,
-                                playbook=playbook,
-                                extravars=extravars,
-                                suppress_env_files=True)
+    playbook = f"{play_path}/cisco_ios_run_commands.yml"
+    runner = ansible_runner.run(
+        private_data_dir=private_data_dir,
+        playbook=playbook,
+        extravars=extravars,
+        suppress_env_files=True,
+    )
 
     # Parse results into df
     return parser.ios_parse_cam_table(runner, nm_path)
 
 
-def ios_get_cdp_neighbors(username: str,
-                          password: str,
-                          host_group: str,
-                          play_path: str,
-                          private_data_dir: str,
-                          interface: str = '') -> pd.DataFrame:
-    '''
+def ios_get_cdp_neighbors(
+    username: str,
+    password: str,
+    host_group: str,
+    play_path: str,
+    private_data_dir: str,
+    interface: str = "",
+) -> pd.DataFrame:
+    """
     Get the CDP neighbors for a Cisco IOS device.
 
     Parameters
@@ -572,31 +634,37 @@ def ios_get_cdp_neighbors(username: str,
     -------
     df_cdp : pd.DataFrame
         A DataFrame containing the CDP neighbors.
-    '''
-    cmd = 'show cdp neighbor detail | include Device ID|Interface'
-    extravars = {'username': username,
-                 'password': password,
-                 'host_group': host_group,
-                 'commands': cmd}
+    """
+    cmd = "show cdp neighbor detail | include Device ID|Interface"
+    extravars = {
+        "username": username,
+        "password": password,
+        "host_group": host_group,
+        "commands": cmd,
+    }
 
     # Execute the command
-    playbook = f'{play_path}/cisco_ios_run_commands.yml'
-    runner = ansible_runner.run(private_data_dir=private_data_dir,
-                                playbook=playbook,
-                                extravars=extravars,
-                                suppress_env_files=True)
+    playbook = f"{play_path}/cisco_ios_run_commands.yml"
+    runner = ansible_runner.run(
+        private_data_dir=private_data_dir,
+        playbook=playbook,
+        extravars=extravars,
+        suppress_env_files=True,
+    )
 
     # Parse results into df
     return parser.ios_parse_cdp_neighbors(runner)
 
 
-def ios_get_interface_descriptions(username: str,
-                                   password: str,
-                                   host_group: str,
-                                   play_path: str,
-                                   private_data_dir: str,
-                                   interface: str = None) -> pd.DataFrame:
-    '''
+def ios_get_interface_descriptions(
+    username: str,
+    password: str,
+    host_group: str,
+    play_path: str,
+    private_data_dir: str,
+    interface: str = None,
+) -> pd.DataFrame:
+    """
     Get IOS interface descriptions.
 
     Parameters
@@ -618,31 +686,33 @@ def ios_get_interface_descriptions(username: str,
     -------
     df_desc : pd.DataFrame
         A DataFrame containing the interface descriptions.
-    '''
+    """
     # Get the interface descriptions and add them to df_cam
-    cmd = 'show interface description'
-    extravars = {'username': username,
-                 'password': password,
-                 'host_group': host_group,
-                 'commands': cmd}
+    cmd = "show interface description"
+    extravars = {
+        "username": username,
+        "password": password,
+        "host_group": host_group,
+        "commands": cmd,
+    }
 
     # Execute 'show interface description' and parse the results
-    playbook = f'{play_path}/cisco_ios_run_commands.yml'
-    runner = ansible_runner.run(private_data_dir=private_data_dir,
-                                playbook=playbook,
-                                extravars=extravars,
-                                suppress_env_files=True)
+    playbook = f"{play_path}/cisco_ios_run_commands.yml"
+    runner = ansible_runner.run(
+        private_data_dir=private_data_dir,
+        playbook=playbook,
+        extravars=extravars,
+        suppress_env_files=True,
+    )
 
     # Parse results into df
     return parser.ios_parse_interface_descriptions(runner)
 
 
-def ios_get_interface_ips(username: str,
-                          password: str,
-                          host_group: str,
-                          play_path: str,
-                          private_data_dir: str) -> pd.DataFrame:
-    '''
+def ios_get_interface_ips(
+    username: str, password: str, host_group: str, play_path: str, private_data_dir: str
+) -> pd.DataFrame:
+    """
     Get the IP addresses assigned to interfaces.
 
     Parameters
@@ -662,33 +732,37 @@ def ios_get_interface_ips(username: str,
     -------
     df : pd.DataFrame
         A DataFrame containing the interfaces and IP addresses.
-    '''
-    cmd = ['show ip interface',
-           '|',
-           'include line protocol|Internet address is|VPN Routing']
-    cmd = ' '.join(cmd)
-    extravars = {'username': username,
-                 'password': password,
-                 'host_group': host_group,
-                 'commands': cmd}
+    """
+    cmd = [
+        "show ip interface",
+        "|",
+        "include line protocol|Internet address is|VPN Routing",
+    ]
+    cmd = " ".join(cmd)
+    extravars = {
+        "username": username,
+        "password": password,
+        "host_group": host_group,
+        "commands": cmd,
+    }
 
     # Execute the command
-    playbook = f'{play_path}/cisco_ios_run_commands.yml'
-    runner = ansible_runner.run(private_data_dir=private_data_dir,
-                                playbook=playbook,
-                                extravars=extravars,
-                                suppress_env_files=True)
+    playbook = f"{play_path}/cisco_ios_run_commands.yml"
+    runner = ansible_runner.run(
+        private_data_dir=private_data_dir,
+        playbook=playbook,
+        extravars=extravars,
+        suppress_env_files=True,
+    )
 
     # Parse results into df
     return parser.ios_parse_interface_ips(runner)
 
 
-def ios_get_interface_ipv6_ips(username: str,
-                               password: str,
-                               host_group: str,
-                               play_path: str,
-                               private_data_dir: str) -> pd.DataFrame:
-    '''
+def ios_get_interface_ipv6_ips(
+    username: str, password: str, host_group: str, play_path: str, private_data_dir: str
+) -> pd.DataFrame:
+    """
     Get the IPv6 addresses assigned to interfaces.
 
     Parameters
@@ -708,30 +782,32 @@ def ios_get_interface_ipv6_ips(username: str,
     -------
     df : pd.DataFrame
         A DataFrame containing the interfaces and IP addresses.
-    '''
-    cmd = 'show ipv6 interface | include line protocol|subnet is|VPN Routing'
-    extravars = {'username': username,
-                 'password': password,
-                 'host_group': host_group,
-                 'commands': cmd}
+    """
+    cmd = "show ipv6 interface | include line protocol|subnet is|VPN Routing"
+    extravars = {
+        "username": username,
+        "password": password,
+        "host_group": host_group,
+        "commands": cmd,
+    }
 
     # Execute the command
-    playbook = f'{play_path}/cisco_ios_run_commands.yml'
-    runner = ansible_runner.run(private_data_dir=private_data_dir,
-                                playbook=playbook,
-                                extravars=extravars,
-                                suppress_env_files=True)
+    playbook = f"{play_path}/cisco_ios_run_commands.yml"
+    runner = ansible_runner.run(
+        private_data_dir=private_data_dir,
+        playbook=playbook,
+        extravars=extravars,
+        suppress_env_files=True,
+    )
 
     # Parse results into df
     return parser.ios_parse_interface_ipv6_ips(runner)
 
 
-def ios_get_vlan_db(username: str,
-                    password: str,
-                    host_group: str,
-                    play_path: str,
-                    private_data_dir: str) -> pd.DataFrame:
-    '''
+def ios_get_vlan_db(
+    username: str, password: str, host_group: str, play_path: str, private_data_dir: str
+) -> pd.DataFrame:
+    """
     Gets the VLAN database for Cisco IOS devices.
 
     Parameters
@@ -751,20 +827,24 @@ def ios_get_vlan_db(username: str,
     -------
     df : pd.DataFrame
         A DataFrame containing the VLAN database.
-    '''
+    """
     # Get the interface descriptions and add them to df_cam
-    cmd = 'show vlan brief | exclude ----'
-    extravars = {'username': username,
-                 'password': password,
-                 'host_group': host_group,
-                 'commands': cmd}
+    cmd = "show vlan brief | exclude ----"
+    extravars = {
+        "username": username,
+        "password": password,
+        "host_group": host_group,
+        "commands": cmd,
+    }
 
     # Execute 'show interface description' and parse the results
-    playbook = f'{play_path}/cisco_ios_run_commands.yml'
-    runner = ansible_runner.run(private_data_dir=private_data_dir,
-                                playbook=playbook,
-                                extravars=extravars,
-                                suppress_env_files=True)
+    playbook = f"{play_path}/cisco_ios_run_commands.yml"
+    runner = ansible_runner.run(
+        private_data_dir=private_data_dir,
+        playbook=playbook,
+        extravars=extravars,
+        suppress_env_files=True,
+    )
 
     # Parse results into df
     return parser.ios_parse_vlan_db(runner)
