@@ -276,6 +276,14 @@ def collect(
             )
 
     if collector == "basic_facts":
+        if ansible_os == "cisco.asa.asa":
+            result = cac.gather_basic_facts(
+                asa_devices_username,
+                asa_devices_password,
+                hostgroup,
+                play_path,
+                private_data_dir,
+            )
         if ansible_os == "cisco.ios.ios":
             result = cic.gather_basic_facts(
                 ios_devices_username,

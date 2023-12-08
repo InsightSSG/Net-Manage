@@ -525,7 +525,12 @@ def define_collectors(hostgroup: str) -> Dict[str, Any]:
             "cisco.nxos.nxos",
             "paloaltonetworks.panos",
         ],
-        "basic_facts": ["cisco.ios.ios", "cisco.nxos.nxos", "paloaltonetworks.panos"],
+        "basic_facts": [
+            "cisco.asa.asa",
+            "cisco.ios.ios",
+            "cisco.nxos.nxos",
+            "paloaltonetworks.panos",
+        ],
         "bgp_neighbors": ["cisco.ios.ios", "cisco.nxos.nxos", "paloaltonetworks.panos"],
         "cam_table": ["cisco.ios.ios", "cisco.nxos.nxos"],
         "cdp_neighbors": ["cisco.ios.ios", "cisco.nxos.nxos"],
