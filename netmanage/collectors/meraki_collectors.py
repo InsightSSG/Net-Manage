@@ -8,6 +8,7 @@ from netmanage import run_collectors as rc
 import sqlite3 as sl
 from asyncio import Semaphore
 from netmanage.helpers import helpers as hp
+from netmanage.helpers import meraki_helpers as mhp
 from meraki.aio import AsyncDashboardAPI
 from meraki.exceptions import APIError
 from typing import Union
@@ -673,7 +674,7 @@ def meraki_get_org_appliance_uplink_statuses(api_key: str,
     results = list()
     for org in organizations:
         # Check if API access is enabled for the org
-        enabled = hp.meraki_check_api_enablement(db_path, org)
+        enabled = mhp.meraki_check_api_enablement(db_path, org)
         if enabled:
             uplinks = app.getOrganizationApplianceUplinkStatuses(
                 org, total_pages="all")
@@ -718,7 +719,9 @@ def meraki_get_org_devices(api_key: str,
                            db_path: str,
                            orgs: list = []) -> pd.DataFrame:
     '''
-    Gets the devices for all orgs that the user's API key has access to.
+    Gets the devices for all orgs that the user's API key has access to. If the user
+    specifies an optional list of organization IDs, then the function will only return
+    the devices for those organizations.
 
     Parameters
     ----------
@@ -757,7 +760,7 @@ def meraki_get_org_devices(api_key: str,
     data = list()
     for org in organizations:
         # Check if API access is enabled for the org
-        enabled = hp.meraki_check_api_enablement(db_path, org)
+        enabled = mhp.meraki_check_api_enablement(db_path, org)
         if enabled:
             devices = app.getOrganizationDevices(org, total_pages="all")
             for item in devices:
@@ -851,7 +854,7 @@ def meraki_get_org_device_statuses(api_key: str,
     tp = total_pages
     for org in orgs:
         # Check if API access is enabled for the org
-        enabled = hp.meraki_check_api_enablement(db_path, org)
+        enabled = mhp.meraki_check_api_enablement(db_path, org)
         if enabled:
             statuses = app.getOrganizationDevicesStatuses(org, total_pages=tp)
             for item in statuses:
@@ -945,7 +948,7 @@ def meraki_get_org_networks(api_key: str,
     for org in organizations:
         if use_db:
             # Check if API access is enabled for the org
-            enabled = hp.meraki_check_api_enablement(db_path, org)
+            enabled = mhp.meraki_check_api_enablement(db_path, org)
         else:
             enabled = False
         if enabled or not use_db:
