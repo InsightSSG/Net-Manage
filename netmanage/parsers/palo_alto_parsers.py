@@ -3,6 +3,7 @@
 import ansible_runner
 import json
 import pandas as pd
+import sqlite3 as sl
 from netmanage.helpers import helpers as hp
 from netmanage.helpers import palo_alto_helpers as pah
 
@@ -44,23 +45,35 @@ def parse_all_interfaces(response: dict) -> pd.DataFrame:
         except Exception:
             result[device] = dict()
 
-    # Use the data in 'result' to populate 'df_data', which will be used to
+    # Use the data in 'result' to create keys for 'df_data', which will be used to
     # create the dataframe.
     df_data = dict()
     df_data["device"] = list()
     for device in result:
         for item in result[device]:
-            df_data["device"].append(device)
-            try:  # Parse firewall output
+            try:  # Get keys from firewalls
                 for key, value in item.items():
                     if not df_data.get(key):
                         df_data[key] = list()
-                    df_data[key].append(value)
-            except AttributeError:  # Parse Panorama output
+            except AttributeError:  # Get keys from Panoramas
                 for key, value in result[device][item].items():
                     if not df_data.get(key):
                         df_data[key] = list()
-                    df_data[key].append(value)
+            except Exception:
+                pass
+
+    # Use the data in 'result' to populate 'df_data', which will be used to
+    # create the dataframe.
+    keys_to_collect = [k for k in df_data if k != 'device']
+    for device in result:
+        for item in result[device]:
+            df_data["device"].append(device)
+            try:  # Parse firewall output
+                for key in keys_to_collect:
+                    df_data[key].append(item.get(key))
+            except AttributeError:  # Parse Panorama output
+                for key in keys_to_collect:
+                    df_data[key].append(result[device][item].get(key))
             except Exception:
                 pass
 
@@ -260,8 +273,12 @@ def parse_gather_basic_facts(results: list, db_path) -> pd.DataFrame:
     # For some reason, the gather_facts module returns some serial numbers as
     # VALUE_SPECIFIED_IN_NO_LOG_PARAMETER. I have only seen this behavior when
     # connecting through a Panorama, so we will use PANOS_PANORAMA_MANAGED_DEVICES to
-    # try to find the serial numbers.
-    df = pah.get_serial_from_device_name(df, db_path, serial_col="ansible_net_serial")
+    # try to find the serial numbers for devices that we connected to through a
+    # Panorama.
+    try:
+        df = pah.get_serial_from_device_name(df, db_path, serial_col="ansible_net_serial")
+    except sl.DatabaseError:
+        pass
 
     return df
 

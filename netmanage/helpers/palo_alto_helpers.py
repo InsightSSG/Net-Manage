@@ -1,4 +1,5 @@
 import pandas as pd
+import sqlite3 as sl
 from netmanage.helpers import helpers as hp
 
 
@@ -72,21 +73,25 @@ def get_serial_from_device_name(
     query = (
         "SELECT DISTINCT hostname AS device, serial FROM PANOS_PANORAMA_MANAGED_DEVICES"
     )
-    df_managed = pd.read_sql(query, conn)
+    try:
+        df_managed = pd.read_sql(query, conn)
+        # Convert to string for consistency
+        df[serial_col] = df[serial_col].astype(str)
+        df_managed["serial"] = df_managed["serial"].astype(str)
 
-    # Convert to string for consistency
-    df[serial_col] = df[serial_col].astype(str)
-    df_managed["serial"] = df_managed["serial"].astype(str)
+        # Create a dictionary for lookup
+        serial_dict = pd.Series(df_managed.serial.values, index=df_managed.device).to_dict()
 
-    # Create a dictionary for lookup
-    serial_dict = pd.Series(df_managed.serial.values, index=df_managed.device).to_dict()
+        # Update df using apply
+        def update_serial(row):
+            if row[serial_col] == "VALUE_SPECIFIED_IN_NO_LOG_PARAMETER":
+                return serial_dict.get(row[device_col], "Unknown")
+            else:
+                return row[serial_col]
 
-    # Update df using apply
-    def update_serial(row):
-        if row[serial_col] == "VALUE_SPECIFIED_IN_NO_LOG_PARAMETER":
-            return serial_dict.get(row[device_col], "Unknown")
-        else:
-            return row[serial_col]
+        df[serial_col] = df.apply(update_serial, axis=1)
+    except Exception as e:
+        if 'DatabaseError' in str(e) and 'PANOS_PANORAMA_MANAGED_DEVICES' in str(e):
+            pass
 
-    df[serial_col] = df.apply(update_serial, axis=1)
     return df
