@@ -537,6 +537,7 @@ def define_collectors(hostgroup: str) -> Dict[str, Any]:
         "devices_inventory": ["cisco.dnac"],
         "device_cdp_lldp_neighbors": ["meraki"],
         "devices_modules": ["cisco.dnac"],
+        "fexes_table": ["cisco.nxos.nxos"],
         "hardware_inventory": [
             "bigip",
             "cisco.asa.asa",
@@ -544,7 +545,11 @@ def define_collectors(hostgroup: str) -> Dict[str, Any]:
             "cisco.nxos.nxos",
             "paloaltonetworks.panos",
         ],
-        "fexes_table": ["cisco.nxos.nxos"],
+        "infoblox_get_network_containers": ["nios"],
+        "infoblox_get_network_parent_containers": ["nios"],
+        "infoblox_get_networks": ["nios"],
+        "infoblox_get_vlan_ranges": ["nios"],
+        "infoblox_get_vlans": ["nios"],
         "lldp_neighbors": ["cisco.nxos.nxos"],
         "logs": ["bigip"],
         "ncm_serial_numbers": ["solarwinds"],
@@ -729,14 +734,15 @@ def find_mac_vendors(macs: List[str], nm_path: str) -> pd.DataFrame:
 
 def generate_subnet_details(
     addresses: List[str],
-    return_keys: List[str] = ["subnet", "network_ip", "broadcast_ip", "subnet_mask"]
+    return_keys: List[str] = ["subnet", "network_ip", "broadcast_ip", "subnet_mask"],
 ) -> Dict[str, List[str]]:
     """Generates the subnet, network, and broadcast IPs for a list of IPs.
 
     Parameters
     ----------
     addresses : list of str
-        List of IP addresses in the format {ip}/{subnet_mask_length} or {ip} {subnet_mask}.
+        List of IP addresses in the format {ip}/{subnet_mask_length} or
+        {ip} {subnet_mask}.
     return_keys : list of str, optional
         List of keys to return.
 
@@ -751,10 +757,11 @@ def generate_subnet_details(
     subnet_mask = []
 
     for ip in addresses:
-        if ' ' in ip:  # For 'IP SUBNET_MASK' format
+        if " " in ip:  # For 'IP SUBNET_MASK' format
             ip_address, mask = ip.split()
             ip_obj = ipaddress.ip_interface(
-                f'{ip_address}/{ipaddress.IPv4Network("0.0.0.0/"+mask).prefixlen}')
+                f'{ip_address}/{ipaddress.IPv4Network("0.0.0.0/"+mask).prefixlen}'
+            )
         else:  # For 'IP/SUBNET_MASK_LENGTH' format
             ip_obj = ipaddress.ip_interface(ip)
 
@@ -768,7 +775,7 @@ def generate_subnet_details(
     return {
         return_keys[0]: subnet_mask,
         return_keys[1]: network_ip,
-        return_keys[2]: broadcast_ip
+        return_keys[2]: broadcast_ip,
     }
 
 

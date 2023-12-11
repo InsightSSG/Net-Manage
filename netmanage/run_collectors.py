@@ -93,6 +93,8 @@ def collect(
     infoblox_username = os.environ["infoblox_username"]
     infoblox_password = os.environ["infoblox_password"]
     infoblox_paging = os.environ["infoblox_paging"]
+    if "http" in infoblox_url:
+        infoblox_url = infoblox_url.split("//")[1].split("/")[0].strip()
 
     # Read Meraki variables
     meraki_api_key = os.environ["meraki_api_key"]
