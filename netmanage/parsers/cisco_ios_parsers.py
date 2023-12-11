@@ -731,7 +731,7 @@ def ios_parse_interface_ips(runner: dict) -> pd.DataFrame:
                         vrf = output[pos - 1].split()[-1].strip('"')
                     else:
                         vrf = "None"
-                    ip = line.split()[-1].split("/")[0]
+                    ip = line.split()[-1]
                     inf = output[pos + 1].split()[0]
                     row = [device, inf, ip, vrf]
                     df_data.append(row)
@@ -765,7 +765,10 @@ def ios_parse_interface_ips(runner: dict) -> pd.DataFrame:
         ]
     ]
 
-    return df
+    # Remove the cidr notation or subnet mask from the 'ip' column.
+    df['ip'] = [_.split('/')[0].split(' ')[0] for _ in df['ip'].to_list()]
+
+    return df.astype(str)
 
 
 def ios_parse_interface_ipv6_ips(runner: dict) -> pd.DataFrame:
