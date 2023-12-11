@@ -733,12 +733,8 @@ def ios_get_interface_ips(
     df : pd.DataFrame
         A DataFrame containing the interfaces and IP addresses.
     """
-    cmd = [
-        "show ip interface",
-        "|",
-        "include line protocol|Internet address is|VPN Routing",
-    ]
-    cmd = " ".join(cmd)
+    cmd = 'show run | include interface|description|ip address|vrf|encapsulation'
+
     extravars = {
         "username": username,
         "password": password,

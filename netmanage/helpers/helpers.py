@@ -729,44 +729,35 @@ def find_mac_vendors(macs: List[str], nm_path: str) -> pd.DataFrame:
 
 def generate_subnet_details(
     addresses: List[str],
-    return_keys: List[str] = ["subnet", "network_ip", "broadcast_ip", "subnet_mask"],
+    return_keys: List[str] = ["subnet", "network_ip", "broadcast_ip", "subnet_mask"]
 ) -> Dict[str, List[str]]:
     """Generates the subnet, network, and broadcast IPs for a list of IPs.
 
     Parameters
     ----------
     addresses : list of str
-        List of IP addresses in the format {ip}/{subnet_mask_length}.
+        List of IP addresses in the format {ip}/{subnet_mask_length} or {ip} {subnet_mask}.
     return_keys : list of str, optional
-        List of keys to return. Used for when a table has column names that
-        conflict with the default return_keys of 'subnet', 'network_ip',
-        'broadcast_ip', and 'subnet_mask'. Defaults to ['subnet','network_ip',
-        'broadcast_ip', 'subnet_mask'].
-        NOTE: The keys should be ordered so that element[0] is for the 'subnet'
-              column, element[1] for 'network_ip', element[2] for
-              'broadcast_ip', and element[3] for 'subnet_mask'.
+        List of keys to return.
 
     Returns
     -------
     dict
-        A dictionary with four keys:
-        - 'subnet' : list of str
-            List of subnet in CIDR notation for each IP address in the input
-            list.
-        - 'network_ip' : list of str
-            List of network IP for each IP address in the input list.
-        - 'broadcast_ip' : list of str
-            List of broadcast IP for each IP address in the input list.
-        - 'subnet_mask' : list of str
-            List of subnet masks for each IP address in the input list.
+        A dictionary with details about each IP address.
     """
-    subnet = list()
-    network_ip = list()
-    broadcast_ip = list()
-    subnet_mask = list()
+    subnet = []
+    network_ip = []
+    broadcast_ip = []
+    subnet_mask = []
 
     for ip in addresses:
-        ip_obj = ipaddress.ip_interface(ip)
+        if ' ' in ip:  # For 'IP SUBNET_MASK' format
+            ip_address, mask = ip.split()
+            ip_obj = ipaddress.ip_interface(
+                f'{ip_address}/{ipaddress.IPv4Network("0.0.0.0/"+mask).prefixlen}')
+        else:  # For 'IP/SUBNET_MASK_LENGTH' format
+            ip_obj = ipaddress.ip_interface(ip)
+
         subnet.append(str(ip_obj.network))
         network_ip.append(str(ip_obj.network.network_address))
         brd = str(ipaddress.IPv4Address(int(ip_obj.network.broadcast_address)))
@@ -777,7 +768,7 @@ def generate_subnet_details(
     return {
         return_keys[0]: subnet_mask,
         return_keys[1]: network_ip,
-        return_keys[2]: broadcast_ip,
+        return_keys[2]: broadcast_ip
     }
 
 

@@ -714,7 +714,16 @@ def ios_parse_interface_ips(runner: dict) -> pd.DataFrame:
         raise ValueError("The input is None or empty")
 
     # Parse the results
-    df_data = list()
+    # df_data = list()
+    df_data = dict()
+    df_data['device'] = list()
+    df_data['interface'] = list()
+    df_data['description'] = list()
+    df_data['ip'] = list()
+    df_data['encapsulation'] = list()
+    df_data['tag'] = list()
+    df_data['vrf'] = list()
+
     for event in runner.events:
         if event["event"] == "runner_on_ok":
             event_data = event["event_data"]
@@ -722,25 +731,51 @@ def ios_parse_interface_ips(runner: dict) -> pd.DataFrame:
             device = event_data["remote_addr"]
 
             output = event_data["res"]["stdout"][0].split("\n")
-            output.reverse()  # Reverse the output to make it easier to iterate
+
             counter = 0
             for line in output:
-                if "Internet address" in line:
-                    pos = counter
-                    if "VPN Routing/Forwarding" in output[pos - 1]:
-                        vrf = output[pos - 1].split()[-1].strip('"')
-                    else:
-                        vrf = "None"
-                    ip = line.split()[-1]
-                    inf = output[pos + 1].split()[0]
-                    row = [device, inf, ip, vrf]
-                    df_data.append(row)
                 counter += 1
+                try:
+                    if line.split()[0] == 'interface':
+                        if output[counter].split()[0] in ('ip',
+                                                          'description',
+                                                          'encapsulation',
+                                                          'vrf'):
+                            interface = line.split()[-1]
+                            ip = str()
+                            block = output[counter:counter+4]
+                            description = str()
+                            encapsulation = str()
+                            tag = str()
+                            vrf = 'None'
+                            for item in block:
+                                if item.split()[0] == 'interface':
+                                    break
+                                elif 'ip address' in item:
+                                    ip = item.split('ip address ')[-1].strip()
+                                elif item.split()[0] == 'encapsulation':
+                                    encapsulation = item.split()[-2]
+                                    tag = item.split()[-1]
+                                elif item.split()[0] == 'vrf':
+                                    vrf = item.split()[-1]
+                                elif item.split()[0] == 'description':
+                                    description = item.split('description ')[-1].strip()
+                            try:
+                                if ip and ip != 'no ip address':
+                                    df_data['device'].append(device)
+                                    df_data['interface'].append(interface)
+                                    df_data['description'].append(description)
+                                    df_data['ip'].append(ip)
+                                    df_data['encapsulation'].append(encapsulation)
+                                    df_data['tag'].append(tag)
+                                    df_data['vrf'].append(vrf)
+                            except Exception as e:
+                                print(f'{device}: {str(e)}: {", ".join(block)}')
+                except IndexError:
+                    pass
 
-    # Create a dataframe from df_data and return it
-    df_data.reverse()
-    cols = ["device", "interface", "ip", "vrf"]
-    df = pd.DataFrame(data=df_data, columns=cols)
+    # Create a dataframe from df_data.
+    df = pd.DataFrame(df_data)
 
     # Add the subnets, network IPs, and broadcast IPs.
     addresses = df["ip"].to_list()
@@ -756,6 +791,7 @@ def ios_parse_interface_ips(runner: dict) -> pd.DataFrame:
         [
             "device",
             "interface",
+            "description",
             "ip",
             "cidr",
             "vrf",
