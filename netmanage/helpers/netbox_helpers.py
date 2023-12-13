@@ -6,6 +6,7 @@
 
 import pandas as pd
 import re
+import json
 from netmanage.collectors import netbox_collectors as nbc
 
 
@@ -297,3 +298,108 @@ def get_device_types():
             },
         }
     }
+
+
+def create_netbox_device_roles_json():
+    """
+    Creates JSON data for device roles in Netbox.
+    :return: JSON string representing device roles for Netbox.
+    """
+    device_roles = [
+        {"name": "Router", "slug": "router", "color": "0000ff",
+         "description": "Routers", "vm_role": False},
+        {"name": "Switch", "slug": "switch", "color": "00ff00",
+         "description": "Switches", "vm_role": False},
+        {"name": "Firewall", "slug": "firewall", "color": "ff0000",
+         "description": "Firewalls", "vm_role": False},
+        {"name": "Load Balancer", "slug": "load-balancer", "color": "ff00ff",
+         "description": "Load Balancers", "vm_role": False},
+        {"name": "Access Point", "slug": "access-point", "color": "ffff00",
+         "description": "Access Points", "vm_role": False},
+        {"name": "Wireless Lan Controller", "slug": "wireless-lan-controller",
+         "color": "00ffff", "description": "Wireless Lan Controllers",
+         "vm_role": False},
+    ]
+
+    return json.dumps(device_roles, indent=4)
+
+
+def create_netbox_sites_json(sites_list):
+    """
+    Creates JSON for site creation in Netbox from a list of site names.
+
+    :param sites_list: List of dictionaries with 'name' key for each site.
+    :return: JSON string for creating sites.
+    """
+    sites_json = []
+    for site_entry in sites_list:
+        site_name = site_entry.get('name', '')
+        site_data = {
+            "name": site_name,
+            "slug": site_name.lower(),
+        }
+        sites_json.append(site_data)
+
+    return json.dumps(sites_json, indent=4)
+
+
+def create_netbox_device_types_json():
+    """
+    Creates JSON data for device types in Netbox using the device types mapping
+    function.
+
+    :return: JSON string representing device types for Netbox.
+    """
+    device_types_mapping = get_device_types()
+    netbox_device_types = []
+
+    def create_valid_slug(name):
+        # Replace invalid characters (like slashes) with an underscore
+        slug = name.replace('/', '_').replace(' ', '_')
+        # Ensure the slug is valid for Netbox
+        return re.sub(r'[^a-zA-Z0-9_-]', '', slug).lower()
+
+    for manufacturer, models in device_types_mapping.items():
+        for model, attributes in models.items():
+            netbox_device_type = {
+                "manufacturer": manufacturer,
+                "model": model,
+                "slug": create_valid_slug(model),
+                **attributes
+            }
+            netbox_device_types.append(netbox_device_type)
+
+    return json.dumps(netbox_device_types, indent=4)
+
+
+def generate_rack_dicts(rack_data):
+    """
+    Generates a list of dictionaries for racks based on inputted data tuples.
+
+    :param rack_data: List of tuples, each containing rack range, site ID,
+                        tenant ID, and rack height (in U).
+    :return: List of rack dictionaries.
+    """
+    rack_dicts = []
+
+    for data in rack_data:
+        rack_range, site_id, tenant_id, u_height = data
+        start, end = rack_range.split(' ~ ')
+        start_group, start_number = start.split('-')
+        end_group, end_number = end.split('-')
+
+        for group in range(int(start_group), int(end_group) + 1):
+            start_num = int(start_number) if group == int(start_group) else 1
+            end_num = int(end_number) if group == int(end_group) else 16
+
+            for num in range(start_num, end_num + 1):
+                rack_dict = {
+                    "name": f"{group}-{num}",
+                    "site": site_id,
+                    "tenant": tenant_id,
+                    "u_height": u_height,
+                }
+                rack_dicts.append(rack_dict)
+
+    return rack_dicts
+
