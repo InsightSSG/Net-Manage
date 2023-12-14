@@ -177,6 +177,7 @@ def parse_cdp_neighbors(runner):
                 counter = 0
                 df_data["Device"].append(device)
                 # Define variables that do not always appear.
+                capabilities = str()
                 duplex = str()
                 ipv4_addr = str()
                 ipv6_addr = str()
@@ -206,9 +207,7 @@ def parse_cdp_neighbors(runner):
                             )
 
                     if "Capabilities" in line:
-                        df_data["Capabilities"].append(
-                            line.split("Capabilities: ")[-1].strip()
-                        )
+                        capabilities = line.split("Capabilities: ")[-1].strip()
 
                     if "Interface" in line:
                         df_data["Interface"].append(line.split(": ")[1].split(",")[0])
@@ -222,10 +221,22 @@ def parse_cdp_neighbors(runner):
                         duplex = line.split(": ")[-1].strip()
 
                     if "Management address(es)" in line:
-                        if "IP address" in item[counter + 1]:
-                            ipv4_mgmt_addr = item[counter + 1].split(": ")[-1].strip()
-                        if "IPv6 address" in item[counter + 1]:
-                            ipv6_mgmt_addr = item[counter + 1].split(": ")[-1].strip()
+                        try:
+                            if "IP address" in item[counter + 1]:
+                                ipv4_mgmt_addr = (
+                                    item[counter + 1].split(": ")[-1].strip()
+                                )
+                        except IndexError:
+                            pass
+
+                        try:
+                            if "IPv6 address" in item[counter + 1]:
+                                ipv6_mgmt_addr = (
+                                    item[counter + 1].split(": ")[-1].strip()
+                                )
+                        except IndexError:
+                            pass
+
                         try:
                             if "IPv6 address" in item[counter + 2]:
                                 ipv6_mgmt_addr = (
@@ -238,6 +249,7 @@ def parse_cdp_neighbors(runner):
 
                 # Add variables that do not always appear, so that arrays are
                 # equal length.
+                df_data["Capabilities"].append(capabilities)
                 df_data["Duplex"].append(duplex)
                 df_data["IPv4 Entry Address"].append(ipv4_addr)
                 df_data["IPv6 Entry Address"].append(ipv6_addr)
