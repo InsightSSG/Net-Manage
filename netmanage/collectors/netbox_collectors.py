@@ -651,3 +651,35 @@ def netbox_get_vrf_details(nb_path: str,
             break
 
     return df
+
+
+def fetch_device_roles_dict(nb_path, token):
+    """
+    Fetches all device roles from Netbox and maps display names to IDs.
+
+    :param nb_path: URL of the Netbox instance.
+    :param token: API token for authentication.
+    :return: Dictionary mapping role display names to their IDs.
+    """
+    nb = create_netbox_handler(nb_path, token)
+    roles = nb.dcim.device_roles.all()
+    return {role.display: role.id for role in roles}
+
+
+def fetch_site_name_id_mapping(nb_path, token):
+    nb = create_netbox_handler(nb_path, token)
+    sites = nb.dcim.sites.all()
+    return {site.name: site.id for site in sites}
+
+
+def fetch_device_types_dict(nb_path, token):
+    """
+    Fetches all device types from Netbox and maps display names to IDs.
+
+    :param nb_path: URL of the Netbox instance.
+    :param token: API token for authentication.
+    :return: Dictionary mapping device_type names to their IDs.
+    """
+    nb = create_netbox_handler(nb_path, token)
+    types = nb.dcim.device_types.all()
+    return {type.display: type.id for type in types}

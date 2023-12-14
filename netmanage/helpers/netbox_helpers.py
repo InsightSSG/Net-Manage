@@ -8,6 +8,7 @@ import pandas as pd
 import re
 import json
 from netmanage.collectors import netbox_collectors as nbc
+import sqlite3
 
 
 def get_prefix_custom_field_states(nb_path: str,
@@ -89,9 +90,70 @@ def get_device_types():
                 'u_height': 1,
                 'is_full_depth': False,
                 'airflow': 'front-to-rear',
-                'weight': '10.8',
+                'weight': '12.7',
                 'weight_unit': 'lb',
                 'slug': 'ms120-48fp'
+            },
+            'MS120-48LP': {
+                'u_height': 1,
+                'is_full_depth': False,
+                'airflow': 'front-to-rear',
+                'weight': '12.7',
+                'weight_unit': 'lb',
+                'slug': 'ms120-48lp'
+            },
+            'MX450': {
+                'u_height': 1,
+                'is_full_depth': False,
+                'airflow': 'front-to-rear',
+                'weight': '18.7',
+                'weight_unit': 'lb',
+                'slug': 'mx450'
+            },
+            'MX65': {
+                'u_height': 1,
+                'is_full_depth': False,
+                'airflow': 'front-to-rear',
+                'weight': '1.6',
+                'weight_unit': 'lb',
+                'slug': 'mx65'
+            },
+            'MX84': {
+                'u_height': 1,
+                'is_full_depth': False,
+                'airflow': 'front-to-rear',
+                'weight': '9',
+                'weight_unit': 'lb',
+                'slug': 'mx84'
+            },
+            'MX64': {
+                'u_height': 1,
+                'is_full_depth': False,
+                'airflow': 'front-to-rear',
+                'weight': '1.6',
+                'weight_unit': 'lb',
+                'slug': 'mx64'
+            },
+            'MR44': {
+                'u_height': 1,
+                'is_full_depth': False,
+                'weight': '1.6',
+                'weight_unit': 'lb',
+                'slug': 'mr44'
+            },
+            'MR33': {
+                'u_height': 1,
+                'is_full_depth': False,
+                'weight': '0.8',
+                'weight_unit': 'lb',
+                'slug': 'mr33'
+            },
+            'MR42': {
+                'u_height': 1,
+                'is_full_depth': False,
+                'weight': '1.5',
+                'weight_unit': 'lb',
+                'slug': 'mr42'
             },
         },
         'CISCO': {
@@ -263,6 +325,46 @@ def get_device_types():
                 'weight_unit': 'lb',
                 'slug': 'n2k-c2348tq-10g-e'
             },
+            'C9300L-48T-4X': {
+                'u_height': 1,
+                'is_full_depth': True,
+                'airflow': 'front-to-rear',
+                'weight': '16.2',
+                'weight_unit': 'lb',
+                'slug': 'c9300l-48t-4x'
+            },
+            'WS-C3850-24T': {
+                'u_height': 1,
+                'is_full_depth': True,
+                'airflow': 'front-to-rear',
+                'weight': '15.9',
+                'weight_unit': 'lb',
+                'slug': 'ws-c3850-24t'
+            },
+            'WS-C2950-24': {
+                'u_height': 1,
+                'is_full_depth': True,
+                'airflow': 'front-to-rear',
+                'weight': '10',
+                'weight_unit': 'lb',
+                'slug': 'ws-c2950-24'
+            },
+            'C9300-24T': {
+                'u_height': 1,
+                'is_full_depth': True,
+                'airflow': 'front-to-rear',
+                'weight': '16.3',
+                'weight_unit': 'lb',
+                'slug': 'c9300-24t'
+            },
+            'C9200L-24T-4X': {
+                'u_height': 1,
+                'is_full_depth': True,
+                'airflow': 'front-to-rear',
+                'weight': '10',
+                'weight_unit': 'lb',
+                'slug': 'c9200l-24t-4x'
+            },
         },
         'F5 NETWORKS': {
             'BIG-IP i4600': {
@@ -296,7 +398,17 @@ def get_device_types():
                 'weight': '28.6',
                 'weight_unit': 'lb'
             },
-        }
+        },
+        'DEFAULT': {
+            'DEFAULT': {
+                'u_height': 1,
+                'is_full_depth': True,
+                'airflow': 'front-to-rear',
+                'weight': 0,
+                'weight_unit': 'lb',
+                'slug': 'default'
+            }
+        },
     }
 
 
@@ -318,6 +430,9 @@ def create_netbox_device_roles_json():
          "description": "Access Points", "vm_role": False},
         {"name": "Wireless Lan Controller", "slug": "wireless-lan-controller",
          "color": "00ffff", "description": "Wireless Lan Controllers",
+         "vm_role": False},
+        {"name": "Default", "slug": "default",
+         "color": "ffffff", "description": "Default",
          "vm_role": False},
     ]
 
@@ -343,6 +458,13 @@ def create_netbox_sites_json(sites_list):
     return json.dumps(sites_json, indent=4)
 
 
+def create_valid_slug(name):
+    # Replace invalid characters (like slashes) with an underscore
+    slug = name.replace('/', '_').replace(' ', '_')
+    # Ensure the slug is valid for Netbox
+    return re.sub(r'[^a-zA-Z0-9_-]', '', slug).lower()
+
+
 def create_netbox_device_types_json():
     """
     Creates JSON data for device types in Netbox using the device types mapping
@@ -352,12 +474,6 @@ def create_netbox_device_types_json():
     """
     device_types_mapping = get_device_types()
     netbox_device_types = []
-
-    def create_valid_slug(name):
-        # Replace invalid characters (like slashes) with an underscore
-        slug = name.replace('/', '_').replace(' ', '_')
-        # Ensure the slug is valid for Netbox
-        return re.sub(r'[^a-zA-Z0-9_-]', '', slug).lower()
 
     for manufacturer, models in device_types_mapping.items():
         for model, attributes in models.items():
@@ -403,3 +519,160 @@ def generate_rack_dicts(rack_data):
 
     return rack_dicts
 
+
+def determine_device_role_by_model(model, roles_dict):
+    """
+    Determines the device role ID based on the device model.
+
+    :param model: The model of the device.
+    :param roles_dict: A dictionary mapping device role IDs
+    :return: The ID of the determined role of the device.
+    """
+
+    # Mapping of model patterns to role display names
+    model_to_role_display = {
+        'ASR': 'Router',
+        'CISCO29': 'Router',
+        'CISCO19': 'Router',
+        'Catalyst': 'Switch',
+        'WS-C': 'Switch',
+        'C-9500': 'Switch',
+        'C9410': 'Switch',
+        'C8500': 'Switch',
+        'C9': 'Switch',
+        'Nexus': 'Switch',
+        'N9K': 'Switch',
+        'N7K': 'Switch',
+        'N5K': 'Switch',
+        'N2K': 'Switch',
+        'N77': 'Switch',
+        'MS': 'Switch',
+        'MX': 'Firewall',
+        'ASA': 'Firewall',
+        'FPR-': 'Firewall',
+        'PA-': 'Firewall',
+        'F5': 'Load Balancer',
+        'BIG-IP': 'Load Balancer',
+    }
+
+    for model_pattern, role_display in model_to_role_display.items():
+        if model_pattern in model:
+            return roles_dict.get(role_display, None)
+        else:
+            return roles_dict.get('Default', None)
+
+
+def get_site_name(hostname):
+    """
+    Extracts the site code from the hostname.
+
+    :param hostname: The hostname of the device.
+    :return: The extracted site code.
+    """
+    if hostname[:4].isdigit():
+        # If the hostname starts with 4 digits, return the first 4 digits
+        return hostname[:4]
+    else:
+        # Check for specific prefixes and return the prefix if matched
+        for prefix in ["CTS", "DR", "CALL", "MMI"]:
+            if hostname.startswith(prefix):
+                return prefix
+        # If no conditions are met
+        print(f"Error: Unknown site for hostname {hostname}")
+        return None
+
+
+def build_devices_json(db_path, url, token):
+    """
+    Builds a JSON structure for devices from various tables in the database.
+
+    :param db_path: Path to the SQLite database file.
+    :param url: URL of the Netbox instance.
+    :param token: API token for authentication.
+    :return: JSON string representing devices for Netbox.
+    """
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    devices = []
+    roles_dict = nbc.fetch_device_roles_dict(url, token)
+    site_mapping = nbc.fetch_site_name_id_mapping(url, token)
+    types_dict = nbc.fetch_device_types_dict(url, token)
+    default_type = 124
+    default_site = 1106
+
+    # Process ASA_HARDWARE_INVENTORY
+    cursor.execute("SELECT device, pid, serial FROM ASA_HARDWARE_INVENTORY WHERE name = 'Chassis'")
+    for device, pid, serial in cursor.fetchall():
+        site_name = get_site_name(device.split('.')[0])
+        site = site_mapping.get(site_name, default_site)
+        role = determine_device_role_by_model(pid, roles_dict)
+        device_type = types_dict.get(pid, default_type)
+        if site:
+            devices.append({"device": device, "device_type": device_type,
+                            "serial": serial, "site": site, "role": role})
+
+    # Process BIGIP_HARDWARE_INVENTORY
+    cursor.execute(
+        "SELECT device, name, appliance_serial FROM BIGIP_HARDWARE_INVENTORY")
+    for device, name, serial in cursor.fetchall():
+        site_name = get_site_name(name.split('.')[0])
+        site = site_mapping.get(site_name, default_site)
+        role = determine_device_role_by_model(name, roles_dict)
+        device_type = types_dict.get(device, default_type)
+        if site:
+            devices.append({"device": device, "device_type": device_type,
+                            "serial": serial, "site": site, "role": role})
+
+    # Process IOS_BASIC_FACTS
+    cursor.execute(
+        "SELECT ansible_net_hostname, ansible_net_model, ansible_net_serialnum FROM IOS_BASIC_FACTS")
+    for hostname, model, serial in cursor.fetchall():
+        site_name = get_site_name(hostname.split('.')[0])
+        site = site_mapping.get(site_name, default_site)
+        role = determine_device_role_by_model(model, roles_dict)
+        device_type = types_dict.get(model, default_type)
+        if site:
+            devices.append(
+                {"device": hostname, "device_type":
+                    device_type, "serial": serial, "site": site, "role": role})
+
+    # Process MERAKI_ORG_DEVICES
+    cursor.execute("SELECT name, model, serial FROM MERAKI_ORG_DEVICES")
+    for hostname, model, serial in cursor.fetchall():
+        site_name = get_site_name(hostname.split('.')[0])
+        site = site_mapping.get(site_name, default_site)
+        role = determine_device_role_by_model(model, roles_dict)
+        device_type = types_dict.get(model, default_type)
+        if site:
+            devices.append(
+                {"device": hostname, "device_type": device_type,
+                 "serial": serial, "site": site, "role": role})
+
+    # Process NXOS_BASIC_FACTS
+    cursor.execute(
+        "SELECT device, ansible_net_platform, ansible_net_serialnum FROM NXOS_BASIC_FACTS")
+    for hostname, platform, serial in cursor.fetchall():
+        site_name = get_site_name(hostname.split('.')[0])
+        site = site_mapping.get(site_name, default_site)
+        role = determine_device_role_by_model(platform, roles_dict)
+        device_type = types_dict.get(platform, default_type)
+        if site:
+            devices.append(
+                {"device": hostname, "device_type": device_type,
+                 "serial": serial, "site": site, "role": role})
+
+    # Process PANOS_BASIC_FACTS
+    cursor.execute(
+        "SELECT device, ansible_net_model, ansible_net_serial FROM PANOS_BASIC_FACTS")
+    for hostname, model, serial in cursor.fetchall():
+        site_name = get_site_name(hostname.split('.')[0])
+        site = site_mapping.get(site_name, default_site)
+        role = determine_device_role_by_model(model, roles_dict)
+        device_type = types_dict.get(model, default_type)
+        if site:
+            devices.append(
+                {"device": hostname, "device_type": device_type,
+                 "serial": serial, "site": site, "role": role})
+
+    conn.close()
+    return json.dumps(devices, indent=4)

@@ -1,4 +1,5 @@
 from netmanage import netbox_collectors as nbc
+from netmanage import netbox_helpers as nbh
 from typing import Optional, Any, List, Dict
 from pynetbox import api, RequestError
 import json
@@ -193,9 +194,9 @@ def update_device(
 
     Parameters
     ----------
-    netbox_url : str
+    url : str
         The URL of the NetBox instance.
-    netbox_token : str
+    token : str
         The authentication token for the NetBox API.
     _id: int
         The netbox id of the object being updated must be included
@@ -734,7 +735,8 @@ def update_netbox_sites(url, token, sites_json):
 
 def update_netbox_device_types(url, token, device_types_json):
     """
-    Imports device types into Netbox, creating manufacturers and ensuring valid slugs.
+    Imports device types into Netbox, creating manufacturers and ensuring
+    valid slugs.
 
     :param url: URL of the Netbox instance.
     :param token: API token for authentication.
@@ -755,7 +757,8 @@ def update_netbox_device_types(url, token, device_types_json):
             slug = create_valid_slug(name)
             # Check if the slug already exists
             if not nb.dcim.manufacturers.get(slug=slug):
-                manufacturer = nb.dcim.manufacturers.create(name=name, slug=slug)
+                manufacturer = nb.dcim.manufacturers.create(
+                    name=name, slug=slug)
             else:
                 # Handle the case where the slug already exists
                 return None
@@ -772,15 +775,19 @@ def update_netbox_device_types(url, token, device_types_json):
 
                 # Convert model to a valid slug
                 if 'slug' not in device_type or not device_type['slug']:
-                    device_type['slug'] = create_valid_slug(device_type['model'])
+                    device_type['slug'] = \
+                        create_valid_slug(device_type['model'])
 
                 response = nb.dcim.device_types.create(device_type)
                 responses.append(response)
             else:
-                responses.append(f"Failed to create or find manufacturer for {device_type['model']}")
+                responses.append(
+                    f"Failed to create or find manufacturer for "
+                    f"{device_type['model']}")
 
         except RequestError as e:
-            responses.append(f"An error occurred with {device_type['model']}: {e.error}")
+            responses.append(
+                f"An error occurred with {device_type['model']}: {e.error}")
 
     return responses
 
@@ -803,7 +810,8 @@ def update_netbox_device_roles(url, token, device_roles_json):
             response = nb.dcim.device_roles.create(device_role)
             responses.append(response)
         except RequestError as e:
-            responses.append(f"An error occurred with {device_role['name']}: {e.error}")
+            responses.append(
+                f"An error occurred with {device_role['name']}: {e.error}")
 
     return responses
 
@@ -825,6 +833,42 @@ def update_netbox_racks(url, token, rack_dicts):
             response = nb.dcim.racks.create(rack_dict)
             responses.append(response)
         except RequestError as e:
-            responses.append(f"An error occurred with {rack_dict['name']}: {e.error}")
+            responses.append(
+                f"An error occurred with {rack_dict['name']}: {e.error}")
 
     return responses
+
+
+def import_devices_to_netbox(url, token, devices_json):
+    """
+    Imports or updates devices in Netbox.
+
+    :param url: URL of the Netbox instance.
+    :param token: API token for authentication.
+    :param devices_json: JSON string containing devices.
+    :return: List of responses from Netbox API.
+    """
+    nb = api(url, token=token)
+    devices_data = json.loads(devices_json)
+    responses = []
+
+    for device in devices_data:
+        netbox_device = {
+            "name": device['device'],
+            "device_type": device['device_type'],
+            "serial": device['serial'],
+            "site": device['site'],
+            "role": device['role']
+        }
+
+        # Create the device in Netbox
+        try:
+            response = nb.dcim.devices.create(netbox_device)
+            responses.append(response)
+        except RequestError as e:
+            responses.append(
+                f"An error occurred with {device['device']}: {e.error}")
+            print(f"An error occurred with {device['device']}: {e.error}")
+
+    return responses
+
