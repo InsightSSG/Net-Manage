@@ -1,10 +1,7 @@
 name: Flake8 Lint
 
 on:
-  # push:
-  #   branches: [ "*" ]
   pull_request:
-    # The branches below must be a subset of the branches above
     branches: [ "main" ]
 
 jobs:
@@ -25,4 +22,4 @@ jobs:
         pip install flake8
     - name: Analysing the code with flake8
       run: |
-        flake8 $(git ls-files '*.py')
+        flake8 --max-line-length=88 $(git ls-files '*.py')
