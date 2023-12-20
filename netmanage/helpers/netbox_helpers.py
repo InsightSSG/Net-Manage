@@ -10,7 +10,7 @@ import sqlite3
 from netmanage.collectors import netbox_collectors as nbc
 
 
-def get_prefix_custom_field_states(nb_path: str, token: str,
+def get_prefix_custom_field_states(nb_url: str, token: str,
                                    f_name: str) -> pd.DataFrame:
     '''
     Gets the values of a single custom field for all prefixes.
@@ -22,7 +22,7 @@ def get_prefix_custom_field_states(nb_path: str, token: str,
 
     Parameters
     ----------
-    nb_path : str
+    nb_url : str
         The path to the Netbox instance. Can be either an IP or a URL.
         Must be preceded by 'http://' or 'https://'.
     token : str
@@ -44,12 +44,12 @@ def get_prefix_custom_field_states(nb_path: str, token: str,
 
     Examples
     --------
-    >>> df = get_prefix_custom_field_states(nb_path, token, f_name)
+    >>> df = get_prefix_custom_field_states(nb_url, token, f_name)
     print(type(df))
     >>> <class 'pandas.core.frame.DataFrame'>
     '''
     # Get the IPAM prefixes from Netbox
-    result = nbc.netbox_get_ipam_prefixes(nb_path, token)
+    result = nbc.netbox_get_ipam_prefixes(nb_url, token)
 
     # Create a dataframe containing the prefix IDs and 'f_name' values
     df = result[['id', f'custom_fields_{f_name}']].copy()

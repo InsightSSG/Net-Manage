@@ -7,14 +7,14 @@ from typing import Optional
 
 
 def create_netbox_handler(
-    nb_path: str, token: str, verify_ssl: bool = True
+    nb_url: str, token: str, verify_ssl: bool = True
 ) -> pynetbox.core.api.Api:
     """
     Creates the handler for connecting to Netbox using pynetbox.
 
     Parameters
     ----------
-    nb_path : str
+    nb_url : str
         The path to the Netbox instance.
     token : str
         The API token for authentication.
@@ -26,7 +26,7 @@ def create_netbox_handler(
     nb : pynetbox.core.api.Api
         An object for Netbox API interaction.
     """
-    nb = pynetbox.api(nb_path, token)
+    nb = pynetbox.api(nb_url, token)
     custom_session = requests.Session()
     custom_session.verify = verify_ssl
     nb.http_session = custom_session
@@ -34,14 +34,14 @@ def create_netbox_handler(
 
 
 def netbox_get_all_cable_attributes(
-    nb_path: str, token: str, verify_ssl: bool = True
+    nb_url: str, token: str, verify_ssl: bool = True
 ) -> dict:
     """
     Gets the attributes for all cables.
 
     Parameters
     ----------
-    nb_path : str
+    nb_url : str
         The path to the Netbox instance. Can be either an IP or a URL.
         Must be preceded by 'http://' or 'https://'.
     token : str
@@ -60,11 +60,11 @@ def netbox_get_all_cable_attributes(
 
     Examples
     --------
-    >>> all_cables = netbox_get_all_cable_attributes(nb_path, token)
+    >>> all_cables = netbox_get_all_cable_attributes(nb_url, token)
     print(all_cables)
     """
     # Create the Netbox handler.
-    nb = create_netbox_handler(nb_path, token, verify_ssl=verify_ssl)
+    nb = create_netbox_handler(nb_url, token, verify_ssl=verify_ssl)
 
     # Query the Netbox API for all cables.
     cables = nb.dcim.cables.all()
@@ -81,7 +81,7 @@ def netbox_get_all_cable_attributes(
 
 
 def netbox_get_device_attributes(
-    nb_path: str,
+    nb_url: str,
     token: str,
     device_id: Optional[int] = None,
     device_name: Optional[str] = None,
@@ -92,7 +92,7 @@ def netbox_get_device_attributes(
 
     Parameters
     ----------
-    nb_path : str
+    nb_url : str
         The path to the Netbox instance. Can be either an IP or a URL.
         Must be preceded by 'http://' or 'https://'.
     token : str
@@ -115,12 +115,12 @@ def netbox_get_device_attributes(
 
     Examples
     --------
-    >>> df = netbox_get_device_attributes(nb_path, token)
+    >>> df = netbox_get_device_attributes(nb_url, token)
     print(type(df))
     >>> <class 'pandas.core.frame.DataFrame'>
     """
     # Create the netbox handler.
-    nb = create_netbox_handler(nb_path, token, verify_ssl=verify_ssl)
+    nb = create_netbox_handler(nb_url, token, verify_ssl=verify_ssl)
 
     # If both device id and name are provided, raise an error
     if device_id and device_name:
@@ -264,14 +264,14 @@ def netbox_get_device_manufacturers_types_ids(handler, verify_ssl: bool = True) 
 
 
 def netbox_get_device_role_attributes(
-    nb_path: str, token: str, device_role: Optional[str] = None, verify_ssl: bool = True
+    nb_url: str, token: str, device_role: Optional[str] = None, verify_ssl: bool = True
 ) -> pd.DataFrame:
     """
     Gets the attributes for one or more device roles.
 
     Parameters
     ----------
-    nb_path : str
+    nb_url : str
         The path to the Netbox instance. Can be either an IP or a URL.
         Must be preceded by 'http://' or 'https://'.
     token : str
@@ -293,12 +293,12 @@ def netbox_get_device_role_attributes(
 
     Examples
     --------
-    >>> df = netbox_get_device_role_attributes(nb_path, token)
+    >>> df = netbox_get_device_role_attributes(nb_url, token)
     print(type(df))
     >>> <class 'pandas.core.frame.DataFrame'>
     """
     # Create the netbox handler.
-    nb = create_netbox_handler(nb_path, token)
+    nb = create_netbox_handler(nb_url, token, verify_ssl=verify_ssl)
 
     # Query the Netbox API for all device roles.
     device_roles = nb.dcim.device_roles.all()
@@ -324,14 +324,14 @@ def netbox_get_device_role_attributes(
 
 
 def netbox_get_device_type_attributes(
-    nb_path: str, token: str, device_type: Optional[str] = None, verify_ssl: bool = True
+    nb_url: str, token: str, device_type: Optional[str] = None, verify_ssl: bool = True
 ) -> pd.DataFrame:
     """
     Gets the attributes for one or more device types.
 
     Parameters
     ----------
-    nb_path : str
+    nb_url : str
         The path to the Netbox instance. Can be either an IP or a URL.
         Must be preceded by 'http://' or 'https://'.
     token : str
@@ -351,12 +351,12 @@ def netbox_get_device_type_attributes(
 
     Examples
     --------
-    >>> df = netbox_get_device_type_attributes(nb_path, token)
+    >>> df = netbox_get_device_type_attributes(nb_url, token)
     print(type(df))
     >>> <class 'pandas.core.frame.DataFrame'>
     """
     # Create the netbox handler.
-    nb = create_netbox_handler(nb_path, token, verify_ssl=verify_ssl)
+    nb = create_netbox_handler(nb_url, token, verify_ssl=verify_ssl)
 
     # Query the Netbox API for all device types.
     device_types = nb.dcim.device_types.all()
@@ -472,14 +472,14 @@ def netbox_get_devices_with_manufacturers_names_models(
 
 
 def netbox_get_interface_attributes(
-    nb_path: str, token: str, interface_id: str, verify_ssl: bool = True
+    nb_url: str, token: str, interface_id: str, verify_ssl: bool = True
 ) -> dict:
     """
     Gets the attributes for a specific interface.
 
     Parameters
     ----------
-    nb_path : str
+    nb_url : str
         The path to the Netbox instance. Can be either an IP or a URL.
         Must be preceded by 'http://' or 'https://'.
     token : str
@@ -500,13 +500,13 @@ def netbox_get_interface_attributes(
 
     Examples
     --------
-    >>> interface_attributes = netbox_get_interface_attributes(nb_path,
+    >>> interface_attributes = netbox_get_interface_attributes(nb_url,
                                                                token,
                                                                interface_id)
     print(interface_attributes)
     """
     # Create the Netbox handler.
-    nb = create_netbox_handler(nb_path, token, verify_ssl=verify_ssl)
+    nb = create_netbox_handler(nb_url, token, verify_ssl=verify_ssl)
 
     # Query the Netbox API for the specified interface.
     interface = nb.dcim.interfaces.get(interface_id)
@@ -519,13 +519,13 @@ def netbox_get_interface_attributes(
 
 
 def netbox_get_ipam_prefixes(
-    nb_path: str, token: str, verify_ssl: bool = True
+    nb_url: str, token: str, verify_ssl: bool = True
 ) -> pd.DataFrame:
     """Gets all prefixes from a Netbox instance.
 
     Parameters
     ----------
-    nb_path : str
+    nb_url : str
         The path to the Netbox instance. Can be either an IP or a URL.
         Must be preceded by 'http://' or 'https://'.
     token : str
@@ -555,12 +555,12 @@ def netbox_get_ipam_prefixes(
 
     Examples
     ----------
-    >>> df = netbox_get_ipam_prefixes(nb_path, token)
+    >>> df = netbox_get_ipam_prefixes(nb_url, token)
     print(type(df))
     >>> <class 'pandas.core.frame.DataFrame'>
     """
     # Create the netbox handler
-    nb = create_netbox_handler(nb_path, token, verify_ssl=verify_ssl)
+    nb = create_netbox_handler(nb_url, token, verify_ssl=verify_ssl)
 
     # Query the Netbox API for all IPAM prefixes
     result = nb.ipam.prefixes.all()
@@ -699,14 +699,14 @@ def netbox_get_device_details(
 
 
 def netbox_get_site_attributes(
-    nb_path: str, token: str, site: Optional[str] = None, verify_ssl: bool = True
+    nb_url: str, token: str, site: Optional[str] = None, verify_ssl: bool = True
 ) -> pd.DataFrame:
     """
     Gets the attributes for one or more sites.
 
     Parameters
     ----------
-    nb_path : str
+    nb_url : str
         The path to the Netbox instance. Can be either an IP or a URL.
         Must be preceded by 'http://' or 'https://'.
     token : str
@@ -728,12 +728,12 @@ def netbox_get_site_attributes(
 
     Examples
     --------
-    >>> df = netbox_get_site_attributes(nb_path, token)
+    >>> df = netbox_get_site_attributes(nb_url, token)
     print(type(df))
     >>> <class 'pandas.core.frame.DataFrame'>
     """
     # Create the netbox handler.
-    nb = create_netbox_handler(nb_path, token, verify_ssl=verify_ssl)
+    nb = create_netbox_handler(nb_url, token, verify_ssl=verify_ssl)
 
     # Query the Netbox API for all sites.
     sites = nb.dcim.sites.all()
@@ -759,14 +759,14 @@ def netbox_get_site_attributes(
 
 
 def netbox_get_tenant_attributes(
-    nb_path: str, token: str, tenant: Optional[str] = None, verify_ssl: bool = True
+    nb_url: str, token: str, tenant: Optional[str] = None, verify_ssl: bool = True
 ) -> pd.DataFrame:
     """
     Gets the attributes for one or more tenants.
 
     Parameters
     ----------
-    nb_path : str
+    nb_url : str
         The path to the Netbox instance. Can be either an IP or a URL.
         Must be preceded by 'http://' or 'https://'.
     token : str
@@ -788,12 +788,12 @@ def netbox_get_tenant_attributes(
 
     Examples
     --------
-    >>> df = netbox_get_tenant_attributes(nb_path, token)
+    >>> df = netbox_get_tenant_attributes(nb_url, token)
     print(type(df))
     >>> <class 'pandas.core.frame.DataFrame'>
     """
     # Create the netbox handler.
-    nb = create_netbox_handler(nb_path, token, verify_ssl=verify_ssl)
+    nb = create_netbox_handler(nb_url, token, verify_ssl=verify_ssl)
 
     # Query the Netbox API for all tenants.
     tenants = nb.tenancy.tenants.all()
@@ -819,14 +819,14 @@ def netbox_get_tenant_attributes(
 
 
 def netbox_get_vrf_details(
-    nb_path: str, token: str, vrf: Optional[str] = None, verify_ssl: bool = True
+    nb_url: str, token: str, vrf: Optional[str] = None, verify_ssl: bool = True
 ) -> pd.DataFrame:
     """
     Gets details of one or more VRFs in Netbox.
 
     Parameters
     ----------
-    nb_path : str
+    nb_url : str
         The path to the Netbox instance. Can be either an IP or a URL.
         Must be preceded by 'http://' or 'https://'.
     token : str
@@ -848,12 +848,12 @@ def netbox_get_vrf_details(
 
     Examples
     --------
-    >>> df = netbox_get_vrf_details(nb_path, token)
+    >>> df = netbox_get_vrf_details(nb_url, token)
     print(type(df))
     >>> <class 'pandas.core.frame.DataFrame'>
     """
     # Create the netbox handler
-    nb = create_netbox_handler(nb_path, token, verify_ssl=verify_ssl)
+    nb = create_netbox_handler(nb_url, token, verify_ssl=verify_ssl)
 
     # Query the Netbox API for the VRF details and add them to 'df_data'.
     df_data = dict()
@@ -893,37 +893,37 @@ def netbox_get_vrf_details(
     return df
 
 
-def fetch_device_roles_dict(nb_path, token):
+def fetch_device_roles_dict(nb_url, token):
     """
     Fetches all device roles from Netbox and maps display names to IDs.
-    :param nb_path: URL of the Netbox instance.
+    :param nb_url: URL of the Netbox instance.
     :param token: API token for authentication.
     :return: Dictionary mapping role display names to their IDs.
     """
-    nb = create_netbox_handler(nb_path, token)
+    nb = create_netbox_handler(nb_url, token, verify_ssl=verify_ssl)
     roles = nb.dcim.device_roles.all()
     return {role.display: role.id for role in roles}
 
 
-def fetch_site_name_id_mapping(nb_path, token):
+def fetch_site_name_id_mapping(nb_url, token):
     """
     Fetches all site names from Netbox and maps display names to IDs.
-    :param nb_path: URL of the Netbox instance.
+    :param nb_url: URL of the Netbox instance.
     :param token: API token for authentication.
     :return: Dictionary mapping role display names to their IDs.
     """
-    nb = create_netbox_handler(nb_path, token)
+    nb = create_netbox_handler(nb_url, token, verify_ssl=verify_ssl)
     sites = nb.dcim.sites.all()
     return {site.name: site.id for site in sites}
 
 
-def fetch_device_types_dict(nb_path, token):
+def fetch_device_types_dict(nb_url, token):
     """
     Fetches all device types from Netbox and maps display names to IDs.
-    :param nb_path: URL of the Netbox instance.
+    :param nb_url: URL of the Netbox instance.
     :param token: API token for authentication.
     :return: Dictionary mapping device_type names to their IDs.
     """
-    nb = create_netbox_handler(nb_path, token)
+    nb = create_netbox_handler(nb_url, token, verify_ssl=verify_ssl)
     types = nb.dcim.device_types.all()
     return {type.display: type.id for type in types}
