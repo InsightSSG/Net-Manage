@@ -785,7 +785,8 @@ def build_devices_json(db_path, url, token):
         device_type = types_dict.get(pid, default_type)
         if site:
             devices.append({"device": device, "device_type": device_type,
-                            "serial": serial, "site": site, "role": role})
+                            "serial": serial, "site": site, "role": role,
+                            "custom_fields": {"ansible_network_os": "cisco.asa.asa"}})
 
     # Process BIGIP_HARDWARE_INVENTORY
     cursor.execute(
@@ -797,7 +798,8 @@ def build_devices_json(db_path, url, token):
         device_type = types_dict.get(device, default_type)
         if site:
             devices.append({"device": device, "device_type": device_type,
-                            "serial": serial, "site": site, "role": role})
+                            "serial": serial, "site": site, "role": role,
+                            "custom_fields": {"ansible_network_os": "bigip"}})
 
     # Process IOS_BASIC_FACTS
     cursor.execute(
@@ -810,7 +812,8 @@ def build_devices_json(db_path, url, token):
         if site:
             devices.append(
                 {"device": hostname, "device_type":
-                    device_type, "serial": serial, "site": site, "role": role})
+                    device_type, "serial": serial, "site": site, "role": role,
+                    "custom_fields": {"ansible_network_os": "cisco.ios.ios"}})
 
     # Process MERAKI_ORG_DEVICES
     cursor.execute("SELECT name, model, serial FROM MERAKI_ORG_DEVICES")
@@ -822,7 +825,8 @@ def build_devices_json(db_path, url, token):
         if site:
             devices.append(
                 {"device": hostname, "device_type": device_type,
-                 "serial": serial, "site": site, "role": role})
+                 "serial": serial, "site": site, "role": role},
+                 "custom_fields": {"ansible_network_os": "meraki"}})
 
     # Process NXOS_BASIC_FACTS
     cursor.execute(
@@ -835,7 +839,8 @@ def build_devices_json(db_path, url, token):
         if site:
             devices.append(
                 {"device": hostname, "device_type": device_type,
-                 "serial": serial, "site": site, "role": role})
+                 "serial": serial, "site": site, "role": role,
+                 "custom_fields": {"ansible_network_os": "cisco.nxos.nxos"}})
 
     # Process PANOS_BASIC_FACTS
     cursor.execute(
@@ -848,7 +853,8 @@ def build_devices_json(db_path, url, token):
         if site:
             devices.append(
                 {"device": hostname, "device_type": device_type,
-                 "serial": serial, "site": site, "role": role})
+                 "serial": serial, "site": site, "role": role,
+                 "custom_fields": {"ansible_network_os": "paloaltonetworks.panos"}})
 
     conn.close()
     return json.dumps(devices, indent=4)
