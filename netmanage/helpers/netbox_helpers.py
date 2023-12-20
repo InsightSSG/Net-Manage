@@ -825,7 +825,7 @@ def build_devices_json(db_path, url, token):
         if site:
             devices.append(
                 {"device": hostname, "device_type": device_type,
-                 "serial": serial, "site": site, "role": role},
+                 "serial": serial, "site": site, "role": role,
                  "custom_fields": {"ansible_network_os": "meraki"}})
 
     # Process NXOS_BASIC_FACTS
