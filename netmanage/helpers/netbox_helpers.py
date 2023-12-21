@@ -858,3 +858,32 @@ def build_devices_json(db_path, url, token):
 
     conn.close()
     return json.dumps(devices, indent=4)
+
+
+def create_netbox_handler(
+    nb_url: str, token: str, verify_ssl: bool = True
+) -> pynetbox.core.api.Api:
+    """
+    Creates the handler for connecting to Netbox using pynetbox.
+
+    Parameters
+    ----------
+    nb_url : str
+        The path to the Netbox instance.
+    token : str
+        The API token for authentication.
+    verify_ssl : bool, optional
+        Whether to verify SSL certificates.
+
+    Returns
+    -------
+    nb : pynetbox.core.api.Api
+        An object for Netbox API interaction.
+    """
+    nb = pynetbox.api(nb_url, token)
+    if not verify_ssl or not ast.literal_eval(os.environ["validate_certs"]):
+        custom_session = requests.Session()
+        custom_session.verify = False
+        nb.http_session = custom_session
+        requests.urllib3.disable_warnings()
+    return nb
