@@ -8,6 +8,7 @@ import pandas as pd
 import re
 import json
 import os
+import requests
 import sqlite3
 import pynetbox
 from netmanage.collectors import netbox_collectors as nbc
