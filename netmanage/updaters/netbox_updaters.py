@@ -49,7 +49,7 @@ def update_cable(
                   [{'object_id': 22104, 'object_type': 'dcim.interface'}],
                   [{'object_id': 29287, 'object_type': 'dcim.interface'}])
     """
-    nb = api(url, token)
+    nb = nbh.create_netbox_handler(nb_url, token)
 
     cable = {
         "id": _id,
@@ -122,7 +122,7 @@ def update_prefix(
         raise TypeError(
             "The netbox id of the object being updated must be included")
 
-    nb = api(url, token)
+    nb = nbh.create_netbox_handler(nb_url, token)
 
     # If a VRF was provided, then get its ID.
     if vrf:
@@ -270,7 +270,7 @@ def update_device(
             "The netbox id of the object being updated must be included")
 
     # Create an instance of the API using the provided URL and token
-    nb = api(url, token)
+    nb = nbh.create_netbox_handler(nb_url, token)
 
     # If the user provided a device_role name instead of a device_role ID, then
     # use the name of the device_role to find its ID.
@@ -389,7 +389,7 @@ def update_device_role(
             "The netbox id of the object being updated must be included")
 
     # Create an instance of the API using the provided URL and token
-    nb = api(url, token)
+    nb = nbh.create_netbox_handler(nb_url, token)
     # Create or update the device role
     try:
         nb.dcim.device_roles.update(
@@ -470,7 +470,7 @@ def update_device_type(
             "The netbox id of the object being updated must be included")
 
     # Create an instance of the API using the provided URL and token
-    nb = api(url, token)
+    nb = nbh.create_netbox_handler(nb_url, token)
 
     manufacturer = nb.dcim.manufacturers.get(name=manufacturer_name)
     try:
@@ -550,7 +550,7 @@ def update_vrf(
         raise TypeError(
             "The netbox id of the object being updated must be included")
 
-    nb = api(url, token)
+    nb = nbh.create_netbox_handler(nb_url, token)
     data = {
         "name": vrf_name,
         "rd": rd,
@@ -651,7 +651,7 @@ def update_site(
         raise TypeError(
             "The netbox id of the object being updated must be included")
 
-    nb = api(url, token)
+    nb = nbh.create_netbox_handler(nb_url, token)
     site = {"id": _id, "name": name, "slug": slug, "status": status}
 
     # Check which optional fields are passed and add them to the site payload
