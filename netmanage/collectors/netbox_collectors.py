@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import ast
 import pandas as pd
 import pynetbox
 import requests
