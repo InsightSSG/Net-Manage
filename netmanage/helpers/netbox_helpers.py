@@ -7,6 +7,7 @@ import ast
 import pandas as pd
 import re
 import json
+import os
 import sqlite3
 import pynetbox
 from netmanage.collectors import netbox_collectors as nbc
