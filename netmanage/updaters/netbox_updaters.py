@@ -49,7 +49,7 @@ def update_cable(
                   [{'object_id': 22104, 'object_type': 'dcim.interface'}],
                   [{'object_id': 29287, 'object_type': 'dcim.interface'}])
     """
-    nb = nbh.create_netbox_handler(nb_url, token)
+    nb = nbh.create_netbox_handler(url, token)
 
     cable = {
         "id": _id,
@@ -122,7 +122,7 @@ def update_prefix(
         raise TypeError(
             "The netbox id of the object being updated must be included")
 
-    nb = nbh.create_netbox_handler(nb_url, token)
+    nb = nbh.create_netbox_handler(url, token)
 
     # If a VRF was provided, then get its ID.
     if vrf:
@@ -270,7 +270,7 @@ def update_device(
             "The netbox id of the object being updated must be included")
 
     # Create an instance of the API using the provided URL and token
-    nb = nbh.create_netbox_handler(nb_url, token)
+    nb = nbh.create_netbox_handler(url, token)
 
     # If the user provided a device_role name instead of a device_role ID, then
     # use the name of the device_role to find its ID.
@@ -389,7 +389,7 @@ def update_device_role(
             "The netbox id of the object being updated must be included")
 
     # Create an instance of the API using the provided URL and token
-    nb = nbh.create_netbox_handler(nb_url, token)
+    nb = nbh.create_netbox_handler(url, token)
     # Create or update the device role
     try:
         nb.dcim.device_roles.update(
@@ -470,7 +470,7 @@ def update_device_type(
             "The netbox id of the object being updated must be included")
 
     # Create an instance of the API using the provided URL and token
-    nb = nbh.create_netbox_handler(nb_url, token)
+    nb = nbh.create_netbox_handler(url, token)
 
     manufacturer = nb.dcim.manufacturers.get(name=manufacturer_name)
     try:
@@ -550,7 +550,7 @@ def update_vrf(
         raise TypeError(
             "The netbox id of the object being updated must be included")
 
-    nb = nbh.create_netbox_handler(nb_url, token)
+    nb = nbh.create_netbox_handler(url, token)
     data = {
         "name": vrf_name,
         "rd": rd,
@@ -651,7 +651,7 @@ def update_site(
         raise TypeError(
             "The netbox id of the object being updated must be included")
 
-    nb = nbh.create_netbox_handler(nb_url, token)
+    nb = nbh.create_netbox_handler(url, token)
     site = {"id": _id, "name": name, "slug": slug, "status": status}
 
     # Check which optional fields are passed and add them to the site payload
@@ -718,7 +718,7 @@ def update_netbox_sites(url, token, sites_json):
     :param sites_json: JSON string with site data.
     :return: List of created site objects or error message.
     """
-    nb = api(url, token=token)
+    nb = nbh.create_netbox_handler(url, token)
     sites_data = json.loads(sites_json)
 
     created_sites = []
@@ -741,7 +741,7 @@ def update_netbox_device_types(url, token, device_types_json):
     :param device_types_json: JSON string containing device types.
     :return: List of responses or error messages.
     """
-    nb = api(url, token=token)
+    nb = nbh.create_netbox_handler(url, token)
 
     def create_valid_slug(name):
         # Explicitly replace slashes and spaces with underscores
@@ -798,7 +798,7 @@ def update_netbox_device_roles(url, token, device_roles_json):
     :param device_roles_json: JSON string containing the device roles.
     :return: List of responses or error messages.
     """
-    nb = api(url, token=token)
+    nb = nbh.create_netbox_handler(url, token)
     device_roles_data = json.loads(device_roles_json)
     responses = []
 
@@ -821,7 +821,7 @@ def update_netbox_racks(url, token, rack_dicts):
     :param rack_dicts: List of dictionaries, each representing a rack.
     :return: List of responses from the Netbox API.
     """
-    nb = api(url, token=token)
+    nb = nbh.create_netbox_handler(url, token)
     responses = []
 
     for rack_dict in rack_dicts:
@@ -843,7 +843,7 @@ def import_devices_to_netbox(url, token, devices_json):
     :param devices_json: JSON string containing devices.
     :return: List of responses from Netbox API.
     """
-    nb = api(url, token=token)
+    nb = nbh.create_netbox_handler(url, token)
     devices_data = json.loads(devices_json)
     responses = []
 
