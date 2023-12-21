@@ -31,8 +31,9 @@ def create_netbox_handler(
     nb = pynetbox.api(nb_url, token)
     if not verify_ssl or not ast.literal_eval(os.environ["validate_certs"]):
         custom_session = requests.Session()
-        custom_session.verify = verify_ssl
+        custom_session.verify = False
         nb.http_session = custom_session
+        requests.urllib3.disable_warnings()
     return nb
 
 
