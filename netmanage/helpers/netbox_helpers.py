@@ -785,6 +785,7 @@ def build_devices_json(db_path, url, token):
     cursor.execute("SELECT device, pid, serial FROM ASA_HARDWARE_INVENTORY WHERE name = 'Chassis'")
     for device, pid, serial in cursor.fetchall():
         site_name = get_site_name(device.split('.')[0])
+        device = device.split('.')[0]
         site = site_mapping.get(site_name, default_site)
         role = determine_device_role_by_model(pid, roles_dict)
         device_type = types_dict.get(pid, default_type)
@@ -804,6 +805,7 @@ def build_devices_json(db_path, url, token):
         "SELECT device, name, appliance_serial FROM BIGIP_HARDWARE_INVENTORY")
     for device, name, serial in cursor.fetchall():
         site_name = get_site_name(name.split('.')[0])
+        device = device.split('.')[0]
         site = site_mapping.get(site_name, default_site)
         role = determine_device_role_by_model(name, roles_dict)
         device_type = types_dict.get(device, default_type)
@@ -823,15 +825,16 @@ def build_devices_json(db_path, url, token):
         "SELECT ansible_net_hostname, ansible_net_model, ansible_net_serialnum FROM IOS_BASIC_FACTS")
     for hostname, model, serial in cursor.fetchall():
         site_name = get_site_name(hostname.split('.')[0])
+        hostname = hostname.split('.')[0]
         site = site_mapping.get(site_name, default_site)
         role = determine_device_role_by_model(model, roles_dict)
         device_type = types_dict.get(model, default_type)
         if site:
             if (
                 devices_df["serial"].isin([serial]).any() and
-                devices_df["device_name"].isin([device]).any()
+                devices_df["device_name"].isin([hostname]).any()
             ):
-                print(f"Skipping duplicate device: {device}, serial: {serial}")
+                print(f"Skipping duplicate device: {hostname}, serial: {serial}")
                 continue
             devices.append(
                 {"device": hostname, "device_type":
@@ -842,15 +845,16 @@ def build_devices_json(db_path, url, token):
     cursor.execute("SELECT name, model, serial FROM MERAKI_ORG_DEVICES")
     for hostname, model, serial in cursor.fetchall():
         site_name = get_site_name(hostname.split('.')[0])
+        hostname = hostname.split('.')[0]
         site = site_mapping.get(site_name, default_site)
         role = determine_device_role_by_model(model, roles_dict)
         device_type = types_dict.get(model, default_type)
         if site:
             if (
                 devices_df["serial"].isin([serial]).any() and
-                devices_df["device_name"].isin([device]).any()
+                devices_df["device_name"].isin([hostname]).any()
             ):
-                print(f"Skipping duplicate device: {device}, serial: {serial}")
+                print(f"Skipping duplicate device: {hostname}, serial: {serial}")
                 continue
             devices.append(
                 {"device": hostname, "device_type": device_type,
@@ -860,8 +864,9 @@ def build_devices_json(db_path, url, token):
     # Process NXOS_BASIC_FACTS
     cursor.execute(
         "SELECT device, ansible_net_platform, ansible_net_serialnum FROM NXOS_BASIC_FACTS")
-    for hostname, platform, serial in cursor.fetchall():
-        site_name = get_site_name(hostname.split('.')[0])
+    for device, platform, serial in cursor.fetchall():
+        site_name = get_site_name(device.split('.')[0])
+        device = device.split('.')[0]
         site = site_mapping.get(site_name, default_site)
         role = determine_device_role_by_model(platform, roles_dict)
         device_type = types_dict.get(platform, default_type)
@@ -873,7 +878,7 @@ def build_devices_json(db_path, url, token):
                 print(f"Skipping duplicate device: {device}, serial: {serial}")
                 continue
             devices.append(
-                {"device": hostname, "device_type": device_type,
+                {"device": device, "device_type": device_type,
                  "serial": serial, "site": site, "role": role,
                  "custom_fields": {"ansible_network_os": "cisco.nxos.nxos"}})
 
@@ -882,15 +887,16 @@ def build_devices_json(db_path, url, token):
         "SELECT device, ansible_net_model, ansible_net_serial FROM PANOS_BASIC_FACTS")
     for hostname, model, serial in cursor.fetchall():
         site_name = get_site_name(hostname.split('.')[0])
+        hostname = hostname.split('.')[0]
         site = site_mapping.get(site_name, default_site)
         role = determine_device_role_by_model(model, roles_dict)
         device_type = types_dict.get(model, default_type)
         if site:
             if (
                 devices_df["serial"].isin([serial]).any() and
-                devices_df["device_name"].isin([device]).any()
+                devices_df["device_name"].isin([hostname]).any()
             ):
-                print(f"Skipping duplicate device: {device}, serial: {serial}")
+                print(f"Skipping duplicate device: {hostname}, serial: {serial}")
                 continue
             devices.append(
                 {"device": hostname, "device_type": device_type,
