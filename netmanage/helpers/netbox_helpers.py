@@ -777,6 +777,7 @@ def build_devices_json(db_path, url, token):
     roles_dict = nbc.fetch_device_roles_dict(url, token)
     site_mapping = nbc.fetch_site_name_id_mapping(url, token)
     types_dict = nbc.fetch_device_types_dict(url, token)
+    devices_df = nbc.netbox_get_devices_by_site(url, token)
     default_type = 124
     default_site = 1106
 
@@ -788,6 +789,12 @@ def build_devices_json(db_path, url, token):
         role = determine_device_role_by_model(pid, roles_dict)
         device_type = types_dict.get(pid, default_type)
         if site:
+            if (
+                devices_df["serial"].isin([serial]) and
+                devices_df["device_name"].isin([device])
+            ):
+                print(f"Skipping duplicate device: {device}, serial: {serial}")
+                continue
             devices.append({"device": device, "device_type": device_type,
                             "serial": serial, "site": site, "role": role,
                             "custom_fields": {"ansible_network_os": "cisco.asa.asa"}})
@@ -801,6 +808,12 @@ def build_devices_json(db_path, url, token):
         role = determine_device_role_by_model(name, roles_dict)
         device_type = types_dict.get(device, default_type)
         if site:
+            if (
+                devices_df["serial"].isin([serial]) and
+                devices_df["device_name"].isin([device])
+            ):
+                print(f"Skipping duplicate device: {device}, serial: {serial}")
+                continue
             devices.append({"device": device, "device_type": device_type,
                             "serial": serial, "site": site, "role": role,
                             "custom_fields": {"ansible_network_os": "bigip"}})
@@ -814,6 +827,12 @@ def build_devices_json(db_path, url, token):
         role = determine_device_role_by_model(model, roles_dict)
         device_type = types_dict.get(model, default_type)
         if site:
+            if (
+                devices_df["serial"].isin([serial]) and
+                devices_df["device_name"].isin([device])
+            ):
+                print(f"Skipping duplicate device: {device}, serial: {serial}")
+                continue
             devices.append(
                 {"device": hostname, "device_type":
                     device_type, "serial": serial, "site": site, "role": role,
@@ -827,6 +846,12 @@ def build_devices_json(db_path, url, token):
         role = determine_device_role_by_model(model, roles_dict)
         device_type = types_dict.get(model, default_type)
         if site:
+            if (
+                devices_df["serial"].isin([serial]) and
+                devices_df["device_name"].isin([device])
+            ):
+                print(f"Skipping duplicate device: {device}, serial: {serial}")
+                continue
             devices.append(
                 {"device": hostname, "device_type": device_type,
                  "serial": serial, "site": site, "role": role,
@@ -841,6 +866,12 @@ def build_devices_json(db_path, url, token):
         role = determine_device_role_by_model(platform, roles_dict)
         device_type = types_dict.get(platform, default_type)
         if site:
+            if (
+                devices_df["serial"].isin([serial]) and
+                devices_df["device_name"].isin([device])
+            ):
+                print(f"Skipping duplicate device: {device}, serial: {serial}")
+                continue
             devices.append(
                 {"device": hostname, "device_type": device_type,
                  "serial": serial, "site": site, "role": role,
@@ -855,6 +886,12 @@ def build_devices_json(db_path, url, token):
         role = determine_device_role_by_model(model, roles_dict)
         device_type = types_dict.get(model, default_type)
         if site:
+            if (
+                devices_df["serial"].isin([serial]) and
+                devices_df["device_name"].isin([device])
+            ):
+                print(f"Skipping duplicate device: {device}, serial: {serial}")
+                continue
             devices.append(
                 {"device": hostname, "device_type": device_type,
                  "serial": serial, "site": site, "role": role,

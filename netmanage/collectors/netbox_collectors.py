@@ -430,6 +430,7 @@ def netbox_get_devices_by_site(
                     "device_tenant": device.tenant.name if device.tenant else None,
                     "manufacturer": device.device_type.manufacturer.name,
                     "model": device.device_type.model,
+                    "serial": device.serial,
                 }
             )
 
