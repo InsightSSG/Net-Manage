@@ -248,6 +248,8 @@ def parse_gather_basic_facts(results: list, db_path) -> pd.DataFrame:
     # Create a dictionary to store the facts.
     df_data = dict()
     df_data["device"] = list()
+    df_data["ansible_net_model"] = list()
+    df_data["ansible_net_serial"] = list()
 
     # Create the dictionary keys.
     for item in results:
