@@ -867,3 +867,44 @@ def import_devices_to_netbox(url, token, devices_json):
 
     return responses
 
+
+def cleanup_duplicate_devs_by_serials(url=None, token=None, cleanup=False):
+    """
+    Checks for duplicate device serial numbers in NetBox and optionally deletes them.
+    :param url: (str): URL of the Netbox instance.
+    :param token: (str): API token for authentication.
+    :param cleanup: (bool, optional): If True, deletes duplicate devices. Defaults to False.
+    :return: None.
+    """
+
+    nb = nbh.create_netbox_handler(url, token)
+    
+    print("Checking for duplicate serial numbers...")
+
+    # Retrieve all devices and group them by serial number
+    devices = nb.dcim.devices.all()
+    devices_by_serial = {}
+    for device in devices:
+        serial = device.serial
+        if serial:
+            devices_by_serial.setdefault(serial, []).append(device)
+
+    # Identify and handle duplicates
+    duplicate_serials = []
+    for serial, devices in devices_by_serial.items():
+        if len(devices) > 1:
+            duplicate_serials.append((serial, devices))
+
+    for serial, devices in duplicate_serials:
+        print(f"Found duplicate serial number: {serial}")
+
+        # Delete the other devices, handling potential errors
+        for device in devices[1:]:
+            try:
+                if cleanup:
+                    print(f"Deleting duplicate device: {device.name}")
+                    nb.dcim.devices.delete([device.id])
+            #except Record.DoesNotExist:
+            #    logging.warning(f"Device {device.name} already deleted.")
+            except Exception as e:
+                logging.error(f"Error deleting device {device.name}: {e}")
