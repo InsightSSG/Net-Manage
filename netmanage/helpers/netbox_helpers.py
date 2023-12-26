@@ -790,8 +790,8 @@ def build_devices_json(db_path, url, token):
         device_type = types_dict.get(pid, default_type)
         if site:
             if (
-                devices_df["serial"].isin([serial]) and
-                devices_df["device_name"].isin([device])
+                devices_df["serial"].isin([serial]).any() and
+                devices_df["device_name"].isin([device]).any()
             ):
                 print(f"Skipping duplicate device: {device}, serial: {serial}")
                 continue
