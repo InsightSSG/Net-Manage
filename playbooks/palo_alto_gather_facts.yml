@@ -1,0 +1,17 @@
+- name: Gather facts from Palo Alto devices
+  hosts: "{{ host_group }}"
+  connection: local
+  gather_facts: no
+
+  tasks:
+    - name: gathering facts on "{{ host_group }}"
+      paloaltonetworks.panos.panos_facts:
+        gather_subset: "{{ gather_list | default('!config') }}"
+        provider:
+          username: "{{ username }}"
+          ip_address: "{{ ansible_host }}"
+          password: "{{ password }}"
+          serial_number: "{{ serial_number | default('') }}"
+      delegate_to: localhost
+      vars:
+        ansible_command_timeout: "{{ ansible_timeout | default('240') }}"

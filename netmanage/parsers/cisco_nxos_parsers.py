@@ -139,13 +139,13 @@ def nxos_parse_cdp_neighbors(runner: dict) -> pd.DataFrame:
             event_data = event["event_data"]
             device = event_data["remote_addr"]
             output = event_data["res"]["stdout"][0]
-            data[device] = output[
-                'TABLE_cdp_neighbor_brief_info'][
-                    'ROW_cdp_neighbor_brief_info']
+            data[device] = output["TABLE_cdp_neighbor_brief_info"][
+                "ROW_cdp_neighbor_brief_info"
+            ]
 
     # Get a list of all possible keys. This accounts for devices that do not
     # return the same keys.
-    df_data = {'device': list()}
+    df_data = {"device": list()}
     for key, value in data.items():
         for item in value:
             for k in item:
@@ -156,38 +156,71 @@ def nxos_parse_cdp_neighbors(runner: dict) -> pd.DataFrame:
     keys = list(df_data.keys())
     for key, value in data.items():
         for item in value:
-            df_data['device'].append(key)
+            df_data["device"].append(key)
             for k in keys:
-                if k != 'device':
+                if k != "device":
                     df_data[k].append(item.get(k))
 
     # Create the dataframe, and rename the 'device_id' column
     df = pd.DataFrame(df_data)
-    df.rename(columns={'device_id': 'neighbor_device_id'}, inplace=True)
+    df.rename(columns={"device_id": "neighbor_device_id"}, inplace=True)
 
     # Add additional columns for parsed data in the 'neighbor_device_id' column
-    neighbors = df['neighbor_device_id'].to_list()
-    neighbor = [_.split('(')[0] for _ in neighbors]
+    neighbors = df["neighbor_device_id"].to_list()
+    neighbor = [_.split("(")[0] for _ in neighbors]
     neighbor_serial = list()
     for _ in neighbors:
-        if '(' in _:
-            neighbor_serial.append(_.split('(')[-1].split(')')[0])
+        if "(" in _:
+            neighbor_serial.append(_.split("(")[-1].split(")")[0])
         else:
             neighbor_serial.append(str())
     neighbor_domain = list()
     for _ in neighbor:
-        if '.' in _:
-            domain = _.split('.')
-            domain = '.'.join(domain[1:])
+        if "." in _:
+            domain = _.split(".")
+            domain = ".".join(domain[1:])
             neighbor_domain.append(domain)
         else:
             neighbor_domain.append(str())
 
-    df['neighbor'] = [_.split('.')[0] for _ in neighbor]
-    df['neighbor_serial'] = neighbor_serial
-    df['neighbor_domain'] = neighbor_domain
+    df["neighbor"] = [_.split(".")[0] for _ in neighbor]
+    df["neighbor_serial"] = neighbor_serial
+    df["neighbor_domain"] = neighbor_domain
 
     return df.astype(str)
+
+
+def nxos_parse_facts(runner: dict) -> dict:
+    """Gathers specified facts on Cisco NXOS devices.
+
+    Parameters
+    ----------
+    runner : dict
+        An Ansible runner genrator
+
+    Returns
+    -------
+    facts : dict
+        A dictionary where each key is a device in the host_group and the value
+        is the requested facts.
+    """
+
+    if runner is None or runner.events is None:
+        raise ValueError("The input is None or empty")
+
+    # Parse the output, store it in 'facts', and return it
+    facts = dict()
+
+    for event in runner.events:
+        if event["event"] == "runner_on_ok":
+            event_data = event["event_data"]
+
+            device = event_data["remote_addr"]
+            output = event_data["res"]["ansible_facts"]
+
+            facts[device] = output
+
+    return facts
 
 
 def nxos_parse_fexes_table(runner: dict, nm_path: str) -> pd.DataFrame:
@@ -211,34 +244,33 @@ def nxos_parse_fexes_table(runner: dict, nm_path: str) -> pd.DataFrame:
     """
     # Define regular expressions to match each line
     regex_patterns = {
-        'fex': r'FEX: (\d+)',
-        'description': r'Description: ([\w-]+)',
-        'state': r'state: (\w+)',
-        'fex_version': r'FEX version: ([\d\.\(\)N]+)',
-        'switch_version': r'Switch version: ([\d\.\(\)N]+)',
-        'fex_interim_version': r'FEX Interim version: ([\d\.\(\)N]+)',
-        'switch_interim_version': r'Switch Interim version: ([\d\.\(\)N]+)',
-        'extender_serial': r'Extender Serial: (\w+)',
-        'extender_model': r'Extender Model: ([\w-]+)',
-        'part_no': r'Part No: ([\w-]+)',
-        'card_id': r'Card Id: (\d+)',
-        'mac_addr': r'Mac Addr: ([\w:]+)',
-        'num_macs': r'Num Macs: (\d+)',
-        'module_sw_gen': r'Module Sw Gen: (\d+)',
-        'switch_sw_gen': r'Switch Sw Gen: (\d+)',
-        'post_level': r'Post level: (\w+)',
-        'pinning_mode': r'Pinning-mode: (\w+)',
-        'max_links': r'Max-links: (\d+)',
-        'fabric_port_for_control_traffic':
-        r'Fabric port for control traffic: (\w+/\d+)',
-        'fcoe_admin': r'FCoE Admin: (\w+)',
-        'fcoe_oper': r'FCoE Oper: (\w+)',
-        'fcoe_fex_aa_configured': r'FCoE FEX AA Configured: (\w+)'
+        "fex": r"FEX: (\d+)",
+        "description": r"Description: ([\w-]+)",
+        "state": r"state: (\w+)",
+        "fex_version": r"FEX version: ([\d\.\(\)N]+)",
+        "switch_version": r"Switch version: ([\d\.\(\)N]+)",
+        "fex_interim_version": r"FEX Interim version: ([\d\.\(\)N]+)",
+        "switch_interim_version": r"Switch Interim version: ([\d\.\(\)N]+)",
+        "extender_serial": r"Extender Serial: (\w+)",
+        "extender_model": r"Extender Model: ([\w-]+)",
+        "part_no": r"Part No: ([\w-]+)",
+        "card_id": r"Card Id: (\d+)",
+        "mac_addr": r"Mac Addr: ([\w:]+)",
+        "num_macs": r"Num Macs: (\d+)",
+        "module_sw_gen": r"Module Sw Gen: (\d+)",
+        "switch_sw_gen": r"Switch Sw Gen: (\d+)",
+        "post_level": r"Post level: (\w+)",
+        "pinning_mode": r"Pinning-mode: (\w+)",
+        "max_links": r"Max-links: (\d+)",
+        "fcoe_admin": r"FCoE Admin: (\w+)",
+        "fabric_port_for_control_traffic":
+            r"Fabric port for control traffic: (\w+/\d+)",
+        "fcoe_oper": r"FCoE Oper: (\w+)",
+        "fcoe_fex_aa_configured": r"FCoE FEX AA Configured: (\w+)",
     }
 
     # Updated regex pattern to handle multiple 'Fabric interface state' values
-    fabric_interface_pattern = \
-        r'Fabric interface state:(.+?)(?=Fex Port|Logs|$)'
+    fabric_interface_pattern = r"Fabric interface state:(.+?)(?=Fex Port|Logs|$)"
 
     if runner is None or runner.events is None:
         raise ValueError("The input is None or empty")
@@ -258,8 +290,11 @@ def nxos_parse_fexes_table(runner: dict, nm_path: str) -> pd.DataFrame:
             data = event_data["res"]["stdout"][0]
 
             # Split the data into chunks for each FEX
-            fex_chunks = [f"FEX:{chunk}" for chunk in re.split(
-                r'FEX:', data) if chunk.strip() != ""]
+            fex_chunks = [
+                f"FEX:{chunk}"
+                for chunk in re.split(r"FEX:", data)
+                if chunk.strip() != ""
+            ]
 
             all_parsed_data = []
 
@@ -275,23 +310,25 @@ def nxos_parse_fexes_table(runner: dict, nm_path: str) -> pd.DataFrame:
 
                 # Extract fabric interface state
                 fabric_interface_state_match = re.search(
-                    fabric_interface_pattern, chunk, re.DOTALL)
+                    fabric_interface_pattern, chunk, re.DOTALL
+                )
                 if fabric_interface_state_match:
-                    parsed_data['fabric_interface_state'] = \
-                        fabric_interface_state_match.group(
-                        1).strip().replace("\n", "; ")
+                    parsed_data["fabric_interface_state"] = (
+                        fabric_interface_state_match.group(1)
+                        .strip()
+                        .replace("\n", "; ")
+                    )
                 else:
-                    parsed_data['fabric_interface_state'] = None
+                    parsed_data["fabric_interface_state"] = None
 
                 all_parsed_data.append(parsed_data)
 
             # Convert to dataframe
             df_multi_fex = pd.DataFrame(all_parsed_data)
-            df_multi_fex['device'] = device
+            df_multi_fex["device"] = device
 
             # Reorder the columns to make 'device' the first column
-            column_order = ['device'] + \
-                [col for col in df_multi_fex if col != 'device']
+            column_order = ["device"] + [col for col in df_multi_fex if col != "device"]
             df_multi_fex = df_multi_fex[column_order]
 
             df = pd.concat([df_multi_fex, df], ignore_index=True)
@@ -574,7 +611,7 @@ def nxos_parse_interface_ips(runner: dict) -> pd.DataFrame:
     # Add the subnets, network IPs, and broadcast IPs.
     addresses = df["ip"].to_list()
 
-    df['ip'] = [_.split('/')[0] for _ in df['ip'].to_list()]
+    df["ip"] = [_.split("/")[0] for _ in df["ip"].to_list()]
 
     result = hp.generate_subnet_details(addresses)
     df["subnet"] = result["subnet"]
@@ -583,15 +620,19 @@ def nxos_parse_interface_ips(runner: dict) -> pd.DataFrame:
 
     # Add a column containing the CIDR notation.
     cidrs = hp.subnet_mask_to_cidr(df["subnet"].to_list())
-    df['cidr'] = cidrs
-    df = df[['device',
-             'interface',
-             'ip',
-             'cidr',
-             'vrf',
-             'subnet',
-             'network_ip',
-             'broadcast_ip']]
+    df["cidr"] = cidrs
+    df = df[
+        [
+            "device",
+            "interface",
+            "ip",
+            "cidr",
+            "vrf",
+            "subnet",
+            "network_ip",
+            "broadcast_ip",
+        ]
+    ]
 
     return df
 
@@ -657,8 +698,7 @@ def nxos_parse_interface_status(runner: dict) -> pd.DataFrame:
     return df_inf_status
 
 
-def nxos_parse_interface_summary(df_inf: pd.DataFrame,
-                                 con, ts) -> pd.DataFrame:
+def nxos_parse_interface_summary(df_inf: pd.DataFrame, con, ts) -> pd.DataFrame:
     """
     Parse a summary of the interfaces on a NXOS devices. The summary includes
     the interface status, description, associated MACs, and vendor OUIs.
@@ -839,11 +879,11 @@ def nxos_parse_lldp_neighbors(runner: dict) -> pd.DataFrame:
             event_data = event["event_data"]
             device = event_data["remote_addr"]
             output = event_data["res"]["stdout"][0]
-            data[device] = output['TABLE_nbor']['ROW_nbor']
+            data[device] = output["TABLE_nbor"]["ROW_nbor"]
 
     # Get a list of all possible keys. This accounts for devices that do not
     # return the same keys.
-    df_data = {'device': list()}
+    df_data = {"device": list()}
     for key, value in data.items():
         for item in value:
             for k in item:
@@ -854,9 +894,9 @@ def nxos_parse_lldp_neighbors(runner: dict) -> pd.DataFrame:
     keys = list(df_data.keys())
     for key, value in data.items():
         for item in value:
-            df_data['device'].append(key)
+            df_data["device"].append(key)
             for k in keys:
-                if k != 'device':
+                if k != "device":
                     df_data[k].append(item.get(k))
 
     return pd.DataFrame(df_data).astype(str)
@@ -902,6 +942,45 @@ def nxos_parse_logs(runner: dict) -> pd.DataFrame:
     df_logs = pd.DataFrame(data=df_data, columns=cols)
 
     return df_logs
+
+
+def nxos_parse_gather_basic_facts(results: dict) -> pd.DataFrame:
+    """
+    Parses the results from cisco_ios_collectors.basic_facts.
+
+    Parameters
+    ----------
+    results : dict
+        A dictionary containing the results from
+        cisco_ios_collectors.gather_basic_facts.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        A DataFrame containing the facts.
+    """
+    # Create a dictionary to store the parsed data.
+    df_data = dict()
+    df_data["device"] = list()
+
+    # Create keys for df_data.
+    for key, value in results.items():
+        for k in value:
+            if not df_data.get(k):
+                df_data[k] = list()
+
+    # Populate df_data.
+    for key, value in results.items():
+        df_data["device"].append(key)
+        for key in df_data:
+            if key != "device":
+                df_data[key].append(value.get(key))
+
+    # Create the DataFrame and return it.
+    df = pd.DataFrame(df_data)
+    df = df.astype(str)
+
+    return df
 
 
 def nxos_parse_port_channel_data(runner: dict) -> pd.DataFrame:

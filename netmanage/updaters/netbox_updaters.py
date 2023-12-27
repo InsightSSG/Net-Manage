@@ -1,6 +1,10 @@
 from netmanage import netbox_collectors as nbc
+from netmanage import netbox_helpers as nbh
 from typing import Optional, Any, List, Dict
-from pynetbox import api, RequestError
+from pynetbox import RequestError
+import logging
+import json
+import re
 
 
 def update_cable(
@@ -45,7 +49,7 @@ def update_cable(
                   [{'object_id': 22104, 'object_type': 'dcim.interface'}],
                   [{'object_id': 29287, 'object_type': 'dcim.interface'}])
     """
-    nb = api(url, token)
+    nb = nbh.create_netbox_handler(url, token)
 
     cable = {
         "id": _id,
@@ -118,7 +122,7 @@ def update_prefix(
         raise TypeError(
             "The netbox id of the object being updated must be included")
 
-    nb = api(url, token)
+    nb = nbh.create_netbox_handler(url, token)
 
     # If a VRF was provided, then get its ID.
     if vrf:
@@ -190,9 +194,9 @@ def update_device(
 
     Parameters
     ----------
-    netbox_url : str
+    url : str
         The URL of the NetBox instance.
-    netbox_token : str
+    token : str
         The authentication token for the NetBox API.
     _id: int
         The netbox id of the object being updated must be included
@@ -266,7 +270,7 @@ def update_device(
             "The netbox id of the object being updated must be included")
 
     # Create an instance of the API using the provided URL and token
-    nb = api(url, token)
+    nb = nbh.create_netbox_handler(url, token)
 
     # If the user provided a device_role name instead of a device_role ID, then
     # use the name of the device_role to find its ID.
@@ -385,7 +389,7 @@ def update_device_role(
             "The netbox id of the object being updated must be included")
 
     # Create an instance of the API using the provided URL and token
-    nb = api(url, token)
+    nb = nbh.create_netbox_handler(url, token)
     # Create or update the device role
     try:
         nb.dcim.device_roles.update(
@@ -466,7 +470,7 @@ def update_device_type(
             "The netbox id of the object being updated must be included")
 
     # Create an instance of the API using the provided URL and token
-    nb = api(url, token)
+    nb = nbh.create_netbox_handler(url, token)
 
     manufacturer = nb.dcim.manufacturers.get(name=manufacturer_name)
     try:
@@ -546,7 +550,7 @@ def update_vrf(
         raise TypeError(
             "The netbox id of the object being updated must be included")
 
-    nb = api(url, token)
+    nb = nbh.create_netbox_handler(url, token)
     data = {
         "name": vrf_name,
         "rd": rd,
@@ -647,7 +651,7 @@ def update_site(
         raise TypeError(
             "The netbox id of the object being updated must be included")
 
-    nb = api(url, token)
+    nb = nbh.create_netbox_handler(url, token)
     site = {"id": _id, "name": name, "slug": slug, "status": status}
 
     # Check which optional fields are passed and add them to the site payload
@@ -704,3 +708,204 @@ def update_site(
         return nb.dcim.sites.update(site)
     except RequestError as e:
         print(f"[{_id}]: {str(e)}")
+
+
+def update_netbox_sites(url, token, sites_json):
+    """
+    Updates Netbox with a list of new sites using pynetbox.
+    :param url: URL of the Netbox instance.
+    :param token: API token for authentication.
+    :param sites_json: JSON string with site data.
+    :return: List of created site objects or error message.
+    """
+    nb = nbh.create_netbox_handler(url, token)
+    sites_data = json.loads(sites_json)
+
+    created_sites = []
+    for site in sites_data:
+        try:
+            created_site = nb.dcim.sites.create(site)
+            created_sites.append(created_site)
+        except Exception as e:
+            return f"An error occurred: {e}"
+
+    return created_sites
+
+
+def update_netbox_device_types(url, token, device_types_json):
+    """
+    Imports device types into Netbox, creating manufacturers and ensuring
+    valid slugs.
+    :param url: URL of the Netbox instance.
+    :param token: API token for authentication.
+    :param device_types_json: JSON string containing device types.
+    :return: List of responses or error messages.
+    """
+    nb = nbh.create_netbox_handler(url, token)
+
+    def create_valid_slug(name):
+        # Explicitly replace slashes and spaces with underscores
+        slug = name.replace('/', '_').replace(' ', '_')
+        slug = re.sub(r'[^a-zA-Z0-9_-]', '', slug)
+        return slug.lower()
+
+    def ensure_manufacturer_exists(name):
+        manufacturer = nb.dcim.manufacturers.get(name=name)
+        if not manufacturer:
+            slug = create_valid_slug(name)
+            # Check if the slug already exists
+            if not nb.dcim.manufacturers.get(slug=slug):
+                manufacturer = nb.dcim.manufacturers.create(
+                    name=name, slug=slug)
+            else:
+                # Handle the case where the slug already exists
+                return None
+        return manufacturer.id
+
+    device_types_data = json.loads(device_types_json)
+    responses = []
+
+    for device_type in device_types_data:
+        try:
+            manu_id = ensure_manufacturer_exists(device_type['manufacturer'])
+            if manu_id:
+                device_type['manufacturer'] = manu_id
+
+                # Convert model to a valid slug
+                if 'slug' not in device_type or not device_type['slug']:
+                    device_type['slug'] = \
+                        create_valid_slug(device_type['model'])
+
+                response = nb.dcim.device_types.create(device_type)
+                responses.append(response)
+            else:
+                responses.append(
+                    f"Failed to create or find manufacturer for "
+                    f"{device_type['model']}")
+
+        except RequestError as e:
+            responses.append(
+                f"An error occurred with {device_type['model']}: {e.error}")
+
+    return responses
+
+
+def update_netbox_device_roles(url, token, device_roles_json):
+    """
+    Imports device roles into Netbox using the pynetbox library.
+    :param url: URL of the Netbox instance.
+    :param token: API token for authentication.
+    :param device_roles_json: JSON string containing the device roles.
+    :return: List of responses or error messages.
+    """
+    nb = nbh.create_netbox_handler(url, token)
+    device_roles_data = json.loads(device_roles_json)
+    responses = []
+
+    for device_role in device_roles_data:
+        try:
+            response = nb.dcim.device_roles.create(device_role)
+            responses.append(response)
+        except RequestError as e:
+            responses.append(
+                f"An error occurred with {device_role['name']}: {e.error}")
+
+    return responses
+
+
+def update_netbox_racks(url, token, rack_dicts):
+    """
+    Imports a list of rack dictionaries into Netbox.
+    :param url: URL of the Netbox instance.
+    :param token: API token for authentication.
+    :param rack_dicts: List of dictionaries, each representing a rack.
+    :return: List of responses from the Netbox API.
+    """
+    nb = nbh.create_netbox_handler(url, token)
+    responses = []
+
+    for rack_dict in rack_dicts:
+        try:
+            response = nb.dcim.racks.create(rack_dict)
+            responses.append(response)
+        except RequestError as e:
+            responses.append(
+                f"An error occurred with {rack_dict['name']}: {e.error}")
+
+    return responses
+
+
+def import_devices_to_netbox(url, token, devices_json):
+    """
+    Imports or updates devices in Netbox.
+    :param url: URL of the Netbox instance.
+    :param token: API token for authentication.
+    :param devices_json: JSON string containing devices.
+    :return: List of responses from Netbox API.
+    """
+    nb = nbh.create_netbox_handler(url, token)
+    devices_data = json.loads(devices_json)
+    responses = []
+
+    for device in devices_data:
+        netbox_device = {
+            "name": device['device'],
+            "device_type": device['device_type'],
+            "serial": device['serial'],
+            "site": device['site'],
+            "role": device['role']
+        }
+
+        # Create the device in Netbox
+        try:
+            response = nb.dcim.devices.create(netbox_device)
+            responses.append(response)
+        except RequestError as e:
+            responses.append(
+                f"An error occurred with {device['device']}: {e.error}")
+            print(f"An error occurred with {device['device']}: {e.error}")
+
+    return responses
+
+
+def cleanup_duplicate_devs_by_serials(url=None, token=None, cleanup=False):
+    """
+    Checks for duplicate device serial numbers in NetBox and optionally deletes them.
+    :param url: (str): URL of the Netbox instance.
+    :param token: (str): API token for authentication.
+    :param cleanup: (bool, optional): If True, deletes duplicate devices.
+                                      Defaults to False.
+    :return: None.
+    """
+
+    nb = nbh.create_netbox_handler(url, token)
+
+    print("Checking for duplicate serial numbers...")
+
+    # Retrieve all devices and group them by serial number
+    devices = nb.dcim.devices.all()
+    devices_by_serial = {}
+    for device in devices:
+        serial = device.serial
+        if serial:
+            devices_by_serial.setdefault(serial, []).append(device)
+
+    # Identify and handle duplicates
+    duplicate_serials = []
+    for serial, devices in devices_by_serial.items():
+        if len(devices) > 1:
+            duplicate_serials.append((serial, devices))
+
+    for serial, devices in duplicate_serials:
+        print(f"Found duplicate serial number: {serial}")
+
+        # Delete the other devices, handling potential errors
+        for device in devices[1:]:
+            try:
+                if cleanup:
+                    print(f"Deleting duplicate device: {device.name}")
+                    nb.dcim.devices.delete([device.id])
+            # except Record.DoesNotExist:
+            #    logging.warning(f"Device {device.name} already deleted.")
+            except Exception as e:
+                logging.error(f"Error deleting device {device.name}: {e}")

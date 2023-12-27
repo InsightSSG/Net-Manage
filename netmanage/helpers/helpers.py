@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 
-'''
+"""
 A library of generic helper functions.
-'''
+"""
 
 import ansible_runner
-import ast
 import glob
 import ipaddress
 import nmap
@@ -26,9 +25,10 @@ from tabulate import tabulate
 from typing import Any, Dict, List, Tuple, Union
 
 
-def ansible_create_collectors_df(hostgroups: List[str],
-                                 collectors: List[str]) -> pd.DataFrame:
-    '''
+def ansible_create_collectors_df(
+    hostgroups: List[str], collectors: List[str]
+) -> pd.DataFrame:
+    """
     Create a DataFrame where the index is the selected collectors and each row
     contains a comma-delimited string of selected hostgroups.
 
@@ -51,20 +51,20 @@ def ansible_create_collectors_df(hostgroups: List[str],
     >>> collectors = ['collector1', 'collector2']
     >>> df_collectors = ansible_create_collectors_df(hostgroups, collectors)
     >>> print(df_collectors)
-    '''
+    """
     df_data = list()
     for c in collectors:
-        df_data.append([c, ','.join(hostgroups)])
-        df_collectors = pd.DataFrame(data=df_data, columns=['collector',
-                                                            'hostgroups'])
-    df_collectors = df_collectors.set_index('collector')
+        df_data.append([c, ",".join(hostgroups)])
+        df_collectors = pd.DataFrame(data=df_data, columns=["collector", "hostgroups"])
+    df_collectors = df_collectors.set_index("collector")
 
     return df_collectors
 
 
-def ansible_create_vars_df(hostgroups: List[str],
-                           private_data_dir: str) -> pd.DataFrame:
-    '''
+def ansible_create_vars_df(
+    hostgroups: List[str], private_data_dir: str
+) -> pd.DataFrame:
+    """
     Create a DataFrame containing the Ansible variables for each hostgroup.
 
     This function is designed to be used with the net-manage.ipynb. It reads
@@ -91,7 +91,7 @@ def ansible_create_vars_df(hostgroups: List[str],
     >>> private_data_dir = '/path/to/private/data/dir'
     >>> df_vars = ansible_create_vars_df(hostgroups, private_data_dir)
     >>> print(df_vars)
-    '''
+    """
     host_vars = dict()
 
     for g in hostgroups:
@@ -100,32 +100,32 @@ def ansible_create_vars_df(hostgroups: List[str],
 
     # Create a dictionary to store the variable data for each group
     df_data = dict()
-    df_data['host_group'] = list()
+    df_data["host_group"] = list()
 
     # Iterate through the keys for each group in 'host_vars', adding it as a
     # key to 'df_data'
     for key, value in host_vars.items():
         for k in value:
-            if k != 'ansible_user' and k != 'ansible_password':
+            if k != "ansible_user" and k != "ansible_password":
                 df_data[k] = list()
 
     # Iterate through 'host_vars', populating 'df_data'
     for key, value in host_vars.items():
-        df_data['host_group'].append(key)
+        df_data["host_group"].append(key)
         for item in df_data:
-            if item != 'host_group':
+            if item != "host_group":
                 result = value.get(item)
                 df_data[item].append(result)
 
     df_vars = pd.DataFrame.from_dict(df_data)
 
-    df_vars = df_vars.set_index('host_group')
+    df_vars = df_vars.set_index("host_group")
 
     return df_vars
 
 
 def ansible_get_all_hostgroup_os(private_data_dir: str) -> Dict[str, str]:
-    '''
+    """
     Get the Ansible OS for every hostgroup.
 
     Parameters
@@ -145,22 +145,22 @@ def ansible_get_all_hostgroup_os(private_data_dir: str) -> Dict[str, str]:
     >>> private_data_dir = '/path/to/private/data/dir'
     >>> groups_os = ansible_get_all_hostgroup_os(private_data_dir)
     >>> print(groups_os)
-    '''
+    """
     # Get all group variables
     groups_vars = ansible_get_all_host_variables(private_data_dir)
 
     groups_os = dict()
 
     for key, value in groups_vars.items():
-        group_vars = value.get('vars')
-        if group_vars and group_vars.get('ansible_network_os'):
-            groups_os[key] = value['vars']['ansible_network_os']
+        group_vars = value.get("vars")
+        if group_vars and group_vars.get("ansible_network_os"):
+            groups_os[key] = value["vars"]["ansible_network_os"]
 
     return groups_os
 
 
 def ansible_get_all_host_variables(private_data_dir: str) -> Dict[str, str]:
-    '''
+    """
     Get the Ansible variables for all hostgroups in the inventory.
 
     Parameters
@@ -180,15 +180,15 @@ def ansible_get_all_host_variables(private_data_dir: str) -> Dict[str, str]:
     >>> private_data_dir = '/path/to/private/data/dir'
     >>> groups_vars = ansible_get_all_host_variables(private_data_dir)
     >>> print(groups_vars)
-    '''
+    """
     # Read the contents of the playbook into a dictionary
-    with open(f'{private_data_dir}/inventory/hosts') as f:
+    with open(f"{private_data_dir}/inventory/hosts") as f:
         groups_vars = yaml.load(f, Loader=yaml.FullLoader)
     return groups_vars
 
 
 def check_dir_existence(dir_path: str) -> bool:
-    '''
+    """
     Check whether a directory exists.
 
     Parameters
@@ -206,7 +206,7 @@ def check_dir_existence(dir_path: str) -> bool:
     >>> dir_path = '/path/to/directory'
     >>> exists = check_dir_existence(dir_path)
     >>> print(exists)
-    '''
+    """
     exists = False
     if os.path.exists(dir_path):
         exists = True
@@ -214,7 +214,7 @@ def check_dir_existence(dir_path: str) -> bool:
 
 
 def convert_mask_to_cidr(netmask: str) -> str:
-    '''
+    """
     Convert a subnet mask to CIDR notation.
 
     Parameters
@@ -232,13 +232,13 @@ def convert_mask_to_cidr(netmask: str) -> str:
     >>> netmask = '255.255.255.0'
     >>> cidr = convert_mask_to_cidr(netmask)
     >>> print(cidr)
-    '''
-    cidr = sum(bin(int(x)).count('1') for x in netmask.split('.'))
+    """
+    cidr = sum(bin(int(x)).count("1") for x in netmask.split("."))
     return cidr
 
 
 def create_dir(dir_path: str) -> None:
-    '''
+    """
     Create a directory.
 
     Parameters
@@ -254,12 +254,12 @@ def create_dir(dir_path: str) -> None:
     --------
     >>> dir_path = '/path/to/new/directory'
     >>> create_dir(dir_path)
-    '''
+    """
     os.mkdir(dir_path)
 
 
 def define_supported_validation_tables() -> List[str]:
-    '''
+    """
     Return a list of tables that are supported for validation.
 
     Returns
@@ -271,27 +271,28 @@ def define_supported_validation_tables() -> List[str]:
     --------
     >>> supported_tables = define_supported_validation_tables()
     >>> print(supported_tables)
-    '''
+    """
     supported_tables = dict()
 
-    supported_tables['MERAKI_ORG_DEVICE_STATUSES'] = dict()
-    supported_tables['MERAKI_ORG_DEVICE_STATUSES']['status'] = 'online'
+    supported_tables["MERAKI_ORG_DEVICE_STATUSES"] = dict()
+    supported_tables["MERAKI_ORG_DEVICE_STATUSES"]["status"] = "online"
 
-    supported_tables['BIGIP_POOL_AVAILABILITY'] = dict()
-    supported_tables['BIGIP_POOL_AVAILABILITY']['availability'] = 'available'
+    supported_tables["BIGIP_POOL_AVAILABILITY"] = dict()
+    supported_tables["BIGIP_POOL_AVAILABILITY"]["availability"] = "available"
 
-    supported_tables['BIGIP_POOL_MEMBER_AVAILABILITY'] = dict()
-    supported_tables['BIGIP_POOL_MEMBER_AVAILABILITY']['pool_member_state'] = \
-        'available'
+    supported_tables["BIGIP_POOL_MEMBER_AVAILABILITY"] = dict()
+    supported_tables["BIGIP_POOL_MEMBER_AVAILABILITY"][
+        "pool_member_state"
+    ] = "available"
 
-    supported_tables['BIGIP_VIP_AVAILABILITY'] = dict()
-    supported_tables['BIGIP_VIP_AVAILABILITY']['availability'] = 'available'
+    supported_tables["BIGIP_VIP_AVAILABILITY"] = dict()
+    supported_tables["BIGIP_VIP_AVAILABILITY"]["availability"] = "available"
 
     return supported_tables
 
 
 def get_database_tables(db_path: str) -> List[str]:
-    '''
+    """
     Get all of the tables out of the database.
 
     Parameters
@@ -309,12 +310,12 @@ def get_database_tables(db_path: str) -> List[str]:
     >>> db_path = '/path/to/database'
     >>> tables = get_database_tables(db_path)
     >>> print(tables)
-    '''
+    """
     # sqlite_schema used to be named sqlite_master. This method tries the new
     # name but will fail back to the old name if the user is on an older
     # version
-    name_old = 'master'
-    name_new = 'schema'
+    name_old = "master"
+    name_new = "schema"
     con = connect_to_db(db_path)
     query1 = f'''select name from sqlite_{name_new}
                  where type = "table" and name not like "sqlite_%"'''
@@ -324,12 +325,12 @@ def get_database_tables(db_path: str) -> List[str]:
         df_tables = pd.read_sql(query1, con)
     except Exception:
         df_tables = pd.read_sql(query2, con)
-    tables = df_tables['name'].to_list()
+    tables = df_tables["name"].to_list()
     return tables
 
 
 def get_database_views(db_path: str) -> List[str]:
-    '''
+    """
     Get all of the views out of the database.
 
     Parameters
@@ -347,12 +348,12 @@ def get_database_views(db_path: str) -> List[str]:
     >>> db_path = '/path/to/database'
     >>> views = get_database_views(db_path)
     >>> print(views)
-    '''
+    """
     # sqlite_schema used to be named sqlite_master. This method tries the new
     # name but will fail back to the old name if the user is on an older
     # version
-    name_old = 'master'
-    name_new = 'schema'
+    name_old = "master"
+    name_new = "schema"
     con = connect_to_db(db_path)
     query1 = f'''select name from sqlite_{name_new}
                  where type = "view" and name not like "sqlite_%"'''
@@ -362,12 +363,12 @@ def get_database_views(db_path: str) -> List[str]:
         df_views = pd.read_sql(query1, con)
     except Exception:
         df_views = pd.read_sql(query2, con)
-    views = df_views['name'].to_list()
+    views = df_views["name"].to_list()
     return views
 
 
 def ansible_get_hostgroup() -> str:
-    '''
+    """
     Get the Ansible hostgroup.
 
     Returns
@@ -379,14 +380,14 @@ def ansible_get_hostgroup() -> str:
     --------
     >>> hostgroup = ansible_get_hostgroup()
     >>> print(hostgroup)
-    '''
+    """
 
-    host_group = input('Enter the name of the host group in the hosts file: ')
+    host_group = input("Enter the name of the host group in the hosts file: ")
     return host_group
 
 
 def ansible_get_host_variables(host_group: str, private_data_dir: str) -> Dict:
-    '''
+    """
     Get the variables for a host or host group in the hosts file.
 
     Parameters
@@ -408,20 +409,20 @@ def ansible_get_host_variables(host_group: str, private_data_dir: str) -> Dict:
     >>> private_data_dir = '/path/to/private/data/dir'
     >>> group_vars = ansible_get_host_variables(host_group, private_data_dir)
     >>> print(group_vars)
-    '''
+    """
     # Read the contents of the playbook into a dictionary
-    with open(f'{private_data_dir}/inventory/hosts') as f:
+    with open(f"{private_data_dir}/inventory/hosts") as f:
         hosts = yaml.load(f, Loader=yaml.FullLoader)
 
-    group_vars = hosts[host_group]['vars']
+    group_vars = hosts[host_group]["vars"]
 
     return group_vars
 
 
-def ansible_get_hostgroup_devices(hostgroup: str,
-                                  host_files: List[str],
-                                  quiet: bool = True) -> List[str]:
-    '''
+def ansible_get_hostgroup_devices(
+    hostgroup: str, host_files: List[str], quiet: bool = True
+) -> List[str]:
+    """
     Get the devices inside an Ansible inventory hostgroup.
 
     Parameters
@@ -444,23 +445,20 @@ def ansible_get_hostgroup_devices(hostgroup: str,
     >>> host_files = ['inventory/hosts']
     >>> devices = ansible_get_hostgroup_devices(hostgroup, host_files)
     >>> print(devices)
-    '''
-    graph = ansible_runner.interface.get_inventory('graph',
-                                                   host_files,
-                                                   quiet=True)
+    """
+    graph = ansible_runner.interface.get_inventory("graph", host_files, quiet=True)
     graph = str(graph)
-    for item in graph.split('@'):
+    for item in graph.split("@"):
         if hostgroup in item:
-            item = item.split(':')[-1]
-            item = item.split('|--')[1:-1]
-            devices = [i.split('\\')[0] for i in item]
+            item = item.split(":")[-1]
+            item = item.split("|--")[1:-1]
+            devices = [i.split("\\")[0] for i in item]
             break
     return devices
 
 
-def ansible_group_hostgroups_by_os(private_data_dir: str) \
-        -> Dict[str, List[str]]:
-    '''
+def ansible_group_hostgroups_by_os(private_data_dir: str) -> Dict[str, List[str]]:
+    """
     Finds the ansible_network_os for all hostgroups that have defined it in the
     variables, then organizes the hostgroups by os.
 
@@ -485,7 +483,7 @@ def ansible_group_hostgroups_by_os(private_data_dir: str) \
     >>> private_data_dir = '<private_data_dir>'
     >>> hostgroup_by_os = ansible_group_hostgroups_by_os(private_data_dir)
     >>> print(hostgroup_by_os)
-    '''
+    """
     # Get the OS for all Ansible hostgroups
     groups_os = ansible_get_all_hostgroup_os(private_data_dir)
 
@@ -499,7 +497,7 @@ def ansible_group_hostgroups_by_os(private_data_dir: str) \
 
 
 def define_collectors(hostgroup: str) -> Dict[str, Any]:
-    '''
+    """
     Creates a list of collectors.
 
     Parameters
@@ -517,88 +515,101 @@ def define_collectors(hostgroup: str) -> Dict[str, Any]:
     >>> hostgroup = '<hostgroup>'
     >>> available = define_collectors(hostgroup)
     >>> print(available)
-    '''
+    """
     # TODO: Find a more dynamic way to create this dictionary
-    collectors = {'arp_table': ['bigip',
-                                'cisco.ios.ios',
-                                'cisco.nxos.nxos',
-                                'paloaltonetworks.panos'],
-                  'bgp_neighbors': ['cisco.ios.ios',
-                                    'cisco.nxos.nxos',
-                                    'paloaltonetworks.panos'],
-                  'cam_table': ['cisco.ios.ios', 'cisco.nxos.nxos'],
-                  'cdp_neighbors': ['cisco.ios.ios', 'cisco.nxos.nxos'],
-                  'config': ['cisco.ios.ios'],
-                  'devices_inventory': ['cisco.dnac'],
-                  'device_cdp_lldp_neighbors': ['meraki'],
-                  'devices_modules': ['cisco.dnac'],
-                  'hardware_inventory': ['bigip',
-                                         'cisco.asa.asa',
-                                         'cisco.ios.ios',
-                                         'cisco.nxos.nxos',
-                                         'paloaltonetworks.panos'],
-                  'fexes_table': ['cisco.nxos.nxos'],
-                  'logs': ['bigip'],
-                  'ncm_serial_numbers': ['solarwinds'],
-                  'network_appliance_vlans': ['meraki'],
-                  'npm_containers': ['solarwinds'],
-                  'npm_group_members': ['solarwinds'],
-                  'npm_group_names': ['solarwinds'],
-                  'npm_node_ids': ['solarwinds'],
-                  'npm_node_ips': ['solarwinds'],
-                  'npm_node_machine_types': ['solarwinds'],
-                  'npm_node_os_versions': ['solarwinds'],
-                  'npm_node_vendors': ['solarwinds'],
-                  'npm_nodes': ['solarwinds'],
-                  'ospf_neighbors': ['cisco.ios.ios',
-                                     'paloaltonetworks.panos'],
-                  'node_availability': ['bigip'],
-                  'pool_availability': ['bigip'],
-                  'pool_member_availability': ['bigip'],
-                  'pool_summary': ['bigip'],
-                  'self_ips': ['bigip'],
-                  'appliance_uplink_statuses': ['meraki'],
-                  'vip_availability': ['bigip'],
-                  'vip_destinations': ['bigip'],
-                  #  'vip_summary': ['bigip'],
-                  'vlans': ['bigip',
-                            'cisco.ios.ios',
-                            'cisco.nxos.nxos',
-                            'infoblox_nios'],
-                  'networks': ['infoblox_nios'],
-                  'network_containers': ['infoblox_nios'],
-                  'networks_parent_containers': ['infoblox_nios'],
-                  'vlan_ranges': ['infoblox_nios'],
-                  'interface_description': ['bigip',
-                                            'cisco.ios.ios',
-                                            'cisco.nxos.nxos'],
-                  'interface_ip_addresses': ['cisco.asa.asa',
-                                             'cisco.ios.ios',
-                                             'cisco.nxos.nxos',
-                                             'paloaltonetworks.panos'],
-                  'interface_ipv6_addresses': ['cisco.ios.ios'],
-                  'interface_status': ['cisco.nxos.nxos'],
-                  'interface_summary': ['bigip', 'cisco.nxos.nxos'],
-                  'network_clients': ['meraki'],
-                  'network_devices': ['meraki'],
-                  'network_device_statuses': ['meraki'],
-                  'organizations': ['meraki'],
-                  'org_devices': ['meraki'],
-                  'org_device_statuses': ['meraki'],
-                  'org_networks': ['meraki'],
-                  'security_rules': ['paloaltonetworks.panos'],
-                  'switch_port_statuses': ['meraki'],
-                  'switch_lldp_neighbors': ['meraki'],
-                  'switch_port_usages': ['meraki'],
-                  'appliance_ports': ['meraki'],
-                  'switch_ports': ['meraki'],
-                  'ipam_prefixes': ['netbox'],
-                  'all_interfaces': ['paloaltonetworks.panos'],
-                  'logical_interfaces': ['paloaltonetworks.panos'],
-                  'physical_interfaces': ['paloaltonetworks.panos'],
-                  'port_channel_data': ['cisco.nxos.nxos'],
-                  'vpc_state': ['cisco.nxos.nxos'],
-                  'vrfs': ['cisco.ios.ios', 'cisco.nxos.nxos']}
+    collectors = {
+        "arp_table": [
+            "bigip",
+            "cisco.ios.ios",
+            "cisco.nxos.nxos",
+            "paloaltonetworks.panos",
+        ],
+        "basic_facts": [
+            "cisco.asa.asa",
+            "cisco.ios.ios",
+            "cisco.nxos.nxos",
+            "paloaltonetworks.panos",
+        ],
+        "bgp_neighbors": ["cisco.ios.ios", "cisco.nxos.nxos", "paloaltonetworks.panos"],
+        "cam_table": ["cisco.ios.ios", "cisco.nxos.nxos"],
+        "cdp_neighbors": ["cisco.ios.ios", "cisco.nxos.nxos"],
+        "config": ["cisco.ios.ios"],
+        "devices_inventory": ["cisco.dnac"],
+        "device_cdp_lldp_neighbors": ["meraki"],
+        "devices_modules": ["cisco.dnac"],
+        "fexes_table": ["cisco.nxos.nxos"],
+        "hardware_inventory": [
+            "bigip",
+            "cisco.asa.asa",
+            "cisco.ios.ios",
+            "cisco.nxos.nxos",
+            "paloaltonetworks.panos",
+        ],
+        "infoblox_get_network_containers": ["nios"],
+        "infoblox_get_network_parent_containers": ["nios"],
+        "infoblox_get_networks": ["nios"],
+        "infoblox_get_vlan_ranges": ["nios"],
+        "infoblox_get_vlans": ["nios"],
+        "lldp_neighbors": ["cisco.nxos.nxos"],
+        "logs": ["bigip"],
+        "ncm_serial_numbers": ["solarwinds"],
+        "network_appliance_vlans": ["meraki"],
+        "npm_containers": ["solarwinds"],
+        "npm_group_members": ["solarwinds"],
+        "npm_group_names": ["solarwinds"],
+        "npm_node_ids": ["solarwinds"],
+        "npm_node_ips": ["solarwinds"],
+        "npm_node_machine_types": ["solarwinds"],
+        "npm_node_os_versions": ["solarwinds"],
+        "npm_node_vendors": ["solarwinds"],
+        "npm_nodes": ["solarwinds"],
+        "ospf_neighbors": ["cisco.ios.ios", "paloaltonetworks.panos"],
+        "node_availability": ["bigip"],
+        "pool_availability": ["bigip"],
+        "pool_member_availability": ["bigip"],
+        "pool_summary": ["bigip"],
+        "panorama_managed_devices": ["paloaltonetworks.panos"],
+        "self_ips": ["bigip"],
+        "appliance_uplink_statuses": ["meraki"],
+        "vip_availability": ["bigip"],
+        "vip_destinations": ["bigip"],
+        #  'vip_summary': ['bigip'],
+        "vlans": ["bigip", "cisco.ios.ios", "cisco.nxos.nxos", "infoblox_nios"],
+        "networks": ["infoblox_nios"],
+        "network_containers": ["infoblox_nios"],
+        "networks_parent_containers": ["infoblox_nios"],
+        "vlan_ranges": ["infoblox_nios"],
+        "interface_description": ["bigip", "cisco.ios.ios", "cisco.nxos.nxos"],
+        "interface_ip_addresses": [
+            "cisco.asa.asa",
+            "cisco.ios.ios",
+            "cisco.nxos.nxos",
+            "paloaltonetworks.panos",
+        ],
+        "interface_ipv6_addresses": ["cisco.ios.ios"],
+        "interface_status": ["cisco.nxos.nxos"],
+        "interface_summary": ["bigip", "cisco.nxos.nxos"],
+        "network_clients": ["meraki"],
+        "network_devices": ["meraki"],
+        "network_device_statuses": ["meraki"],
+        "organizations": ["meraki"],
+        "org_devices": ["meraki"],
+        "org_device_statuses": ["meraki"],
+        "org_networks": ["meraki"],
+        "security_rules": ["paloaltonetworks.panos"],
+        "switch_port_statuses": ["meraki"],
+        "switch_lldp_neighbors": ["meraki"],
+        "switch_port_usages": ["meraki"],
+        "appliance_ports": ["meraki"],
+        "switch_ports": ["meraki"],
+        "ipam_prefixes": ["netbox"],
+        "all_interfaces": ["paloaltonetworks.panos"],
+        "logical_interfaces": ["paloaltonetworks.panos"],
+        "physical_interfaces": ["paloaltonetworks.panos"],
+        "port_channel_data": ["cisco.nxos.nxos"],
+        "vpc_state": ["cisco.nxos.nxos"],
+        "vrfs": ["cisco.ios.ios", "cisco.nxos.nxos"],
+    }
 
     available = list()
     for key, value in collectors.items():
@@ -607,12 +618,14 @@ def define_collectors(hostgroup: str) -> Dict[str, Any]:
     return available
 
 
-def f5_create_authentication_token(device: str,
-                                   username: str,
-                                   password: str,
-                                   loginProviderName: str = 'tmos',
-                                   verify: bool = True) -> str:
-    '''
+def f5_create_authentication_token(
+    device: str,
+    username: str,
+    password: str,
+    loginProviderName: str = "tmos",
+    verify: bool = True,
+) -> str:
+    """
     Creates an authentication token to use for F5 REST API calls.
 
     Parameters
@@ -636,16 +649,18 @@ def f5_create_authentication_token(device: str,
     -------
     token : str
         The authentication token.
-    '''
+    """
     # Create the URL used for creating the authentication token
-    url = f'{device}/mgmt/shared/authn/login'
+    url = f"{device}/mgmt/shared/authn/login"
 
     # Request the token
-    content = {'username': username,
-               'password': password,
-               'loginProviderName': loginProviderName}
+    content = {
+        "username": username,
+        "password": password,
+        "loginProviderName": loginProviderName,
+    }
     response = requests.post(url, json=content, verify=verify)
-    token = response.json()['token']['token']
+    token = response.json()["token"]["token"]
 
     # Sleep for 1.5 seconds. This is required due to F5 bug ID1108181
     # https://cdn.f5.com/product/bugtracker/ID1108181.html
@@ -656,7 +671,7 @@ def f5_create_authentication_token(device: str,
 
 
 def find_mac_vendors(macs: List[str], nm_path: str) -> pd.DataFrame:
-    '''
+    """
     Finds the vendor OUI for a list of MAC addresses.
 
     Parameters
@@ -691,9 +706,9 @@ def find_mac_vendors(macs: List[str], nm_path: str) -> pd.DataFrame:
     >>> print(df.to_dict())
     {'mac': {0: '00:50:56:bd:52:79', 1: 'c4:34:6b:b9:99:32'},
     'vendor': {0: 'VMware, Inc.', 1: 'Hewlett Packard'}}
-    '''
+    """
     # Convert MAC addresses to base 16 by removing special characters.
-    addresses = [''.join(filter(str.isalnum, _)).upper() for _ in macs]
+    addresses = ["".join(filter(str.isalnum, _)).upper() for _ in macs]
 
     # Create a list to store vendors
     vendors = list()
@@ -703,62 +718,53 @@ def find_mac_vendors(macs: List[str], nm_path: str) -> pd.DataFrame:
 
     # Search df_ouis for the vendor and add it to 'vendors'.
     for address in addresses:
-        vendor = df_ouis.loc[df_ouis['base'] == address[:6]]['vendor']
+        vendor = df_ouis.loc[df_ouis["base"] == address[:6]]["vendor"]
         if len(vendor) >= 1:
             vendors.append(vendor.squeeze())
         else:
-            vendors.append('unknown')
+            vendors.append("unknown")
 
     # Create the dataframe.
     df = pd.DataFrame()
-    df['mac'] = macs
-    df['vendor'] = vendors
+    df["mac"] = macs
+    df["vendor"] = vendors
 
     return df
 
 
-def generate_subnet_details(addresses: List[str],
-                            return_keys: List[str] = ['subnet',
-                                                      'network_ip',
-                                                      'broadcast_ip',
-                                                      'subnet_mask']) \
-        -> Dict[str, List[str]]:
-    '''Generates the subnet, network, and broadcast IPs for a list of IPs.
+def generate_subnet_details(
+    addresses: List[str],
+    return_keys: List[str] = ["subnet", "network_ip", "broadcast_ip", "subnet_mask"],
+) -> Dict[str, List[str]]:
+    """Generates the subnet, network, and broadcast IPs for a list of IPs.
 
     Parameters
     ----------
     addresses : list of str
-        List of IP addresses in the format {ip}/{subnet_mask_length}.
+        List of IP addresses in the format {ip}/{subnet_mask_length} or
+        {ip} {subnet_mask}.
     return_keys : list of str, optional
-        List of keys to return. Used for when a table has column names that
-        conflict with the default return_keys of 'subnet', 'network_ip',
-        'broadcast_ip', and 'subnet_mask'. Defaults to ['subnet','network_ip',
-        'broadcast_ip', 'subnet_mask'].
-        NOTE: The keys should be ordered so that element[0] is for the 'subnet'
-              column, element[1] for 'network_ip', element[2] for
-              'broadcast_ip', and element[3] for 'subnet_mask'.
+        List of keys to return.
 
     Returns
     -------
     dict
-        A dictionary with four keys:
-        - 'subnet' : list of str
-            List of subnet in CIDR notation for each IP address in the input
-            list.
-        - 'network_ip' : list of str
-            List of network IP for each IP address in the input list.
-        - 'broadcast_ip' : list of str
-            List of broadcast IP for each IP address in the input list.
-        - 'subnet_mask' : list of str
-            List of subnet masks for each IP address in the input list.
-    '''
-    subnet = list()
-    network_ip = list()
-    broadcast_ip = list()
-    subnet_mask = list()
+        A dictionary with details about each IP address.
+    """
+    subnet = []
+    network_ip = []
+    broadcast_ip = []
+    subnet_mask = []
 
     for ip in addresses:
-        ip_obj = ipaddress.ip_interface(ip)
+        if " " in ip:  # For 'IP SUBNET_MASK' format
+            ip_address, mask = ip.split()
+            ip_obj = ipaddress.ip_interface(
+                f'{ip_address}/{ipaddress.IPv4Network("0.0.0.0/"+mask).prefixlen}'
+            )
+        else:  # For 'IP/SUBNET_MASK_LENGTH' format
+            ip_obj = ipaddress.ip_interface(ip)
+
         subnet.append(str(ip_obj.network))
         network_ip.append(str(ip_obj.network.network_address))
         brd = str(ipaddress.IPv4Address(int(ip_obj.network.broadcast_address)))
@@ -773,8 +779,8 @@ def generate_subnet_details(addresses: List[str],
     }
 
 
-def get_creds(prompt: str = '') -> Tuple[str, str]:
-    '''
+def get_creds(prompt: str = "") -> Tuple[str, str]:
+    """
     Gets the username and password to use for authentication.
 
     Parameters
@@ -792,15 +798,14 @@ def get_creds(prompt: str = '') -> Tuple[str, str]:
         The username.
     password : str
         The password.
-    '''
+    """
     username = get_username(prompt)
     password = get_password(prompt)
     return username, password
 
 
-def ansible_get_hostgroups(inventories: List[str],
-                           quiet: bool = True) -> List[str]:
-    '''
+def ansible_get_hostgroups(inventories: List[str], quiet: bool = True) -> List[str]:
+    """
     Gets the devices inside an Ansible inventory hostgroup.
 
     Parameters
@@ -815,23 +820,21 @@ def ansible_get_hostgroups(inventories: List[str],
     -------
     devices : list of str
         A list of devices in the hostgroup.
-    '''
-    graph = ansible_runner.interface.get_inventory('graph',
-                                                   inventories,
-                                                   quiet=True)
+    """
+    graph = ansible_runner.interface.get_inventory("graph", inventories, quiet=True)
     graph = str(graph).strip("('")
     # graph = list(filter(None, graph))
     hostgroups = list()
-    graph = list(filter(None, graph.split('@')))
+    graph = list(filter(None, graph.split("@")))
     # TODO: Write a better parser
     for item in graph:
-        hostgroup = item.split(':')[0]
+        hostgroup = item.split(":")[0]
         hostgroups.append(hostgroup)
     return hostgroups
 
 
 def connect_to_db(db: str) -> sl.Connection:
-    '''
+    """
     Opens a connection to the sqlite database.
 
     Parameters
@@ -843,11 +846,11 @@ def connect_to_db(db: str) -> sl.Connection:
     -------
     con : sl.Connection
         Connection to the database
-    '''
+    """
     try:
         con = sl.connect(db)
     except Exception as e:
-        if str(e) == 'unable to open database file':
+        if str(e) == "unable to open database file":
             print(f'Cannot connect to db "{db}". Does directory exist?')
             sys.exit()
         else:
@@ -857,7 +860,7 @@ def connect_to_db(db: str) -> sl.Connection:
 
 
 def create_sqlite_regexp_function(conn: sl.Connection) -> None:
-    '''
+    """
     Creates a SQLite3 function that allows REGEXP queries. More details can be
     found at the following URLs:
     - 'https://tinyurl.com/mwxz2dn8'
@@ -871,18 +874,20 @@ def create_sqlite_regexp_function(conn: sl.Connection) -> None:
     Returns
     -------
     None
-    '''
+    """
+
     # This function is credited to Stack Overflow user 'unutbu':
     # - https://tinyurl.com/ye285mnj
     def regexp(expr, item):
         reg = re.compile(expr)
         return reg.search(item) is not None
-    conn.create_function('REGEXP', 2, regexp)
+
+    conn.create_function("REGEXP", 2, regexp)
     conn.commit()
 
 
 def get_dir_timestamps(path: str) -> Dict[str, dt]:
-    '''
+    """
     Gets the timestamp for all files and folders in a directory.
 
     This function is not recursive.
@@ -907,22 +912,20 @@ def get_dir_timestamps(path: str) -> Dict[str, dt]:
     >>> pprint(result)
     {'/tmp/test/test.txt': datetime.datetime(2023, 3, 7, 16, 15, 9),
     '/tmp/test/test2.txt': datetime.datetime(2023, 3, 7, 16, 16, 4)}
-    '''
-    files = glob.glob(f'{path}/*')
+    """
+    files = glob.glob(f"{path}/*")
 
     result = dict()
     for file in files:
         ts = time.ctime(os.path.getctime(file)).split()
-        ts = ' '.join([ts[1], ts[2], ts[-1], ts[3]])
+        ts = " ".join([ts[1], ts[2], ts[-1], ts[3]])
         result[file] = dt.strptime(ts, "%b %d %Y %H:%M:%S")
 
     return result
 
 
-def get_first_last_timestamp(db_path: str,
-                             table: str,
-                             col_name: str) -> pd.DataFrame:
-    '''
+def get_first_last_timestamp(db_path: str, table: str, col_name: str) -> pd.DataFrame:
+    """
     Gets the first and last timestamp from a database table for each unique
     entry in a column.
 
@@ -940,18 +943,18 @@ def get_first_last_timestamp(db_path: str,
     df_stamps : DataFrame
         A DataFrame containing the first and last timestamp for each unique
         entry in the specified column.
-    '''
+    """
     df_data = dict()
     df_data[col_name] = list()
-    df_data['first_ts'] = list()
-    df_data['last_ts'] = list()
+    df_data["first_ts"] = list()
+    df_data["last_ts"] = list()
 
     # Get the unique entries for col_name (usually a device name, MAC address,
     # etc). This is necessary since the first timestamp in the table won't
     # always have all the entries for that table (devices might be added or
     # removed, ARP tables might change, and so on)
     con = sl.connect(db_path)
-    query = f'select distinct {col_name} from {table}'
+    query = f"select distinct {col_name} from {table}"
     df_uniques = pd.read_sql(query, con)
     uniques = df_uniques[col_name].to_list()
 
@@ -959,19 +962,19 @@ def get_first_last_timestamp(db_path: str,
     # This will be used to create df_stamps
     # df_data = dict()
 
-    query = f'select distinct timestamp from {table}'
-    timestamps = pd.read_sql(query, con)['timestamp'].to_list()
+    query = f"select distinct timestamp from {table}"
+    timestamps = pd.read_sql(query, con)["timestamp"].to_list()
 
     for unique in uniques:
         stamps = list()
         for ts in timestamps:
             query = f'''select timestamp from {table}
                         where timestamp = "{ts}" and {col_name} = "{unique}"'''
-            for item in pd.read_sql(query, con)['timestamp'].to_list():
+            for item in pd.read_sql(query, con)["timestamp"].to_list():
                 stamps.append(item)
         df_data[col_name].append(unique)
-        df_data['first_ts'].append(stamps[0])
-        df_data['last_ts'].append(stamps[-1])
+        df_data["first_ts"].append(stamps[0])
+        df_data["last_ts"].append(stamps[-1])
 
     # This is an alternative way to collect the first and last timestamps for
     # each col_name. It does not utilize an index (assuming the table has one),
@@ -993,8 +996,8 @@ def get_first_last_timestamp(db_path: str,
     return df_stamps
 
 
-def get_username(prompt: str = '') -> str:
-    '''
+def get_username(prompt: str = "") -> str:
+    """
     Gets the username to use for authentication.
 
     Parameters
@@ -1010,12 +1013,12 @@ def get_username(prompt: str = '') -> str:
     -------
     username : str
         The username.
-    '''
+    """
     # Create the full prompt
     if not prompt:
-        f_prompt = 'Enter the username to use for authentication: '
+        f_prompt = "Enter the username to use for authentication: "
     else:
-        f_prompt = f'Enter the username to use for {prompt} authentication: '
+        f_prompt = f"Enter the username to use for {prompt} authentication: "
 
     # Get the user's username
     username = input(f_prompt)
@@ -1023,8 +1026,8 @@ def get_username(prompt: str = '') -> str:
     return username
 
 
-def get_password(prompt: str = '') -> str:
-    '''
+def get_password(prompt: str = "") -> str:
+    """
     Gets the password to use for authentication.
 
     Parameters
@@ -1040,41 +1043,41 @@ def get_password(prompt: str = '') -> str:
     -------
     password : str
         The password.
-    '''
+    """
     # Create the full prompt
     if not prompt:
-        f_prompt = 'Enter the password to use for authentication: '
+        f_prompt = "Enter the password to use for authentication: "
     else:
-        f_prompt = f'Enter the password to use for {prompt} authentication: '
+        f_prompt = f"Enter the password to use for {prompt} authentication: "
 
     # Get the user's password and have them type it twice for verification
     pass1 = str()
     pass2 = None
     while pass1 != pass2:
         pass1 = getpass(f_prompt)
-        pass2 = getpass('Confirm your password: ')
+        pass2 = getpass("Confirm your password: ")
         if pass1 != pass2:
-            print('Error: Passwords do not match.')
+            print("Error: Passwords do not match.")
     password = pass1
 
     return password
 
 
 def meraki_get_api_key() -> str:
-    '''
+    """
     Gets the Meraki API key.
 
     Returns
     -------
     api_key : str
         The user's API key.
-    '''
-    api_key = getpass('Enter your Meraki API key: ')
+    """
+    api_key = getpass("Enter your Meraki API key: ")
     return api_key
 
 
 def move_cols_to_end(df: pd.DataFrame, cols: List[str]) -> pd.DataFrame:
-    '''
+    """
     Moves one or more columns on a dataframe to be the end. For example,
     if the dataframe columns are ['A', 'C', 'B'], then this function can be
     used to re-order them to ['A', 'B', 'C'].
@@ -1092,14 +1095,14 @@ def move_cols_to_end(df: pd.DataFrame, cols: List[str]) -> pd.DataFrame:
     -------
     pd.DataFrame
         The re-ordered DataFrame.
-    '''
+    """
     for c in cols:
         df[c] = df.pop(c)
     return df
 
 
 def read_table(db_path: str, table: str) -> pd.DataFrame:
-    '''
+    """
     Reads all columns for the latest timestamp from a database table.
 
     Parameters
@@ -1113,10 +1116,10 @@ def read_table(db_path: str, table: str) -> pd.DataFrame:
     -------
     df : pd.DataFrame
         A Pandas dataframe containing the data.
-    '''
+    """
     con = connect_to_db(db_path)
-    df_ts = pd.read_sql(f'select timestamp from {table} limit 1', con)
-    ts = df_ts['timestamp'].to_list()[-1]
+    df_ts = pd.read_sql(f"select timestamp from {table} limit 1", con)
+    ts = df_ts["timestamp"].to_list()[-1]
     df = pd.read_sql(f'select * from {table} where timestamp = "{ts}"', con)
     con.close()
     return df
@@ -1161,21 +1164,20 @@ def scan_targets(targets: list, max_threads: int = 10) -> dict:
             A list of alive hosts in the target.
         """
         scanner = nmap.PortScanner()
-        scanner.scan(hosts=target, arguments='-sn')
+        scanner.scan(hosts=target, arguments="-sn")
         return [host for host in scanner.all_hosts()]
 
     results = {}
 
     with ThreadPoolExecutor(max_threads) as executor:
-        for target, alive_hosts in zip(targets,
-                                       executor.map(scan_subnet, targets)):
+        for target, alive_hosts in zip(targets, executor.map(scan_subnet, targets)):
             results[target] = alive_hosts
 
     return results
 
 
 def set_dependencies(selected: List[str]) -> List[str]:
-    '''
+    """
     Define collector dependencies.
 
     Parameters
@@ -1188,18 +1190,18 @@ def set_dependencies(selected: List[str]) -> List[str]:
     list[str]
         The updated list of selected collectors.
 
-    '''
+    """
+
     def get_execution_order(job: str, collectors: dict) -> List[str]:
         order = []
         if job not in collectors:
             return [job]
-        for dependency in collectors[job]['dependencies']:
+        for dependency in collectors[job]["dependencies"]:
             order.extend(get_execution_order(dependency, collectors))
         order.append(job)
         return order
 
-    def combine_execution_orders(jobs: List[str],
-                                 collectors: dict) -> List[str]:
+    def combine_execution_orders(jobs: List[str], collectors: dict) -> List[str]:
         combined_order = []
 
         for job in jobs:
@@ -1207,66 +1209,35 @@ def set_dependencies(selected: List[str]) -> List[str]:
 
         # Deduplicate while preserving order
         seen = set()
-        deduplicated_order = [j for j in combined_order if j not in seen and
-                              not seen.add(j)]
+        deduplicated_order = [
+            j for j in combined_order if j not in seen and not seen.add(j)
+        ]
         return deduplicated_order
 
-    collectors = {'bgp_neighbors': {
-        'dependencies': ['interface_ip_addresses']
+    # Define dependencies.
+    collectors = {
+        "bgp_neighbors": {"dependencies": ["interface_ip_addresses"]},
+        "devices_modules": {"dependencies": ["devices_inventory"]},
+        "interface_summary": {
+            "dependencies": ["cam_table", "interface_description", "interface_status"]
         },
-        'devices_modules': {
-            'dependencies': ['devices_inventory']
+        "get_device_statuses": {"dependencies": ["get_organizations"]},
+        "vip_destinations": {"dependencies": ["vip_availability"]},
+        "infoblox_get_networks_parent_containers": {
+            "dependencies": ["infoblox_get_networks", "infoblox_get_network_containers"]
         },
-        'interface_summary': {
-            'dependencies': ['cam_table',
-                             'interface_description',
-                             'interface_status']
-        },
-        'get_device_statuses': {
-            'dependencies': ['get_organizations']
-        },
-        'vip_destinations': {
-            'dependencies': ['vip_availability']
-        },
-        'infoblox_get_networks_parent_containers': {
-            'dependencies': ['infoblox_get_networks',
-                             'infoblox_get_network_containers']
-        },
-        'device_statuses': {
-            'dependencies': ['organizations']
-        },
-        'network_appliance_vlans': {
-            'dependencies': ['org_networks']
-        },
-        'network_device_statuses': {
-            'dependencies': ['org_device_statuses']
-        },
-        'network_devices': {
-            'dependencies': ['organizations']
-        },
-        'org_devices': {
-            'dependencies': ['organizations']
-        },
-        'org_device_statuses': {
-            'dependencies': ['org_networks']
-        },
-        'org_networks': {
-            'dependencies': ['organizations']
-        },
-        'switch_lldp_neighbors': {
-            'dependencies': ['switch_port_statuses']
-        },
-        'switch_port_usages': {
-            'dependencies': ['switch_port_statuses']
-        },
-        'switch_port_statuses': {
-            'dependencies': ['org_devices',
-                             'organizations']
-        },
-        'vpn_statuses': {
-            'dependencies': ['organizations']
-        }
-        }
+        "device_statuses": {"dependencies": ["organizations"]},
+        "network_appliance_vlans": {"dependencies": ["org_networks"]},
+        "network_device_statuses": {"dependencies": ["org_device_statuses"]},
+        "network_devices": {"dependencies": ["organizations"]},
+        "org_devices": {"dependencies": ["organizations"]},
+        "org_device_statuses": {"dependencies": ["org_networks"]},
+        "org_networks": {"dependencies": ["organizations"]},
+        "switch_lldp_neighbors": {"dependencies": ["switch_port_statuses"]},
+        "switch_port_usages": {"dependencies": ["switch_port_statuses"]},
+        "switch_port_statuses": {"dependencies": ["org_devices", "organizations"]},
+        "vpn_statuses": {"dependencies": ["organizations"]},
+    }
 
     selected = combine_execution_orders(selected, collectors)
 
@@ -1274,7 +1245,7 @@ def set_dependencies(selected: List[str]) -> List[str]:
 
 
 def set_filepath(filepath: str) -> str:
-    '''
+    """
     Creates a filename with the date and time added to a path the user
     provides. The function assumes the last "." in a filename is the extension.
 
@@ -1288,33 +1259,33 @@ def set_filepath(filepath: str) -> str:
     -------
     filepath : str
         The full path to the modified filename.
-    '''
+    """
     # Convert '~' to the user's home folder
-    if '~' in filepath:
-        filepath = filepath.replace('~', os.path.expanduser('~'))
+    if "~" in filepath:
+        filepath = filepath.replace("~", os.path.expanduser("~"))
     # Set the prefix in YYYY-MM-DD_HHmm format
     prefix = dt.now().strftime("%Y-%m-%d_%H%M")
     # Extract the base path to the filename
-    filepath = filepath.split('/')
+    filepath = filepath.split("/")
     filename = filepath[-1]
     if len(filepath) > 2:
-        filepath = '/'.join(filepath[:-1])
+        filepath = "/".join(filepath[:-1])
     else:
         filepath = filepath[0]
     # Extract the filename and extension from 'filepath'
-    filename = filename.split('.')
+    filename = filename.split(".")
     extension = filename[-1]
     if len(filename) > 2:
-        filename = '.'.join(filename[:-1])
+        filename = ".".join(filename[:-1])
     else:
         filename = filename[0]
     # Return the modified filename
-    filepath = f'{filepath}/{prefix}_{filename}.{extension}'
+    filepath = f"{filepath}/{prefix}_{filename}.{extension}"
     return filepath
 
 
 def suppress_extravars(extravars: dict) -> dict:
-    '''
+    """
     ansible_runner.run stores extravars to a file named 'extravars' then saves
     it to the local drive. The file is unencrypted, so any sensitive data, like
     usernames and password, are stored in plain text.
@@ -1341,42 +1312,42 @@ def suppress_extravars(extravars: dict) -> dict:
     -------
     extravars : dict
         'extravars' with the 'suppress_env_files' key.
-    '''
+    """
     # TODO: Finish this function. (Note: I thought about adding a check to
     #       manually delete any files in extravars at beginning and end of
     #       each run, but users might not want that.)
 
 
 def get_net_manage_path() -> str:
-    '''
+    """
     Set the absolute path to the Net-Manage repository.
 
     Returns
     -------
     nm_path : str
         The absolute path to the Net-Manage repository.
-    '''
+    """
     nm_path = input("Enter the absolute path to the Net-Manage repository: ")
     nm_path = os.path.expanduser(nm_path)
     return nm_path
 
 
 def set_db_timestamp() -> str:
-    '''
+    """
     Sets a timestamp in the form the database expects.
 
     Returns
     -------
     timestamp : str
         A timestamp in the YYYY-MM-DD_hhmm format.
-    '''
+    """
     timestamp = dt.now()
-    timestamp = timestamp.strftime('%Y-%m-%d_%H%M')
+    timestamp = timestamp.strftime("%Y-%m-%d_%H%M")
     return timestamp
 
 
 def set_vars() -> Tuple[str, str, List[str], str, str, str]:
-    '''
+    """
     Prompts the user for the required variables for running collectors and
     validators. Several defaults are presented.
 
@@ -1399,20 +1370,20 @@ def set_vars() -> Tuple[str, str, List[str], str, str, str]:
         The path for output.
     private_data_dir : str
         The private data directory.
-    '''
-    default_db = f'{str(dt.now()).split()[0]}.db'
-    default_nm_path = '~/source/repos/InsightSSG/Net-Manage/'
+    """
+    default_db = f"{str(dt.now()).split()[0]}.db"
+    default_nm_path = "~/source/repos/InsightSSG/Net-Manage/"
 
-    db = input(f'Enter the name of the database: [{default_db}]')
-    nm_path = input(f'Enter path to Net-Manage repository [{default_nm_path}]')
-    private_data_dir = input('Enter the path to the private data directory:')
+    db = input(f"Enter the name of the database: [{default_db}]")
+    nm_path = input(f"Enter path to Net-Manage repository [{default_nm_path}]")
+    private_data_dir = input("Enter the path to the private data directory:")
 
-    npm_server = input('Enter the URL of the Solarwinds NPM server:')
-    npm_username = input('Enter the username for Solarwinds NPM:')
-    npm_password = getpass('Enter the password for Solarwinds NPM:')
+    npm_server = input("Enter the URL of the Solarwinds NPM server:")
+    npm_username = input("Enter the username for Solarwinds NPM:")
+    npm_password = getpass("Enter the password for Solarwinds NPM:")
 
-    default_out_path = f'{private_data_dir}/output'
-    out_path = input(f'Enter the path to store results: [{default_out_path}]')
+    default_out_path = f"{private_data_dir}/output"
+    out_path = input(f"Enter the path to store results: [{default_out_path}]")
 
     api_key = meraki_get_api_key()
 
@@ -1434,38 +1405,45 @@ def set_vars() -> Tuple[str, str, List[str], str, str, str]:
     nm_path = os.path.expanduser(nm_path)
     out_path = os.path.expanduser(out_path)
     private_data_dir = os.path.expanduser(private_data_dir)
-    db_path = f'{out_path}/{db}'
+    db_path = f"{out_path}/{db}"
 
     # TODO: Add support for a custom inventory file name
     # TODO: Add support for more than one inventory file (Ansible-Runner
     #       supports that, but I am not sure how common it is)
-    inventories = [f'{private_data_dir}/inventory/hosts']
+    inventories = [f"{private_data_dir}/inventory/hosts"]
 
-    return api_key, db, db_path, inventories, npm_server, npm_username, \
-        npm_password, nm_path, out_path, private_data_dir
+    return (
+        api_key,
+        db,
+        db_path,
+        inventories,
+        npm_server,
+        npm_username,
+        npm_password,
+        nm_path,
+        out_path,
+        private_data_dir,
+    )
 
 
 def get_tests_file() -> str:
-    '''
+    """
     Set the absolute path to the Net-Manage repository.
 
     Returns
     -------
     t_path : str
         The absolute path to the file containing tests to run.
-    '''
+    """
     t_file = input("Enter the absolute path to the Net-Manage repository: ")
     t_file = os.path.expanduser(t_file)
     return t_file
 
 
-def get_user_meraki_input() -> Tuple[List[str],
-                                     List[str],
-                                     List[str],
-                                     int,
-                                     int,
-                                     Union[int, str]]:
-    '''
+def get_user_meraki_input() -> (
+    Tuple[List[str], List[str], List[str], int, int, Union[int, str]]
+):
+    """
     Gets and parses user input when they select collectors for Meraki
     organizations.
 
@@ -1491,71 +1469,70 @@ def get_user_meraki_input() -> Tuple[List[str],
         The total number of pages to return. If input is 'all', returns as
         'all'. Otherwise, converts the input into an integer. Defaults to
         'all'.
-    '''
-    orgs = input('Enter a comma-delimited list of organizations to query: ')\
-        or list()
+    """
+    orgs = input("Enter a comma-delimited list of organizations to query: ") or list()
     if orgs:
-        orgs = [_.strip() for _ in orgs.split(',')]
+        orgs = [_.strip() for _ in orgs.split(",")]
 
-    networks = input('Enter a comma-delimited list of networks to query: ')\
-        or list()
+    networks = input("Enter a comma-delimited list of networks to query: ") or list()
     if networks:
-        networks = [_.strip() for _ in networks.split(',')]
+        networks = [_.strip() for _ in networks.split(",")]
 
-    macs = input('Enter a comma-delimited list of MAC addresses: ') or list()
+    macs = input("Enter a comma-delimited list of MAC addresses: ") or list()
     if macs:
-        macs = [_.strip() for _ in macs.split(',')]
+        macs = [_.strip() for _ in macs.split(",")]
 
-    timespan = input('Enter the lookback timespan in seconds: ') or '86400'
-    timespan = np.prod([int(_) for _ in timespan.split('*')])
+    timespan = input("Enter the lookback timespan in seconds: ") or "86400"
+    timespan = np.prod([int(_) for _ in timespan.split("*")])
 
-    per_page = int(input('Enter the number of results per page: ') or 10)
+    per_page = int(input("Enter the number of results per page: ") or 10)
 
-    total_pages = input('Enter the total number of pages to return: ') or 'all'
-    if total_pages[0].isdigit() or total_pages[0] == '-':
+    total_pages = input("Enter the total number of pages to return: ") or "all"
+    if total_pages[0].isdigit() or total_pages[0] == "-":
         total_pages = int(total_pages)
 
     return orgs, networks, macs, timespan, per_page, total_pages
 
 
-def meraki_check_api_enablement(db_path: str, org: str) -> bool:
-    '''
-    Queries the database to find if API access is enabled.
+def is_valid_ip(ip: str) -> bool:
+    """
+    Check if a string is a valid IPv4 or IPv6 address or CIDR notation.
 
     Parameters
     ----------
-    db_path : str
-        The path to the database to store results.
-    org : str
-        The organization to check API access for.
+    ip : str
+        The string to be checked for being a valid IP address or CIDR notation.
 
     Returns
     -------
-    enabled : bool
-        A boolean indicating whether API access is enabled for the user's API
-        key.
-    '''
-    # enabled = False
+    bool
+        Returns True if the string is a valid IPv4 or IPv6 address or CIDR
+        notation, otherwise False.
 
-    query = ['SELECT timestamp, api from MERAKI_ORGANIZATIONS',
-             f'WHERE id = "{org}"',
-             'ORDER BY timestamp DESC',
-             'limit 1']
-    query = ' '.join(query)
-
-    con = sl.connect(db_path)
-    result = pd.read_sql(query, con)
-    con.close()
-    return ast.literal_eval(result.iloc[0]['api'])['enabled']
-
-    # if result['api'].to_list()[0] == 'True':
-    #     enabled = True
-
-    # return enabled
+    Examples
+    --------
+    >>> is_valid_ip_or_cidr('192.168.1.1')
+    True
+    >>> is_valid_ip_or_cidr('192.168.1.0/24')
+    True
+    >>> is_valid_ip_or_cidr('2001:0db8:85a3:0000:0000:8a2e:0370:7334')
+    True
+    >>> is_valid_ip_or_cidr('2001:0db8::/32')
+    True
+    >>> is_valid_ip_or_cidr('N/A')
+    False
+    >>> is_valid_ip_or_cidr('invalid_ip')
+    False
+    """
+    try:
+        ipaddress.ip_network(ip, strict=False)
+        return True
+    except ValueError:
+        return False
 
 
 def meraki_map_network_to_organization(network: str, db_path: str) -> str:
-    '''
+    """
     Gets the organization ID for a network.
 
     Parameters
@@ -1569,26 +1546,26 @@ def meraki_map_network_to_organization(network: str, db_path: str) -> str:
     -------
     org_id : str
         The organization ID.
-    '''
-    query = f'''SELECT distinct timestamp, organizationId
+    """
+    query = f"""SELECT distinct timestamp, organizationId
                 FROM MERAKI_ORG_NETWORKS
                 WHERE id = "{network}"
                 ORDER BY timestamp desc
                 LIMIT 1
-             '''
+             """
     con = sl.connect(db_path)
     result = pd.read_sql(query, con)
     con.close()
 
-    org_id = result['organizationId'].to_list()[0]
+    org_id = result["organizationId"].to_list()[0]
 
     return org_id
 
 
-def meraki_parse_organizations(db_path: str,
-                               orgs: list = None,
-                               table: str = None) -> list:
-    '''
+def meraki_parse_organizations(
+    db_path: str, orgs: list = None, table: str = None
+) -> list:
+    """
     Parses a list of organizations that are passed to certain Meraki
     collectors.
 
@@ -1606,17 +1583,20 @@ def meraki_parse_organizations(db_path: str,
     -------
     organizations : list
         A list of organizations.
-    '''
+    """
     con = sl.connect(db_path)
     organizations = list()
     if orgs:
         for org in orgs:
-            df_orgs = pd.read_sql(f'select distinct id from {table} \
-                where id = "{org}"', con)
-            organizations.append(df_orgs['id'].to_list().pop())
+            df_orgs = pd.read_sql(
+                f'select distinct id from {table} \
+                where id = "{org}"',
+                con,
+            )
+            organizations.append(df_orgs["id"].to_list().pop())
     else:
-        df_orgs = pd.read_sql(f'select distinct id from {table}', con)
-        for org in df_orgs['id'].to_list():
+        df_orgs = pd.read_sql(f"select distinct id from {table}", con)
+        for org in df_orgs["id"].to_list():
             organizations.append(org)
     con.close()
 
@@ -1624,7 +1604,7 @@ def meraki_parse_organizations(db_path: str,
 
 
 def sql_get_table_schema(db_path: str, table: str) -> pd.DataFrame:
-    '''
+    """
     Gets the schema of a table.
 
     Parameters
@@ -1639,7 +1619,7 @@ def sql_get_table_schema(db_path: str, table: str) -> pd.DataFrame:
     df_schema : pd.DataFrame
         The table schema. If the table does not exist then an empty dataframe
         will be returned.
-    '''
+    """
     query = f'pragma table_info("{table}")'
 
     con = sl.connect(db_path)
@@ -1649,7 +1629,7 @@ def sql_get_table_schema(db_path: str, table: str) -> pd.DataFrame:
 
 
 def download_ouis(path: str) -> None:
-    '''
+    """
     Downloads vendor OUIs from https://standards-oui.ieee.org/.
 
     The results will be stored in a text file located at 'path'.
@@ -1670,10 +1650,10 @@ def download_ouis(path: str) -> None:
     ----------
     >>> path = '/tmp/ouis.txt'
     >>> download_ouis(path)
-    '''
-    url = 'https://standards-oui.ieee.org/'
+    """
+    url = "https://standards-oui.ieee.org/"
     response = requests.get(url, stream=True)
-    with open(path, 'wb') as txt:
+    with open(path, "wb") as txt:
         for chunk in response.iter_content(chunk_size=1024):
             if chunk:
                 txt.write(chunk)
@@ -1701,7 +1681,7 @@ def subnet_mask_to_cidr(masks: list) -> list:
 
 
 def tabulate_df_head(df: pd.DataFrame) -> None:
-    '''
+    """
     Print the first 5 rows of a DataFrame as a table.
 
     Parameters
@@ -1713,10 +1693,10 @@ def tabulate_df_head(df: pd.DataFrame) -> None:
     -------
     None
         This function does not return anything, it simply prints the table.
-    '''
-    table_data = df.head().to_dict('records')
+    """
+    table_data = df.head().to_dict("records")
 
-    print(tabulate(table_data, headers='keys', tablefmt='psql'))
+    print(tabulate(table_data, headers="keys", tablefmt="psql"))
 
 
 def tz_abbreviation_to_pytz(tz_string):
@@ -1898,7 +1878,7 @@ def tz_abbreviation_to_pytz(tz_string):
     }
 
     # Extract the timezone abbreviation using regex
-    match = re.search(r'\b([A-Z]{3,5})\b', tz_string)
+    match = re.search(r"\b([A-Z]{3,5})\b", tz_string)
     if match:
         tz_abbreviation = match.group(1)
         # Return None if abbreviation not in the map
@@ -1908,7 +1888,7 @@ def tz_abbreviation_to_pytz(tz_string):
 
 
 def update_ouis(nm_path: str) -> pd.DataFrame:
-    '''
+    """
     Download or update vendor OUIs and save them to a file.
 
     The data is pulled from https://standards-oui.ieee.org/ and saved to a
@@ -1942,36 +1922,36 @@ def update_ouis(nm_path: str) -> pd.DataFrame:
     >>> print(df[:2].to_dict())
     {'mac_base': {0: '002272', 1: '00D0EF'},
     'vendor_oui': {0: 'American Micro-Fuel Device Corp.', 1: 'IGT'}}
-    '''
+    """
     # Check if 'ouis.txt' exists in 'nm_path', and, if so, get the timestamp.
     files = get_dir_timestamps(nm_path)
 
     # Check if 'ouis.txt' needs to be downloaded.
     download = False
-    if f'{nm_path}/ouis.txt' not in files:
+    if f"{nm_path}/ouis.txt" not in files:
         download = True
     else:
-        delta = (dt.now().date() - files[f'{nm_path}/ouis.txt'].date()).days
+        delta = (dt.now().date() - files[f"{nm_path}/ouis.txt"].date()).days
         if delta > 7:
             download = True
 
     # Download 'ouis.txt', if applicable.
     if download:
-        download_ouis(f'{nm_path}/ouis.txt')
+        download_ouis(f"{nm_path}/ouis.txt")
 
     # Read 'ouis.txt' and extract the base16 and vendor combinations.
-    with open(f'{nm_path}/ouis.txt', 'r') as txt:
+    with open(f"{nm_path}/ouis.txt", "r") as txt:
         data = txt.read()
-    pattern = '.*base 16.*'
+    pattern = ".*base 16.*"
     data = re.findall(pattern, data)
-    data = [[_.split()[0], _.split('\t')[-1]] for _ in data]
-    df = pd.DataFrame(data=data, columns=['base', 'vendor'])
+    data = [[_.split()[0], _.split("\t")[-1]] for _ in data]
+    df = pd.DataFrame(data=data, columns=["base", "vendor"])
 
     return df
 
 
 def validate_table(table: str, db_path: str, diff_col: List[str]) -> None:
-    '''
+    """
     Validates a table, based on the columns that the user passes to the
     function.
 
@@ -1984,26 +1964,26 @@ def validate_table(table: str, db_path: str, diff_col: List[str]) -> None:
             The column to diff. It should contain two items:
             - item1: The column to diff (e.g., 'status').
             - item2: The expected state (e.g., 'online').
-    '''
+    """
     # Get the first and last timestamps from the table
     con = sl.connect(db_path)
-    query = f'select distinct timestamp from {table}'
+    query = f"select distinct timestamp from {table}"
     df_stamps = pd.read_sql(query, con)
-    stamps = df_stamps['timestamp'].to_list()
+    stamps = df_stamps["timestamp"].to_list()
     first_ts = stamps[0]
     last_ts = stamps[-1]
 
     # Execute the queries and diff the results
     query1 = f'{diff_col[0]} = "{diff_col[1]}" and timestamp = "{first_ts}"'
     query2 = f'{diff_col[0]} = "{diff_col[1]}" and timestamp = "{last_ts}"'
-    query = f'''select *
+    query = f"""select *
                 from {table}
                 where {query1}
                 except
                 select *
                 from {table}
                 where {query2}
-                '''
+                """
     df_diff = pd.read_sql(query, con)
     return df_diff
 
@@ -2018,6 +1998,7 @@ def convert_lists_to_json_in_df(df):
     Returns:
     - pd.DataFrame: Updated DataFrame with lists converted to JSON strings
     """
+
     # Function to check if an element is a list and then convert to JSON
     def convert_list_to_json(element):
         if isinstance(element, list):
@@ -2031,8 +2012,21 @@ def convert_lists_to_json_in_df(df):
     return df
 
 
+# def is_jupyter():
+#     try:
+#         return get_ipython().__class__.__name__ == 'ZMQInteractiveShell'  # noqa
+#     except NameError:
+#         return False
+
+
 def is_jupyter():
+    # Alternate implementation of is_jupyter that does not create lint errors.
+    # This needs to be tested.
     try:
-        return get_ipython().__class__.__name__ == 'ZMQInteractiveShell'
-    except NameError:
+        from IPython import get_ipython
+
+        if "IPKernelApp" not in get_ipython().config:  # Kernel not running in IPython
+            return False
+    except Exception:  # get_ipython() doesn't exist, IPython not loaded
         return False
+    return True
