@@ -129,6 +129,7 @@ def parse_bgp_neighbors(runner):
 
     return df
 
+
 def parse_cdp_neighbors(runner):
     """Parses the CDP neighbors and returns them in a DataFrame.
 

@@ -12,11 +12,9 @@ import pandas as pd
 import re
 from typing import List, Dict
 from azure.identity import InteractiveBrowserCredential
-from azure.identity import ClientSecretCredential
 from azure.mgmt.resourcegraph import ResourceGraphClient
 from azure.mgmt.resource import SubscriptionClient
 from azure.mgmt.resourcegraph.models import QueryRequest
-from creds import *
 
 
 def get_subscription_ids(credential) -> List[str]:
@@ -95,7 +93,8 @@ def process_data_with_pandas(data, subscription_ids):
     # Apply the removal function to each element in the DataFrame
     for col in df.columns:
         if df[col].dtype == 'object':
-            df[col] = df[col].map(lambda x: remove_prefix(x) if isinstance(x, str) else x)
+            df[col] = df[col].map(
+                lambda x: remove_prefix(x) if isinstance(x, str) else x)
 
     # Extract the common prefix and add it as a new column
     common_prefix_pattern = \
@@ -140,11 +139,14 @@ def main():
     | where type =~ 'microsoft.network/networkinterfaces'
     | extend ipConfigurations = properties.ipConfigurations
     | mvexpand ipConfigurations
-    | extend publicIPAddressId = tostring(ipConfigurations.properties.publicIPAddress.id)
-    | project networkInterfaceId = id, 
-              subnetId = tostring(ipConfigurations.properties.subnet.id), 
-              privateIPAddress = tostring(ipConfigurations.properties.privateIPAddress), 
-              privateIPAllocationMethod = tostring(ipConfigurations.properties.privateIPAllocationMethod), 
+    | extend publicIPAddressId = tostring(
+        ipConfigurations.properties.publicIPAddress.id)
+    | project networkInterfaceId = id,
+              subnetId = tostring(ipConfigurations.properties.subnet.id),
+              privateIPAddress = tostring(
+                ipConfigurations.properties.privateIPAddress),
+              privateIPAllocationMethod = tostring(
+                ipConfigurations.properties.privateIPAllocationMethod),
               publicIPAddressId
     """
     network_interfaces_data = execute_resource_graph_query(
@@ -158,7 +160,10 @@ def main():
     | where type == 'microsoft.network/virtualnetworks'
     | extend subnets = properties.subnets
     | mvexpand subnets
-    | project vnetId = id, VNetname = name, SubnetId = tostring(subnets.id), CIDR = subnets.properties.addressPrefix
+    | project vnetId = id,
+                       VNetname = name,
+                       SubnetId = tostring(subnets.id),
+                       CIDR = subnets.properties.addressPrefix
     """
     virtual_networks_data = execute_resource_graph_query(
         credential,

@@ -1,10 +1,10 @@
 from netmanage import netbox_collectors as nbc
 from netmanage import netbox_helpers as nbh
 from typing import Optional, Any, List, Dict
-from pynetbox import api, RequestError
+from pynetbox import RequestError
+import logging
 import json
 import re
-import requests
 
 
 def update_cable(
@@ -873,12 +873,13 @@ def cleanup_duplicate_devs_by_serials(url=None, token=None, cleanup=False):
     Checks for duplicate device serial numbers in NetBox and optionally deletes them.
     :param url: (str): URL of the Netbox instance.
     :param token: (str): API token for authentication.
-    :param cleanup: (bool, optional): If True, deletes duplicate devices. Defaults to False.
+    :param cleanup: (bool, optional): If True, deletes duplicate devices.
+                                      Defaults to False.
     :return: None.
     """
 
     nb = nbh.create_netbox_handler(url, token)
-    
+
     print("Checking for duplicate serial numbers...")
 
     # Retrieve all devices and group them by serial number
@@ -904,7 +905,7 @@ def cleanup_duplicate_devs_by_serials(url=None, token=None, cleanup=False):
                 if cleanup:
                     print(f"Deleting duplicate device: {device.name}")
                     nb.dcim.devices.delete([device.id])
-            #except Record.DoesNotExist:
+            # except Record.DoesNotExist:
             #    logging.warning(f"Device {device.name} already deleted.")
             except Exception as e:
                 logging.error(f"Error deleting device {device.name}: {e}")

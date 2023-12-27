@@ -278,7 +278,9 @@ def parse_gather_basic_facts(results: list, db_path) -> pd.DataFrame:
     # try to find the serial numbers for devices that we connected to through a
     # Panorama.
     try:
-        df = pah.get_serial_from_device_name(df, db_path, serial_col="ansible_net_serial")
+        df = pah.get_serial_from_device_name(df,
+                                             db_path,
+                                             serial_col="ansible_net_serial")
     except sl.DatabaseError:
         pass
 

@@ -1,5 +1,4 @@
 import pandas as pd
-import sqlite3 as sl
 from netmanage.helpers import helpers as hp
 
 
@@ -80,7 +79,8 @@ def get_serial_from_device_name(
         df_managed["serial"] = df_managed["serial"].astype(str)
 
         # Create a dictionary for lookup
-        serial_dict = pd.Series(df_managed.serial.values, index=df_managed.device).to_dict()
+        serial_dict = pd.Series(df_managed.serial.values,
+                                index=df_managed.device).to_dict()
 
         # Update df using apply
         def update_serial(row):

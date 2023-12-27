@@ -782,7 +782,10 @@ def build_devices_json(db_path, url, token):
     default_site = 1106
 
     # Process ASA_HARDWARE_INVENTORY
-    cursor.execute("SELECT device, pid, serial FROM ASA_HARDWARE_INVENTORY WHERE name = 'Chassis'")
+    cursor.execute(
+        """SELECT device, pid, serial
+           FROM ASA_HARDWARE_INVENTORY
+           WHERE name = 'Chassis'""")
     for device, pid, serial in cursor.fetchall():
         site_name = get_site_name(device.split('.')[0])
         device = device.split('.')[0]
@@ -822,7 +825,8 @@ def build_devices_json(db_path, url, token):
 
     # Process IOS_BASIC_FACTS
     cursor.execute(
-        "SELECT ansible_net_hostname, ansible_net_model, ansible_net_serialnum FROM IOS_BASIC_FACTS")
+        """SELECT ansible_net_hostname, ansible_net_model, ansible_net_serialnum
+           FROM IOS_BASIC_FACTS""")
     for hostname, model, serial in cursor.fetchall():
         site_name = get_site_name(hostname.split('.')[0])
         hostname = hostname.split('.')[0]
@@ -863,7 +867,8 @@ def build_devices_json(db_path, url, token):
 
     # Process NXOS_BASIC_FACTS
     cursor.execute(
-        "SELECT device, ansible_net_platform, ansible_net_serialnum FROM NXOS_BASIC_FACTS")
+        """SELECT device, ansible_net_platform, ansible_net_serialnum
+           FROM NXOS_BASIC_FACTS""")
     for device, platform, serial in cursor.fetchall():
         site_name = get_site_name(device.split('.')[0])
         device = device.split('.')[0]
