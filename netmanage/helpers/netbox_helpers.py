@@ -939,3 +939,31 @@ def create_netbox_handler(
         nb.http_session = custom_session
         requests.urllib3.disable_warnings()
     return nb
+
+
+def sync_ipam_vrf(db_path, url, token):
+    """
+    Sync NM DB to Netbox
+    :param db_path: Path to the SQLite database file.
+    :param url: URL of the Netbox instance.
+    :param token: API token for authentication.
+    :return: Updated, added IPs.
+    """
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    devices = []
+    df = nbc.netbox_get_vrf_details(url, token)
+
+
+def sync_ipam_vrf(db_path, url, token):
+    """
+    Builds a JSON structure for devices from various tables in the database.
+    :param db_path: Path to the SQLite database file.
+    :param url: URL of the Netbox instance.
+    :param token: API token for authentication.
+    :return: Updated, added IPs.
+    """
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    devices = []
+    df = nbc.netbox_get_vrf_details(url, token)

@@ -11,21 +11,24 @@ from pynetbox import api
 
 
 def add_cable(
-    netbox_url: str, netbox_token: str, a_terminations: list, b_terminations: list
+    url: str, token: str, a_terminations: list, b_terminations: list,
+    verify_ssl: bool = True
 ) -> None:
     """
     Add a cable to NetBox.
 
     Parameters
     ----------
-    netbox_url : str
+    url : str
         The URL of the NetBox instance.
-    netbox_token : str
+    token : str
         The authentication token for the NetBox API.
     a_terminations : list
         A list of dictionaries containing the terminations for the A side.
     b_terminations : list
         A list of dictionaries containing the terminations for the B side.
+    verify_ssl : bool, optional
+        Whether to verify SSL certificates. Default is True.
 
     Notes
     -----
@@ -41,14 +44,15 @@ def add_cable(
 
     Examples
     --------
-    >>> netbox_token = '12387asdv13'
-    >>> netbox_url = 'http://0.0.0.0:8000'
-    >>> add_cable(netbox_url,
-                  netbox_token,
+    >>> token = '12387asdv13'
+    >>> url = 'http://0.0.0.0:8000'
+    >>> add_cable(url,
+                  token,
                   [{'object_id': 22104, 'object_type': 'dcim.interface'}],
                   [{'object_id': 29287, 'object_type': 'dcim.interface'}])
     """
-    nb = pynetbox.api(netbox_url, netbox_token)
+    nb = pynetbox.api(url, token)
+    nb = nbc.create_netbox_handler(url, token, verify_ssl=verify_ssl)
 
     cable = {"a_terminations": a_terminations, "b_terminations": b_terminations}
 
@@ -71,6 +75,8 @@ def add_device_mfg(url: str, token: str, database_path: str):
         API token for authentication.
     database_path: str
         Path to NM DB
+    verify_ssl : bool, optional
+        Whether to verify SSL certificates. Default is True.
     Returns
     -------
     None
@@ -93,8 +99,8 @@ def add_device_mfg(url: str, token: str, database_path: str):
     for mfg in mfgs:
         try:
             add_manufacturer(
-                netbox_url=url,
-                netbox_token=token,
+                url=url,
+                token=token,
                 name=mfg.title(),
                 slug=mfg.lower().replace(" ", "-"),
             )
@@ -103,22 +109,23 @@ def add_device_mfg(url: str, token: str, database_path: str):
 
 
 def add_device_role(
-    netbox_url: str,
-    netbox_token: str,
+    url: str,
+    token: str,
     name: str,
     slug: str,
     color: str = "c0c0c0",  # Light Grey
     description: str = str(),
     vm_role: bool = False,
+    verify_ssl: bool = True,
 ) -> None:
     """
     Create a device role in NetBox.
 
     Parameters
     ----------
-    netbox_url : str
+    url : str
         The URL of the NetBox instance.
-    netbox_token : str
+    token : str
         The authentication token for the NetBox API.
     name : str
         The name of the device role.
@@ -132,6 +139,8 @@ def add_device_role(
         The description of the device role.
     vm_role : bool, optional
         Indicates whether the device role is for a virtual machine.
+    verify_ssl : bool, optional
+        Whether to verify SSL certificates. Default is True.
 
     Returns
     -------
@@ -144,7 +153,7 @@ def add_device_role(
         If any error occurs while creating or updating the device role.
     """
     # Create an instance of the API using the provided URL and token
-    nb = pynetbox.api(url=netbox_url, token=netbox_token)
+    nb = nbc.create_netbox_handler(url, token, verify_ssl=verify_ssl)
     # Create or update the device role
     try:
         nb.dcim.device_roles.create(
@@ -155,8 +164,8 @@ def add_device_role(
 
 
 def add_device_to_netbox(
-    netbox_url: str,
-    netbox_token: str,
+    url: str,
+    token: str,
     name: str,
     manufacturer: str,
     status: str,
@@ -186,15 +195,16 @@ def add_device_to_netbox(
     config_context: dict = {},
     config_template: str = str(),
     comments: str = str(),
+    verify_ssl: bool = True,
 ) -> None:
     """
     Add a new device to NetBox.
 
     Parameters
     ----------
-    netbox_url : str
+    url : str
         The URL of the NetBox instance.
-    netbox_token : str
+    token : str
         The authentication token for the NetBox API.
     name : str
         The name of the device.
@@ -254,6 +264,8 @@ def add_device_to_netbox(
         The configuration template of the device.
     comments : str, optional
         Any comments about the device.
+    verify_ssl : bool, optional
+        Whether to verify SSL certificates. Default is True.
 
     Returns
     -------
@@ -262,13 +274,13 @@ def add_device_to_netbox(
         NetBox.
     """
     # Create an instance of the API using the provided URL and token
-    nb = api(url=netbox_url, token=netbox_token)
+    nb = nbc.create_netbox_handler(url, token, verify_ssl=verify_ssl)
 
     # If the user provided a device_role name instead of a device_role ID, then
     # use the name of the device_role to find its ID.
     if device_role_name and not device_role_id:
         df = nbc.netbox_get_device_role_attributes(
-            netbox_url, netbox_token, device_role=device_role_name
+            url, token, device_role=device_role_name
         )
         device_role_id = str(df.loc[0, "id"])
 
@@ -276,20 +288,20 @@ def add_device_to_netbox(
     # user the name of the device_type to find its ID.
     if device_type_name and not device_type_id:
         df = nbc.netbox_get_device_type_attributes(
-            netbox_url, netbox_token, device_type=device_type_name
+            url, token, device_type=device_type_name
         )
         device_type_id = str(df.loc[0, "id"])
 
     # If the user provided a site name instead of a site ID, then use the name
     # to find the ID.
     if site_name and not site_id:
-        df = nbc.netbox_get_site_attributes(netbox_url, netbox_token, site_name)
+        df = nbc.netbox_get_site_attributes(url, token, site_name)
         site_id = str(df.loc[0, "id"])
 
     # If the user provided a tenant name instead of a tenant ID, then use the
     # name to find the ID.
     if tenant_name and not tenant_id:
-        df = nbc.netbox_get_tenant_attributes(netbox_url, netbox_token, tenant_name)
+        df = nbc.netbox_get_tenant_attributes(url, token, tenant_name)
         tenant_id = str(df.iloc[0]["id"])
 
     # Create the device dictionary. Note that at some point Netbox changed
@@ -339,8 +351,8 @@ def add_device_to_netbox(
 
 
 def add_device_type(
-    netbox_url: str,
-    netbox_token: str,
+    url: str,
+    token: str,
     manufacturer_name: str,
     model: str,
     slug: str,
@@ -354,15 +366,16 @@ def add_device_type(
     weight_unit: str = str(),
     comments: str = str(),
     tags: List[str] = list(),
+    verify_ssl: bool = True,
 ) -> pynetbox.models.dcim.DeviceTypes:
     """
     Add a device type to NetBox.
 
     Parameters
     ----------
-    netbox_url : str
+    url : str
         The URL of the NetBox instance.
-    netbox_token : str
+    token : str
         The authentication token for the NetBox API.
     manufacturer_name : str
         The name of the manufacturer of the device type.
@@ -390,13 +403,15 @@ def add_device_type(
         Additional comments or notes.
     tags : List[str], optional
         Tags associated with the device type.
+    verify_ssl : bool, optional
+        Whether to verify SSL certificates. Default is True.
 
     Returns
     -------
     device_type : pynetbox.models.dcim.DeviceTypes
         The created DeviceType object in NetBox.
     """
-    nb = pynetbox.api(netbox_url, netbox_token)
+    nb = nbc.create_netbox_handler(url, token, verify_ssl=verify_ssl)
     manufacturer = nb.dcim.manufacturers.get(name=manufacturer_name)
     device_type = nb.dcim.device_types.create(
         manufacturer=manufacturer.id,
@@ -416,7 +431,8 @@ def add_device_type(
     return device_type
 
 
-def add_device_types(url: str, token: str, database_path: str):
+def add_device_types(url: str, token: str, database_path: str,
+                     verify_ssl: bool = True,):
     """
     Add Device types based on NM database devices.
 
@@ -428,6 +444,8 @@ def add_device_types(url: str, token: str, database_path: str):
         API token for authentication.
     database_path: str
         Path to NM DB
+    verify_ssl : bool, optional
+        Whether to verify SSL certificates. Default is True.
     Returns
     -------
     None
@@ -438,7 +456,7 @@ def add_device_types(url: str, token: str, database_path: str):
     device_types = nhp.get_device_types()
     con = hp.connect_to_db(database_path)
     df_tables = pd.read_sql(query, con)
-    nb = pynetbox.api(url, token)
+    nb = nbc.create_netbox_handler(url, token, verify_ssl=verify_ssl)
     nb_d_types = nb.dcim.device_types.all()
     nb_d_types = [_.model for _ in nb_d_types]
     proccessed_types = list()
@@ -446,8 +464,8 @@ def add_device_types(url: str, token: str, database_path: str):
         if row["model"] in nb_d_types:
             continue
         data = dict()
-        data["netbox_url"] = url
-        data["netbox_token"] = token
+        data["url"] = url
+        data["token"] = token
         mfg = row["source"].split("_")[0]
         mfg = mfgs.get(mfg).upper()
         d_type = f'{mfg}-{row["model"]}'
@@ -479,7 +497,7 @@ def add_device_types(url: str, token: str, database_path: str):
 
 
 def add_ip(
-    netbox_url: str,
+    url: str,
     token: str,
     ip_address: str,
     description: str,
@@ -493,7 +511,7 @@ def add_ip(
 
     Parameters
     ----------
-    netbox_url : str
+    url : str
         The URL of the Netbox instance.
     token : str
         The API token for authentication.
@@ -523,7 +541,7 @@ def add_ip(
     """
 
     # Initialize the pynetbox API
-    nb = nbc.create_netbox_handler(netbox_url, token=token, verify_ssl=verify_ssl)
+    nb = nbc.create_netbox_handler(url, token=token, verify_ssl=verify_ssl)
 
     try:
         # Building the data payload
@@ -535,7 +553,7 @@ def add_ip(
             "vrf": vrf_id,
         }
 
-        # Remove None values
+        # Remove empty entries
         data = {k: v for k, v in data.items() if v}
 
         # Adding the IP address to Netbox
@@ -547,19 +565,20 @@ def add_ip(
 
 
 def add_ip_ranges_to_netbox(
-    netbox_url: str,
-    netbox_token: str,
+    url: str,
+    token: str,
     ranges: List[Dict[str, str]],
     default_tenant: str = None,
     default_vrf: int = None,
     default_tags: List[str] = list(),
+    verify_ssl: bool = True,
 ) -> None:
     """
     Add IP ranges to Netbox using pynetbox.
 
     Parameters
     ----------
-    netbox_url : str
+    url : str
         The URL of the Netbox instance.
     token : str
         The token for authentication to Netbox.
@@ -576,6 +595,8 @@ def add_ip_ranges_to_netbox(
     default_tags : List[str], optional
         Default tags to be added to the IP range, if not specified in the
         range dictionary. Default is None.
+    verify_ssl : bool, optional
+        Whether to verify SSL certificates. Default is True.
 
     Returns
     -------
@@ -603,7 +624,7 @@ def add_ip_ranges_to_netbox(
     ... )
     """
     # Initialize the pynetbox API
-    nb = pynetbox.api(netbox_url, token=netbox_token)
+    nb = nbc.create_netbox_handler(url, token, verify_ssl=verify_ssl)
 
     for ip_range in ranges:
         range_data = {
@@ -642,21 +663,22 @@ def add_ip_ranges_to_netbox(
 
 
 def add_manufacturer(
-    netbox_url: str,
-    netbox_token: str,
+    url: str,
+    token: str,
     name: str,
     slug: str,
     description: Optional[str] = "",
     tags: Optional[list] = [],
+    verify_ssl: bool = True,
 ) -> None:
     """
     Create a device manufacturer in NetBox.
 
     Parameters
     ----------
-    netbox_url : str
+    url : str
         The URL of the NetBox instance.
-    netbox_token : str
+    token : str
         The authentication token for the NetBox API.
     name : str
         The name of the manufacturer.
@@ -666,6 +688,8 @@ def add_manufacturer(
         The description of the manufacturer.
     tags : list, optional
         optional tags
+    verify_ssl : bool, optional
+        Whether to verify SSL certificates. Default is True.
 
     Returns
     -------
@@ -678,7 +702,7 @@ def add_manufacturer(
         If any error occurs while creating the device manufacturer.
     """
     # Create an instance of the API using the provided URL and token
-    nb = api(url=netbox_url, token=netbox_token)
+    nb = api(url=url, token=token)
 
     # Create the device manufacturer
     try:
@@ -690,9 +714,9 @@ def add_manufacturer(
 
 
 def add_prefix(
-    netbox_url: str,
+    url: str,
     token: str,
-    prefix: str,
+    prefix: Optional[int] = None,
     status: Optional[str] = "active",
     description: Optional[str] = "",
     site_id: Optional[int] = None,
@@ -710,7 +734,7 @@ def add_prefix(
 
     Parameters
     ----------
-    netbox_url : str
+    url : str
         The URL of the Netbox instance.
     token : str
         The API token to authenticate with Netbox.
@@ -751,19 +775,19 @@ def add_prefix(
 
     Examples
     --------
-    >>> netbox_url = "http://netbox.local"
+    >>> url = "http://netbox.local"
     >>> token = "YOUR_API_TOKEN"
-    >>> prefix_obj = add_prefix(netbox_url, token, "192.168.1.0/24")
+    >>> prefix_obj = add_prefix(url, token, "192.168.1.0/24")
     >>> print(prefix_obj)
     """
 
     # If a vlan_id is not specified but a vid and vlan_name are, then search
     # for the vlan_id.
     if not vlan_id and vid and vlan_name:
-        vlan_id = nbc.get_netbox_vlan_internal_id(netbox_url, token, vid, vlan_name)
+        vlan_id = nbc.get_netbox_vlan_internal_id(url, token, vid, vlan_name)
 
     # Initialize the Netbox API client
-    nb = nbc.create_netbox_handler(netbox_url, token=token, verify_ssl=verify_ssl)
+    nb = nbc.create_netbox_handler(url, token=token, verify_ssl=verify_ssl)
 
     data = {
         "prefix": prefix,
@@ -776,6 +800,8 @@ def add_prefix(
         "role": role_id,
         "is_pool": is_pool,
     }
+    data = {k: v for k, v in data.items() if v}
+    # Remove empty entries
     data = {k: v for k, v in data.items() if v}
 
     # Create the prefix
@@ -806,6 +832,7 @@ def add_site(
     meraki_isBoundToConfigTemplate: Optional[bool] = None,
     meraki_notes: Optional[str] = None,
     meraki_site_url: Optional[str] = None,
+    verify_ssl: bool = True,
 ) -> Dict[str, Any]:
     """
     Create a new site in Netbox with custom Meraki fields.
@@ -858,13 +885,15 @@ def add_site(
         to None.
     meraki_site_url (str, optional):
         The URL associated with the site. Defaults to None.
+    verify_ssl : bool, optional
+        Whether to verify SSL certificates. Default is True.
 
     Returns:
     ----------
     dict: The response from the Netbox API when adding the site.
     """
     # Initialize pynetbox API and site payload
-    api = pynetbox.api(url=url, token=token)
+    nb = nbc.create_netbox_handler(url, token, verify_ssl=verify_ssl)
     site = {"name": name, "slug": slug, "status": status}
 
     # Check which optional fields are passed and add them to the site payload
@@ -917,9 +946,11 @@ def add_vlan(
     url: str,
     vlan_id: int,
     name: str,
+    description: Optional[str] = None,
     site: Optional[str] = None,
     tenant: Optional[str] = None,
     status: Optional[str] = "active",
+    verify_ssl: bool = True,
 ):
     """
     Add a new VLAN to Netbox.
@@ -934,12 +965,16 @@ def add_vlan(
         The VLAN ID to be added.
     name : str
         The name of the VLAN.
+    description: Optional[str], Default None
+        Description of this VLAN.
     site: Optional[str], Default None
         The slug of the Site where the VLAN belongs.
     tenant: Optional[str], Default None
         The slug of the Tenant in which the VLAN is located.
     status: Optional[str], Default 'active'
         The status of the VLAN ("active", "reserved", etc).
+    verify_ssl : bool, optional
+        Whether to verify SSL certificates. Default is True.
 
     Returns
     -------
@@ -951,11 +986,12 @@ def add_vlan(
         If there is any problem in the request to Netbox API.
     """
 
-    nb = pynetbox.api(url, token=token)
+    nb = nbc.create_netbox_handler(url, token, verify_ssl=verify_ssl)
 
     data = {
         "vid": vlan_id,
         "name": name,
+        "description": description,
         "site": site,
         "tenant": tenant,
         "status": status,
@@ -1045,6 +1081,8 @@ def add_interface(
     untagged_vlan: Optional[str] = None,
     tagged_vlans: Optional[list] = [],
     tags: Optional[list] = [],
+    vrf_id: Optional[int] = None,
+    verify_ssl: bool = True,
 ):
     """
     Add a new interface to Netbox.
@@ -1085,6 +1123,11 @@ def add_interface(
         List of VLANs for tagged traffic on the interface.
     tags : list, optional
         List of tags associated with the interface.
+    vrf_id : str, optional
+        The VRF ID to associate with the prefix, by default None. Note that as of
+        version 3.6.6, this needs to be a string, not an integer.
+    verify_ssl : bool, optional
+        Whether to verify SSL certificates. Default is True.
 
     Returns
     -------
@@ -1107,13 +1150,17 @@ def add_interface(
     - https://demo.netbox.dev/static/docs/configuration/dynamic-settings/
 
     """
-    nb = pynetbox.api(url, token=token)
+    nb = nbc.create_netbox_handler(url, token, verify_ssl=verify_ssl)
     data = {
         "device": device_id,
         "name": name,
         "description": description,
         "type": _type,
+        "vrf": vrf_id,
     }
+
+    # remove empty records from payload
+    data = {k: v for k, v in data.items() if v or v == 0}
     try:
         nb.dcim.interfaces.create(data)
     except pynetbox.RequestError as e:
@@ -1121,8 +1168,8 @@ def add_interface(
 
 
 # def add_ip_address_to_netbox(
-#     netbox_url: str,
-#     netbox_token: str,
+#     url: str,
+#     token: str,
 #     address: str,
 #     status: Optional[str] = "active",
 #     role: Optional[str] = None,
@@ -1144,9 +1191,9 @@ def add_interface(
 #     Add IP address to Netbox using pynetbox.
 #     Parameters
 #     ----------
-#     netbox_url : str
+#     url : str
 #         The URL of the Netbox instance.
-#     netbox_token : str
+#     token : str
 #         The token for authentication to Netbox.
 #     address : str
 #         The IP address to be added.
@@ -1206,11 +1253,11 @@ def add_interface(
 #     }
 
 #     # Initialize the pynetbox API
-#     nb = pynetbox.api(netbox_url, token=netbox_token)
+#     nb = nbc.create_netbox_handler(url, token, verify_ssl=verify_ssl)
 #     if device and interface:
 #         # lookup interface ID
 #         details = nbc.netbox_get_device_interfaces(
-#             netbox_url, netbox_token, device_name=device
+#             url, token, device_name=device
 #         )
 #         found_int = next(
 #             (item for item in details.values() if item["name"] == interface), None
