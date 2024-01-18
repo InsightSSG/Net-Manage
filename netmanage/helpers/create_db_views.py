@@ -157,23 +157,28 @@ def create_db_view(db_path: str, view_name: str):
         cur.execute(
             """
             CREATE VIEW IF NOT EXISTS interface_ips AS
-            -- Query for IOS_INTERFACE_IP_ADDRESSES
-            SELECT
-                device,
-                ip,
-                interface AS interface_name,
-                CASE WHEN vrf = 'None' THEN '' ELSE vrf END AS vrf
+            SELECT 
+                device, interface, ip, cidr,
+                nameif AS description, NULL AS vrf, 
+                subnet, network_ip, broadcast_ip
+            FROM ASA_INTERFACE_IP_ADDRESSES
+            UNION ALL
+            SELECT 
+                device, name AS interface, address AS ip,
+                cidr, vlan AS description, NULL AS vrf,
+                subnet, network_ip, broadcast_ip
+            FROM BIGIP_SELF_IPS
+            UNION ALL
+            SELECT 
+            device, interface, ip, cidr, description, vrf,
+            subnet, network_ip, broadcast_ip
             FROM IOS_INTERFACE_IP_ADDRESSES
-
-            UNION
-
-            -- Query for IOS_INTERFACE_IPV6_ADDRESSES
-            SELECT
-                device,
-                ip,
-                interface AS interface_name,
-                CASE WHEN vrf = 'None' THEN '' ELSE vrf END AS vrf
-            FROM IOS_INTERFACE_IPV6_ADDRESSES;
+            UNION ALL
+            SELECT device, interface, ip, cidr, NULL AS description,
+            vrf, subnet, network_ip, broadcast_ip
+            FROM NXOS_INTERFACE_IP_ADDRESSES
+            /* interface_ips(device,interface,ip,cidr,description,vrf,
+            subnet,network_ip,broadcast_ip) */;
             """
         )
         con.commit()

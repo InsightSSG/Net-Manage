@@ -11,8 +11,11 @@ from pynetbox import api
 
 
 def add_cable(
-    url: str, token: str, a_terminations: list, b_terminations: list,
-    verify_ssl: bool = True
+    url: str,
+    token: str,
+    a_terminations: list,
+    b_terminations: list,
+    verify_ssl: bool = True,
 ) -> None:
     """
     Add a cable to NetBox.
@@ -431,8 +434,12 @@ def add_device_type(
     return device_type
 
 
-def add_device_types(url: str, token: str, database_path: str,
-                     verify_ssl: bool = True,):
+def add_device_types(
+    url: str,
+    token: str,
+    database_path: str,
+    verify_ssl: bool = True,
+):
     """
     Add Device types based on NM database devices.
 
