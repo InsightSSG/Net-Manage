@@ -1019,7 +1019,7 @@ def ios_parse_gather_basic_facts(results: dict) -> pd.DataFrame:
         df_data["ip"].append(device_ip)
         df_data["device"].append(key)
         for key in df_data:
-            if key != "device":
+            if key not in ["ip", "device"]:
                 df_data[key].append(value.get(key))
 
     # Create the DataFrame and return it.
