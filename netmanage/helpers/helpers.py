@@ -2037,7 +2037,7 @@ def is_jupyter():
 def ansible_host_to_ip(hostname):
     # Create a DataLoader instance
     loader = DataLoader()
-    inventory_file = f"{os.get('private_data_directory')}/inventory/hosts"
+    inventory_file = f"{os.environ.get('private_data_directory')}/inventory/hosts"
     # Create an InventoryManager instance with the provided inventory file
     inventory = InventoryManager(loader=loader, sources=inventory_file)
     
