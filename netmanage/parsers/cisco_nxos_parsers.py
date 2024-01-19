@@ -827,14 +827,12 @@ def nxos_parse_inventory(runner: dict) -> pd.DataFrame:
         if event["event"] == "runner_on_ok":
             event_data = event["event_data"]
             device = event_data["remote_addr"]
-            device_ip = hp.ansible_host_to_ip(device)
 
             output = event_data["res"]["stdout"][0]["TABLE_inv"]["ROW_inv"]
 
             # Add the inventory items to the 'data' list
             for item in output:
                 item["device"] = device
-                item["ip"] = device_ip
                 data.append(item)
 
     # Create a dictionary for storing the output
@@ -964,6 +962,7 @@ def nxos_parse_gather_basic_facts(results: dict) -> pd.DataFrame:
     # Create a dictionary to store the parsed data.
     df_data = dict()
     df_data["device"] = list()
+    df_data["ip"] = list()
 
     # Create keys for df_data.
     for key, value in results.items():
@@ -973,6 +972,8 @@ def nxos_parse_gather_basic_facts(results: dict) -> pd.DataFrame:
 
     # Populate df_data.
     for key, value in results.items():
+        device_ip = hp.ansible_host_to_ip(key)
+        df_data["ip"].append(device_ip)
         df_data["device"].append(key)
         for key in df_data:
             if key != "device":

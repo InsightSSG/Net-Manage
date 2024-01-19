@@ -936,7 +936,7 @@ def ios_parse_inventory(runner: dict) -> pd.DataFrame:
         raise ValueError("The input is None or empty")
 
     # Create a dictionary to store the inventory data.
-    columns = ["device", "name", "description", "pid", "vid", "serial", "ip"]
+    columns = ["device", "name", "description", "pid", "vid", "serial"]
     df_data = {col: [] for col in columns}
 
     # Parse the output and add it to 'df_data'
@@ -944,7 +944,6 @@ def ios_parse_inventory(runner: dict) -> pd.DataFrame:
         if event["event"] == "runner_on_ok":
             event_data = event["event_data"]
             device = event_data["remote_addr"]
-            device_ip = hp.ansible_host_to_ip(device)
 
             data = list(filter(None, event_data["res"]["stdout"][0].split("\n")))
 
@@ -954,7 +953,6 @@ def ios_parse_inventory(runner: dict) -> pd.DataFrame:
                     if data[i].startswith("NAME: "):
                         try:
                             df_data["device"].append(device)
-                            df_data["ip"].append(device_ip)
                             # Split the first line to extract name, description
                             name_desc = data[i].split(", DESCR: ")
                             df_data["name"].append(
@@ -1007,6 +1005,7 @@ def ios_parse_gather_basic_facts(results: dict) -> pd.DataFrame:
     # Create a dictionary to store the parsed data.
     df_data = dict()
     df_data["device"] = list()
+    df_data["ip"] = list()
 
     # Create keys for df_data.
     for key, value in results.items():
@@ -1016,6 +1015,8 @@ def ios_parse_gather_basic_facts(results: dict) -> pd.DataFrame:
 
     # Populate df_data.
     for key, value in results.items():
+        device_ip = hp.ansible_host_to_ip(key)
+        df_data["ip"].append(device_ip)
         df_data["device"].append(key)
         for key in df_data:
             if key != "device":
