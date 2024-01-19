@@ -19,6 +19,8 @@ import sys
 import time
 import yaml
 import json
+from ansible.parsing.dataloader import DataLoader
+from ansible.inventory.manager import InventoryManager
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime as dt
 from getpass import getpass
@@ -2033,17 +2035,18 @@ def is_jupyter():
     return True
 
 
-def get_ip_from_hostname(hostname=None) -> str:
-    """ Resolve hostname to address
+def ansible_host_to_ip(hostname):
+    # Create a DataLoader instance
+    loader = DataLoader()
+    inventory_file = f"{os.get('private_data_directory')}/inventory/hosts"
+    # Create an InventoryManager instance with the provided inventory file
+    inventory = InventoryManager(loader=loader, sources=inventory_file)
     
-    Parameters:
-    - hostname (str): 
-
-    Returns:
-    - str: Updated DataFrame with lists converted to JSON strings
-    """
-    # IP lookup from hostname
-    try:
-        return socket.gethostbyname(hostname)
-    except socket.gaierror as e:
-        return hostname
+    # Find the host in the inventory
+    host = inventory.get_host(hostname)
+    if host:
+        # Extract the host's IP address
+        host_address = str(host.vars.get('ansible_host'))
+        if host_address:
+            return host_address
+    return hostname

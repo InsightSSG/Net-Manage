@@ -827,7 +827,7 @@ def nxos_parse_inventory(runner: dict) -> pd.DataFrame:
         if event["event"] == "runner_on_ok":
             event_data = event["event_data"]
             device = event_data["remote_addr"]
-            device_ip = hp.get_ip_from_hostname(device)
+            device_ip = hp.ansible_host_to_ip(device)
 
             output = event_data["res"]["stdout"][0]["TABLE_inv"]["ROW_inv"]
 

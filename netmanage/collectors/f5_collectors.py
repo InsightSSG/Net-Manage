@@ -1823,7 +1823,7 @@ def inventory(username: str,
 
             device = event_data['remote_addr']
             df_data['device'].append(device)
-            device_ip = hp.get_ip_from_hostname(device)
+            device_ip = hp.ansible_host_to_ip(device)
             df_data['ip'].append(device_ip)
 
             data = event_data['res']['stdout_lines'][0]
