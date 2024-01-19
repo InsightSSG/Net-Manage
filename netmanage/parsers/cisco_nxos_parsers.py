@@ -827,12 +827,14 @@ def nxos_parse_inventory(runner: dict) -> pd.DataFrame:
         if event["event"] == "runner_on_ok":
             event_data = event["event_data"]
             device = event_data["remote_addr"]
+            device_ip = hp.get_ip_from_hostname(device)
 
             output = event_data["res"]["stdout"][0]["TABLE_inv"]["ROW_inv"]
 
             # Add the inventory items to the 'data' list
             for item in output:
                 item["device"] = device
+                item["ip"].append(device_ip)
                 data.append(item)
 
     # Create a dictionary for storing the output

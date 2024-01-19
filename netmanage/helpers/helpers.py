@@ -13,6 +13,7 @@ import os
 import pandas as pd
 import re
 import requests
+import socket
 import sqlite3 as sl
 import sys
 import time
@@ -2030,3 +2031,19 @@ def is_jupyter():
     except Exception:  # get_ipython() doesn't exist, IPython not loaded
         return False
     return True
+
+
+def get_ip_from_hostname(hostname=None) -> str:
+    """ Resolve hostname to address
+    
+    Parameters:
+    - hostname (str): 
+
+    Returns:
+    - str: Updated DataFrame with lists converted to JSON strings
+    """
+    # IP lookup from hostname
+    try:
+        return socket.gethostbyname(hostname)
+    except socket.gaierror as e:
+        return hostname

@@ -1793,6 +1793,7 @@ def inventory(username: str,
     df_data = dict()
     columns = ['device',
                'name',
+               'ip',
                'bios_revision',
                'base_mac',
                'appliance_type',
@@ -1822,6 +1823,8 @@ def inventory(username: str,
 
             device = event_data['remote_addr']
             df_data['device'].append(device)
+            device_ip = hp.get_ip_from_hostname(device)
+            df_data['ip'].append(device_ip)
 
             data = event_data['res']['stdout_lines'][0]
 

@@ -936,7 +936,7 @@ def ios_parse_inventory(runner: dict) -> pd.DataFrame:
         raise ValueError("The input is None or empty")
 
     # Create a dictionary to store the inventory data.
-    columns = ["device", "name", "description", "pid", "vid", "serial"]
+    columns = ["device", "name", "description", "pid", "vid", "serial", "ip"]
     df_data = {col: [] for col in columns}
 
     # Parse the output and add it to 'df_data'
@@ -944,6 +944,7 @@ def ios_parse_inventory(runner: dict) -> pd.DataFrame:
         if event["event"] == "runner_on_ok":
             event_data = event["event_data"]
             device = event_data["remote_addr"]
+            device_ip = hp.get_ip_from_hostname(device)
 
             data = list(filter(None, event_data["res"]["stdout"][0].split("\n")))
 
@@ -953,6 +954,7 @@ def ios_parse_inventory(runner: dict) -> pd.DataFrame:
                     if data[i].startswith("NAME: "):
                         try:
                             df_data["device"].append(device)
+                            df_data["ip"].append(device_ip)
                             # Split the first line to extract name, description
                             name_desc = data[i].split(", DESCR: ")
                             df_data["name"].append(

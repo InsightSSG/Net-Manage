@@ -364,6 +364,7 @@ def parse_inventory(response: dict) -> pd.DataFrame:
         if output["response"]["result"].get("system"):
             output = output["response"]["result"].get("system")
             data[device] = output
+            data[device]
 
     # Iterate over the output, adding all column names to 'columns'.
     for key, value in data.items():

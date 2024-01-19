@@ -93,7 +93,7 @@ def asa_parse_inventory(runner: dict) -> pd.DataFrame:
         raise ValueError("The input is None or empty")
 
     # Create a dictionary to store the inventory data.
-    columns = ["device", "name", "description", "pid", "vid", "serial"]
+    columns = ["device", "name", "description", "pid", "vid", "serial", "ip"]
     df_data = dict()
     for col in columns:
         df_data[col] = list()
@@ -104,12 +104,14 @@ def asa_parse_inventory(runner: dict) -> pd.DataFrame:
             event_data = event["event_data"]
 
             device = event_data["remote_addr"]
+            device_ip = hp.get_ip_from_hostname(device)
 
             data = event_data["res"]["stdout"][0].split("\n")
 
             # Iterate through data (each hardware entry has 3 lines).
             for i in range(0, len(data), 3):
                 df_data["device"].append(device)
+                df_data["ip"].append(device_ip)
                 # Split the first line to extract name and description
                 name_desc = data[i].split(", DESCR: ")
                 df_data["name"].append(
