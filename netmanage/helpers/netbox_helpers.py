@@ -901,7 +901,7 @@ def build_devices_json(db_path, url, token):
                     "site": site,
                     "role": role,
                     "custom_fields": {"ansible_network_os": "cisco.ios.ios"},
-                    "ip": ImportWarning
+                    "ip": ip
                 }
             )
 
