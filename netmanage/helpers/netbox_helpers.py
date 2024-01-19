@@ -906,7 +906,7 @@ def build_devices_json(db_path, url, token):
             )
 
     # Process MERAKI_ORG_DEVICES
-    cursor.execute("SELECT name, model, serial, ip FROM MERAKI_ORG_DEVICES")
+    cursor.execute("SELECT name, model, serial, lanip FROM MERAKI_ORG_DEVICES")
     for hostname, model, serial, ip in cursor.fetchall():
         site_name = get_site_name(hostname.split(".")[0])
         hostname = hostname.split(".")[0]
