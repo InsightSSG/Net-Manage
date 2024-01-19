@@ -13,7 +13,6 @@ import os
 import pandas as pd
 import re
 import requests
-import socket
 import sqlite3 as sl
 import sys
 import time
