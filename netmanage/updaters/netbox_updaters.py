@@ -1264,3 +1264,36 @@ def update_interface(
         nb.dcim.interfaces.update([data])
     except RequestError as e:
         print(f"[{name}]: {str(e)}")
+
+
+def import_devices_to_netbox(url, token, devices_json):
+    """
+    Imports or updates devices in Netbox.
+    :param url: URL of the Netbox instance.
+    :param token: API token for authentication.
+    :param devices_json: JSON string containing devices.
+    :return: List of responses from Netbox API.
+    """
+    nb = nbh.create_netbox_handler(url, token)
+    devices_data = json.loads(devices_json)
+    responses = []
+
+    for device in devices_data:
+        netbox_device = {
+            "name": device['device'],
+            "device_type": device['device_type'],
+            "serial": device['serial'],
+            "site": device['site'],
+            "role": device['role']
+        }
+
+        # Create the device in Netbox
+        try:
+            response = nb.dcim.devices.create(netbox_device)
+            responses.append(response)
+        except RequestError as e:
+            responses.append(
+                f"An error occurred with {device['device']}: {e.error}")
+            print(f"An error occurred with {device['device']}: {e.error}")
+
+    return responses
