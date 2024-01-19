@@ -817,11 +817,11 @@ def build_devices_json(db_path, url, token):
 
     # Process ASA_HARDWARE_INVENTORY
     cursor.execute(
-        """SELECT device, pid, serial
+        """SELECT device, pid, serial, ip
            FROM ASA_HARDWARE_INVENTORY
            WHERE name = 'Chassis'"""
     )
-    for device, pid, serial in cursor.fetchall():
+    for device, pid, serial, ip in cursor.fetchall():
         site_name = get_site_name(device.split(".")[0])
         device = device.split(".")[0]
         site = site_mapping.get(site_name, default_site)
@@ -842,14 +842,15 @@ def build_devices_json(db_path, url, token):
                     "site": site,
                     "role": role,
                     "custom_fields": {"ansible_network_os": "cisco.asa.asa"},
+                    "ip": ip
                 }
             )
 
     # Process BIGIP_HARDWARE_INVENTORY
     cursor.execute(
-        "SELECT device, name, appliance_serial FROM BIGIP_HARDWARE_INVENTORY"
+        "SELECT device, name, appliance_serial, ip FROM BIGIP_HARDWARE_INVENTORY"
     )
-    for device, name, serial in cursor.fetchall():
+    for device, name, serial, ip in cursor.fetchall():
         site_name = get_site_name(name.split(".")[0])
         device = device.split(".")[0]
         site = site_mapping.get(site_name, default_site)
@@ -870,15 +871,16 @@ def build_devices_json(db_path, url, token):
                     "site": site,
                     "role": role,
                     "custom_fields": {"ansible_network_os": "bigip"},
+                    "ip": ip
                 }
             )
 
     # Process IOS_BASIC_FACTS
     cursor.execute(
-        """SELECT ansible_net_hostname, ansible_net_model, ansible_net_serialnum
+        """SELECT ansible_net_hostname, ansible_net_model, ansible_net_serialnum, ip
            FROM IOS_BASIC_FACTS"""
     )
-    for hostname, model, serial in cursor.fetchall():
+    for hostname, model, serial, ip in cursor.fetchall():
         site_name = get_site_name(hostname.split(".")[0])
         hostname = hostname.split(".")[0]
         site = site_mapping.get(site_name, default_site)
@@ -899,12 +901,13 @@ def build_devices_json(db_path, url, token):
                     "site": site,
                     "role": role,
                     "custom_fields": {"ansible_network_os": "cisco.ios.ios"},
+                    "ip": ImportWarning
                 }
             )
 
     # Process MERAKI_ORG_DEVICES
-    cursor.execute("SELECT name, model, serial FROM MERAKI_ORG_DEVICES")
-    for hostname, model, serial in cursor.fetchall():
+    cursor.execute("SELECT name, model, serial, ip FROM MERAKI_ORG_DEVICES")
+    for hostname, model, serial, ip in cursor.fetchall():
         site_name = get_site_name(hostname.split(".")[0])
         hostname = hostname.split(".")[0]
         site = site_mapping.get(site_name, default_site)
@@ -925,15 +928,16 @@ def build_devices_json(db_path, url, token):
                     "site": site,
                     "role": role,
                     "custom_fields": {"ansible_network_os": "meraki"},
+                    "ip": ip
                 }
             )
 
     # Process NXOS_BASIC_FACTS
     cursor.execute(
-        """SELECT device, ansible_net_platform, ansible_net_serialnum
+        """SELECT device, ansible_net_platform, ansible_net_serialnum, ip
            FROM NXOS_BASIC_FACTS"""
     )
-    for device, platform, serial in cursor.fetchall():
+    for device, platform, serial, ip in cursor.fetchall():
         site_name = get_site_name(device.split(".")[0])
         device = device.split(".")[0]
         site = site_mapping.get(site_name, default_site)
@@ -954,14 +958,15 @@ def build_devices_json(db_path, url, token):
                     "site": site,
                     "role": role,
                     "custom_fields": {"ansible_network_os": "cisco.nxos.nxos"},
+                    "ip": ip
                 }
             )
 
     # Process PANOS_BASIC_FACTS
     cursor.execute(
-        "SELECT device, ansible_net_model, ansible_net_serial FROM PANOS_BASIC_FACTS"
+        "SELECT device, ansible_net_model, ansible_net_serial, ip FROM PANOS_BASIC_FACTS"
     )
-    for hostname, model, serial in cursor.fetchall():
+    for hostname, model, serial, ip in cursor.fetchall():
         site_name = get_site_name(hostname.split(".")[0])
         hostname = hostname.split(".")[0]
         site = site_mapping.get(site_name, default_site)
@@ -982,6 +987,7 @@ def build_devices_json(db_path, url, token):
                     "site": site,
                     "role": role,
                     "custom_fields": {"ansible_network_os": "paloaltonetworks.panos"},
+                    "ip": ip
                 }
             )
 
