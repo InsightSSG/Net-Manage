@@ -56,10 +56,10 @@ def asa_parse_interface_ips(runner: dict) -> pd.DataFrame:
                         cidr = hp.convert_mask_to_cidr(netmask)
                         ip = f"{ip}/{cidr}"
 
-                    row = [device, inf, ip, nameif]
+                    row = [device, inf, ip, cidr, nameif]
                     df_data.append(row)
     # Create a dataframe from df_data and return it
-    cols = ["device", "interface", "ip", "nameif"]
+    cols = ["device", "interface", "ip", "cidr", "nameif"]
     df = pd.DataFrame(data=df_data, columns=cols)
 
     # Filter out interfaces that do not have an IP address.
