@@ -51,7 +51,7 @@ def asa_parse_interface_ips(runner: dict) -> pd.DataFrame:
                         ip = "unassigned"
                         netmask = "unassigned"
                     else:
-                        ip = _line.split(",")[0].split()[-1]
+                        ip = _line.split(",")[0].split()[-1].split("/")[0]
                         netmask = _line.split(",")[-1].split()[-1]
                         cidr = hp.convert_mask_to_cidr(netmask)
                         ip = f"{ip}/{cidr}"
