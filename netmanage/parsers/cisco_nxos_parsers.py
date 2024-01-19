@@ -834,7 +834,7 @@ def nxos_parse_inventory(runner: dict) -> pd.DataFrame:
             # Add the inventory items to the 'data' list
             for item in output:
                 item["device"] = device
-                item["ip"].append(device_ip)
+                item["ip"] = device_ip
                 data.append(item)
 
     # Create a dictionary for storing the output
