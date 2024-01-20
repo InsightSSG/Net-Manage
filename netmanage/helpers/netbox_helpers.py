@@ -832,7 +832,7 @@ def build_devices_json(db_path, url, token):
                 devices_df["serial"].isin([serial]).any()
                 and devices_df["device_name"].isin([device]).any()
             ):
-                print(f"Skipping duplicate device: {device}, serial: {serial}")
+                #print(f"Skipping duplicate device: {device}, serial: {serial}")
                 continue
             devices.append(
                 {
