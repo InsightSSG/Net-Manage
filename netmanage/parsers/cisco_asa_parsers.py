@@ -58,6 +58,7 @@ def asa_parse_interface_ips(runner: dict) -> pd.DataFrame:
                         broadcast_ip = result["broadcast_ip"]
                         netmask = _line.split(",")[-1].split()[-1]
                         cidr = hp.convert_mask_to_cidr(netmask)
+                        ip = ip.split("/")[0]
 
                     row = [device, inf, ip, cidr, nameif, subnet, network_ip, broadcast_ip]
                     df_data.append(row)
