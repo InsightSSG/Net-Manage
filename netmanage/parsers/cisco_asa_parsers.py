@@ -52,18 +52,14 @@ def asa_parse_interface_ips(runner: dict) -> pd.DataFrame:
                         netmask = "unassigned"
                     else:
                         ip = _line.split(",")[0].split()[-1]
-                        result = hp.generate_subnet_details(addresses)
-                        subnet = result["subnet"]
-                        network_ip = result["network_ip"]
-                        broadcast_ip = result["broadcast_ip"]
                         netmask = _line.split(",")[-1].split()[-1]
                         cidr = hp.convert_mask_to_cidr(netmask)
-                        ip = ip.split("/")[0]
+                        ip = f"{ip}/{cidr}"
 
-                    row = [device, inf, ip, cidr, nameif, subnet, network_ip, broadcast_ip]
+                    row = [device, inf, ip, cidr, nameif]
                     df_data.append(row)
     # Create a dataframe from df_data and return it
-    cols = ["device", "interface", "ip", "cidr", "nameif", "subnet", "network_ip", "broadcast_ip"]
+    cols = ["device", "interface", "ip", "cidr", "nameif"]
     df = pd.DataFrame(data=df_data, columns=cols)
 
     # Filter out interfaces that do not have an IP address.
@@ -71,6 +67,7 @@ def asa_parse_interface_ips(runner: dict) -> pd.DataFrame:
 
     # Add the subnets, network IPs, and broadcast IPs.
     addresses = df["ip"].to_list()
+    df["ip"] = df["ip"].str.split("/").str[0]
     result = hp.generate_subnet_details(addresses)
     df["subnet"] = result["subnet"]
     df["network_ip"] = result["network_ip"]
