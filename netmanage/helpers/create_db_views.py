@@ -157,7 +157,7 @@ def create_db_view(db_path: str, view_name: str):
         cur.execute(
             """
             CREATE VIEW IF NOT EXISTS interface_ips AS
-            SELECT 
+            SELECT DISTINCT
                 device, interface, ip, cidr,
                 nameif AS description, NULL AS vrf, 
                 subnet, network_ip, broadcast_ip
@@ -177,6 +177,12 @@ def create_db_view(db_path: str, view_name: str):
             SELECT device, interface, ip, cidr, NULL AS description,
             vrf, subnet, network_ip, broadcast_ip
             FROM NXOS_INTERFACE_IP_ADDRESSES
+            UNION ALL
+            SELECT mo.name as device, NULL as interface, mv.applianceip as ip, mv.cidr,
+            mv.name AS description, NULL AS vrf, 
+            mv.subnet, mv.network_ip, mv.broadcast_ip
+            FROM MERAKI_NETWORK_APPLIANCE_VLANS as mv LEFT JOIN 
+            meraki_org_networks as mo on mv.id = mo.table_id
             /* interface_ips(device,interface,ip,cidr,description,vrf,
             subnet,network_ip,broadcast_ip) */;
             """
