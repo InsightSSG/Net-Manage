@@ -154,44 +154,6 @@ def create_db_view(db_path: str, view_name: str):
         con = hp.connect_to_db(db_path)
         cur = con.cursor()
 
-        cur.execute(
-            """
-            CREATE VIEW IF NOT EXISTS interface_ips AS
-            SELECT DISTINCT
-                device, interface, ip, cidr,
-                nameif AS description, NULL AS vrf, 
-                subnet, network_ip, broadcast_ip
-            FROM ASA_INTERFACE_IP_ADDRESSES
-            UNION ALL
-            SELECT 
-                device, name AS interface, address AS ip,
-                cidr, vlan AS description, NULL AS vrf,
-                subnet, network_ip, broadcast_ip
-            FROM BIGIP_SELF_IPS
-            UNION ALL
-            SELECT 
-            device, interface, ip, cidr, description, vrf,
-            subnet, network_ip, broadcast_ip
-            FROM IOS_INTERFACE_IP_ADDRESSES
-            UNION ALL
-            SELECT device, interface, ip, cidr, NULL AS description,
-            vrf, subnet, network_ip, broadcast_ip
-            FROM NXOS_INTERFACE_IP_ADDRESSES
-            UNION ALL
-            SELECT mo.name as device, NULL as interface, mv.applianceip as ip, mv.cidr,
-            mv.name AS description, NULL AS vrf, 
-            mv.subnet, mv.network_ip, mv.broadcast_ip
-            FROM MERAKI_NETWORK_APPLIANCE_VLANS as mv LEFT JOIN 
-            meraki_org_networks as mo on mv.id = mo.table_id
-            /* interface_ips(device,interface,ip,cidr,description,vrf,
-            subnet,network_ip,broadcast_ip) */;
-            """
-        )
-        con.commit()
-        con.close()
-        con = hp.connect_to_db(db_path)
-        cur = con.cursor()
-
         # Create view.
         cur.execute(
             """CREATE VIEW combined_bgp_neighbors AS
@@ -255,3 +217,131 @@ def create_db_view(db_path: str, view_name: str):
         )
         con.commit()
     con.close()
+
+    if view_name == "interface_ips":
+        # Create required tables and views.
+        cur.execute(
+            """
+            -- Table for ASA_INTERFACE_IP_ADDRESSES
+            CREATE TABLE IF NOT EXISTS ASA_INTERFACE_IP_ADDRESSES (
+                timestamp TEXT,
+                device TEXT,
+                interface TEXT,
+                ip TEXT,
+                cidr TEXT,
+                nameif TEXT,
+                vrf TEXT, 
+                subnet TEXT,
+                network_ip TEXT,
+                broadcast_ip TEXT,
+                table_id INTEGER PRIMARY KEY AUTOINCREMENT
+            );
+            """
+        )
+        con.commit()
+        con.close()
+        con = hp.connect_to_db(db_path)
+        cur = con.cursor()
+        cur.execute(
+            """
+            -- Table for BIGIP_SELF_IPS
+            CREATE TABLE IF NOT EXISTS BIGIP_SELF_IPS (
+                timestamp TEXT,
+                device TEXT,
+                interface TEXT,
+                ip TEXT,
+                cidr TEXT,
+                vlan TEXT,
+                vrf TEXT, 
+                subnet TEXT,
+                network_ip TEXT,
+                broadcast_ip TEXT,
+                table_id INTEGER PRIMARY KEY AUTOINCREMENT
+            );
+            """
+        )
+        con.commit()
+        con.close()
+        con = hp.connect_to_db(db_path)
+        cur = con.cursor()
+        cur.execute(
+            """
+            -- Table for IOS_INTERFACE_IP_ADDRESSES
+            CREATE TABLE IF NOT EXISTS IOS_INTERFACE_IP_ADDRESSES (
+                timestamp TEXT,
+                device TEXT,
+                interface TEXT,
+                ip TEXT,
+                cidr TEXT,
+                description TEXT,
+                vrf TEXT, 
+                subnet TEXT,
+                network_ip TEXT,
+                broadcast_ip TEXT,
+                table_id INTEGER PRIMARY KEY AUTOINCREMENT
+            );
+            """
+        )
+        con.commit()
+        con.close()
+        con = hp.connect_to_db(db_path)
+        cur = con.cursor()
+        cur.execute(
+            """
+            -- Table for NXOS_INTERFACE_IP_ADDRESSES
+            CREATE TABLE IF NOT EXISTS NXOS_INTERFACE_IP_ADDRESSES (
+                timestamp TEXT,
+                device TEXT,
+                interface TEXT,
+                ip TEXT,
+                cidr TEXT,
+                description TEXT,
+                vrf TEXT, 
+                subnet TEXT,
+                network_ip TEXT,
+                broadcast_ip TEXT,
+                table_id INTEGER PRIMARY KEY AUTOINCREMENT
+            );
+            """
+        )
+        con.commit()
+        con.close()
+        con = hp.connect_to_db(db_path)
+        cur = con.cursor()
+        cur.execute(
+            """
+            CREATE VIEW IF NOT EXISTS interface_ips AS
+            SELECT DISTINCT
+                device, interface, ip, cidr,
+                nameif AS description, NULL AS vrf, 
+                subnet, network_ip, broadcast_ip
+            FROM ASA_INTERFACE_IP_ADDRESSES
+            UNION ALL
+            SELECT 
+                device, name AS interface, address AS ip,
+                cidr, vlan AS description, NULL AS vrf,
+                subnet, network_ip, broadcast_ip
+            FROM BIGIP_SELF_IPS
+            UNION ALL
+            SELECT 
+            device, interface, ip, cidr, description, vrf,
+            subnet, network_ip, broadcast_ip
+            FROM IOS_INTERFACE_IP_ADDRESSES
+            UNION ALL
+            SELECT device, interface, ip, cidr, NULL AS description,
+            vrf, subnet, network_ip, broadcast_ip
+            FROM NXOS_INTERFACE_IP_ADDRESSES
+            UNION ALL
+            SELECT mo.name as device, NULL as interface, mv.applianceip as ip, mv.cidr,
+            mv.name AS description, NULL AS vrf, 
+            mv.subnet, mv.network_ip, mv.broadcast_ip
+            FROM MERAKI_NETWORK_APPLIANCE_VLANS as mv LEFT JOIN 
+            meraki_org_networks as mo on mv.id = mo.table_id
+            /* interface_ips(device,interface,ip,cidr,description,vrf,
+            subnet,network_ip,broadcast_ip) */;
+            """
+        )
+        con.commit()
+        con.close()
+        con = hp.connect_to_db(db_path)
+        cur = con.cursor()

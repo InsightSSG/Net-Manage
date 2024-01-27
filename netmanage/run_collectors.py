@@ -1017,6 +1017,7 @@ def add_to_db(
         "meraki_neighbors",
         "combined_bgp_neighbors",
         "combined_prefixes",
+        "interface_ips"
     ]
     views = hp.get_database_views(database_path)
     for view in expected:
