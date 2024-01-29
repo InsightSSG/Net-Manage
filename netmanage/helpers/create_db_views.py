@@ -248,7 +248,7 @@ def create_db_view(db_path: str, view_name: str):
             CREATE TABLE IF NOT EXISTS BIGIP_SELF_IPS (
                 timestamp TEXT,
                 device TEXT,
-                interface TEXT,
+                name TEXT,
                 ip TEXT,
                 cidr TEXT,
                 vlan TEXT,
