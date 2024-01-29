@@ -336,7 +336,7 @@ def create_db_view(db_path: str, view_name: str):
             mv.name AS description, NULL AS vrf, 
             mv.subnet, mv.network_ip, mv.broadcast_ip
             FROM MERAKI_NETWORK_APPLIANCE_VLANS as mv LEFT JOIN 
-            meraki_org_networks as mo on mv.id = mo.table_id
+            meraki_org_networks as mo on mv.networkId = mo.id
             /* interface_ips(device,interface,ip,cidr,description,vrf,
             subnet,network_ip,broadcast_ip) */;
             """
