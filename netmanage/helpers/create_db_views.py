@@ -249,7 +249,7 @@ def create_db_view(db_path: str, view_name: str):
                 timestamp TEXT,
                 device TEXT,
                 name TEXT,
-                ip TEXT,
+                address TEXT,
                 cidr TEXT,
                 vlan TEXT,
                 vrf TEXT, 
