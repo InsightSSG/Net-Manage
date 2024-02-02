@@ -238,9 +238,7 @@ def create_db_view(db_path: str, view_name: str):
             """
         )
         con.commit()
-        con.close()
-        con = hp.connect_to_db(db_path)
-        cur = con.cursor()
+
         cur.execute(
             """
             -- Table for BIGIP_SELF_IPS
@@ -260,9 +258,7 @@ def create_db_view(db_path: str, view_name: str):
             """
         )
         con.commit()
-        con.close()
-        con = hp.connect_to_db(db_path)
-        cur = con.cursor()
+
         cur.execute(
             """
             -- Table for IOS_INTERFACE_IP_ADDRESSES
@@ -282,9 +278,7 @@ def create_db_view(db_path: str, view_name: str):
             """
         )
         con.commit()
-        con.close()
-        con = hp.connect_to_db(db_path)
-        cur = con.cursor()
+
         cur.execute(
             """
             -- Table for NXOS_INTERFACE_IP_ADDRESSES
@@ -304,9 +298,7 @@ def create_db_view(db_path: str, view_name: str):
             """
         )
         con.commit()
-        con.close()
-        con = hp.connect_to_db(db_path)
-        cur = con.cursor()
+
         cur.execute(
             """
             CREATE VIEW IF NOT EXISTS interface_ips AS
@@ -341,6 +333,4 @@ def create_db_view(db_path: str, view_name: str):
             """
         )
         con.commit()
-        con.close()
-        con = hp.connect_to_db(db_path)
-        cur = con.cursor()
+    con.close()
