@@ -216,7 +216,6 @@ def create_db_view(db_path: str, view_name: str):
         FROM PANOS_BGP_NEIGHBORS AS PANOS;"""
         )
         con.commit()
-    con.close()
 
     if view_name == "interface_ips":
         # Create required tables and views.
