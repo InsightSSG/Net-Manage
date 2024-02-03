@@ -1833,6 +1833,14 @@ def inventory(username: str,
                     if key in line:
                         df_data[value].append(line.split(key)[1].strip())
 
+    # Determine the maximum length of any list in df_data
+    max_length = max(len(lst) for lst in df_data.values())
+
+    # Ensure all lists in df_data are of the same length
+    for key in df_data:
+        while len(df_data[key]) < max_length:
+            df_data[key].append('')  # Append an empty string or another placeholder
+
     # Create the dataframe and return it.
     df = pd.DataFrame(df_data)
 
