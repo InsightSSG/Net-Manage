@@ -863,7 +863,7 @@ def build_devices_json(db_path, url, token):
         device = device.split(".")[0]
         site = site_mapping.get(site_name, default_site)
         role = determine_device_role_by_model(name, roles_dict)
-        device_type = types_dict.get(device, default_type)
+        device_type = types_dict.get(name, default_type)
         if site:
             if (
                 devices_df["serial"].isin([serial]).any()
