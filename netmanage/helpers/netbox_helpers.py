@@ -153,6 +153,14 @@ def get_device_types():
                 "weight_unit": "lb",
                 "slug": "mx84",
             },
+            "MX85": {
+                "u_height": 1,
+                "is_full_depth": true,
+                "airflow": "front-to-rear",
+                "weight": 21.4,
+                "weight_unit": "lb",
+                "slug": "mx85"
+            },
             "MS390-24P": {
                 "u_height": 1,
                 "is_full_depth": True,
