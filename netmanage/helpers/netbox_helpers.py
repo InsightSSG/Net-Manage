@@ -155,7 +155,7 @@ def get_device_types():
             },
             "MX85": {
                 "u_height": 1,
-                "is_full_depth": true,
+                "is_full_depth": True,
                 "airflow": "front-to-rear",
                 "weight": 21.4,
                 "weight_unit": "lb",
