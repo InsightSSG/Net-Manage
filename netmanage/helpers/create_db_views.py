@@ -81,7 +81,7 @@ def create_db_view(db_path: str, view_name: str):
         WHERE
         (
             (LOWER(description) LIKE '%chassis%')
-            OR (name = '1' AND pid = description)
+            OR ((name = '1' or name like '% 1') AND pid = description)
         )
         AND
         (
