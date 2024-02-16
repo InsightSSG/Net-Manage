@@ -337,4 +337,69 @@ def create_db_view(db_path: str, view_name: str):
             """
         )
         con.commit()
+
+    if view_name == "combined_arp_tables":
+        # Create required tables and views.
+        cur.execute(
+            """
+            CREATE VIEW IF NOT EXISTS combined_arp_tables AS
+            -- IOS_ARP_TABLE segment
+            SELECT DISTINCT
+            arp.device,
+            arp.address,
+            arp.mac,
+            int.cidr,
+            NULL AS description,
+            'IOS_ARP_TABLE' AS source
+            FROM IOS_ARP_TABLE arp
+            LEFT JOIN IOS_INTERFACE_IP_ADDRESSES int ON arp.interface = int.interface
+            UNION ALL
+
+            -- NXOS_ARP_TABLE segment
+            SELECT DISTINCT
+            arp.device,
+            arp.ip_address as address,
+            arp.mac_address as mac,
+            int.cidr,
+            NULL AS description,
+            'NXOS_ARP_TABLE' AS source
+            FROM NXOS_ARP_TABLE arp
+            LEFT JOIN NXOS_INTERFACE_IP_ADDRESSES int ON arp.interface = int.interface
+            UNION ALL
+
+            -- PANOS_ARP_TABLE segment
+            SELECT DISTINCT
+            arp.device,
+            arp.ip as address,
+            arp.mac,
+            int.cidr,
+            NULL AS description,
+            'PANOS_ARP_TABLE' AS source
+            FROM PANOS_ARP_TABLE arp
+            LEFT JOIN PANOS_INTERFACE_IP_ADDRESSES int ON arp.interface = int.name
+            UNION ALL
+
+            -- MERAKI_NETWORK_CLIENTS segment
+            SELECT DISTINCT 
+            mnc.recentDeviceName,
+            mnc.ip,
+            mnv.cidr,
+            mnc.mac,
+            mnc.description,
+            'MERAKI_NETWORK_CLIENTS' AS source
+            FROM MERAKI_NETWORK_CLIENTS mnc
+            JOIN MERAKI_NETWORK_APPLIANCE_VLANS mnv ON mnc.vlan = mnv.id
+            UNION ALL
+
+            SELECT DISTINCT
+            bat.device AS device,
+            bat.Address AS address,
+            bat.HWaddress AS mac,
+            bsi.cidr AS cidr,
+            NULL AS description,
+            'BIGIP_ARP_TABLE' AS source
+            FROM BIGIP_ARP_TABLE bat
+            LEFT JOIN BIGIP_SELF_IPS bsi 
+            ON REPLACE(bat.Vlan, '/Common/', '') = bsi.vlan;
+            """)
     con.close()
