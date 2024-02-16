@@ -51,7 +51,7 @@ def create_db_view(db_path: str, view_name: str):
         cur.execute(
             """CREATE VIEW device_models AS
         -- BIGIP_HARDWARE_INVENTORY segment
-        SELECT
+        SELECT DISTINCT
             'BIGIP_HARDWARE_INVENTORY' AS source,
             device,
             name AS model,
@@ -61,7 +61,7 @@ def create_db_view(db_path: str, view_name: str):
         UNION ALL
 
         -- NXOS_HARDWARE_INVENTORY segment with the "Chassis" condition
-        SELECT
+        SELECT DISTINCT
             'NXOS_HARDWARE_INVENTORY' AS source,
             device,
             productid AS model,
@@ -72,7 +72,7 @@ def create_db_view(db_path: str, view_name: str):
         UNION ALL
 
         -- IOS_HARDWARE_INVENTORY segment with necessary conditions
-        SELECT
+        SELECT DISTINCT
             'IOS_HARDWARE_INVENTORY' AS source,
             device,
             pid AS model,
@@ -91,7 +91,7 @@ def create_db_view(db_path: str, view_name: str):
         UNION ALL
 
         -- ASA_HARDWARE_INVENTORY segment with the "Chassis" condition
-        SELECT
+        SELECT DISTINCT
             'ASA_HARDWARE_INVENTORY' AS source,
             device,
             pid AS model,
@@ -102,12 +102,22 @@ def create_db_view(db_path: str, view_name: str):
         UNION ALL
 
         -- PANOS_HARDWARE_INVENTORY segment
-        SELECT
+        SELECT DISTINCT
             'PANOS_HARDWARE_INVENTORY' AS source,
             device,
             model,
             serial
-        FROM PANOS_HARDWARE_INVENTORY;
+        FROM PANOS_HARDWARE_INVENTORY
+
+        UNION ALL
+
+        -- MERAKI_ORG_DEVICES segment
+        SELECT DISTINCT
+            'MERAKI_ORG_DEVICES' AS source,
+            name AS device,
+            model,
+            serial
+        FROM MERAKI_ORG_DEVICES;
         """
         )
         con.commit()
