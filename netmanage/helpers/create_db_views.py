@@ -360,6 +360,7 @@ def create_db_view(db_path: str, view_name: str):
             arp.mac,
             int.cidr,
             NULL AS description,
+            vendor,
             'IOS_ARP_TABLE' AS source
             FROM IOS_ARP_TABLE arp
             LEFT JOIN IOS_INTERFACE_IP_ADDRESSES int ON arp.interface = int.interface
@@ -372,6 +373,7 @@ def create_db_view(db_path: str, view_name: str):
             arp.mac_address as mac,
             int.cidr,
             NULL AS description,
+            vendor,
             'NXOS_ARP_TABLE' AS source
             FROM NXOS_ARP_TABLE arp
             LEFT JOIN NXOS_INTERFACE_IP_ADDRESSES int ON arp.interface = int.interface
@@ -384,6 +386,7 @@ def create_db_view(db_path: str, view_name: str):
             arp.mac,
             int.cidr,
             NULL AS description,
+            vendor,
             'PANOS_ARP_TABLE' AS source
             FROM PANOS_ARP_TABLE arp
             LEFT JOIN PANOS_INTERFACE_IP_ADDRESSES int ON arp.interface = int.name
@@ -393,9 +396,10 @@ def create_db_view(db_path: str, view_name: str):
             SELECT DISTINCT 
             mnc.recentDeviceName,
             mnc.ip,
-            mnv.cidr,
             mnc.mac,
+            mnv.cidr,
             mnc.description,
+            manufacturer AS vendor,
             'MERAKI_NETWORK_CLIENTS' AS source
             FROM MERAKI_NETWORK_CLIENTS mnc
             JOIN MERAKI_NETWORK_APPLIANCE_VLANS mnv ON mnc.vlan = mnv.id
@@ -407,6 +411,7 @@ def create_db_view(db_path: str, view_name: str):
             bat.HWaddress AS mac,
             bsi.cidr AS cidr,
             NULL AS description,
+            vendor,
             'BIGIP_ARP_TABLE' AS source
             FROM BIGIP_ARP_TABLE bat
             LEFT JOIN BIGIP_SELF_IPS bsi 
