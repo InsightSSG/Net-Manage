@@ -18,6 +18,8 @@ import sys
 import time
 import yaml
 import json
+from ansible.parsing.dataloader import DataLoader
+from ansible.inventory.manager import InventoryManager
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime as dt
 from getpass import getpass
@@ -758,7 +760,8 @@ def generate_subnet_details(
 
     for ip in addresses:
         if " " in ip:  # For 'IP SUBNET_MASK' format
-            ip_address, mask = ip.split()
+            ip_address = ip.split()[0]
+            mask = ip.split()[1]
             ip_obj = ipaddress.ip_interface(
                 f'{ip_address}/{ipaddress.IPv4Network("0.0.0.0/"+mask).prefixlen}'
             )
@@ -2030,3 +2033,20 @@ def is_jupyter():
     except Exception:  # get_ipython() doesn't exist, IPython not loaded
         return False
     return True
+
+
+def ansible_host_to_ip(hostname):
+    # Create a DataLoader instance
+    loader = DataLoader()
+    inventory_file = f"{os.environ.get('private_data_directory')}/inventory/hosts"
+    # Create an InventoryManager instance with the provided inventory file
+    inventory = InventoryManager(loader=loader, sources=inventory_file)
+    
+    # Find the host in the inventory
+    host = inventory.get_host(hostname)
+    if host:
+        # Extract the host's IP address
+        host_address = str(host.vars.get('ansible_host'))
+        if host_address:
+            return host_address
+    return hostname

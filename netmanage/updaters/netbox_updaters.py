@@ -19,9 +19,9 @@ def update_cable(
 
     Parameters
     ----------
-    netbox_url : str
+    url : str
         The URL of the NetBox instance.
-    netbox_token : str
+    token : str
         The authentication token for the NetBox API.
     a_terminations : list
         A list of dictionaries containing the terminations for the A side.
@@ -42,10 +42,10 @@ def update_cable(
 
     Examples
     --------
-    >>> netbox_token = '12387asdv13'
-    >>> netbox_url = 'http://0.0.0.0:8000'
-    >>> add_cable(netbox_url,
-                  netbox_token,
+    >>> token = '12387asdv13'
+    >>> url = 'http://0.0.0.0:8000'
+    >>> update_cable(url,
+                  token,
                   [{'object_id': 22104, 'object_type': 'dcim.interface'}],
                   [{'object_id': 29287, 'object_type': 'dcim.interface'}])
     """
@@ -75,6 +75,7 @@ def update_prefix(
     site: Optional[str] = None,
     tenant: Optional[str] = None,
     vrf: Optional[str] = None,
+    vlan_id: Optional[str] = None,
 ):
     """
     Update a prefix in Netbox IPAM.
@@ -91,12 +92,15 @@ def update_prefix(
         The prefix to be updated in Netbox IPAM in CIDR notation.
     description: Optional[str]
         A description for the prefix.
-    site: Optional[str], Default None
+    site_id: Optional[str], Default None
         The slug of the Site where the prefix belongs.
-    tenant: Optional[str], Default None
+    tenant_id: Optional[str], Default None
         The slug of the Tenant in which the prefix is located.
     vrf: Optional[str], Default None
         The name of the VRF.
+    vlan_id : int, optional
+        The VLAN ID to associate with the prefix, by default None. Note that
+        this is Netbox's internal ID for the VLAN.
 
     Returns
     -------
@@ -136,6 +140,7 @@ def update_prefix(
         "description": description,
         "tenant": tenant,
         "vrf": vrf,
+        "vlan": vlan_id
     }
 
     if prefix is None:
@@ -149,8 +154,10 @@ def update_prefix(
     if vrf is None:
         del data["vrf"]
 
+    # remove empty records from payload
+    data = {k: v for k, v in data.items() if v or v == 0}
     try:
-        nb.ipam.prefixes.update(data)
+        nb.ipam.prefixes.update([data])
     except RequestError as e:
         print(f"[{_id}]: {str(e)}")
 
@@ -262,7 +269,7 @@ def update_device(
     Returns
     -------
     None
-        This function does not return any value. It only creates the device in
+        This function does not return any value. It only updates the device in
         NetBox.
     """
     if not _id:
@@ -337,7 +344,7 @@ def update_device(
     try:
         nb.dcim.devices.update(device)
     except Exception as e:
-        raise Exception(f"Error occurred while adding the device: {str(e)}")
+        raise Exception(f"Error occurred while updating the device: {str(e)}")
 
 
 def update_device_role(
@@ -351,13 +358,13 @@ def update_device_role(
     vm_role: bool = False,
 ) -> None:
     """
-    Create a device role in NetBox.
+    update a device role in NetBox.
 
     Parameters
     ----------
-    netbox_url : str
+    url : str
         The URL of the NetBox instance.
-    netbox_token : str
+    token : str
         The authentication token for the NetBox API.
     _id: int
         The netbox id of the object being updated must be included
@@ -427,9 +434,9 @@ def update_device_type(
 
     Parameters
     ----------
-    netbox_url : str
+    url : str
         The URL of the NetBox instance.
-    netbox_token : str
+    token : str
         The authentication token for the NetBox API.
     _id: int
         The netbox id of the object being updated must be included
@@ -499,10 +506,12 @@ def update_vrf(
     token: str,
     url: str,
     _id: int,
-    vrf_name: str,
-    description: str,
+    vrf_name: Optional[str] = None,
+    description: Optional[str] = None,
     rd: Optional[str] = None,
     enforce_unique: Optional[bool] = True,
+    tenant_id: Optional[str] = None,
+    
 ):
     """
     Update a VRF in Netbox.
@@ -515,15 +524,17 @@ def update_vrf(
         Url of Netbox instance.
     _id: int
         The netbox id of the object being updated must be included
-    vrf_name : str
+    vrf_name : Optional[str] = None
         The name of the VRF to be updated in Netbox.
-    description : str
+    description : Optional[str] = None
         A description for the VRF.
     rd : Optional[str], Default None
         The route distinguisher for the VRF.
     enforce_unique : Optional[bool], Default True
         Whether duplicate VRF names should be disallowed (True) or allowed
         (False).
+    tenant_id: Optional[str], Default None
+        The numeric ID of the tenant. Defaults to None.
 
     Returns
     -------
@@ -552,13 +563,16 @@ def update_vrf(
 
     nb = nbh.create_netbox_handler(url, token)
     data = {
-        "name": vrf_name,
-        "rd": rd,
-        "description": description,
-        "enforce_unique": enforce_unique,
+        'id': _id,
+        'name': vrf_name,
+        'rd': rd,
+        'description': description,
+        'enforce_unique': enforce_unique,
     }
+    # remove empty records from payload
+    data = {k: v for k, v in data.items() if v or v == 0}
     try:
-        return nb.ipam.vrfs.update(data)
+        return nb.ipam.vrfs.update([data])
     except RequestError as e:
         print(f"[{_id}]: {str(e)}")
 
@@ -643,7 +657,7 @@ def update_site(
 
     Returns:
     ----------
-    dict: The response from the Netbox API when adding the site.
+    dict: The response from the Netbox API when updating the site.
     """
     # Initialize pynetbox API and site payload
 
@@ -710,7 +724,7 @@ def update_site(
         print(f"[{_id}]: {str(e)}")
 
 
-def update_netbox_sites(url, token, sites_json):
+def update_netbox_sites(url, token, sites_json, _id: int):
     """
     Updates Netbox with a list of new sites using pynetbox.
     :param url: URL of the Netbox instance.
@@ -721,20 +735,20 @@ def update_netbox_sites(url, token, sites_json):
     nb = nbh.create_netbox_handler(url, token)
     sites_data = json.loads(sites_json)
 
-    created_sites = []
+    updated_sites = []
     for site in sites_data:
         try:
-            created_site = nb.dcim.sites.create(site)
-            created_sites.append(created_site)
+            updated_site = nb.dcim.sites.update(site)
+            updated_sites.append(updated_site)
         except Exception as e:
             return f"An error occurred: {e}"
 
-    return created_sites
+    return updated_sites
 
 
-def update_netbox_device_types(url, token, device_types_json):
+def update_netbox_device_types(url, token, device_types_json, _id: int):
     """
-    Imports device types into Netbox, creating manufacturers and ensuring
+    Updates device types into Netbox, creating manufacturers and ensuring
     valid slugs.
     :param url: URL of the Netbox instance.
     :param token: API token for authentication.
@@ -776,11 +790,11 @@ def update_netbox_device_types(url, token, device_types_json):
                     device_type['slug'] = \
                         create_valid_slug(device_type['model'])
 
-                response = nb.dcim.device_types.create(device_type)
+                response = nb.dcim.device_types.update(device_type)
                 responses.append(response)
             else:
                 responses.append(
-                    f"Failed to create or find manufacturer for "
+                    f"Failed to update or find manufacturer for "
                     f"{device_type['model']}")
 
         except RequestError as e:
@@ -790,9 +804,9 @@ def update_netbox_device_types(url, token, device_types_json):
     return responses
 
 
-def update_netbox_device_roles(url, token, device_roles_json):
+def update_netbox_device_roles(url, token, device_roles_json, _id: int):
     """
-    Imports device roles into Netbox using the pynetbox library.
+    Updates device roles into Netbox using the pynetbox library.
     :param url: URL of the Netbox instance.
     :param token: API token for authentication.
     :param device_roles_json: JSON string containing the device roles.
@@ -804,7 +818,7 @@ def update_netbox_device_roles(url, token, device_roles_json):
 
     for device_role in device_roles_data:
         try:
-            response = nb.dcim.device_roles.create(device_role)
+            response = nb.dcim.device_roles.update(device_role)
             responses.append(response)
         except RequestError as e:
             responses.append(
@@ -813,9 +827,9 @@ def update_netbox_device_roles(url, token, device_roles_json):
     return responses
 
 
-def update_netbox_racks(url, token, rack_dicts):
+def update_netbox_racks(url, token, rsck_dicts, _id: int):
     """
-    Imports a list of rack dictionaries into Netbox.
+    Updates a list of rack dictionaries into Netbox.
     :param url: URL of the Netbox instance.
     :param token: API token for authentication.
     :param rack_dicts: List of dictionaries, each representing a rack.
@@ -826,44 +840,11 @@ def update_netbox_racks(url, token, rack_dicts):
 
     for rack_dict in rack_dicts:
         try:
-            response = nb.dcim.racks.create(rack_dict)
+            response = nb.dcim.racks.update(rack_dict)
             responses.append(response)
         except RequestError as e:
             responses.append(
                 f"An error occurred with {rack_dict['name']}: {e.error}")
-
-    return responses
-
-
-def import_devices_to_netbox(url, token, devices_json):
-    """
-    Imports or updates devices in Netbox.
-    :param url: URL of the Netbox instance.
-    :param token: API token for authentication.
-    :param devices_json: JSON string containing devices.
-    :return: List of responses from Netbox API.
-    """
-    nb = nbh.create_netbox_handler(url, token)
-    devices_data = json.loads(devices_json)
-    responses = []
-
-    for device in devices_data:
-        netbox_device = {
-            "name": device['device'],
-            "device_type": device['device_type'],
-            "serial": device['serial'],
-            "site": device['site'],
-            "role": device['role']
-        }
-
-        # Create the device in Netbox
-        try:
-            response = nb.dcim.devices.create(netbox_device)
-            responses.append(response)
-        except RequestError as e:
-            responses.append(
-                f"An error occurred with {device['device']}: {e.error}")
-            print(f"An error occurred with {device['device']}: {e.error}")
 
     return responses
 
@@ -909,3 +890,410 @@ def cleanup_duplicate_devs_by_serials(url=None, token=None, cleanup=False):
             #    logging.warning(f"Device {device.name} already deleted.")
             except Exception as e:
                 logging.error(f"Error deleting device {device.name}: {e}")
+
+
+def update_ip(
+    url: str,
+    token: str,
+    _id: int,
+    ip_address: str,
+    description: str,
+    tenant_id: int = None,
+    status: str = "active",
+    vrf_id: Optional[int] = None,
+    verify_ssl: bool = True,
+) -> bool:
+    """
+    Update an IP address in a Netbox instance.
+
+    Parameters
+    ----------
+    url : str
+        The URL of the Netbox instance.
+    token : str
+        The API token for authentication.
+    ip_address : str
+        The IP address to add.
+    description : str
+        Description of the IP address.
+    tenant_id : int, optional
+        The tenant ID associated with the IP address.
+    status : str, optional
+        The status of the IP address (default is 'Active').
+    vrf_id : Optional[int], optional
+        The VRF ID associated with the IP address (default is None).
+    verify_ssl : bool
+        Whether to verify SSL certificates.
+
+    Returns
+    -------
+    bool
+        True if the IP address was successfully added, False otherwise.
+
+    Notes
+    -----
+    - Requires pynetbox to be installed.
+    - Netbox instance must be accessible from the script's environment.
+    - The user must have write permissions on the IPAM module in Netbox.
+    """
+
+    # Initialize the pynetbox API
+    nb = nbc.create_netbox_handler(url, token=token, verify_ssl=verify_ssl)
+
+    try:
+        # Building the data payload
+        data = {
+            "id": _id,
+            "address": ip_address,
+            "description": description,
+            "tenant": tenant_id,
+            "status": status,
+            "vrf": vrf_id,
+        }
+
+        # Remove None values
+        data = {k: v for k, v in data.items() if v}
+
+        # updating the IP address to Netbox
+        result = nb.ipam.ip_addresses.update([data])
+        return True if result else False
+    except Exception as e:
+        print(f"Error updating IP address to Netbox: {e}")
+        return False
+
+
+def update_ip_range(
+    url: str,
+    token: str,
+    _id: int,
+    ranges: dict,
+    default_tenant: str = None,
+    default_vrf: int = None,
+    default_tags: List[str] = list(),
+) -> None:
+    """
+    Update IP ranges to Netbox using pynetbox.
+
+    Parameters
+    ----------
+    url : str
+        The URL of the Netbox instance.
+    token : str
+        The token for authentication to Netbox.
+    range : dict
+        A IP range.
+        Each dictionary should contain keys: start_ip, end_ip, description, and
+        optionally: tenant, vrf, tags.
+    default_tenant : str, optional
+        The default tenant that the IP range belongs to, if not specified in
+        the range dictionary. Default is None.
+    default_vrf : str, optional
+        The default VRF that the IP range belongs to, if not specified in the
+        range dictionary. Default is None.
+    default_tags : List[str], optional
+        Default tags to be added to the IP range, if not specified in the
+        range dictionary. Default is None.
+
+    Returns
+    -------
+    None
+
+    Examples
+    --------
+    >>> update_ip_ranges(
+    ...     'http://netbox.local',
+    ...     '0123456789abcdef0123456789abcdef01234567',
+    ...         {'start_ip': '192.168.1.0',
+                 'end_ip': '192.168.1.255',
+                 'description': 'Office IPs',
+                 'tags': ['office']}
+    ...     default_tenant='Corporate',
+    ...     default_tags=['main']
+    ... )
+    """
+    # Initialize the pynetbox API
+    nb = nbc.create_netbox_handler(url, token=token, verify_ssl=verify_ssl)
+
+    range_data = {
+        "id": _id,
+        "start_address": ip_range["start_ip"],
+        "end_address": ip_range["end_ip"],
+        "description": ip_range.get("description", ""),
+        "tenant": ip_range.get("tenant", default_tenant),
+        "vrf": ip_range.get("vrf", default_vrf),
+        "tags": ip_range.get("tags", default_tags),
+    }
+
+    try:
+        # Update the IP range to Netbox
+        response = nb.ipam.ip_ranges.update(range_data)
+        if not response:
+            msg = [
+                f"Failed to update IP range {ip_range['start_ip']}",
+                f"{ip_range['end_ip']}. Response: {response}",
+            ]
+            msg = " - ".join(msg)
+            print(msg)
+        else:
+            msg = [
+                f"Successfully added IP range {ip_range['start_ip']}",
+                f"{ip_range['end_ip']}.",
+            ]
+            msg = " - ".join(msg)
+            print(msg)
+    except RequestError as e:
+        msg = [
+            f"Failed to update IP range {ip_range['start_ip']}",
+            f"{ip_range['end_ip']}: {e}",
+        ]
+        msg = " - ".join(msg)
+        print(msg)
+
+
+def update_manufacturer(
+    url: str,
+    token: str,
+    _id: int,
+    name: str,
+    slug: str,
+    description: Optional[str] = "",
+    tags: Optional[list] = [],
+) -> None:
+    """
+    Update device manufacturer in NetBox.
+
+    Parameters
+    ----------
+    url : str
+        The URL of the NetBox instance.
+    token : str
+        The authentication token for the NetBox API.
+    name : str
+        The name of the manufacturer.
+    slug : str
+        The slug (unique identifier) for the manufacturer.
+    description : str, optional
+        The description of the manufacturer.
+    tags : list, optional
+        optional tags
+
+    Returns
+    -------
+    None
+        This function does not return any value.
+
+    Raises
+    ------
+    Exception
+        If any error occurs while creating the device manufacturer.
+    """
+    # Create an instance of the API using the provided URL and token
+    nb = nbc.create_netbox_handler(url, token=token)
+
+    # Create the device manufacturer
+    try:
+        nb.dcim.manufacturers.update(
+            name=name, slug=slug, description=description, tags=tags,
+            id = _id,
+        )
+    except Exception as e:
+        print(f"Error while creating manufacturer {name}: {str(e)}")
+
+
+def update_vlan(
+    token: str,
+    url: str,
+    _id: int,
+    vlan_id: Optional[str] = None,
+    name: Optional[str] = None,
+    description: Optional[str] = None,
+    site: Optional[str] = None,
+    tenant: Optional[str] = None,
+    status: Optional[str] = "active",
+):
+    """
+    Upate a VLAN in Netbox.
+
+    Parameters
+    ----------
+    token : str
+        API token for authentication.
+    url : str
+        Url of Netbox instance.
+    vlan_id : int
+        The VLAN ID to be added.
+    name : str
+        The name of the VLAN.
+    site: Optional[str], Default None
+        The slug of the Site where the VLAN belongs.
+    tenant: Optional[str], Default None
+        The slug of the Tenant in which the VLAN is located.
+    status: Optional[str], Default 'active'
+        The status of the VLAN ("active", "reserved", etc).
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    pynetbox.RequestError
+        If there is any problem in the request to Netbox API.
+    """
+
+    nb = nbc.create_netbox_handler(url, token=token)
+
+    data = {
+        "id": _id, 
+        "vid": vlan_id,
+        "name": name,
+        "site": site,
+        "tenant": tenant,
+        "status": status,
+    }
+
+    # remove empty records from payload
+    data = {k: v for k, v in data.items() if v or v == 0}
+    try:
+        return nb.ipam.vlans.update([data])
+    except RequestError as e:
+        print(f"[VLAN {vlan_id}]: {str(e)}")
+
+
+def update_interface(
+    token: str,
+    url: str,
+    _id: int,
+    device_id: int = None,
+    name: Optional[str] = None,
+    _type: Optional[str] = "1000base-t",
+    enabled: Optional[bool] = True,
+    lag: Optional[str] = None,
+    mtu: Optional[str] = None,
+    mac_address: Optional[str] = None,
+    mgmt_only: Optional[bool] = False,
+    description: Optional[str] = None,
+    is_connected: Optional[bool] = False,
+    interface_connection: Optional[str] = None,
+    circuit_termination: Optional[str] = None,
+    mode: Optional[str] = None,
+    untagged_vlan: Optional[str] = None,
+    tagged_vlans: Optional[list] = [],
+    tags: Optional[list] = [],
+    vrf_id: Optional[int] = None,
+    verify_ssl: bool = True,
+):
+    """
+    Add a new interface to Netbox.
+
+    Parameters
+    ----------
+    token : str
+        API token for authentication.
+    url : str
+        URL of the Netbox instance.
+    name : str
+        The name of the Interface to be added to Netbox.
+    _type : str
+        Interface type. e.g '1000base-t'.
+    enabled : bool, optional
+        Whether the interface is enabled or not. Default is True.
+    lag : str, optional
+        Link aggregation group for the interface.
+    mtu : str, optional
+        Maximum transmission unit for the interface.
+    mac_address : str, optional
+        MAC address of the interface.
+    mgmt_only : bool, optional
+        Whether the interface is management-only. Default is False.
+    description : str, optional
+        A description for the Interface.
+    is_connected : bool, optional
+        Whether the interface is connected. Default is False.
+    interface_connection : str, optional
+        Connection details for the interface.
+    circuit_termination : str, optional
+        Circuit termination details for the interface.
+    mode : str, optional
+        Mode of the interface.
+    untagged_vlan : str, optional
+        VLAN details for untagged traffic on the interface.
+    tagged_vlans : list, optional
+        List of VLANs for tagged traffic on the interface.
+    tags : list, optional
+        List of tags associated with the interface.
+    vrf_id : str, optional
+        The VRF ID to associate with the prefix, by default None. Note that as of
+        version 3.6.6, this needs to be a string, not an integer.
+    verify_ssl : bool, optional
+        Whether to verify SSL certificates. Default is True.
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    pynetbox.RequestError
+        If there is any problem in the request to Netbox API.
+
+    Notes
+    -------
+    A RequestError is thrown if there is a duplicate VRF name, but ONLY if
+    the option to disallow duplicate VRF names is either passed to the function
+    as 'enforce_unique=True' (the default) or has been enabled inside of Netbox
+    (it is disabled by default). The option to enforce unique VRF names can be
+    enabled globally or for certain groups of prefixes. See this URL for more
+    information:
+    - https://demo.netbox.dev/static/docs/core-functionality/ipam/
+    - https://demo.netbox.dev/static/docs/configuration/dynamic-settings/
+
+    """
+    nb = nbc.create_netbox_handler(url, token, verify_ssl=verify_ssl)
+    data = {
+        "id": _id,
+        "device": device_id,
+        "name": name,
+        "description": description,
+        "type": _type,
+        "vrf": vrf_id,
+    }
+    # remove empty records from payload
+    data = {k: v for k, v in data.items() if v or v == 0}
+    try:
+        nb.dcim.interfaces.update([data])
+    except RequestError as e:
+        print(f"[{name}]: {str(e)}")
+
+
+def import_devices_to_netbox(url, token, devices_json):
+    """
+    Imports or updates devices in Netbox.
+    :param url: URL of the Netbox instance.
+    :param token: API token for authentication.
+    :param devices_json: JSON string containing devices.
+    :return: List of responses from Netbox API.
+    """
+    nb = nbh.create_netbox_handler(url, token)
+    devices_data = json.loads(devices_json)
+    responses = []
+
+    for device in devices_data:
+        netbox_device = {
+            "name": device['device'],
+            "device_type": device['device_type'],
+            "serial": device['serial'],
+            "site": device['site'],
+            "role": device['role']
+        }
+
+        # Create the device in Netbox
+        try:
+            response = nb.dcim.devices.create(netbox_device)
+            responses.append(response)
+        except RequestError as e:
+            responses.append(
+                f"An error occurred with {device['device']}: {e.error}")
+            print(f"An error occurred with {device['device']}: {e.error}")
+
+    return responses

@@ -276,6 +276,10 @@ def get_network_appliance_vlans(ansible_os: str,
                 df['subnet'] = result['subnet']
                 df['network_ip'] = result['network_ip']
                 df['broadcast_ip'] = result['broadcast_ip']
+
+                # Add a column containing the CIDR notation.
+                cidrs = hp.subnet_mask_to_cidr(df["subnet"].to_list())
+                df["cidr"] = cidrs
                 # Add the DataFrame to the database.
                 if counter == 1 and replace_table:
                     database_method = 'replace'

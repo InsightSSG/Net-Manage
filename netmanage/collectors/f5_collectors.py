@@ -1793,6 +1793,7 @@ def inventory(username: str,
     df_data = dict()
     columns = ['device',
                'name',
+               'ip',
                'bios_revision',
                'base_mac',
                'appliance_type',
@@ -1822,6 +1823,8 @@ def inventory(username: str,
 
             device = event_data['remote_addr']
             df_data['device'].append(device)
+            device_ip = hp.ansible_host_to_ip(device)
+            df_data['ip'].append(device_ip)
 
             data = event_data['res']['stdout_lines'][0]
 
@@ -1829,6 +1832,14 @@ def inventory(username: str,
                 for key, value in mapping.items():
                     if key in line:
                         df_data[value].append(line.split(key)[1].strip())
+
+    # Determine the maximum length of any list in df_data
+    max_length = max(len(lst) for lst in df_data.values())
+
+    # Ensure all lists in df_data are of the same length
+    for key in df_data:
+        while len(df_data[key]) < max_length:
+            df_data[key].append('')  # Append an empty string or another placeholder
 
     # Create the dataframe and return it.
     df = pd.DataFrame(df_data)

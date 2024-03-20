@@ -121,7 +121,7 @@ def collect(
     # Read Palo Alto variables
     palo_alto_username = os.environ["palo_alto_username"]
     palo_alto_password = os.environ["palo_alto_password"]
-    palo_alto_serials = list(filter(None, os.environ["palo_alto_serials"].split(",")))
+    palo_alto_serials = list(filter(None, os.environ.get("palo_alto_serials", "").split(",")))
     palo_alto_serials = [_.strip() for _ in palo_alto_serials]
 
     # Read Solarwinds NPM variables
@@ -1017,6 +1017,8 @@ def add_to_db(
         "meraki_neighbors",
         "combined_bgp_neighbors",
         "combined_prefixes",
+        "interface_ips",
+        "combined_arp_tables"
     ]
     views = hp.get_database_views(database_path)
     for view in expected:

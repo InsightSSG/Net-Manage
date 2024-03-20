@@ -14,9 +14,10 @@ import pynetbox
 from netmanage.collectors import netbox_collectors as nbc
 
 
-def get_prefix_custom_field_states(nb_url: str, token: str,
-                                   f_name: str) -> pd.DataFrame:
-    '''
+def get_prefix_custom_field_states(
+    nb_url: str, token: str, f_name: str
+) -> pd.DataFrame:
+    """
     Gets the values of a single custom field for all prefixes.
 
     Queries the API to get the value of a custom field for all prefixes.
@@ -51,12 +52,12 @@ def get_prefix_custom_field_states(nb_url: str, token: str,
     >>> df = get_prefix_custom_field_states(nb_url, token, f_name)
     print(type(df))
     >>> <class 'pandas.core.frame.DataFrame'>
-    '''
+    """
     # Get the IPAM prefixes from Netbox
     result = nbc.netbox_get_ipam_prefixes(nb_url, token)
 
     # Create a dataframe containing the prefix IDs and 'f_name' values
-    df = result[['id', f'custom_fields_{f_name}']].copy()
+    df = result[["id", f"custom_fields_{f_name}"]].copy()
 
     return df
 
@@ -76,33 +77,33 @@ def make_nb_url_compliant(string: str):
 
 def get_table_prefix_to_device_mfg():
     return {
-        'ASA': 'CISCO',
-        'BIGIP': 'F5 Networks',
-        'IOS': 'CISCO',
-        'MERAKI': 'MERAKI',
-        'NXOS': 'CISCO',
-        'PANOS': 'PALO ALTO',
+        "ASA": "CISCO",
+        "BIGIP": "F5 Networks",
+        "IOS": "CISCO",
+        "MERAKI": "MERAKI",
+        "NXOS": "CISCO",
+        "PANOS": "PALO ALTO",
     }
 
 
 def get_device_types():
     return {
-        'MERAKI': {
-            'MS120-48FP': {
-                'u_height': 1,
-                'is_full_depth': False,
-                'airflow': 'front-to-rear',
-                'weight': '12.7',
-                'weight_unit': 'lb',
-                'slug': 'ms120-48fp'
+        "MERAKI": {
+            "MS120-48FP": {
+                "u_height": 1,
+                "is_full_depth": False,
+                "airflow": "front-to-rear",
+                "weight": "12.7",
+                "weight_unit": "lb",
+                "slug": "ms120-48fp",
             },
-            'MS120-48LP': {
-                'u_height': 1,
-                'is_full_depth': False,
-                'airflow': 'front-to-rear',
-                'weight': '10.8',
-                'weight_unit': 'lb',
-                'slug': 'ms120-48lp'
+            "MS120-48LP": {
+                "u_height": 1,
+                "is_full_depth": False,
+                "airflow": "front-to-rear",
+                "weight": "10.8",
+                "weight_unit": "lb",
+                "slug": "ms120-48lp",
             },
             "MR33": {
                 "u_height": 1,
@@ -152,173 +153,181 @@ def get_device_types():
                 "weight_unit": "lb",
                 "slug": "mx84",
             },
+            "MX85": {
+                "u_height": 1,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": 21.4,
+                "weight_unit": "lb",
+                "slug": "mx85"
+            },
             "MS390-24P": {
                 "u_height": 1,
                 "is_full_depth": True,
-                'airflow': 'front-to-rear',
+                "airflow": "front-to-rear",
                 "weight": 11.5,
                 "weight_unit": "lb",
-                "slug": "ms390-24p"
+                "slug": "ms390-24p",
             },
             "MT14": {
                 "u_height": 1,
                 "is_full_depth": False,
-                'airflow': 'front-to-rear',
+                "airflow": "front-to-rear",
                 "weight": 2.9,
                 "weight_unit": "lb",
-                "slug": "mt14"
+                "slug": "mt14",
             },
             "MV12W": {
                 "u_height": 0.5,
                 "is_full_depth": False,
-                'airflow': 'front-to-rear',
+                "airflow": "front-to-rear",
                 "weight": 1.1,
                 "weight_unit": "lb",
-                "slug": "mv12w"
+                "slug": "mv12w",
             },
             "MV21": {
                 "u_height": 1,
                 "is_full_depth": False,
-                'airflow': 'front-to-rear',
+                "airflow": "front-to-rear",
                 "weight": 1.9,
                 "weight_unit": "lb",
-                "slug": "mv21"
+                "slug": "mv21",
             },
             "MV71": {
                 "u_height": 1,
                 "is_full_depth": False,
-                'airflow': 'front-to-rear',
+                "airflow": "front-to-rear",
                 "weight": 2.9,
                 "weight_unit": "lb",
-                "slug": "mv71"
+                "slug": "mv71",
             },
             "MV72": {
                 "u_height": 1,
                 "is_full_depth": False,
-                'airflow': 'front-to-rear',
+                "airflow": "front-to-rear",
                 "weight": 3.9,
                 "weight_unit": "lb",
-                "slug": "mv72"
+                "slug": "mv72",
             },
             "MX64W": {
                 "u_height": 1,
                 "is_full_depth": True,
-                'airflow': 'front-to-rear',
+                "airflow": "front-to-rear",
                 "weight": 13.2,
                 "weight_unit": "lb",
-                "slug": "mx64w"
+                "slug": "mx64w",
             },
             "MX68": {
                 "u_height": 1,
                 "is_full_depth": True,
-                'airflow': 'front-to-rear',
+                "airflow": "front-to-rear",
                 "weight": 14.3,
                 "weight_unit": "lb",
-                "slug": "mx68"
+                "slug": "mx68",
             },
             "MX68CW-NA": {
                 "u_height": 2,
                 "is_full_depth": True,
-                'airflow': 'front-to-rear',
+                "airflow": "front-to-rear",
                 "weight": 38.4,
                 "weight_unit": "lb",
-                "slug": "mx68cw-na"
+                "slug": "mx68cw-na",
             },
-            'CW9162I': {
-                'u_height': 1,
-                'is_full_depth': False,
-                'airflow': 'front-to-rear',
-                'weight': 1.0,
-                'weight_unit': 'lb',
-                'slug': 'cw9162i'
+            "CW9162I": {
+                "u_height": 1,
+                "is_full_depth": False,
+                "airflow": "front-to-rear",
+                "weight": 1.0,
+                "weight_unit": "lb",
+                "slug": "cw9162i",
             },
-            'MG51': {
-                'u_height': 1,
-                'is_full_depth': False,
-                'airflow': 'front-to-rear',
-                'weight': '1.23',
-                'weight_unit': 'lb',
-                'slug': 'mg51'
+            "MG51": {
+                "u_height": 1,
+                "is_full_depth": False,
+                "airflow": "front-to-rear",
+                "weight": "1.23",
+                "weight_unit": "lb",
+                "slug": "mg51",
             },
-            'MG51E': {
-                'u_height': 1,
-                'is_full_depth': False,
-                'airflow': 'front-to-rear',
-                'weight': '1.58',
-                'weight_unit': 'lb',
-                'slug': 'mg51e'
+            "MG51E": {
+                "u_height": 1,
+                "is_full_depth": False,
+                "airflow": "front-to-rear",
+                "weight": "1.58",
+                "weight_unit": "lb",
+                "slug": "mg51e",
             },
-            'MR32': {
-                'u_height': 1,
-                'is_full_depth': False,
-                'airflow': 'front-to-rear',
-                'weight': 1.0,
-                'weight_unit': 'lb',
-                'slug': 'mr32'
+            "MR32": {
+                "u_height": 1,
+                "is_full_depth": False,
+                "airflow": "front-to-rear",
+                "weight": 1.0,
+                "weight_unit": "lb",
+                "slug": "mr32",
             },
-            'MR53': {
-                'u_height': 1,
-                'is_full_depth': False,
-                'airflow': 'front-to-rear',
-                'weight': 1.0,
-                'weight_unit': 'lb',
-                'slug': 'mr53'
+            "MR53": {
+                "u_height": 1,
+                "is_full_depth": False,
+                "airflow": "front-to-rear",
+                "weight": 1.0,
+                "weight_unit": "lb",
+                "slug": "mr53",
             },
-            'MS120-24P': {
-                'u_height': 1,
-                'is_full_depth': False,
-                'airflow': 'front-to-rear',
-                'weight': 1.0,
-                'weight_unit': 'lb',
-                'slug': 'ms120-24p'
+            "MS120-24P": {
+                "u_height": 1,
+                "is_full_depth": False,
+                "airflow": "front-to-rear",
+                "weight": 1.0,
+                "weight_unit": "lb",
+                "slug": "ms120-24p",
             },
-            'MS120-8': {
-                'u_height': 1,
-                'is_full_depth': False,
-                'airflow': 'front-to-rear',
-                'weight': 1.0,
-                'weight_unit': 'lb',
-                'slug': 'ms120-8'
+            "MS120-8": {
+                "u_height": 1,
+                "is_full_depth": False,
+                "airflow": "front-to-rear",
+                "weight": 1.0,
+                "weight_unit": "lb",
+                "slug": "ms120-8",
             },
-            'MS220-24P': {
-                'u_height': 1,
-                'is_full_depth': False,
-                'airflow': 'front-to-rear',
-                'weight': 1.0,
-                'weight_unit': 'lb',
-                'slug': 'ms220-24p'
+            "MS220-24P": {
+                "u_height": 1,
+                "is_full_depth": False,
+                "airflow": "front-to-rear",
+                "weight": 1.0,
+                "weight_unit": "lb",
+                "slug": "ms220-24p",
             },
-            'MS220-48FP': {
-                'u_height': 1,
-                'is_full_depth': False,
-                'airflow': 'front-to-rear',
-                'weight': 1.0,
-                'weight_unit': 'lb',
-                'slug': 'ms220-48fp'
+            "MS220-48FP": {
+                "u_height": 1,
+                "is_full_depth": False,
+                "airflow": "front-to-rear",
+                "weight": 1.0,
+                "weight_unit": "lb",
+                "slug": "ms220-48fp",
             },
-            'MS250-24': {
-                'u_height': 1,
-                'is_full_depth': False,
-                'airflow': 'front-to-rear',
-                'weight': 1.0,
-                'weight_unit': 'lb',
-                'slug': 'ms250-24'
+            "MS250-24": {
+                "u_height": 1,
+                "is_full_depth": False,
+                "airflow": "front-to-rear",
+                "weight": 1.0,
+                "weight_unit": "lb",
+                "slug": "ms250-24",
             },
-            'MS350-24': {
-                'u_height': 1,
-                'is_full_depth': False,
-                'airflow': 'front-to-rear',
-                'weight': 1.0,
-                'weight_unit': 'lb',
-                'slug': 'ms350-24'
+            "MS350-24": {
+                "u_height": 1,
+                "is_full_depth": False,
+                "airflow": "front-to-rear",
+                "weight": 1.0,
+                "weight_unit": "lb",
+                "slug": "ms350-24",
             },
-            'MS320-48FP': {
-                'u_height': 1,
-                'is_full_depth': False,
-                'airflow': 'front-to-rear',
-                'weight': 1.0,
-                'weight_unit': 'lb',
-                'slug': 'ms320-48fp'
+            "MS320-48FP": {
+                "u_height": 1,
+                "is_full_depth": False,
+                "airflow": "front-to-rear",
+                "weight": 1.0,
+                "weight_unit": "lb",
+                "slug": "ms320-48fp",
             },
             "MS320-24": {
                 "u_height": 1,
@@ -326,268 +335,268 @@ def get_device_types():
                 "airflow": "front-to-rear",
                 "weight": 11.5,
                 "weight_unit": "lb",
-                "slug": "ms320-24"
+                "slug": "ms320-24",
+            },
+        },
+        "CISCO": {
+            "FPR-1120": {
+                "u_height": 1,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": 8,
+                "weight_unit": "lb",
+            },
+            "ASR1002-X": {
+                "u_height": 2,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": 17.36,
+                "weight_unit": "lb",
+            },
+            "ASR1002-HX": {
+                "u_height": 2,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": 39.05,
+                "weight_unit": "lb",
+            },
+            "N2K-C2248TP-E-1GE": {
+                "u_height": 1,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": 12.7,
+                "weight_unit": "lb",
+            },
+            "N9K-C93180YC-FX": {
+                "u_height": 2,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": 47.5,
+                "weight_unit": "lb",
+            },
+            "WS-C2960X-24TS-LL": {
+                "u_height": 1,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": 10.8,
+                "weight_unit": "lb",
+            },
+            "CISCO1921/K9": {
+                "u_height": 1,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": 2.9,
+                "weight_unit": "lb",
+            },
+            "WS-C2960L-24PS-LL": {
+                "u_height": 1,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": 11.2,
+                "weight_unit": "lb",
+            },
+            "C9410R": {
+                "u_height": 2,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": 33.1,
+                "weight_unit": "lb",
+            },
+            "C8500-12X": {
+                "u_height": 12,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": 152,
+                "weight_unit": "lb",
+            },
+            "WS-C2960-24TT-L": {
+                "u_height": 1,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": 10.8,
+                "weight_unit": "lb",
+            },
+            "ASR1001-X": {
+                "u_height": 1,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": 6.6,
+                "weight_unit": "lb",
+            },
+            "WS-C2960L-48TS-LL": {
+                "u_height": 1,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": 12.7,
+                "weight_unit": "lb",
+            },
+            "C9500-48Y4C": {
+                "u_height": 1,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": 37.8,
+                "weight_unit": "lb",
+            },
+            "N5K-C5696Q": {
+                "u_height": 2,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": "47.5",
+                "weight_unit": "lb",
+                "slug": "n5k-c5696q",
+            },
+            "N77-C7706": {
+                "u_height": 9,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": "300",
+                "weight_unit": "lb",
+                "slug": "n77-c7706",
+            },
+            "N2K-C2348UPQ-10GE": {
+                "u_height": 1,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": "10.8",
+                "weight_unit": "lb",
+                "slug": "n2k-c2348upq-10ge",
+            },
+            "N5K-C5596UP": {
+                "u_height": 2,
+                "is_full_depth": False,
+                "airflow": "front-to-rear",
+                "weight": "47.5",
+                "weight_unit": "lb",
+                "slug": "n5k-c5596up",
+            },
+            "CISCO2901/K9": {
+                "u_height": 1,
+                "airflow": "front-to-rear",
+                "is_full_depth": False,
+                "weight": 9.5,
+                "weight_unit": "lb",
+            },
+            "ASA5555": {
+                "u_height": 2,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": 25,
+                "weight_unit": "lb",
+                "slug": "asa5555",
+            },
+            "WS-C2960L-24TS": {
+                "u_height": 1,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": 6.04,
+                "weight_unit": "lb",
+                "slug": "ws-c2960l-24ts",
+            },
+            "WS-C2960L-24TS-LL": {
+                "u_height": 1,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": "11.2",
+                "weight_unit": "lb",
+            },
+            "N2K-C2348TQ-10G-E": {
+                "u_height": 1,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": "12.7",
+                "weight_unit": "lb",
+                "slug": "n2k-c2348tq-10g-e",
+            },
+            "C9300L-48T-4X": {
+                "u_height": 1,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": "16.2",
+                "weight_unit": "lb",
+                "slug": "c9300l-48t-4x",
+            },
+            "WS-C3850-24T": {
+                "u_height": 1,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": "15.9",
+                "weight_unit": "lb",
+                "slug": "ws-c3850-24t",
+            },
+            "WS-C2950-24": {
+                "u_height": 1,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": "10",
+                "weight_unit": "lb",
+                "slug": "ws-c2950-24",
+            },
+            "C9300-24T": {
+                "u_height": 1,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": "16.3",
+                "weight_unit": "lb",
+                "slug": "c9300-24t",
+            },
+            "C9200L-24T-4X": {
+                "u_height": 1,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": "10",
+                "weight_unit": "lb",
+                "slug": "c9200l-24t-4x",
+            },
+            "IOL": {
+                "u_height": 1,
+                "is_full_depth": False,
+                "airflow": "front-to-rear",
+                "weight": "1.0",
+                "weight_unit": "lb",
+                "slug": "iol",
+            },
+        },
+        "F5 NETWORKS": {
+            "BIG-IP i4600": {
+                "u_height": 1,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": 82,
+                "weight_unit": "lb",
+                "slug": "i4600",
             }
         },
-        'CISCO': {
-            'FPR-1120': {
-                'u_height': 1,
-                'is_full_depth': True,
-                'airflow': 'front-to-rear',
-                'weight': 8,
-                'weight_unit': 'lb'
+        "PALO ALTO": {
+            "PA-5250": {
+                "u_height": 2,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": "28.6",
+                "weight_unit": "lb",
             },
-            'ASR1002-X': {
-                'u_height': 2,
-                'is_full_depth': True,
-                'airflow': 'front-to-rear',
-                'weight': 17.36,
-                'weight_unit': 'lb'
+            "PA-VM": {
+                "u_height": 0,
+                "is_full_depth": False,
+                "airflow": "front-to-rear",
+                "weight": "0",
+                "weight_unit": "lb",
             },
-            'ASR1002-HX': {
-                'u_height': 2,
-                'is_full_depth': True,
-                'airflow': 'front-to-rear',
-                'weight': 39.05,
-                'weight_unit': 'lb'
-            },
-            'N2K-C2248TP-E-1GE': {
-                'u_height': 1,
-                'is_full_depth': True,
-                'airflow': 'front-to-rear',
-                'weight': 12.7,
-                'weight_unit': 'lb'
-            },
-            'N9K-C93180YC-FX': {
-                'u_height': 2,
-                'is_full_depth': True,
-                'airflow': 'front-to-rear',
-                'weight': 47.5,
-                'weight_unit': 'lb'
-            },
-            'WS-C2960X-24TS-LL': {
-                'u_height': 1,
-                'is_full_depth': True,
-                'airflow': 'front-to-rear',
-                'weight': 10.8,
-                'weight_unit': 'lb'
-            },
-            'CISCO1921/K9': {
-                'u_height': 1,
-                'is_full_depth': True,
-                'airflow': 'front-to-rear',
-                'weight': 2.9,
-                'weight_unit': 'lb'
-            },
-            'WS-C2960L-24PS-LL': {
-                'u_height': 1,
-                'is_full_depth': True,
-                'airflow': 'front-to-rear',
-                'weight': 11.2,
-                'weight_unit': 'lb'
-            },
-            'C9410R': {
-                'u_height': 2,
-                'is_full_depth': True,
-                'airflow': 'front-to-rear',
-                'weight': 33.1,
-                'weight_unit': 'lb'
-            },
-            'C8500-12X': {
-                'u_height': 12,
-                'is_full_depth': True,
-                'airflow': 'front-to-rear',
-                'weight': 152,
-                'weight_unit': 'lb'
-            },
-            'WS-C2960-24TT-L': {
-                'u_height': 1,
-                'is_full_depth': True,
-                'airflow': 'front-to-rear',
-                'weight': 10.8,
-                'weight_unit': 'lb'
-            },
-            'ASR1001-X': {
-                'u_height': 1,
-                'is_full_depth': True,
-                'airflow': 'front-to-rear',
-                'weight': 6.6,
-                'weight_unit': 'lb'
-            },
-            'WS-C2960L-48TS-LL': {
-                'u_height': 1,
-                'is_full_depth': True,
-                'airflow': 'front-to-rear',
-                'weight': 12.7,
-                'weight_unit': 'lb'
-            },
-            'C9500-48Y4C': {
-                'u_height': 1,
-                'is_full_depth': True,
-                'airflow': 'front-to-rear',
-                'weight': 37.8,
-                'weight_unit': 'lb'
-            },
-            'N5K-C5696Q': {
-                'u_height': 2,
-                'is_full_depth': True,
-                'airflow': 'front-to-rear',
-                'weight': '47.5',
-                'weight_unit': 'lb',
-                'slug': 'n5k-c5696q'
-            },
-            'N77-C7706': {
-                'u_height': 9,
-                'is_full_depth': True,
-                'airflow': 'front-to-rear',
-                'weight': '300',
-                'weight_unit': 'lb',
-                'slug': 'n77-c7706'
-            },
-            'N2K-C2348UPQ-10GE': {
-                'u_height': 1,
-                'is_full_depth': True,
-                'airflow': 'front-to-rear',
-                'weight': '10.8',
-                'weight_unit': 'lb',
-                'slug': 'n2k-c2348upq-10ge'
-            },
-            'N5K-C5596UP': {
-                'u_height': 2,
-                'is_full_depth': False,
-                'airflow': 'front-to-rear',
-                'weight': '47.5',
-                'weight_unit': 'lb',
-                'slug': 'n5k-c5596up'
-            },
-            'CISCO2901/K9': {
-                'u_height': 1,
-                'airflow': 'front-to-rear',
-                'is_full_depth': False,
-                'weight': 9.5,
-                'weight_unit': 'lb',
-            },
-            'ASA5555': {
-                'u_height': 2,
-                'is_full_depth': True,
-                'airflow': 'front-to-rear',
-                'weight': 25,
-                'weight_unit': 'lb',
-                'slug': 'asa5555'
-            },
-            'WS-C2960L-24TS': {
-                'u_height': 1,
-                'is_full_depth': True,
-                'airflow': 'front-to-rear',
-                'weight': 6.04,
-                'weight_unit': 'lb',
-                'slug': 'ws-c2960l-24ts'
-            },
-            'WS-C2960L-24TS-LL': {
-                'u_height': 1,
-                'is_full_depth': True,
-                'airflow': 'front-to-rear',
-                'weight': '11.2',
-                'weight_unit': 'lb'
-            },
-            'N2K-C2348TQ-10G-E': {
-                'u_height': 1,
-                'is_full_depth': True,
-                'airflow': 'front-to-rear',
-                'weight': '12.7',
-                'weight_unit': 'lb',
-                'slug': 'n2k-c2348tq-10g-e'
-            },
-            'C9300L-48T-4X': {
-                'u_height': 1,
-                'is_full_depth': True,
-                'airflow': 'front-to-rear',
-                'weight': '16.2',
-                'weight_unit': 'lb',
-                'slug': 'c9300l-48t-4x'
-            },
-            'WS-C3850-24T': {
-                'u_height': 1,
-                'is_full_depth': True,
-                'airflow': 'front-to-rear',
-                'weight': '15.9',
-                'weight_unit': 'lb',
-                'slug': 'ws-c3850-24t'
-            },
-            'WS-C2950-24': {
-                'u_height': 1,
-                'is_full_depth': True,
-                'airflow': 'front-to-rear',
-                'weight': '10',
-                'weight_unit': 'lb',
-                'slug': 'ws-c2950-24'
-            },
-            'C9300-24T': {
-                'u_height': 1,
-                'is_full_depth': True,
-                'airflow': 'front-to-rear',
-                'weight': '16.3',
-                'weight_unit': 'lb',
-                'slug': 'c9300-24t'
-            },
-            'C9200L-24T-4X': {
-                'u_height': 1,
-                'is_full_depth': True,
-                'airflow': 'front-to-rear',
-                'weight': '10',
-                'weight_unit': 'lb',
-                'slug': 'c9200l-24t-4x'
-            },
-            'IOL': {
-                'u_height': 1,
-                'is_full_depth': False,
-                'airflow': 'front-to-rear',
-                'weight': '1.0',
-                'weight_unit': 'lb',
-                'slug': 'iol'
+            "PA-5220": {
+                "u_height": 2,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": "28.6",
+                "weight_unit": "lb",
             },
         },
-        'F5 NETWORKS': {
-            'BIG-IP i4600': {
-                'u_height': 1,
-                'is_full_depth': True,
-                'airflow': 'front-to-rear',
-                'weight': 82,
-                'weight_unit': 'lb',
-                'slug': 'i4600'
-            }
-        },
-        'PALO ALTO': {
-            'PA-5250': {
-                'u_height': 2,
-                'is_full_depth': True,
-                'airflow': 'front-to-rear',
-                'weight': '28.6',
-                'weight_unit': 'lb'
-            },
-            'PA-VM': {
-                'u_height': 0,
-                'is_full_depth': False,
-                'airflow': 'front-to-rear',
-                'weight': '0',
-                'weight_unit': 'lb'
-            },
-            'PA-5220': {
-                'u_height': 2,
-                'is_full_depth': True,
-                'airflow': 'front-to-rear',
-                'weight': '28.6',
-                'weight_unit': 'lb'
-            },
-        },
-        'DEFAULT': {
-            'DEFAULT': {
-                'u_height': 1,
-                'is_full_depth': True,
-                'airflow': 'front-to-rear',
-                'weight': 0,
-                'weight_unit': 'lb',
-                'slug': 'default'
+        "DEFAULT": {
+            "DEFAULT": {
+                "u_height": 1,
+                "is_full_depth": True,
+                "airflow": "front-to-rear",
+                "weight": 0,
+                "weight_unit": "lb",
+                "slug": "default",
             },
         },
     }
@@ -599,22 +608,55 @@ def create_netbox_device_roles_json():
     :return: JSON string representing device roles for Netbox.
     """
     device_roles = [
-        {"name": "Router", "slug": "router", "color": "0000ff",
-         "description": "Routers", "vm_role": False},
-        {"name": "Switch", "slug": "switch", "color": "00ff00",
-         "description": "Switches", "vm_role": False},
-        {"name": "Firewall", "slug": "firewall", "color": "ff0000",
-         "description": "Firewalls", "vm_role": False},
-        {"name": "Load Balancer", "slug": "load-balancer", "color": "ff00ff",
-         "description": "Load Balancers", "vm_role": False},
-        {"name": "Access Point", "slug": "access-point", "color": "ffff00",
-         "description": "Access Points", "vm_role": False},
-        {"name": "Wireless Lan Controller", "slug": "wireless-lan-controller",
-         "color": "00ffff", "description": "Wireless Lan Controllers",
-         "vm_role": False},
-        {"name": "Default", "slug": "default",
-         "color": "ffffff", "description": "Default",
-         "vm_role": False},
+        {
+            "name": "Router",
+            "slug": "router",
+            "color": "0000ff",
+            "description": "Routers",
+            "vm_role": False,
+        },
+        {
+            "name": "Switch",
+            "slug": "switch",
+            "color": "00ff00",
+            "description": "Switches",
+            "vm_role": False,
+        },
+        {
+            "name": "Firewall",
+            "slug": "firewall",
+            "color": "ff0000",
+            "description": "Firewalls",
+            "vm_role": False,
+        },
+        {
+            "name": "Load Balancer",
+            "slug": "load-balancer",
+            "color": "ff00ff",
+            "description": "Load Balancers",
+            "vm_role": False,
+        },
+        {
+            "name": "Access Point",
+            "slug": "access-point",
+            "color": "ffff00",
+            "description": "Access Points",
+            "vm_role": False,
+        },
+        {
+            "name": "Wireless Lan Controller",
+            "slug": "wireless-lan-controller",
+            "color": "00ffff",
+            "description": "Wireless Lan Controllers",
+            "vm_role": False,
+        },
+        {
+            "name": "Default",
+            "slug": "default",
+            "color": "ffffff",
+            "description": "Default",
+            "vm_role": False,
+        },
     ]
 
     return json.dumps(device_roles, indent=4)
@@ -628,7 +670,7 @@ def create_netbox_sites_json(sites_list):
     """
     sites_json = []
     for site_entry in sites_list:
-        site_name = site_entry.get('name', '')
+        site_name = site_entry.get("name", "")
         site_data = {
             "name": site_name,
             "slug": site_name.lower(),
@@ -645,9 +687,9 @@ def create_valid_slug(name):
     :return: JSON string representing device types for Netbox.
     """
     # Replace invalid characters (like slashes) with an underscore
-    slug = name.replace('/', '_').replace(' ', '_')
+    slug = name.replace("/", "_").replace(" ", "_")
     # Ensure the slug is valid for Netbox
-    return re.sub(r'[^a-zA-Z0-9_-]', '', slug).lower()
+    return re.sub(r"[^a-zA-Z0-9_-]", "", slug).lower()
 
 
 def create_netbox_device_types_json():
@@ -665,7 +707,7 @@ def create_netbox_device_types_json():
                 "manufacturer": manufacturer,
                 "model": model,
                 "slug": create_valid_slug(model),
-                **attributes
+                **attributes,
             }
             netbox_device_types.append(netbox_device_type)
 
@@ -683,9 +725,9 @@ def generate_rack_dicts(rack_data):
 
     for data in rack_data:
         rack_range, site_id, tenant_id, u_height = data
-        start, end = rack_range.split(' ~ ')
-        start_group, start_number = start.split('-')
-        end_group, end_number = end.split('-')
+        start, end = rack_range.split(" ~ ")
+        start_group, start_number = start.split("-")
+        end_group, end_number = end.split("-")
 
         for group in range(int(start_group), int(end_group) + 1):
             start_num = int(start_number) if group == int(start_group) else 1
@@ -713,35 +755,35 @@ def determine_device_role_by_model(model, roles_dict):
 
     # Mapping of model patterns to role display names
     model_to_role_display = {
-        'ASR': 'Router',
-        'CISCO29': 'Router',
-        'CISCO19': 'Router',
-        'Catalyst': 'Switch',
-        'WS-C': 'Switch',
-        'C-9500': 'Switch',
-        'C9410': 'Switch',
-        'C8500': 'Switch',
-        'C9': 'Switch',
-        'Nexus': 'Switch',
-        'N9K': 'Switch',
-        'N7K': 'Switch',
-        'N5K': 'Switch',
-        'N2K': 'Switch',
-        'N77': 'Switch',
-        'MS': 'Switch',
-        'MX': 'Firewall',
-        'ASA': 'Firewall',
-        'FPR-': 'Firewall',
-        'PA-': 'Firewall',
-        'F5': 'Load Balancer',
-        'BIG-IP': 'Load Balancer',
+        "ASR": "Router",
+        "CISCO29": "Router",
+        "CISCO19": "Router",
+        "Catalyst": "Switch",
+        "WS-C": "Switch",
+        "C-9500": "Switch",
+        "C9410": "Switch",
+        "C8500": "Switch",
+        "C9": "Switch",
+        "Nexus": "Switch",
+        "N9K": "Switch",
+        "N7K": "Switch",
+        "N5K": "Switch",
+        "N2K": "Switch",
+        "N77": "Switch",
+        "MS": "Switch",
+        "MX": "Firewall",
+        "ASA": "Firewall",
+        "FPR-": "Firewall",
+        "PA-": "Firewall",
+        "F5": "Load Balancer",
+        "BIG-IP": "Load Balancer",
     }
 
     for model_pattern, role_display in model_to_role_display.items():
         if model_pattern in model:
             return roles_dict.get(role_display, None)
         else:
-            return roles_dict.get('Default', None)
+            return roles_dict.get("Default", None)
 
 
 def get_site_name(hostname):
@@ -753,14 +795,16 @@ def get_site_name(hostname):
     if hostname[:4].isdigit():
         # If the hostname starts with 4 digits, return the first 4 digits
         return hostname[:4]
+    elif hostname.startswith("DR"):
+        return "Mesa"
     else:
         # Check for specific prefixes and return the prefix if matched
-        for prefix in ["CTS", "DR", "CALL", "MMI"]:
+        for prefix in ["CTS", "CALL"]:
             if hostname.startswith(prefix):
                 return prefix
         # If no conditions are met
         print(f"Error: Unknown site for hostname {hostname}")
-        return None
+        return "CTS"
 
 
 def build_devices_json(db_path, url, token):
@@ -783,130 +827,179 @@ def build_devices_json(db_path, url, token):
 
     # Process ASA_HARDWARE_INVENTORY
     cursor.execute(
-        """SELECT device, pid, serial
+        """SELECT device, pid, serial, ip
            FROM ASA_HARDWARE_INVENTORY
-           WHERE name = 'Chassis'""")
-    for device, pid, serial in cursor.fetchall():
-        site_name = get_site_name(device.split('.')[0])
-        device = device.split('.')[0]
+           WHERE name = 'Chassis'"""
+    )
+    for device, pid, serial, ip in cursor.fetchall():
+        site_name = get_site_name(device.split(".")[0])
+        device = device.split(".")[0]
         site = site_mapping.get(site_name, default_site)
         role = determine_device_role_by_model(pid, roles_dict)
         device_type = types_dict.get(pid, default_type)
         if site:
             if (
-                devices_df["serial"].isin([serial]).any() and
-                devices_df["device_name"].isin([device]).any()
+                devices_df["serial"].isin([serial]).any()
+                and devices_df["device_name"].isin([device]).any()
             ):
-                print(f"Skipping duplicate device: {device}, serial: {serial}")
+                #print(f"Skipping duplicate device: {device}, serial: {serial}")
                 continue
-            devices.append({"device": device, "device_type": device_type,
-                            "serial": serial, "site": site, "role": role,
-                            "custom_fields": {"ansible_network_os": "cisco.asa.asa"}})
+            devices.append(
+                {
+                    "device": device,
+                    "device_type": device_type,
+                    "serial": serial,
+                    "site": site,
+                    "role": role,
+                    "custom_fields": {"ansible_network_os": "cisco.asa.asa"},
+                    "ip": ip
+                }
+            )
 
     # Process BIGIP_HARDWARE_INVENTORY
     cursor.execute(
-        "SELECT device, name, appliance_serial FROM BIGIP_HARDWARE_INVENTORY")
-    for device, name, serial in cursor.fetchall():
-        site_name = get_site_name(name.split('.')[0])
-        device = device.split('.')[0]
+        "SELECT device, name, appliance_serial, ip FROM BIGIP_HARDWARE_INVENTORY"
+    )
+    for device, name, serial, ip in cursor.fetchall():
+        site_name = get_site_name(name.split(".")[0])
+        device = device.split(".")[0]
         site = site_mapping.get(site_name, default_site)
         role = determine_device_role_by_model(name, roles_dict)
-        device_type = types_dict.get(device, default_type)
+        device_type = types_dict.get(name, default_type)
         if site:
             if (
-                devices_df["serial"].isin([serial]).any() and
-                devices_df["device_name"].isin([device]).any()
+                devices_df["serial"].isin([serial]).any()
+                and devices_df["device_name"].isin([device]).any()
             ):
                 print(f"Skipping duplicate device: {device}, serial: {serial}")
                 continue
-            devices.append({"device": device, "device_type": device_type,
-                            "serial": serial, "site": site, "role": role,
-                            "custom_fields": {"ansible_network_os": "bigip"}})
+            devices.append(
+                {
+                    "device": device,
+                    "device_type": device_type,
+                    "serial": serial,
+                    "site": site,
+                    "role": role,
+                    "custom_fields": {"ansible_network_os": "bigip"},
+                    "ip": ip
+                }
+            )
 
     # Process IOS_BASIC_FACTS
     cursor.execute(
-        """SELECT ansible_net_hostname, ansible_net_model, ansible_net_serialnum
-           FROM IOS_BASIC_FACTS""")
-    for hostname, model, serial in cursor.fetchall():
-        site_name = get_site_name(hostname.split('.')[0])
-        hostname = hostname.split('.')[0]
+        """SELECT ansible_net_hostname, ansible_net_model, ansible_net_serialnum, ip
+           FROM IOS_BASIC_FACTS"""
+    )
+    for hostname, model, serial, ip in cursor.fetchall():
+        site_name = get_site_name(hostname.split(".")[0])
+        hostname = hostname.split(".")[0]
         site = site_mapping.get(site_name, default_site)
         role = determine_device_role_by_model(model, roles_dict)
         device_type = types_dict.get(model, default_type)
         if site:
             if (
-                devices_df["serial"].isin([serial]).any() and
-                devices_df["device_name"].isin([hostname]).any()
+                devices_df["serial"].isin([serial]).any()
+                and devices_df["device_name"].isin([hostname]).any()
             ):
                 print(f"Skipping duplicate device: {hostname}, serial: {serial}")
                 continue
             devices.append(
-                {"device": hostname, "device_type":
-                    device_type, "serial": serial, "site": site, "role": role,
-                    "custom_fields": {"ansible_network_os": "cisco.ios.ios"}})
+                {
+                    "device": hostname,
+                    "device_type": device_type,
+                    "serial": serial,
+                    "site": site,
+                    "role": role,
+                    "custom_fields": {"ansible_network_os": "cisco.ios.ios"},
+                    "ip": ip
+                }
+            )
 
     # Process MERAKI_ORG_DEVICES
-    cursor.execute("SELECT name, model, serial FROM MERAKI_ORG_DEVICES")
-    for hostname, model, serial in cursor.fetchall():
-        site_name = get_site_name(hostname.split('.')[0])
-        hostname = hostname.split('.')[0]
+    cursor.execute("SELECT name, model, serial, lanip FROM MERAKI_ORG_DEVICES")
+    for hostname, model, serial, ip in cursor.fetchall():
+        site_name = get_site_name(hostname.split(".")[0])
+        hostname = hostname.split(".")[0]
         site = site_mapping.get(site_name, default_site)
         role = determine_device_role_by_model(model, roles_dict)
         device_type = types_dict.get(model, default_type)
         if site:
             if (
-                devices_df["serial"].isin([serial]).any() and
-                devices_df["device_name"].isin([hostname]).any()
+                devices_df["serial"].isin([serial]).any()
+                and devices_df["device_name"].isin([hostname]).any()
             ):
                 print(f"Skipping duplicate device: {hostname}, serial: {serial}")
                 continue
             devices.append(
-                {"device": hostname, "device_type": device_type,
-                 "serial": serial, "site": site, "role": role,
-                 "custom_fields": {"ansible_network_os": "meraki"}})
+                {
+                    "device": hostname,
+                    "device_type": device_type,
+                    "serial": serial,
+                    "site": site,
+                    "role": role,
+                    "custom_fields": {"ansible_network_os": "meraki"},
+                    "ip": ip
+                }
+            )
 
     # Process NXOS_BASIC_FACTS
     cursor.execute(
-        """SELECT device, ansible_net_platform, ansible_net_serialnum
-           FROM NXOS_BASIC_FACTS""")
-    for device, platform, serial in cursor.fetchall():
-        site_name = get_site_name(device.split('.')[0])
-        device = device.split('.')[0]
+        """SELECT device, ansible_net_platform, ansible_net_serialnum, ip
+           FROM NXOS_BASIC_FACTS"""
+    )
+    for device, platform, serial, ip in cursor.fetchall():
+        site_name = get_site_name(device.split(".")[0])
+        device = device.split(".")[0]
         site = site_mapping.get(site_name, default_site)
         role = determine_device_role_by_model(platform, roles_dict)
         device_type = types_dict.get(platform, default_type)
         if site:
             if (
-                devices_df["serial"].isin([serial]).any() and
-                devices_df["device_name"].isin([device]).any()
+                devices_df["serial"].isin([serial]).any()
+                and devices_df["device_name"].isin([device]).any()
             ):
                 print(f"Skipping duplicate device: {device}, serial: {serial}")
                 continue
             devices.append(
-                {"device": device, "device_type": device_type,
-                 "serial": serial, "site": site, "role": role,
-                 "custom_fields": {"ansible_network_os": "cisco.nxos.nxos"}})
+                {
+                    "device": device,
+                    "device_type": device_type,
+                    "serial": serial,
+                    "site": site,
+                    "role": role,
+                    "custom_fields": {"ansible_network_os": "cisco.nxos.nxos"},
+                    "ip": ip
+                }
+            )
 
     # Process PANOS_BASIC_FACTS
     cursor.execute(
-        "SELECT device, ansible_net_model, ansible_net_serial FROM PANOS_BASIC_FACTS")
-    for hostname, model, serial in cursor.fetchall():
-        site_name = get_site_name(hostname.split('.')[0])
-        hostname = hostname.split('.')[0]
+        "SELECT device, ansible_net_model, ansible_net_serial, ip FROM PANOS_BASIC_FACTS"
+    )
+    for hostname, model, serial, ip in cursor.fetchall():
+        site_name = get_site_name(hostname.split(".")[0])
+        hostname = hostname.split(".")[0]
         site = site_mapping.get(site_name, default_site)
         role = determine_device_role_by_model(model, roles_dict)
         device_type = types_dict.get(model, default_type)
         if site:
             if (
-                devices_df["serial"].isin([serial]).any() and
-                devices_df["device_name"].isin([hostname]).any()
+                devices_df["serial"].isin([serial]).any()
+                and devices_df["device_name"].isin([hostname]).any()
             ):
                 print(f"Skipping duplicate device: {hostname}, serial: {serial}")
                 continue
             devices.append(
-                {"device": hostname, "device_type": device_type,
-                 "serial": serial, "site": site, "role": role,
-                 "custom_fields": {"ansible_network_os": "paloaltonetworks.panos"}})
+                {
+                    "device": hostname,
+                    "device_type": device_type,
+                    "serial": serial,
+                    "site": site,
+                    "role": role,
+                    "custom_fields": {"ansible_network_os": "paloaltonetworks.panos"},
+                    "ip": ip
+                }
+            )
 
     conn.close()
     return json.dumps(devices, indent=4)
@@ -939,3 +1032,31 @@ def create_netbox_handler(
         nb.http_session = custom_session
         requests.urllib3.disable_warnings()
     return nb
+
+
+def sync_ipam_vrf(db_path, url, token):
+    """
+    Sync NM DB to Netbox
+    :param db_path: Path to the SQLite database file.
+    :param url: URL of the Netbox instance.
+    :param token: API token for authentication.
+    :return: Updated, added IPs.
+    """
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    devices = []
+    df = nbc.netbox_get_vrf_details(url, token)
+
+
+def sync_ipam_vrf(db_path, url, token):
+    """
+    Builds a JSON structure for devices from various tables in the database.
+    :param db_path: Path to the SQLite database file.
+    :param url: URL of the Netbox instance.
+    :param token: API token for authentication.
+    :return: Updated, added IPs.
+    """
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    devices = []
+    df = nbc.netbox_get_vrf_details(url, token)
