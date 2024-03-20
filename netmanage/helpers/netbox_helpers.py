@@ -795,14 +795,16 @@ def get_site_name(hostname):
     if hostname[:4].isdigit():
         # If the hostname starts with 4 digits, return the first 4 digits
         return hostname[:4]
+    elif hostname.startswith("DR"):
+        return "Mesa"
     else:
         # Check for specific prefixes and return the prefix if matched
-        for prefix in ["CTS", "DR", "CALL", "MMI"]:
+        for prefix in ["CTS", "CALL"]:
             if hostname.startswith(prefix):
                 return prefix
         # If no conditions are met
         print(f"Error: Unknown site for hostname {hostname}")
-        return None
+        return "CTS"
 
 
 def build_devices_json(db_path, url, token):
