@@ -18,11 +18,30 @@ import sys
 import time
 import yaml
 import json
+from ansible.parsing.dataloader import DataLoader
+from ansible.inventory.manager import InventoryManager
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime as dt
 from getpass import getpass
 from tabulate import tabulate
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, TypeVar, Union
+from loguru import logger
+
+
+def setup_logger() -> Any:
+    """
+    Sets up the default logger. Currently, loguru.Logger defaults are used. However,
+    putting it in a function allows us to easily modify logging at a global level
+    later on.
+
+    Returns
+    -------
+    Any
+        A loguru.Logger object. The return type is specified as 'Any' to comply with
+        internal type hinting policies and due to the unique instance-based nature of
+        the loguru.Logger, which does not conform neatly to typical static type hints.
+    """
+    return logger
 
 
 def ansible_create_collectors_df(
@@ -2030,3 +2049,136 @@ def is_jupyter():
     except Exception:  # get_ipython() doesn't exist, IPython not loaded
         return False
     return True
+
+
+def ansible_host_to_ip(hostname):
+    # Create a DataLoader instance
+    loader = DataLoader()
+    inventory_file = f"{os.environ.get('private_data_directory')}/inventory/hosts"
+    # Create an InventoryManager instance with the provided inventory file
+    inventory = InventoryManager(loader=loader, sources=inventory_file)
+    
+    # Find the host in the inventory
+    host = inventory.get_host(hostname)
+    if host:
+        # Extract the host's IP address
+        host_address = str(host.vars.get('ansible_host'))
+        if host_address:
+            return host_address
+    return hostname
+
+
+def get_expanded_path(env_var: str) -> Optional[str]:
+    """
+    Retrieves an environment variable and expands the path.
+
+    Parameters
+    ----------
+    env_var : str
+        The name of the environment variable.
+
+    Returns
+    -------
+    Optional[str]
+        The expanded path. Returns None if the environment variable is not set.
+
+    Examples
+    --------
+    >>> os.environ['db_path'] = '~/output/databases/my_db.db'
+    >>> get_expanded_path('db_path')
+    '/home/user/output/databases/my_db.db'
+    """
+    path = os.environ.get(env_var)
+    if path is None:
+        return None
+    return os.path.expanduser(path)
+
+
+def strip_list_spaces(input_list: List[str]) -> List[str]:
+    """
+    Strip leading and trailing spaces from all elements in a list of strings.
+
+    This function takes a list of strings and returns a new list with the leading and
+    trailing spaces removed from each element. Empty strings after stripping are
+    removed from the list.
+
+    Parameters
+    ----------
+    input_list : List[str]
+        The list of strings to process.
+
+    Returns
+    -------
+    List[str]
+        A new list containing the stripped strings, with empty strings removed.
+
+    Examples
+    --------
+    >>> my_list = ['  hello  ', '  world', '', '  ']
+    >>> strip_list_spaces(my_list)
+    ['hello', 'world']
+
+    >>> my_list = ['  foo  ', None, 'bar', '   ', 'baz  ']
+    >>> strip_list_spaces(my_list)
+    ['foo', 'bar', 'baz']
+
+    Notes
+    -----
+    - If None values are present in the input list, they will be treated as empty
+      strings.
+    - The function does not modify the original list.
+
+    """
+    return list(filter(None, [_.strip() if _ else _ for _ in input_list]))
+
+
+def remove_duplicates(input_list: List[TypeVar("T")]) -> List[TypeVar("T")]:
+    """
+    Remove duplicates from a list while retaining the original order.
+
+    This function iterates over the input list and adds elements to a new list only if
+    they have not been encountered before. A set is used to keep track of seen elements
+    for efficient membership tests, ensuring that the result contains no duplicates.
+
+    Parameters
+    ----------
+    input_list : List[TypeVar('T')]
+        The list from which to remove duplicates. The list elements can be of any type.
+
+    Returns
+    -------
+    List[TypeVar('T')]
+        A new list with duplicates removed, maintaining the original element order.
+
+    Notes
+    -----
+    - The function uses a set to store the elements that have already been encountered.
+      Since sets do not allow duplicates, the function is able to check for and skip
+      adding elements to the resulting list if they are already in the set. This method
+      maintains the original order of elements in the list.
+    - The seen.add(x) part is a bit tricky: it adds x to the seen set and always
+      returns None, so not (x in seen or seen.add(x)) will be True only if x was not
+      already in seen.
+
+    Examples
+    --------
+    >>> my_list = [1, 2, 2, 3, 4, 4, 4, 5]
+    >>> remove_duplicates(my_list)
+    [1, 2, 3, 4, 5]
+
+    >>> my_list = ['apple', 'banana', 'apple', 'pear', 'banana', 'kiwi']
+    >>> remove_duplicates(my_list)
+    ['apple', 'banana', 'pear', 'kiwi']
+
+    """
+    seen = set()
+    return [x for x in input_list if not (x in seen or seen.add(x))]
+
+
+def move_list_element_to_front(lst, element):
+    if element in lst:
+        index = lst.index(element)
+        if index != 0:
+            # Element found and not at the beginning, move it to the front
+            lst.insert(0, lst.pop(index))
+    return lst

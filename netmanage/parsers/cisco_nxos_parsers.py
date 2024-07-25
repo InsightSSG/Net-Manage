@@ -962,6 +962,7 @@ def nxos_parse_gather_basic_facts(results: dict) -> pd.DataFrame:
     # Create a dictionary to store the parsed data.
     df_data = dict()
     df_data["device"] = list()
+    df_data["ip"] = list()
 
     # Create keys for df_data.
     for key, value in results.items():
@@ -971,9 +972,11 @@ def nxos_parse_gather_basic_facts(results: dict) -> pd.DataFrame:
 
     # Populate df_data.
     for key, value in results.items():
+        device_ip = hp.ansible_host_to_ip(key)
+        df_data["ip"].append(device_ip)
         df_data["device"].append(key)
         for key in df_data:
-            if key != "device":
+            if key not in ["ip", "device"]:
                 df_data[key].append(value.get(key))
 
     # Create the DataFrame and return it.

@@ -55,6 +55,7 @@ def map_machine_type_to_ansible_os(machine_type: str) -> str:
                'Cisco Nexus 93180YC-FX': 'cisco.nxos.nxos',
                'Meraki MX64': 'meraki',
                'Meraki MX84': 'meraki',
+               'Meraki MX85': 'meraki',
                'Meraki MX65': 'meraki',
                'Catalyst 9500-48Y4C': 'cisco.ios.ios',
                'C9300L': 'cisco.ios.ios',

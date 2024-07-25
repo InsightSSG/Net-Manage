@@ -364,6 +364,7 @@ def parse_inventory(response: dict) -> pd.DataFrame:
         if output["response"]["result"].get("system"):
             output = output["response"]["result"].get("system")
             data[device] = output
+            data[device]
 
     # Iterate over the output, adding all column names to 'columns'.
     for key, value in data.items():
@@ -374,11 +375,14 @@ def parse_inventory(response: dict) -> pd.DataFrame:
     # Create a dictionary to store the formatted data for the dataframe.
     df_data = dict()
     df_data["device"] = list()
+    df_data["ip"] = list()
     for col in columns:
         df_data[col] = list()
 
     # Iterate over the output, adding all data to 'df_data'.
     for key, value in data.items():
+        device_ip = hp.ansible_host_to_ip(key)
+        df_data["ip"].append(device_ip)
         df_data["device"].append(key)
         for col in columns[1:]:  # Skip the 'device' column.
             df_data[col].append(value.get(col))

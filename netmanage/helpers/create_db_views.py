@@ -107,7 +107,17 @@ def create_db_view(db_path: str, view_name: str):
             device,
             model,
             serial
-        FROM PANOS_HARDWARE_INVENTORY;
+        FROM PANOS_HARDWARE_INVENTORY
+
+         UNION ALL
+
+        -- CISCO_ACI_GET_SITE_fabric_nodes segment
+        SELECT
+            'CISCO_ACI_GET_SITE_fabric_nodes' AS source,
+            name as device,
+            model,
+            serial
+        FROM CISCO_ACI_GET_SITE_fabric_nodes;
         """
         )
         con.commit()
@@ -147,33 +157,6 @@ def create_db_view(db_path: str, view_name: str):
                 status TEXT,
                 table_id INTEGER PRIMARY KEY AUTOINCREMENT
             );
-            """
-        )
-        con.commit()
-        con.close()
-        con = hp.connect_to_db(db_path)
-        cur = con.cursor()
-
-        cur.execute(
-            """
-            CREATE VIEW IF NOT EXISTS interface_ips AS
-            -- Query for IOS_INTERFACE_IP_ADDRESSES
-            SELECT
-                device,
-                ip,
-                interface AS interface_name,
-                CASE WHEN vrf = 'None' THEN '' ELSE vrf END AS vrf
-            FROM IOS_INTERFACE_IP_ADDRESSES
-
-            UNION
-
-            -- Query for IOS_INTERFACE_IPV6_ADDRESSES
-            SELECT
-                device,
-                ip,
-                interface AS interface_name,
-                CASE WHEN vrf = 'None' THEN '' ELSE vrf END AS vrf
-            FROM IOS_INTERFACE_IPV6_ADDRESSES;
             """
         )
         con.commit()
@@ -241,6 +224,107 @@ def create_db_view(db_path: str, view_name: str):
               SUBSTR(PANOS."peer-address", 1, INSTR(PANOS."peer-address", ':')
                 - 1)), 'vr:', '') AS remote_vrf
         FROM PANOS_BGP_NEIGHBORS AS PANOS;"""
+        )
+        con.commit()
+    
+    if view_name == "combined_arp_tables":
+        # Create required tables and views.
+        con = hp.connect_to_db(db_path)
+        cur = con.cursor()
+        cur.execute(
+            """
+            CREATE VIEW IF NOT EXISTS combined_arp_tables AS
+            -- IOS_ARP_TABLE segment
+            SELECT DISTINCT
+            arp.device,
+            arp.address,
+            arp.mac,
+            int.cidr,
+            NULL AS description,
+            vendor,
+            'IOS_ARP_TABLE' AS source
+            FROM IOS_ARP_TABLE arp
+            LEFT JOIN IOS_INTERFACE_IP_ADDRESSES int ON arp.interface = int.interface
+            UNION ALL
+            -- NXOS_ARP_TABLE segment
+            SELECT DISTINCT
+            arp.device,
+            arp.ip_address as address,
+            arp.mac_address as mac,
+            int.cidr,
+            NULL AS description,
+            vendor,
+            'NXOS_ARP_TABLE' AS source
+            FROM NXOS_ARP_TABLE arp
+            LEFT JOIN NXOS_INTERFACE_IP_ADDRESSES int ON arp.interface = int.interface
+            UNION ALL
+            -- PANOS_ARP_TABLE segment
+            SELECT DISTINCT
+            arp.device,
+            arp.ip as address,
+            arp.mac,
+            int.cidr,
+            NULL AS description,
+            vendor,
+            'PANOS_ARP_TABLE' AS source
+            FROM PANOS_ARP_TABLE arp
+            LEFT JOIN PANOS_INTERFACE_IP_ADDRESSES int ON arp.interface = int.name
+            UNION ALL
+            -- MERAKI_NETWORK_CLIENTS segment
+            SELECT DISTINCT 
+            mnc.recentDeviceName,
+            mnc.ip,
+            mnc.mac,
+            mnv.cidr,
+            mnc.description,
+            manufacturer AS vendor,
+            'MERAKI_NETWORK_CLIENTS' AS source
+            FROM MERAKI_NETWORK_CLIENTS mnc
+            JOIN MERAKI_NETWORK_APPLIANCE_VLANS mnv ON mnc.vlan = mnv.id
+            UNION ALL
+            SELECT DISTINCT
+            bat.device AS device,
+            bat.Address AS address,
+            bat.HWaddress AS mac,
+            bsi.cidr AS cidr,
+            NULL AS description,
+            vendor,
+            'BIGIP_ARP_TABLE' AS source
+            FROM BIGIP_ARP_TABLE bat
+            LEFT JOIN BIGIP_SELF_IPS bsi 
+            ON REPLACE(bat.Vlan, '/Common/', '') = bsi.vlan;
+            """)
+
+    if view_name == "interface_ips":
+        con = hp.connect_to_db(db_path)
+        cur = con.cursor()
+
+        cur.execute(
+            """
+            CREATE VIEW IF NOT EXISTS interface_ips AS
+            SELECT 
+                device, interface, ip, cidr,
+                nameif AS description, NULL AS vrf, 
+                subnet, network_ip, broadcast_ip
+            FROM ASA_INTERFACE_IP_ADDRESSES
+            UNION ALL
+            SELECT 
+                device, name AS interface, address AS ip,
+                cidr, vlan AS description, NULL AS vrf,
+                subnet, network_ip, broadcast_ip
+            FROM BIGIP_SELF_IPS
+            UNION ALL
+            SELECT 
+            device, interface, ip, cidr, description, vrf,
+            subnet, network_ip, broadcast_ip
+            FROM IOS_INTERFACE_IP_ADDRESSES
+            UNION ALL
+            SELECT device, interface, ip, cidr, NULL AS description,
+            vrf, subnet, network_ip, broadcast_ip
+            FROM NXOS_INTERFACE_IP_ADDRESSES
+            /* interface_ips(device,interface,ip,cidr,description,vrf,
+            subnet,network_ip,broadcast_ip) */;
+            """
         )
         con.commit()
     con.close()

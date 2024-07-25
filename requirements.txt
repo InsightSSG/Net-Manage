@@ -4,6 +4,10 @@
 ansible
 ansible-pylibssh
 ansible-runner>=2.2.1
+aiolimiter
+azure-identity
+azure-mgmt-network
+azure-mgmt-resource
 dnacentersdk
 flake8
 jupyterlab
@@ -23,6 +27,8 @@ python-dotenv
 python-nmap
 xmltodict
 streamlit
+sqlalchemy
 tabulate
 urllib3>=1.26.13,<=1.26.155
 watchdog
+loguru

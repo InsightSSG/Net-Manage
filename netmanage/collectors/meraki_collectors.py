@@ -4,23 +4,20 @@ import asyncio
 import json
 import meraki
 import pandas as pd
-from netmanage import run_collectors as rc
 import sqlite3 as sl
-from asyncio import Semaphore
+from aiolimiter import AsyncLimiter
+from netmanage import run_collectors as rc
 from netmanage.helpers import helpers as hp
 from netmanage.helpers import meraki_helpers as mhp
 from meraki.aio import AsyncDashboardAPI
-from meraki.exceptions import APIError
-from typing import Union
+from meraki.exceptions import APIError, AsyncAPIError
+from typing import List, Union
 
 
-async def meraki_get_device_cdp_lldp_neighbors(api_key: str,
-                                               db_path: str = '',
-                                               serials: list = [],
-                                               orgs: list = [],
-                                               sem: int = 3) \
-        -> pd.DataFrame:
-    '''
+async def meraki_get_device_cdp_lldp_neighbors(
+    api_key: str, db_path: str = "", serials: list = [], orgs: list = [], sem: int = 3
+) -> pd.DataFrame:
+    """
     Gets the CDP and LLDP neighbors for a list of device serial numbers.
 
     Parameters
@@ -37,7 +34,7 @@ async def meraki_get_device_cdp_lldp_neighbors(api_key: str,
         returned. This could take several minutes for large organizations.
         Also, if 'serials' and 'org_ids' are both passed to the function,
         then 'org_ids' will be ignored.
-    sem : int
+    sem : int, optional
         The Semaphore used to limit the maximum number of concurrent requests
         to the Meraki API. Defaults to 3.
 
@@ -45,17 +42,20 @@ async def meraki_get_device_cdp_lldp_neighbors(api_key: str,
     -------
     df : pd.DataFrame
         A DataFrame containing the CDP and LLDP neighbors.
-    '''
-    sem = asyncio.Semaphore(3)
+    """
+    sem = asyncio.Semaphore(sem)
 
     async def get_neighbors_for_device(dashboard, serial):
-        '''
+        """
         Get all neighbors for a single device serial number.
-        '''
-        # Get all the neighbors for the device
+        """
         async with sem:
-            neighbors = await dashboard.devices.getDeviceLldpCdp(serial)
-            return neighbors
+            try:
+                neighbors = await dashboard.devices.getDeviceLldpCdp(serial)
+                return neighbors
+            except Exception as e:
+                print(f"Error retrieving data for serial {serial}: {e}")
+                return list()
 
     # If the user did not pass a list of serials to the function, then get all
     # of the serials from the list of orgs. If the user did not pass a list
@@ -63,56 +63,57 @@ async def meraki_get_device_cdp_lldp_neighbors(api_key: str,
     # organizations that the user's API key has access to.
     if not serials and not orgs:
         df_orgs = meraki_get_organizations(api_key)
-        orgs = df_orgs['id'].to_list()
+        orgs = df_orgs["id"].to_list()
     if not serials:
         df_devices = meraki_get_org_devices(api_key, db_path, orgs=orgs)
-        serials = df_devices['serial'].to_list()
+        serials = df_devices["serial"].to_list()
 
     # Use the meraki.aio API to concurrently gather the device neighbors.
     async with AsyncDashboardAPI(api_key, print_console=False) as dashboard:
         # Schedule get_neighbors_for_device() for all serials to run
         # concurrently.
         results = await asyncio.gather(
-            *(get_neighbors_for_device(dashboard, serial)
-              for serial in serials))
+            *(get_neighbors_for_device(dashboard, serial) for serial in serials)
+        )
 
     rows = []
     for device in results:
         if not device:  # Skip empty device data
             continue
-        sourceMac = device.get('sourceMac', None)
-        ports = device.get('ports', {})
+        sourceMac = device.get("sourceMac", None)
+        ports = device.get("ports", {})
         for port, details in ports.items():
-            row = {'sourceMac': sourceMac}
-            lldp_details = details.get('lldp', {})
-            cdp_details = details.get('cdp', {})
+            row = {"sourceMac": sourceMac}
+            lldp_details = details.get("lldp", {})
+            cdp_details = details.get("cdp", {})
 
-            row['lldp_sourcePort'] = lldp_details.get('sourcePort', None)
-            row['lldpSystemName'] = lldp_details.get('systemName', None)
-            row['lldpManagementAddress'] = lldp_details.get(
-                'managementAddress', None)
-            row['lldpPortId'] = lldp_details.get('portId', None)
+            row["lldp_sourcePort"] = lldp_details.get("sourcePort", None)
+            row["lldpSystemName"] = lldp_details.get("systemName", None)
+            row["lldpManagementAddress"] = lldp_details.get("managementAddress", None)
+            row["lldpPortId"] = lldp_details.get("portId", None)
 
-            row['cdp_sourcePort'] = cdp_details.get('sourcePort', None)
-            row['cdpDeviceId'] = cdp_details.get('deviceId', None)
-            row['cdpAddress'] = cdp_details.get('address', None)
-            row['cdpPortId'] = cdp_details.get('portId', None)
+            row["cdp_sourcePort"] = cdp_details.get("sourcePort", None)
+            row["cdpDeviceId"] = cdp_details.get("deviceId", None)
+            row["cdpAddress"] = cdp_details.get("address", None)
+            row["cdpPortId"] = cdp_details.get("portId", None)
 
             rows.append(row)
 
     return pd.DataFrame(rows)
 
 
-def get_network_appliance_vlans(ansible_os: str,
-                                api_key: str,
-                                collector: str,
-                                db_path: str,
-                                timestamp: str,
-                                db_method: str = 'append',
-                                networks: list = [],
-                                orgs: list = [],
-                                replace_table: bool = False) -> pd.DataFrame:
-    '''
+def get_network_appliance_vlans(
+    ansible_os: str,
+    api_key: str,
+    collector: str,
+    db_path: str,
+    timestamp: str,
+    db_method: str = "append",
+    networks: list = [],
+    orgs: list = [],
+    replace_table: bool = False,
+) -> pd.DataFrame:
+    """
     Get the appliance VLANs for a list of networks or organizations. If
     networks are not provided, the list of orgs will be used. If both are
     provided, the networks will be used and the orgs will be ignored. If
@@ -192,33 +193,33 @@ def get_network_appliance_vlans(ansible_os: str,
                                          networks=networks,
                                          orgs=orgs)
     >>> print(df)
-    '''
+    """
     # If 'networks' is empty and 'orgs' is not, get all applicable networks in
     # the orgs.
     if not networks:
         # Get the last timestamp in the MERAKI_ORG_NETWORKS table.
-        query = '''SELECT distinct timestamp
+        query = """SELECT distinct timestamp
         FROM meraki_org_networks
         ORDER BY timestamp desc
         LIMIT 1
-        '''
+        """
 
         con = sl.connect(db_path)
         result = pd.read_sql(query, con)
-        ts = result['timestamp'].to_list().pop()
+        ts = result["timestamp"].to_list().pop()
 
         if orgs:
             joined_orgs = [f'"{_}"' for _ in orgs]
-            joined_orgs = ', '.join(joined_orgs)
+            joined_orgs = ", ".join(joined_orgs)
 
             # Get the unique network IDs for the most recent timestamp.
-            query = f'''SELECT distinct id
+            query = f"""SELECT distinct id
             FROM meraki_org_networks
             WHERE productTypes like "%appliance%"
                 AND timestamp = "{ts}"
-                AND organizationId IN ({joined_orgs})'''
+                AND organizationId IN ({joined_orgs})"""
             result = pd.read_sql(query, con)
-            networks = result['id'].to_list()
+            networks = result["id"].to_list()
         else:
             # Get the unique network IDs for the most recent timestamp.
             query = f'''SELECT distinct id
@@ -226,12 +227,12 @@ def get_network_appliance_vlans(ansible_os: str,
             WHERE productTypes like "%appliance%"
                 AND timestamp = "{ts}"'''
             result = pd.read_sql(query, con)
-            networks = result['id'].to_list()
+            networks = result["id"].to_list()
 
     # Get the appliance vlans for each network. Note: if 'orgs' and 'networks'
     # are both non-empty, then 'orgs' is ignored. The list of networks takes
     # priority.
-    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
+    dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True, log_path = '/var/log/netbox/')
 
     # The only way to get appliance VLANs is to iterate over a list of
     # networks. There is not a way to gather them for an organization. I found
@@ -261,7 +262,7 @@ def get_network_appliance_vlans(ansible_os: str,
     for slice in slices:
         _ = len(slice)
         # Display progress to the end user.
-        print(f'Processing {_} networks (batch {counter} of {total})...')
+        print(f"Processing {_} networks (batch {counter} of {total})...")
 
         for network in slice:
             df = pd.DataFrame()
@@ -270,22 +271,27 @@ def get_network_appliance_vlans(ansible_os: str,
                 # Create the DataFrame and add it to the database.
                 df = pd.DataFrame(result).astype(str)
                 # Add the subnets, network IPs, and broadcast IPs.
-                addresses = df['subnet'].to_list()
-                del df['subnet']
+                addresses = df["subnet"].to_list()
+                del df["subnet"]
                 result = hp.generate_subnet_details(addresses)
-                df['subnet'] = result['subnet']
-                df['network_ip'] = result['network_ip']
-                df['broadcast_ip'] = result['broadcast_ip']
+                df["subnet"] = result["subnet"]
+                df["network_ip"] = result["network_ip"]
+                df["broadcast_ip"] = result["broadcast_ip"]
+                # Add a column containing the CIDR notation.
+                cidrs = hp.subnet_mask_to_cidr(df["subnet"].to_list())
+                df["cidr"] = cidrs
                 # Add the DataFrame to the database.
                 if counter == 1 and replace_table:
-                    database_method = 'replace'
+                    database_method = "replace"
                 else:
                     database_method = db_method
-                rc.add_to_db(f'{ansible_os.split(".")[-1]}_{collector}',
-                             df,
-                             timestamp,
-                             db_path,
-                             method=database_method)
+                rc.add_to_db(
+                    f'{ansible_os.split(".")[-1]}_{collector}',
+                    df,
+                    timestamp,
+                    db_path,
+                    method=database_method,
+                )
             except APIError as e:
                 print(f"APIerror: {e}")
             except Exception as e:
@@ -295,153 +301,115 @@ def get_network_appliance_vlans(ansible_os: str,
     return df
 
 
-async def meraki_get_network_clients(api_key: str,
-                                     networks: list = [],
-                                     macs: list = [],
-                                     orgs: list = [],
-                                     per_page: int = 1000,
-                                     timespan: int = 300,
-                                     sem: Semaphore = Semaphore(2),
-                                     total_pages: Union[int, str] = 'all') \
-        -> pd.DataFrame:
-    '''
-    Gets the list of clients on a network.
+async def meraki_get_network_clients(
+    api_key: str,
+    networks: List[str] = None,
+    macs: List[str] = None,
+    orgs: List[str] = None,
+    per_page: int = 1000,
+    print_to_console: bool = False,
+    sem: int = 3,
+    timespan: int = 300,
+    total_pages: Union[int, str] = "all",
+) -> pd.DataFrame:
+    """
+    Retrieves a list of clients connected to specified networks or organizations using
+    the Meraki API.
 
     Parameters
     ----------
     api_key : str
         The user's API key.
-    networks : list, optional
-        One or more network IDs.
-    macs : list, optional
-        A list of MAC addresses to filter the clients. Defaults to an empty
-        list.
-    orgs : list, optional
-        A list of organization IDs. If this list is populated, then the clients
-        for all of the networks in the organization(s) will be returned. This
-        could take several minutes for large organizations. Also, if 'networks'
-        and 'org_ids' are both passed to the function, then 'org_ids' will be
-        ignored.
+    networks : List[str], optional
+        A list of network IDs. Defaults to None.
+    macs : List[str], optional
+        A list of MAC addresses to filter the clients. Defaults to None.
+    orgs : List[str], optional
+        A list of organization IDs. Defaults to None. If populated, clients for all
+        networks in these organizations are returned.
     per_page : int, optional
         The number of clients to retrieve per page. Defaults to 1000.
+    print_to_console : bool, optional
+        Whether to print Meraki log messages to the console. Defaults to False.
+    sem : int, optional
+        Maximum number of concurrent requests to the Meraki API. Defaults to 3.
     timespan : int, optional
-        The timespan in seconds to retrieve client data for. Defaults to 300
-        (5 minutes).
-    sem : int
-        The Semaphore used to limit the maximum number of concurrent requests
-        to the Meraki API. Defaults to 3.
-    total_pages : int or str, optional
-        The number of page to return. Defaults to 'all' or -1.
+        The timespan in seconds to retrieve client data for. Defaults to 300 (5
+        minutes).
+    total_pages : Union[int, str], optional
+        The number of pages to return. Defaults to 'all', which retrieves all pages.
 
     Returns
     -------
-    df_clients : pd.DataFrame
-        A Pandas DataFrame containing the clients for the network(s).
+    pd.DataFrame
+        A DataFrame containing the clients for the network(s).
 
     Examples
     --------
-    Example 1:
     >>> import asyncio
     >>> api_key = '<your_api_key_here>'
     >>> networks = ['N_123456789012345678', 'N_234567890123456789']
     >>> df = asyncio.run(meraki_get_network_clients(api_key, networks))
     >>> print(df)
+    """
+    networks = networks or []
+    macs = macs or []
+    orgs = orgs or []
 
-    Example 2:
-    >>> import asyncio
-    >>> api_key = '<your_api_key_here>'
-    >>> networks = ['N_123456789012345678', 'N_234567890123456789']
-    >>> macs = ['00:11:22:33:44:55', 'AA:BB:CC:DD:EE:FF']
-    >>> df = asyncio.run(meraki_get_network_clients(api_key,
-                                                    networks,macs=macs))
-    >>> print(df)
-    '''
-    if sem is None:
-        sem = asyncio.Semaphore(3)
-
-    async def get_clients_for_network(dashboard, network_id, per_page,
-                                      timespan, total_pages):
-        '''
-        Get all clients for a single network ID.
-        '''
-        # Get all the clients for the network
-        async with sem:
-            clients = await dashboard.networks.\
-                getNetworkClients(network_id,
-                                  per_page=per_page,
-                                  timespan=timespan,
-                                  print_console=False,
-                                  total_pages=total_pages)
+    async def get_clients_for_network(dashboard, network_id, limiter):
+        async with limiter:
+            clients = await dashboard.networks.getNetworkClients(
+                network_id,
+                perPage=per_page,
+                timespan=timespan,
+                total_pages=total_pages,
+                print_console=print_to_console,
+            )
             return clients
 
-    # Create a list to store the individual clients for each network.
-    data = list()
-
-    # If the user did not pass a list of networks to the function, then get all
-    # of the networks from the list of orgs. If the user did not pass a list
-    # of orgs either, then get all of the networks from all of the
-    # organizations that the user's API key has access to.
-    if not networks and not orgs:
-        df_orgs = meraki_get_organizations(api_key)
-        orgs = df_orgs['id'].to_list()
+    if not networks and orgs:
+        df_orgs = meraki_get_organizations(api_key)  # Call synchronously
+        orgs = df_orgs["id"].to_list()
     if not networks:
-        df_networks = meraki_get_org_networks(api_key, orgs=orgs)
-        networks = df_networks['id'].to_list()
+        df_networks = meraki_get_org_networks(api_key, orgs=orgs)  # Call synchronously
+        networks = df_networks["id"].to_list()
 
-    # Use the meraki.aio API to concurrently gather the network clients.
-    async with AsyncDashboardAPI(api_key, print_console=False) as dashboard:
-        # Schedule get_clients_for_network() for all network_ids to run
-        # concurrently.
-        results = await asyncio.gather(*(get_clients_for_network(
-            dashboard, network_id, per_page, timespan, total_pages)
-                                         for network_id in networks))
+    limiter = AsyncLimiter(sem, 1)  # Initialize limiter
 
-    # Flatten the list of clients into a single list, which will ultimately be
-    # used to create a DataFrame.
+    async with AsyncDashboardAPI(
+        api_key,
+        print_console=print_to_console,
+        maximum_concurrent_requests=sem,
+        maximum_retries=20,
+        log_path = '/var/log/netbox/'
+    ) as dashboard:
+        tasks = [get_clients_for_network(dashboard, nid, limiter) for nid in networks]
+        results = await asyncio.gather(*tasks)
+
     data = [client for clients in results for client in clients]
-
-    # Create a dictionary to store the client data. It will be used to create
-    # 'df_clients'
-    df_data = dict()
-
-    # Each client is returned as a dictionary. Iterate over the keys in the
-    # dictionary and add them to 'df_data'. This requires iterating over all
-    # the clients twice, but it ensures that all keys are added to 'df_data'.
-    for client in data:
-        for key in client:
-            df_data[key] = list()
-
-    # Iterate over the clients, adding the data to 'df_data'
+    df_data = {key: [] for key in set().union(*(d.keys() for d in data))}
     for client in data:
         for key in df_data:
-            df_data[key].append(client.get(key))
+            df_data[key].append(client.get(key, None))
 
-    # Create the dataframe and convert all datatypes to strings
-    df = pd.DataFrame.from_dict(df_data)
-    df = df.astype('str')
+    df = pd.DataFrame.from_dict(df_data).astype("str")
 
-    # Create 'df_clients'. If the user has provided a list of MACs, then only
-    # add those clients to 'df_clients'. Otherwise, add all clients.
     if macs:
-        df_clients = pd.DataFrame()
-        for mac in macs:
-            mask = df['mac'].str.contains(mac)
-            df_clients = pd.concat([df_clients, df[mask]])
-        # Drop duplicate rows. They can be created if a user esarches for
-        # partial MAC addresses that overlap (e.g., 'ec:f0', 'ec:f0:b6')
-        df_clients = df_clients.drop_duplicates()
-        df_clients = df_clients.reset_index(drop=True)
+        df_clients = (
+            pd.concat([df[df["mac"].str.contains(mac)] for mac in macs])
+            .drop_duplicates()
+            .reset_index(drop=True)
+        )
     else:
         df_clients = df.copy()
 
     return df_clients
 
 
-def meraki_get_network_devices(api_key: str,
-                               db_path: str,
-                               networks: list = [],
-                               orgs: list = []) -> pd.DataFrame:
-    '''
+def meraki_get_network_devices(
+    api_key: str, db_path: str, networks: list = [], orgs: list = []
+) -> pd.DataFrame:
+    """
     Gets the devices for all orgs that the user's API key has access to.
 
     This function uses the following logic:
@@ -492,7 +460,7 @@ def meraki_get_network_devices(api_key: str,
     >>> db_path = '/path/to/database.db'
     >>> df = meraki_get_network_devices(api_key, db_path)
     >>> print(df)
-    '''
+    """
     # Initialize Meraki dashboard
     dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
     app = dashboard.networks
@@ -503,11 +471,12 @@ def meraki_get_network_devices(api_key: str,
     data = list()
 
     if not networks:
-        df_networks = meraki_get_org_networks(api_key, db_path)  # , orgs=orgs)
+        # df_networks = meraki_get_org_networks(api_key, db_path)  # , orgs=orgs)
+        df_networks = meraki_get_org_networks(api_key, db_path, orgs=orgs)
         if df_networks.empty:
             networks = []
         else:
-            networks = df_networks['id'].to_list()
+            networks = df_networks["id"].to_list()
 
     for net in networks:
         # There is no easy way to check if the user's API key has access to
@@ -545,9 +514,8 @@ def meraki_get_network_devices(api_key: str,
     return df_devices
 
 
-def meraki_get_network_device_statuses(db_path: str,
-                                       networks: list) -> pd.DataFrame:
-    '''
+def meraki_get_network_device_statuses(db_path: str, networks: list) -> pd.DataFrame:
+    """
     Gets the statuses of all devices in a network.
 
     This function leverages the 'meraki_get_org_device_statuses' function as
@@ -572,18 +540,18 @@ def meraki_get_network_device_statuses(db_path: str,
     >>> networks = ['N_123456789012345678', 'N_234567890123456789']
     >>> df = meraki_get_network_device_statuses(db_path, networks)
     >>> print(df)
-    '''
+    """
     df_statuses = pd.DataFrame()
 
     con = sl.connect(db_path)
 
     for network in networks:
-        query = f'''SELECT *
+        query = f"""SELECT *
         FROM meraki_org_device_statuses
         WHERE networkId = "{network}"
         ORDER BY timestamp desc
         LIMIT 1
-        '''
+        """
         result = pd.read_sql(query, con)
         df_statuses = pd.concat([df_statuses, result])
 
@@ -591,14 +559,14 @@ def meraki_get_network_device_statuses(db_path: str,
 
     # Delete the 'table_id' column, since it was pulled from the
     # 'meraki_org_device_statuses' table and will need to be recreated
-    if 'table_id' in df_statuses.columns:
-        del df_statuses['table_id']
+    if "table_id" in df_statuses.columns:
+        del df_statuses["table_id"]
 
     return df_statuses
 
 
 def meraki_get_organizations(api_key: str) -> pd.DataFrame:
-    '''
+    """
     Gets a list of organizations and their associated parameters that the
     user's API key has access to.
 
@@ -618,7 +586,7 @@ def meraki_get_organizations(api_key: str) -> pd.DataFrame:
     >>> api_key = '<your_api_key_here>'
     >>> df = meraki_get_organizations(api_key)
     >>> print(df)
-    '''
+    """
     dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
 
     # Get the organizations the user has access to and add them to a dataframe
@@ -629,10 +597,10 @@ def meraki_get_organizations(api_key: str) -> pd.DataFrame:
     return df_orgs
 
 
-def meraki_get_org_appliance_uplink_statuses(api_key: str,
-                                             db_path: str,
-                                             orgs: list = []) -> pd.DataFrame:
-    '''Gets the uplink statuses for appliances in a list of organizations.
+def meraki_get_org_appliance_uplink_statuses(
+    api_key: str, db_path: str, orgs: list = []
+) -> pd.DataFrame:
+    """Gets the uplink statuses for appliances in a list of organizations.
 
     This API endpoint also returns some associated data, like uplink IP
     addresses.
@@ -659,9 +627,9 @@ def meraki_get_org_appliance_uplink_statuses(api_key: str,
     >>> orgs = ['org_id_1', 'org_id_2']
     >>> df = meraki_get_org_devices(api_key, db_path, orgs)
     >>> print(df)
-    '''
+    """
     # Get the organizations (collected by 'meraki_get_orgs') from the database
-    table = 'meraki_organizations'
+    table = "meraki_organizations"
     organizations = hp.meraki_parse_organizations(db_path, orgs, table)
 
     # Initialize Meraki dashboard
@@ -676,10 +644,9 @@ def meraki_get_org_appliance_uplink_statuses(api_key: str,
         # Check if API access is enabled for the org
         enabled = mhp.meraki_check_api_enablement(db_path, org)
         if enabled:
-            uplinks = app.getOrganizationApplianceUplinkStatuses(
-                org, total_pages="all")
+            uplinks = app.getOrganizationApplianceUplinkStatuses(org, total_pages="all")
             for uplink in uplinks:
-                uplink['orgId'] = org
+                uplink["orgId"] = org
             results.append(uplinks)
 
     # Combine the uplinks from the orgs into a single list.
@@ -689,23 +656,23 @@ def meraki_get_org_appliance_uplink_statuses(api_key: str,
 
     for item in data:
         row = {}
-        row['networkId'] = item['networkId']
-        row['serial'] = item['serial']
-        row['model'] = item['model']
-        row['highAvailability'] = item['highAvailability']['role']
-        row['lastReportedAt'] = item['lastReportedAt']
-        row['uplinks'] = len(item['uplinks'])
+        row["networkId"] = item["networkId"]
+        row["serial"] = item["serial"]
+        row["model"] = item["model"]
+        row["highAvailability"] = item["highAvailability"]["role"]
+        row["lastReportedAt"] = item["lastReportedAt"]
+        row["uplinks"] = len(item["uplinks"])
 
-        for uplink in item['uplinks']:
-            prefix = 'wan1' if uplink['interface'] == 'wan1' else 'wan2'
-            row[f'{prefix}_interface'] = uplink['interface']
-            row[f'{prefix}_status'] = uplink['status']
-            row[f'{prefix}_ip'] = uplink['ip']
-            row[f'{prefix}_gateway'] = uplink['gateway']
-            row[f'{prefix}_publicIp'] = uplink['publicIp']
-            row[f'{prefix}_primaryDns'] = uplink.get('primaryDns', None)
-            row[f'{prefix}_secondaryDns'] = uplink.get('secondaryDns', None)
-            row[f'{prefix}_ipAssignedBy'] = uplink.get('ipAssignedBy')
+        for uplink in item["uplinks"]:
+            prefix = "wan1" if uplink["interface"] == "wan1" else "wan2"
+            row[f"{prefix}_interface"] = uplink["interface"]
+            row[f"{prefix}_status"] = uplink["status"]
+            row[f"{prefix}_ip"] = uplink["ip"]
+            row[f"{prefix}_gateway"] = uplink["gateway"]
+            row[f"{prefix}_publicIp"] = uplink["publicIp"]
+            row[f"{prefix}_primaryDns"] = uplink.get("primaryDns", None)
+            row[f"{prefix}_secondaryDns"] = uplink.get("secondaryDns", None)
+            row[f"{prefix}_ipAssignedBy"] = uplink.get("ipAssignedBy")
 
         df_data.append(row)
 
@@ -715,10 +682,8 @@ def meraki_get_org_appliance_uplink_statuses(api_key: str,
     return df
 
 
-def meraki_get_org_devices(api_key: str,
-                           db_path: str,
-                           orgs: list = []) -> pd.DataFrame:
-    '''
+def meraki_get_org_devices(api_key: str, db_path: str, orgs: list = []) -> pd.DataFrame:
+    """
     Gets the devices for all orgs that the user's API key has access to. If the user
     specifies an optional list of organization IDs, then the function will only return
     the devices for those organizations.
@@ -745,9 +710,9 @@ def meraki_get_org_devices(api_key: str,
     >>> orgs = ['org_id_1', 'org_id_2']
     >>> df = meraki_get_org_devices(api_key, db_path, orgs)
     >>> print(df)
-    '''
+    """
     # Get the organizations (collected by 'meraki_get_orgs') from the database
-    table = 'meraki_organizations'
+    table = "meraki_organizations"
     organizations = hp.meraki_parse_organizations(db_path, orgs, table)
 
     # Initialize Meraki dashboard
@@ -764,17 +729,17 @@ def meraki_get_org_devices(api_key: str,
         if enabled:
             devices = app.getOrganizationDevices(org, total_pages="all")
             for item in devices:
-                item['orgId'] = org
+                item["orgId"] = org
                 data.append(item)
 
     df_data = dict()
-    df_data['orgId'] = list()
+    df_data["orgId"] = list()
 
     # Get all of the keys from devices in 'data', and add them as a key to
     # 'df_data'. The value of the key in 'df_data' will be a list.
     for item in data:
         for key in item:
-            if not df_data.get(key) and key != 'orgId':
+            if not df_data.get(key) and key != "orgId":
                 df_data[key] = list()
 
     # Iterate over the devices, adding the data for each device to 'df_data'
@@ -782,7 +747,7 @@ def meraki_get_org_devices(api_key: str,
         for key in df_data:
             df_data[key].append(item.get(key))
 
-    # Create and return the dataframe
+    # Create the dataframe
     df_devices = pd.DataFrame.from_dict(df_data)
 
     # Convert all data to a string. This is because Pandas incorrectly detects
@@ -793,11 +758,10 @@ def meraki_get_org_devices(api_key: str,
     return df_devices
 
 
-def meraki_get_org_device_statuses(api_key: str,
-                                   db_path: str,
-                                   orgs: list = [],
-                                   total_pages='all') -> tuple:
-    '''
+def meraki_get_org_device_statuses(
+    api_key: str, db_path: str, orgs: list = [], total_pages="all"
+) -> tuple:
+    """
     Gets the device statuses for all organizations the user's API key has
     access to.
 
@@ -835,7 +799,7 @@ def meraki_get_org_device_statuses(api_key: str,
                                                       total_pages)
     >>> print(df)
     >>> print(idx_cols)
-    '''
+    """
     # Initialize Meraki dashboard
     dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
     app = dashboard.organizations
@@ -843,7 +807,7 @@ def meraki_get_org_device_statuses(api_key: str,
     # If the user did not specify any organization IDs, then get them by
     # querying the database
     if not orgs:
-        table = 'meraki_organizations'
+        table = "meraki_organizations"
         orgs = hp.meraki_parse_organizations(db_path, orgs, table)
 
     # Create a list to store raw results from the API (the results are
@@ -858,7 +822,7 @@ def meraki_get_org_device_statuses(api_key: str,
         if enabled:
             statuses = app.getOrganizationDevicesStatuses(org, total_pages=tp)
             for item in statuses:
-                item['orgId'] = org  # Add the orgId to each device status
+                item["orgId"] = org  # Add the orgId to each device status
                 data.append(item)
 
     # Create the dictionary 'df_data' from the device statuses in 'data'.
@@ -884,16 +848,15 @@ def meraki_get_org_device_statuses(api_key: str,
     df_statuses = df_statuses.astype(str)
 
     # Set the columns to use for the SQL database table index
-    idx_cols = ['timestamp', 'mac']
+    idx_cols = ["timestamp", "mac"]
 
     return df_statuses, idx_cols
 
 
-def meraki_get_org_networks(api_key: str,
-                            db_path: str = '',
-                            orgs: list = [],
-                            use_db: bool = False) -> pd.DataFrame:
-    '''
+def meraki_get_org_networks(
+    api_key: str, db_path: str = "", orgs: list = [], use_db: bool = False
+) -> pd.DataFrame:
+    """
     Gets the networks for one or more organizations.
 
     Parameters
@@ -924,16 +887,16 @@ def meraki_get_org_networks(api_key: str,
     >>> use_db = True
     >>> df = meraki_get_org_networks(api_key, db_path, orgs, use_db)
     >>> print(df)
-    '''
+    """
     if use_db:
         # Get the organizations (collected by 'meraki_get_orgs') from the
         # database
-        table = 'meraki_organizations'
+        table = "meraki_organizations"
         organizations = hp.meraki_parse_organizations(db_path, orgs, table)
     else:
         if not orgs:
             orgs = meraki_get_organizations(api_key)
-            orgs = orgs['id'].to_list()
+            orgs = orgs["id"].to_list()
         organizations = orgs
     # Initialize Meraki dashboard
     dashboard = meraki.DashboardAPI(api_key=api_key, suppress_logging=True)
@@ -977,7 +940,7 @@ def meraki_get_org_networks(api_key: str,
 
 
 def meraki_get_switch_lldp_neighbors(db_path: str) -> pd.DataFrame:
-    '''
+    """
     Uses the data returned from the 'meraki_get_switch_port_statuses' collector
     to create a dataframe containing switch LLDP neighbors.
 
@@ -997,83 +960,108 @@ def meraki_get_switch_lldp_neighbors(db_path: str) -> pd.DataFrame:
     >>> db_path = '/path/to/database.db'
     >>> df_lldp = meraki_get_switch_lldp_neighbors(db_path)
     >>> print(df_lldp)
-    '''
-    # Query the database to get the LLDP neighbors
-    headers = [
-        'orgId', 'networkId', 'name', 'serial', 'portId as local_port', 'lldp'
-    ]
-    query = f'''SELECT {','.join(headers)}
-    FROM MERAKI_SWITCH_PORT_STATUSES
-    WHERE lldp != 'None'
-    '''
-    con = sl.connect(db_path)
-    result = pd.read_sql(query, con)
+    """
+    # Check to see if the 'MERAKI_SWITCH_PORT_STATUSES' table exists, and that the
+    # 'portId' column is present.
+    df_schema = hp.sql_get_table_schema(db_path, "MERAKI_SWITCH_PORT_STATUSES")
 
-    # Rename 'portId as local_port' to 'local_port' and update 'headers'
-    result.rename(columns={'portId as local': 'local_port'}, inplace=True)
-    headers = result.columns.to_list()
-
-    # Add result['lldp'] to a list and convert each item into a dictionary. The
-    # dictionaries will be used to create the column headers.
-    lldp_col = result['lldp'].to_list()
-    lldp_col = [json.loads(_.replace("'", '"')) for _ in lldp_col]
-
-    # keys = headers
-    keys = list()
-    for item in lldp_col:
-        for key in item:
-            if key not in keys:
-                keys.append(key)
-
-    # Create a list to store the data that will be used to create the
-    # dataframe. This method ensures that keys that the Meraki API did not
-    # return (because they were empty) are added to 'df_lldp'
-    df_data = list()
-
-    for idx, row in result.iterrows():
-        _row = [
-            row['orgId'], row['networkId'], row['name'], row['serial'],
-            row['local_port']
+    if "portId" in df_schema.columns.to_list():
+        # Query the database to get the LLDP neighbors
+        headers = [
+            "orgId",
+            "networkId",
+            "name",
+            "serial",
+            "portId as local_port",
+            "lldp",
         ]
-        lldp = json.loads(row['lldp'].replace("'", '"'))
-        for key in keys:
-            _row.append(lldp.get(key))
-        df_data.append(_row)
+        query = f"""SELECT {','.join(headers)}
+        FROM MERAKI_SWITCH_PORT_STATUSES
+        WHERE lldp != 'None'
+        """
+        con = sl.connect(db_path)
+        result = pd.read_sql(query, con)
 
-    headers.reverse()
-    for item in headers:
-        if item != 'lldp':
-            keys.insert(0, item)
+        # Rename 'portId as local_port' to 'local_port' and update 'headers'
+        result.rename(columns={"portId as local": "local_port"}, inplace=True)
+        headers = result.columns.to_list()
 
-    # Create the dataframe
-    df_lldp = pd.DataFrame(data=df_data, columns=keys)
+        # Add result['lldp'] to a list and convert each item into a dictionary. The
+        # dictionaries will be used to create the column headers.
+        lldp_col = result["lldp"].to_list()
+        lldp_col = [json.loads(_.replace("'", '"')) for _ in lldp_col]
 
-    df_lldp.rename(columns={'portId': 'remote_port'}, inplace=True)
+        # keys = headers
+        keys = list()
+        for item in lldp_col:
+            for key in item:
+                if key not in keys:
+                    keys.append(key)
 
-    # Re-order columns. Only certain columns are selected. This ensures that
-    # the code will continue to function if Meraki adds additional keys in the
-    # future.
-    col_order = [
-        'orgId', 'networkId', 'name', 'serial', 'local_port', 'remote_port',
-        'systemName', 'chassisId', 'systemDescription', 'managementAddress'
-    ]
+        # Create a list to store the data that will be used to create the
+        # dataframe. This method ensures that keys that the Meraki API did not
+        # return (because they were empty) are added to 'df_lldp'
+        df_data = list()
 
-    # Reverse the list so the last item becomes the first column, the next to
-    # last item becomes the second column, and so on.
-    col_order.reverse()
-    # Re-order the columns
-    for c in col_order:
-        df_lldp.insert(0, c, df_lldp.pop(c))
+        for idx, row in result.iterrows():
+            _row = [
+                row["orgId"],
+                row["networkId"],
+                row["name"],
+                row["serial"],
+                row["local_port"],
+            ]
+            lldp = json.loads(row["lldp"].replace("'", '"'))
+            for key in keys:
+                _row.append(lldp.get(key))
+            df_data.append(_row)
 
-    return df_lldp
+        headers.reverse()
+        for item in headers:
+            if item != "lldp":
+                keys.insert(0, item)
+
+        # Create the dataframe
+        df_lldp = pd.DataFrame(data=df_data, columns=keys)
+
+        df_lldp.rename(columns={"portId": "remote_port"}, inplace=True)
+
+        # Re-order columns. Only certain columns are selected. This ensures that
+        # the code will continue to function if Meraki adds additional keys in the
+        # future.
+        col_order = [
+            "orgId",
+            "networkId",
+            "name",
+            "serial",
+            "local_port",
+            "remote_port",
+            "systemName",
+            "chassisId",
+            "systemDescription",
+            "managementAddress",
+        ]
+
+        # Reverse the list so the last item becomes the first column, the next to
+        # last item becomes the second column, and so on.
+        col_order.reverse()
+        # Re-order the columns
+        for c in col_order:
+            df_lldp.insert(0, c, df_lldp.pop(c))
+        return df_lldp
+    # If the MERAKI_SWITCH_PORT_STATUSES table does not exist or the portId column is
+    # not present.
+    else:
+        return pd.DataFrame()
 
 
-def meraki_get_switch_port_statuses(api_key: str,
-                                    db_path: str,
-                                    networks: list = []) -> pd.DataFrame:
-    '''
-    Gets the port statuses and associated data (including errors and warnings)
-    for all Meraki switches in the specified network(s).
+def meraki_get_switch_port_statuses(
+    api_key: str, db_path: str, orgs: list = []
+) -> pd.DataFrame:
+    """
+    Gets the port statuses and associated data (including errors and warnings) for all
+    Meraki switches in the specified orgs. If no orgs are specified, then the switches
+    for all orgs that the user's API key has access to will be returned.
 
     Parameters
     ----------
@@ -1081,34 +1069,26 @@ def meraki_get_switch_port_statuses(api_key: str,
         The user's API key.
     db_path : str
         The path to the database to store results.
-    networks : list, optional
-        The networks in which to gather switch port statuses. If none are
-        provided, then all switch ports for all networks will be returned
+    orgs : list, optional
+        The orgs in which to gather switch port statuses. If none are
+        provided, then all switch ports for all orgs will be returned
         (which could take several minutes in large organizations).
 
     Returns
     -------
-    pd.DataFrame
+    df_ports : pd.DataFrame
         The port statuses.
-
-    Examples
-    --------
-    >>> api_key = '<your_api_key_here>'
-    >>> db_path = '/path/to/database.db'
-    >>> networks = ['N_123456789012345678', 'N_234567890123456789']
-    >>> df_ports = meraki_get_switch_port_statuses(api_key, db_path, networks)
-    >>> print(df_ports)
-    '''
-    if networks:
-        # Query the database to get all switches in the network(s)
-        statement = f'''networkId = "{'" or networkId = "'.join(networks)}"'''
-        query = f'''SELECT distinct orgId, networkId, name, serial
+    """
+    if orgs:
+        # Query the database to get all switches in the orgs(s)
+        statement = f'''orgId = "{'" or orgId = "'.join(orgs)}"'''
+        query = f"""SELECT distinct orgId, networkId, name, serial
         FROM MERAKI_ORG_DEVICES
         WHERE ({statement}) and productType = 'switch'
-        '''
+        """
     else:
-        # Query the database to get all switches in the
-        # 'MERAKI_ORG_DEVICES' table.
+        # Query the database to get all switches that the user's API key has access to
+        # in the 'MERAKI_ORG_DEVICES' table.
         query = '''SELECT distinct orgId, networkId, name, serial
                     FROM MERAKI_ORG_DEVICES
                     WHERE productType = "switch"'''
@@ -1123,31 +1103,31 @@ def meraki_get_switch_port_statuses(api_key: str,
     # Get the port statuses for the switches in df_ports
     data = dict()
     for idx, row in df_ports.iterrows():
-        orgId = row['orgId']
-        networkId = row['networkId']
-        name = row['name']
-        serial = row['serial']
+        orgId = row["orgId"]
+        networkId = row["networkId"]
+        name = row["name"]
+        serial = row["serial"]
 
         data[serial] = dict()
 
         ports = app.getDeviceSwitchPortsStatuses(serial)
         for port in ports:
-            port_id = port['portId']
+            port_id = port["portId"]
             data[serial][port_id] = dict()
-            data[serial][port_id]['orgId'] = orgId
-            data[serial][port_id]['networkId'] = networkId
-            data[serial][port_id]['name'] = name
-            data[serial][port_id]['serial'] = serial
+            data[serial][port_id]["orgId"] = orgId
+            data[serial][port_id]["networkId"] = networkId
+            data[serial][port_id]["name"] = name
+            data[serial][port_id]["serial"] = serial
             for key, value in port.items():
                 data[serial][port_id][key] = value
 
     # Create a dictionary based on the contents of 'data'. This method ensures
     # that all arrays are of equal length when we create the dataframe.
     df_data = dict()
-    df_data['orgId'] = list()
-    df_data['networkId'] = list()
-    df_data['name'] = list()
-    df_data['serial'] = list()
+    df_data["orgId"] = list()
+    df_data["networkId"] = list()
+    df_data["name"] = list()
+    df_data["serial"] = list()
     for item in data:
         device = data[item]
         for port in device:
@@ -1244,17 +1224,23 @@ def meraki_get_switch_port_usages(api_key: str, db_path: str, networks: list,
     return df_usage
 
 
-async def meraki_get_switch_ports(api_key: str,
-                                  sem: Semaphore = Semaphore(2)
-                                  ) -> pd.DataFrame:
-    '''
-    Gets a list of switchports that the
-    user's API key has access to.
+async def meraki_get_switch_ports(
+    api_key: str, orgs: list = [], sem: int = 3
+) -> pd.DataFrame:
+    """
+    Gets a list of switchports that the user's API key has access to.
 
     Parameters
     ----------
     api_key : str
         The user's API key.
+    orgs : list, optional
+        A list of organization IDs for which to get the switch ports. If not specified,
+        then the switch ports for all organizations that a user's API key can access
+        will be returned. Defaults to an empty list.
+    sem : int, optional
+        The Semaphore used to limit the maximum number of concurrent requests
+        to the Meraki API. Defaults to 3.
 
     Returns
     -------
@@ -1282,57 +1268,69 @@ async def meraki_get_switch_ports(api_key: str,
         "linkNegotiation",
         "accessPolicyType"],
         dtype='object')
-    '''
-    if sem is None:
-        sem = asyncio.Semaphore(3)
+    """
+    sem = asyncio.Semaphore(sem)
 
     async def get_switch_ports_for_org(dashboard, org):
-        return await dashboard.switch.getOrganizationSwitchPortsBySwitch(org)
+        try:
+            return await dashboard.switch.getOrganizationSwitchPortsBySwitch(org)
+        except AsyncAPIError:
+            return []
 
-    orgs = meraki_get_organizations(api_key)
-    orgs = orgs['id'].to_list()
+    if not orgs:
+        orgs = meraki_get_organizations(api_key)
+        orgs = orgs["id"].to_list()
 
     data = list()
 
     async with AsyncDashboardAPI(
-            api_key,
-            print_console=False,
+        api_key,
+        print_console=False,
     ) as dashboard:
         result = await asyncio.gather(
-            *(get_switch_ports_for_org(dashboard, org) for org in orgs))
+            *(get_switch_ports_for_org(dashboard, org) for org in orgs)
+        )
         for res in result:
             for row in res:
                 if not row:
                     continue
-                device = row['name']
-                for idx, port in enumerate(row['ports']):
-                    row['ports'][idx]['device'] = device
-                    data.append(row['ports'][idx])
+                device = row["name"]
+                for idx, port in enumerate(row["ports"]):
+                    row["ports"][idx]["device"] = device
+                    data.append(row["ports"][idx])
 
     df = pd.DataFrame(data)
-    # Move the 'device' column to be the first column
-    col_order = ['device'] + [col for col in df if col != 'device']
-    df = df[col_order]
-    df = hp.convert_lists_to_json_in_df(df)
-    # Convert all float columns to int
-    for col in df.columns:
-        if df[col].dtype == 'float64':
-            df[col] = df[col].astype('Int64')
-    df = df.astype(str)
+    try:
+        # Move the 'device' column to be the first column
+        col_order = ["device"] + [col for col in df if col != "device"]
+        df = df[col_order]
+        df = hp.convert_lists_to_json_in_df(df)
+        # Convert all float columns to int
+        for col in df.columns:
+            if df[col].dtype == "float64":
+                df[col] = df[col].astype("Int64")
+        df = df.astype(str)
+    except KeyError:
+        pass
     return df
 
 
-async def meraki_get_appliance_ports(api_key: str,
-                                     sem: Semaphore = Semaphore(2)
-                                     ) -> pd.DataFrame:
-    '''
+async def meraki_get_appliance_ports(
+    api_key: str, org_ids: list = None, sem: int = 3
+) -> pd.DataFrame:
+    """
     Gets a list of appliance ports that the
-    user's API key has access to.
+    user's API key has access to, optionally filtered by organization IDs.
 
     Parameters
     ----------
     api_key : str
         The user's API key.
+    org_ids : list, optional
+        A list of organization IDs to filter the appliance ports by.
+    sem : int, optional
+        The Semaphore used to limit the maximum number of concurrent requests
+        to the Meraki API. Defaults to 3.
 
     Returns
     -------
@@ -1343,7 +1341,7 @@ async def meraki_get_appliance_ports(api_key: str,
     Examples
     --------
     >>> api_key = '<your_api_key_here>'
-    >>> df = meraki_get_appliance_ports(api_key)
+    >>> df = meraki_get_appliance_ports(api_key, org_ids=['123', '456'])
     >>> df.columns
         Index(['device',
         'number',
@@ -1354,55 +1352,67 @@ async def meraki_get_appliance_ports(api_key: str,
         'vlan',
         'accessPolicy'],
         dtype='object')
-    '''
-    if sem is None:
-        sem = asyncio.Semaphore(3)
+    """
+    sem = asyncio.Semaphore(sem)
 
-    def get_all_networks(dashboard, organization_id):
-        return dashboard.organizations.getOrganizationNetworks(
-            organizationId=organization_id,
-            total_pages='all'  # Fetch all pages
-        )
+    async def get_all_networks(dashboard, organization_id):
+        try:
+            return await dashboard.organizations.getOrganizationNetworks(
+                organizationId=organization_id, total_pages="all"  # Fetch all pages
+            )
+        except AsyncAPIError as e:
+            print(f"Error accessing organization {organization_id}: {e}")
+            return []
 
     async def get_switch_ports_for_appl(dashboard, net):
         try:
-            res = await dashboard.appliance.getNetworkAppliancePorts(net['id'])
-            data = [{**item, 'device': net['name']} for item in res]
+            res = await dashboard.appliance.getNetworkAppliancePorts(net["id"])
+            data = [{**item, "device": net["name"]} for item in res]
             return data
         except Exception as e:
-            print(
-                f"Error getting appl ports for net: {net['id']}\nerror: {e}"
-            )
+            print(f"Error fetching ports for network {net['id']}: {e}")
             return []
 
-    orgs = meraki_get_organizations(api_key)
-    orgs = orgs['id'].to_list()
+    # Get list of organizations
+    all_orgs = meraki_get_organizations(api_key)
+
+    # Filter organizations if org_ids is provided
+    if org_ids is not None:
+        orgs = all_orgs[all_orgs["id"].isin(org_ids)]
+    else:
+        orgs = all_orgs
+
+    orgs_list = orgs["id"].to_list()
 
     data = list()
 
-    async with AsyncDashboardAPI(
-            api_key,
-            print_console=False
-    ) as dashboard:
-        result = await asyncio.gather(*(get_all_networks(dashboard, org)
-                                        for org in orgs))
-        networks = [{'id': _['id'], 'name': _['name']} for _ in result[0]]
-        result = await asyncio.gather(
-            *(get_switch_ports_for_appl(dashboard, net) for net in networks))
+    async with AsyncDashboardAPI(api_key, print_console=False) as dashboard:
+        networks_result = await asyncio.gather(
+            *(get_all_networks(dashboard, org) for org in orgs_list)
+        )
 
-        for res in result:
-            for row in res:
-                if not row:
-                    continue
-                data.append(row)
+        networks = [
+            {"id": net["id"], "name": net["name"]}
+            for sublist in networks_result
+            for net in sublist
+            if net
+        ]
+
+        ports_result = await asyncio.gather(
+            *(get_switch_ports_for_appl(dashboard, net) for net in networks)
+        )
+
+        for res in ports_result:
+            data.extend(res)
 
     df = pd.DataFrame(data)
     # Move the 'device' column to be the first column
-    col_order = ['device'] + [col for col in df if col != 'device']
+    col_order = ["device"] + [col for col in df if col != "device"]
     df = df[col_order]
     # Convert all float columns to int
     for col in df.columns:
-        if df[col].dtype == 'float64':
-            df[col] = df[col].astype('Int64')
+        if df[col].dtype == "float64":
+            df[col] = df[col].astype("Int64")
     df = df.astype(str)
+    df = df.replace("nan", "")
     return df
